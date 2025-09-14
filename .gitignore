@@ -27,3 +27,4 @@ logs
 prisma/dev.db
 pnpm-lock.yaml
 temp/
+.windsurf
