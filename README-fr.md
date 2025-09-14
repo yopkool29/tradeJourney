@@ -83,16 +83,17 @@ pnpm install
 npm install
 ```
 
-4. **Configuration de la base de données**
+4. **Database configuration**
 ```bash
-# Créer la base de données
-npx prisma db push
+# Create the database
 
-# Générer le client Prisma
+# npx prisma db push
+
 npx prisma generate
 
-# Initialiser avec des données de test (optionnel)
-DATABASE_URL="file:./prisma/dev.db" node scripts/create-user.mjs
+npx prisma migrate deploy
+
+DATABASE_URL="file:./dev.db" node scripts/create-user.mjs
 ```
 
 5. **Lancer en mode développement**

@@ -83,12 +83,14 @@ npm install
 4. **Database configuration**
 ```bash
 # Create the database
-npx prisma db push
 
-# Generate Prisma client
+# npx prisma db push
+
 npx prisma generate
 
-DATABASE_URL="file:./prisma/dev.db" node scripts/create-user.mjs
+npx prisma migrate deploy
+
+DATABASE_URL="file:./dev.db" node scripts/create-user.mjs
 ```
 
 5. **Run in development mode**
