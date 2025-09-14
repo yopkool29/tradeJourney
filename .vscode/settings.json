@@ -1,0 +1,4 @@
+{
+    "mypy.dmypyExecutable": "/home/patrice/miniconda3/bin/dmypy",
+    "mypy.enabled": true
+}

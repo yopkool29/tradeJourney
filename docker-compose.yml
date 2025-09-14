@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "${EXTERNAL_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/vol_data/docker.db
+    volumes:
+      - db_data:/app/vol_data
+      - uploads:/app/upload
+
+volumes:
+  db_data:
+    name: tradejourney_db_data
+    driver: local
+  uploads:
+    name: tradejourney_uploads
+    driver: local

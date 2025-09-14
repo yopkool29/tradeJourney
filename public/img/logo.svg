@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond du logo -->
+  <rect width="200" height="60" rx="8" fill="#2c3e50" />
+  
+  <!-- Graphique de trading stylisé -->
+  <polyline points="20,40 35,30 50,35 65,20 80,25 95,15 110,30" stroke="#4CAF50" stroke-width="3" fill="none" />
+  <polyline points="20,30 35,35 50,25 65,30 80,15 95,25 110,20" stroke="#F44336" stroke-width="3" fill="none" />
+  
+  <!-- Points de données -->
+  <circle cx="35" cy="30" r="3" fill="#4CAF50" />
+  <circle cx="65" cy="20" r="3" fill="#4CAF50" />
+  <circle cx="95" cy="15" r="3" fill="#4CAF50" />
+  <circle cx="35" cy="35" r="3" fill="#F44336" />
+  <circle cx="65" cy="30" r="3" fill="#F44336" />
+  <circle cx="95" cy="25" r="3" fill="#F44336" />
+  
+  <!-- Texte TradeJourney -->
+  <text x="125" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="#ffffff">Trade</text>
+  <text x="125" y="48" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="#4CAF50">Journey</text>
+  
+  <!-- Icône de livre/journal -->
+  <path d="M10,15 L10,45 C10,45 15,43 20,43 C25,43 30,45 30,45 C30,45 35,43 40,43 C45,43 50,45 50,45 L50,15 C50,15 45,13 40,13 C35,13 30,15 30,15 C30,15 25,13 20,13 C15,13 10,15 10,15 Z" stroke="#ffffff" stroke-width="1.5" fill="none" />
+  <path d="M30,15 L30,45" stroke="#ffffff" stroke-width="1.5" fill="none" />
+</svg>

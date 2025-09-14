@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+:root {
+    --ui-primary: var(--ui-color-primary-600);
+    --ui-secondary: var(--ui-color-secondary-600);
+    --ui-success: var(--ui-color-success-600);
+    --ui-info: var(--ui-color-info-600);
+    --ui-warning: var(--ui-color-warning-600);
+    --ui-error: var(--ui-color-error-400);
+}
+
+.dark {
+    --ui-primary: var(--ui-color-primary-300);
+    --ui-secondary: var(--ui-color-secondary-400);
+    --ui-success: var(--ui-color-success-400);
+    --ui-info: var(--ui-color-info-400);
+    --ui-warning: var(--ui-color-warning-400);
+    --ui-error: var(--ui-color-error-300);
+}
+
+button[role='combobox'],
+button[role='tab'] {
+    user-select: none;
+}
+
+input[type='date'] {
+    user-select: none;
+}
+
+div[role='dialog'] {
+    user-select: none;
+}
+
+select {
+    user-select: none;
+}
+
+.no-select {
+    user-select: none;
+}
+
+.log-normal-text {
+    @apply text-gray-900 dark:text-gray-100;
+}
+
+.log-info-text {
+    @apply text-blue-700 dark:text-blue-400;
+}
+
+.log-debug-text {
+    @apply text-gray-900 dark:text-gray-100;
+}
+
+.log-warn-text {
+    @apply text-orange-500 dark:text-orange-300;
+}
+
+.log-error-text {
+    @apply text-red-600 dark:text-red-400;
+}
+
+.logmessage {
+    -moz-appearance: textfield-multiline;
+    -webkit-appearance: textarea;
+    @apply border-[1px] border-solid border-gray-400 dark:border-gray-600 shadow-none overflow-auto p-1 w-full h-[300px] font-normal text-sm bg-gray-100 dark:bg-gray-800;
+}
+
+/* Fix pour les tooltips qui ne fonctionnent pas avec les modales */
+.tooltip-content {
+    z-index: 9999 !important;
+}
+
+/* S'assurer que les tooltips sont visibles même après fermeture des modales */
+[data-floating-ui-portal] {
+    pointer-events: auto !important;
+}
+
+.truncate1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.truncate2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+::selection {
+    background: #37b9ec; /* Bleu clair pour le mode clair */
+    color: white;
+}
+
+/* Pour les navigateurs basés sur WebKit (Chrome, Safari, etc.) */
+::-moz-selection {
+    background: #37b9ec;
+    color: white;
+}

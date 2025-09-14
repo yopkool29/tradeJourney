@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider               = "prisma-client"
+    output                 = "../generated/prisma"
+    moduleFormat           = "esm" // Explicitly set module format to ESM
+    generatedFileExtension = "ts"
+    importFileExtension    = "ts"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model Trade {
+    id            Int          @id @default(autoincrement())
+    uniqueId      String       @unique
+    active        Boolean
+    openDate      DateTime
+    closeDate     DateTime
+    symbol        String
+    type          String // 'buy' ou 'sell'
+    lot           Float
+    openPrice     Float
+    closePrice    Float
+    stopLoss      Float?       @default(0)
+    takeProfit    Float?       @default(0)
+    profit        Float
+    profit_points Float
+    commission    Float?       @default(0)
+    exchange      Float?       @default(0)
+    note          String?
+    screenshotUrl String? // Garder pour compatibilité
+    screenshots   Screenshot[] // Nouvelle relation pour plusieurs images (optionnel par défaut)
+    accountId     Int
+    account       Account      @relation(fields: [accountId], references: [id])
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @updatedAt
+
+    tags TradeTagAssociation[]
+}
+
+model Screenshot {
+    id        Int      @id @default(autoincrement())
+    url       String
+    tradeId   Int
+    trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    @@index([tradeId])
+}
+
+model TagGroup {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    tags      Tag[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Tag {
+    id                Int                   @id @default(autoincrement())
+    name              String
+    description       String?
+    color             String? // Optionnel, pour l'affichage
+    dark_fg_reverse   Boolean @default(false) // Pour l'affichage en mode sombre
+    groupId           Int
+    group             TagGroup              @relation(fields: [groupId], references: [id])
+    tradeTags         TradeTagAssociation[]
+    createdAt         DateTime              @default(now())
+    updatedAt         DateTime              @updatedAt
+    dayTags           DayTag[]              @relation("DayTagsOnTags")
+    DayTagAssociation DayTagAssociation[]
+
+    @@unique([name, groupId])
+}
+
+model DayTag {
+    id                Int                 @id @default(autoincrement())
+    date              DateTime // ou startDate et endDate pour une plage
+    note              String?
+    tags              Tag[]               @relation("DayTagsOnTags")
+    createdAt         DateTime            @default(now())
+    updatedAt         DateTime            @updatedAt
+    DayTagAssociation DayTagAssociation[]
+}
+
+model TradeTagAssociation {
+    tradeId Int
+    tag     Tag @relation(fields: [tagId], references: [id])
+
+    tagId Int
+    trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+
+    @@unique([tradeId, tagId])
+    @@map("TradeTag")
+}
+
+// Table de jointure pour la relation many-to-many entre DayTag et Tag
+model DayTagAssociation {
+    dayTagId Int
+    dayTag   DayTag @relation(fields: [dayTagId], references: [id], onDelete: Cascade)
+
+    tagId Int
+    tag   Tag @relation(fields: [tagId], references: [id])
+
+    @@id([dayTagId, tagId])
+}
+
+model Account {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    fullname  String
+    displayName   String @default("abcdef")
+    trades    Trade[]
+    createdAt DateTime @default(now())
+}
+
+model User {
+    id            Int            @id @default(autoincrement())
+    email         String         @unique
+    password      String
+    settings      String         @default("{}")
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+}
+
+model ConfigSymbol {
+    id            Int      @id @default(autoincrement())
+    symbol        String   @unique
+    digit         Int      @default(2) // nombre de décimales à afficher pour ce symbole
+    active        Boolean  @default(true)
+    notes         String?
+    pricePerPoint Float    @default(-1)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+}
+
+model DailyNote {
+    id        Int      @id @default(autoincrement())
+    date      DateTime @unique // Date unique pour chaque note
+    content   String   // Contenu riche de la note
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([date])
+}

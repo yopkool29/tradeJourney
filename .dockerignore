@@ -1,0 +1,22 @@
+# Ignore
+node_modules
+
+# Ignore les fichiers de développement
+.git
+.gitignore
+README.md
+.env
+*.log
+dev.db
+upload
+generated
+.nuxt
+.output
+.vscode
+.windsurf
+tests
+data
+.dockerignore
+.docker-compose.yml
+Dockerfile
+Dockerfile-pnpm
