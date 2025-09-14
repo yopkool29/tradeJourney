@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
     const existingUser = await prisma.user.findUnique({
         where: {
-            email: 'plindivat@free.fr'
+            email: 'admin@mail.fr'
         }
     })
 
@@ -17,12 +17,13 @@ async function main() {
         // Création de l'utilisateur
         const user = await prisma.user.create({
             data: {
-                email: 'plindivat@free.fr',
+                email: 'admin@mail.fr',
                 password: hashedPassword
             }
         })
 
         console.log(`User created with ID: ${user.id}`)
+    }
 }
 
 main()
