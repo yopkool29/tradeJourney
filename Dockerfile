@@ -10,8 +10,8 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy package files and prisma schema
-COPY package.json package-lock.json init-db.sh ./
-
+COPY package.json package-lock.json ./
+    
 RUN npm install
 
 # -----------------------------------------------------------o
@@ -54,7 +54,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/generated/prisma ./generated/prisma
 
 # Copier les fichiers Prisma et scripts nécessaires
-COPY --from=builder /app/init-db.sh .
+COPY init-db.sh .
 COPY --from=builder /app/prisma /app/prisma
 COPY --from=builder /app/scripts /app/scripts
 

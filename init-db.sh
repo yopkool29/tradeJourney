@@ -29,7 +29,12 @@ if [ ! -f /app/vol_data/docker.db ]; then
     ls -la /app/prisma/
   fi
 else
-  echo "Base de données existante trouvée dans le volume. Utilisation de celle-ci."
+    echo "Base de données existante trouvée dans le volume. Utilisation de celle-ci."
+    if [ -f /app/prisma/schema.prisma ]; then
+        echo "Schéma Prisma trouvé. Exécution des migrations..."
+        npx prisma generate --schema=/app/prisma/schema.prisma
+        npx prisma migrate deploy --schema=/app/prisma/schema.prisma
+    fi
 fi
 
 # Continuer avec le démarrage normal de l'application
