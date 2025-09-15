@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".output/public",
+  "framework": "nuxt",
+  "regions": ["cdg1"],
+  "env": {
+    "NITRO_PRESET": "vercel"
+  }
+}

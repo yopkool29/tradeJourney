@@ -1,5 +1,20 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+    // Configuration pour Vercel
+    nitro: {
+        preset: process.env.NITRO_PRESET || 'node-server',
+        esbuild: {
+            options: {
+                target: 'es2020'
+            }
+        },
+        publicAssets: [
+            {
+                dir: 'upload',
+                baseURL: '/upload'
+            }
+        ]
+    },
     compatibilityDate: '2024-11-01',
 
     sourcemap: {
@@ -109,19 +124,6 @@ export default defineNuxtConfig({
         classSuffix: '',
         preference: 'light', // mode par défaut
         fallback: 'system',
-    },
-    nitro: {
-        esbuild: {
-            options: {
-                target: 'es2020'
-            }
-        },
-        publicAssets: [
-            {
-                dir: 'upload',
-                baseURL: '/upload'
-            }
-        ]
     },
     typescript: {
         tsConfig: {
