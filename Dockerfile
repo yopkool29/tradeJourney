@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy package files and prisma schema
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json init-db.sh ./
 
 RUN npm install
 
@@ -30,17 +30,13 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 
-#RUN mkdir -p /app/data && chmod 777 /app/data
-
-CMD ["tail", "-f", "/dev/null"]
-
 RUN npm install -g npm@latest
 
 RUN npx nuxt prepare
 RUN npx prisma generate
-RUN npx prisma migrate deploy
-RUN node /app/scripts/seed.mjs
 RUN npm run build
+
+# CMD ["tail", "-f", "/dev/null"]
 
 # -----------------------------------------------------------
 # Production stage
@@ -56,12 +52,17 @@ WORKDIR /app
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/generated/prisma ./generated/prisma
-#COPY --from=builder /app/data ./data
+
+# Copier les fichiers Prisma et scripts nécessaires
+COPY --from=builder /app/init-db.sh .
+COPY --from=builder /app/prisma /app/prisma
+COPY --from=builder /app/scripts /app/scripts
 
 RUN mkdir upload && mkdir upload/screenshots && mkdir temp && mkdir temp/exports
 
 EXPOSE 3000
 
-# #CMD ["tail", "-f", "/dev/null"]
-CMD ["node", ".output/server/index.mjs"]
+# Utiliser le script d'initialisation comme point d'entrée
+ENTRYPOINT ["/app/init-db.sh"]
 
+CMD ["node", ".output/server/index.mjs"]
