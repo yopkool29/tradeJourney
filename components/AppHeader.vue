@@ -34,6 +34,18 @@
                     </nav>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- GitHub Button -->
+                    <a
+                        href="https://github.com/yopkool29/tradeJourney"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        title="GitHub"
+                    >
+                        <span class="w-5 h-5 flex-shrink-0">
+                            <img src="/img/social/github.svg" alt="GitHub" class="w-full h-full object-cover rounded-sm dark:invert" />
+                        </span>
+                    </a>
                     <!-- Language Switcher Button -->
                     <button
                         class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -119,6 +131,19 @@
                                 <UIcon :name="menuItems[4].icon" :class="menuIconClass" />
                                 {{ menuItems[4].label }}
                             </li>
+
+                            <!-- GitHub Link -->
+                            <a 
+                                href="https://github.com/yopkool29/tradeJourney" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                :class="mobileLinkClass"
+                            >
+                                <span class="w-5 h-5 flex-shrink-0 mr-3">
+                                    <img src="/img/social/github.svg" alt="GitHub" class="w-full h-full object-cover rounded-sm dark:invert" />
+                                </span>
+                                GitHub
+                            </a>
 
                             <!-- Language Switcher -->
                             <li :class="mobileLinkClass" @click="toggleLanguage">

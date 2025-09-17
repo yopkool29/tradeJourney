@@ -1,9 +1,17 @@
 <template>
-    <div
-        class="fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg z-50 transition-all duration-300 ease-in-out flex"
-        :class="{ 'translate-x-0': isOpen, '-translate-x-full': !isOpen }"
-        style="width: 800px; max-width: 90vw"
+    <Transition
+        enter-active-class="transition ease-out duration-300"
+        enter-from-class="opacity-0 -translate-x-full"
+        enter-to-class="opacity-100 translate-x-0"
+        leave-active-class="transition ease-in duration-300"
+        leave-from-class="opacity-100 translate-x-0"
+        leave-to-class="opacity-0 -translate-x-full"
     >
+        <div
+            v-if="isOpen"
+            class="fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg z-50 flex"
+            style="width: 800px; max-width: 90vw"
+        >
         <!-- Liste des dates avec des notes -->
         <div class="w-42 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
             <div class="p-3 border-b border-gray-200 dark:border-gray-700">
@@ -207,6 +215,7 @@
             </div>
         </div>
     </div>
+    </Transition>
 
     <!-- Modal de confirmation de suppression -->
     <CommonModalDelete v-model:open="showDeleteModal" :title="$t('components.notes_panel.delete_modal.title')" @confirm="deleteNoteConfirmed">
