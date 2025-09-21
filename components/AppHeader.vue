@@ -1,6 +1,6 @@
 <template>
     <header class="w-full shadow bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-        <ClientOnly>
+        <div>
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
@@ -167,7 +167,7 @@
             <div class="container mx-auto flex justify-between items-center px-4">
                 <LogView ref="myLogView" class="w-full" />
             </div>
-        </ClientOnly>
+        </div>
     </header>
 </template>
 
