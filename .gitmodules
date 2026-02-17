@@ -1,0 +1,3 @@
+[submodule "tradeJourney-private-tools"]
+	path = tradeJourney-private-tools
+	url = https://github.com/yopkool29/tradeJourney-private-tools.git
