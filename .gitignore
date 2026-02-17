@@ -1,0 +1,40 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Data
+/data/
+
+# Logs
+logs
+*.log
+*.db
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.production
+!.env.example
+!.env.production.example
+/upload
+prisma/generated
+/generated
+prisma/dev.db
+pnpm-lock.yaml
+temp/
+.windsurf
+flex_results.csv
+docs/README_CONVERTER_TO_STANDARD_CSV.md
+docs/STANDARD_CSV_FORMAT.md
+docs/*.js

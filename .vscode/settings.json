@@ -1,0 +1,15 @@
+{
+    "mypy.dmypyExecutable": "/home/patrice/.local/bin/dmypy",
+    "mypy.enabled": true,
+    "npm.packageManager": "pnpm",
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "search.exclude": {
+        "**/.nuxt": true,
+        "generated": true
+    }
+    
+}

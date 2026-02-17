@@ -1,0 +1,4 @@
+- Affichage popups trades dans le calendrier => ok
+- Détails trades dans journalier (popup)
+- Bug déplier
+- Settings / sybmol active / inactive ?

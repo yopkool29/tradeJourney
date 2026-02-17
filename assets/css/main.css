@@ -1,0 +1,391 @@
+@import 'tailwindcss'; 
+@import '@nuxt/ui';
+
+:root {
+    --ui-primary: var(--ui-color-primary-600);
+    --ui-secondary: var(--ui-color-secondary-600);
+    --ui-success: var(--ui-color-success-600);
+    --ui-info: var(--ui-color-info-600);
+    --ui-warning: var(--ui-color-warning-600);
+    --ui-error: var(--ui-color-error-400);
+    
+    /* Fond légèrement grisé en mode light */
+    --ui-bg: #f2f2f2;
+}
+
+.dark {
+    --ui-primary: var(--ui-color-primary-300);
+    --ui-secondary: var(--ui-color-secondary-400);
+    --ui-success: var(--ui-color-success-400);
+    --ui-info: var(--ui-color-info-400);
+    --ui-warning: var(--ui-color-warning-400);
+    --ui-error: var(--ui-color-error-300);
+    
+    /* Fond pour le mode dark */
+    --ui-bg: #1f1f2f;
+}
+
+button[role='combobox'],
+button[role='tab'] {
+    user-select: none;
+}
+
+input[type='date'] {
+    user-select: none;
+}
+
+div[role='dialog'] {
+    user-select: none;
+}
+
+select {
+    user-select: none;
+}
+
+.no-select {
+    user-select: none;
+}
+
+.log-normal-text {
+    @apply text-gray-900 dark:text-gray-100;
+}
+
+.log-info-text {
+    @apply text-blue-700 dark:text-blue-400;
+}
+
+.log-debug-text {
+    @apply text-gray-900 dark:text-gray-100;
+}
+
+.log-warn-text {
+    @apply text-orange-500 dark:text-orange-300;
+}
+
+.log-error-text {
+    @apply text-red-600 dark:text-red-400;
+}
+
+.logmessage {
+    appearance: textfield-multiline;
+    -moz-appearance: textfield-multiline;
+    -webkit-appearance: textarea;
+    @apply border-[1px] border-solid border-gray-400 dark:border-gray-600 shadow-none overflow-auto p-1 w-full h-[300px] font-normal text-sm bg-gray-100 dark:bg-gray-800;
+}
+
+/* Fix pour les tooltips qui ne fonctionnent pas avec les modales */
+.tooltip-content {
+    z-index: 9999 !important;
+}
+
+/* S'assurer que les tooltips sont visibles même après fermeture des modales */
+[data-floating-ui-portal] {
+    pointer-events: auto !important;
+}
+
+.truncate1 {
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.truncate2 {
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+::selection {
+    background: #37b9ec; /* Bleu clair pour le mode clair */
+    color: white;
+}
+
+/* Pour les navigateurs basés sur WebKit (Chrome, Safari, etc.) */
+::-moz-selection {
+    background: #37b9ec;
+    color: white;
+}
+
+/* AppHeader styles */
+.header-icon {
+    @apply w-5 h-5;
+}
+
+.header-menu-icon {
+    @apply w-5 h-5 mr-3;
+}
+
+.header-desktop-link {
+    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-300;
+}
+
+.header-desktop-link-active {
+    @apply bg-primary-100 dark:bg-primary-200/15 text-primary-600 dark:text-primary-300 font-medium;
+}
+
+.header-mobile-link {
+    @apply px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer;
+}
+
+.header-mobile-link-active {
+    @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+}
+
+/* Dashboard card styles */
+.dashboard-card {
+    @apply bg-white dark:bg-gray-800 rounded shadow flex items-center justify-center gap-2 py-2;
+}
+
+.dashboard-card-label {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+}
+
+.dashboard-card-value {
+    @apply text-lg font-bold;
+}
+
+/* Header layouts */
+.header-layout {
+    @apply flex flex-col justify-between items-start gap-4;
+}
+
+/* Filter layouts */
+.filter-container {
+    @apply flex flex-col mb-4 gap-4;
+}
+
+.filter-actions {
+    @apply flex flex-wrap gap-2 items-end;
+}
+
+.filter-actions-lg {
+    @apply flex flex-wrap gap-4 items-end;
+}
+
+/* Card containers */
+.card-container {
+    @apply mb-4 md:max-w-4xl min-w-md;
+}
+
+.card-container-lg {
+    @apply mb-8 md:max-w-4xl min-w-md;
+}
+
+.card-container-xl {
+    @apply mb-4 md:max-w-5xl min-w-md;
+}
+
+/* Action button groups */
+.action-buttons {
+    @apply flex gap-2;
+}
+
+.action-buttons-end {
+    @apply flex justify-end gap-2;
+}
+
+/* Profit/Loss text colors */
+.profit-text {
+    @apply font-semibold text-green-600;
+}
+
+.loss-text {
+    @apply font-semibold text-red-600;
+}
+
+.pnl-text {
+    @apply font-semibold;
+}
+
+/* Trade type badges */
+.badge-buy {
+    @apply dark:bg-green-300 bg-emerald-500;
+}
+
+.badge-sell {
+    @apply dark:bg-red-300 bg-orange-500;
+}
+
+/* Form layouts */
+.form-row {
+    @apply flex items-center gap-2;
+}
+
+.form-row-lg {
+    @apply flex items-center gap-4;
+}
+
+/* Stat displays */
+.stat-item {
+    @apply flex items-center;
+}
+
+.stat-label {
+    @apply font-semibold;
+}
+
+.stat-value {
+    @apply ml-1;
+}
+
+/* Tag displays */
+.tag-container {
+    @apply flex flex-wrap gap-1;
+}
+
+.tag-container-lg {
+    @apply flex flex-wrap gap-2;
+}
+
+/* Modal content */
+.modal-content-gap {
+    @apply flex flex-col gap-2;
+}
+
+/* Form fields container */
+.form-fields-container {
+    @apply flex flex-col gap-4;
+}
+
+/* Section titles */
+.section-title {
+    @apply font-bold text-lg;
+}
+
+.section-title-semibold {
+    @apply text-lg font-semibold;
+}
+
+.section-subtitle {
+    @apply text-lg font-medium mb-3;
+}
+
+.section-subtitle-lg {
+    @apply text-lg font-medium mb-4;
+}
+
+.modal-title {
+    @apply text-xl font-bold mb-6;
+}
+
+.page-title {
+    @apply text-2xl font-bold dark:text-white;
+}
+
+.page-header {
+    @apply flex justify-between items-center mb-6;
+}
+
+.section-label {
+    @apply font-semibold;
+}
+
+/* Form field help text */
+.field-help-text {
+    @apply mb-1 text-xs font-medium text-gray-500 dark:text-gray-400;
+}
+
+/* Screenshot container */
+.screenshot-container {
+    @apply mt-6 p-4 border rounded-md border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
+}
+
+/* Section separators */
+.section-separator {
+    @apply border-b border-gray-200 dark:border-gray-700 pb-4;
+}
+
+/* Centering utilities */
+.flex-center {
+    @apply flex justify-center;
+}
+
+/* Standard select width */
+.select-standard {
+    @apply min-w-[200px] max-w-[300px] w-full;
+}
+
+/* Secondary text */
+.text-secondary {
+    @apply text-gray-500 dark:text-gray-400;
+}
+
+.text-secondary-sm {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.text-secondary-xs {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+.description-text {
+    @apply text-sm text-gray-500 dark:text-gray-400 mt-1;
+}
+
+/* Date input standard */
+.date-input {
+    @apply w-36;
+}
+
+/* Clickable elements */
+.badge-clickable {
+    @apply cursor-pointer;
+}
+
+.image-clickable {
+    @apply cursor-pointer hover:opacity-80 transition-opacity;
+}
+
+/* Inactive/archived state */
+.row-inactive {
+    @apply bg-amber-200 dark:bg-amber-900/50 rounded;
+}
+
+/* Table cell widths */
+.cell-narrow {
+    @apply md:min-w-44;
+}
+
+.cell-wide {
+    @apply md:min-w-120;
+}
+
+/* Calendar cell states */
+.calendar-cell-positive {
+    @apply bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-600 hover:bg-green-200 dark:hover:bg-green-900/40;
+}
+
+.calendar-cell-negative {
+    @apply bg-red-100 dark:bg-red-900/30 border-red-400 dark:border-red-600 hover:bg-red-200 dark:hover:bg-red-900/40;
+}
+
+.calendar-cell-neutral {
+    @apply bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700;
+}
+
+/* Calendar day cell states (lighter version for individual days) */
+.calendar-day-positive {
+    @apply bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30;
+}
+
+.calendar-day-negative {
+    @apply bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30;
+}
+
+.calendar-day-neutral {
+    @apply bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800;
+}
+
+/* Calendar text colors for profit/loss */
+.calendar-pnl-positive {
+    @apply text-green-600 dark:text-green-400;
+}
+
+.calendar-pnl-negative {
+    @apply text-red-600 dark:text-red-400;
+}

@@ -1,0 +1,18 @@
+{
+  "migrations": [
+    {
+      "version": 0,
+      "name": "initial-schema",
+      "description": "Initial database schema with all tables",
+      "file": "000-initial-schema.sql",
+      "date": "2026-01-29"
+    },
+    {
+      "version": 2,
+      "name": "add-instrument-mae-mfe-options-metadata",
+      "description": "Add instrumentType, MAE, MFE, options fields (strikePrice, expirationDate, optionType, premium) and metadata JSONB to Trade",
+      "file": "002-add-instrument-mae-mfe-options-metadata.sql",
+      "date": "2026-02-12"
+    }
+  ]
+}

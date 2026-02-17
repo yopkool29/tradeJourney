@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cmake",
+            "request": "launch",
+            "name": "CMake: Configure project",
+            "cmakeDebugType": "configure",
+            "clean": false,
+            "configureAll": false
+        },
+
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "client: chrome",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Process",
+            "processId": "${command:PickProcess}"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "server: nuxt",
+            "outputCapture": "std",
+            "runtimeExecutable": "/home/patrice/.nvm/versions/node/v23.10.0/bin/node",
+            "args": ["dev"],
+            "program": "${workspaceFolder}/node_modules/nuxt/bin/nuxt.mjs",
+            // "console": "integratedTerminal"
+            "runtimeArgs": ["--preserve-symlinks", "--preserve-symlinks-main"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "server: test",
+            "outputCapture": "std",
+            "runtimeExecutable": "/home/patrice/.nvm/versions/node/v23.10.0/bin/node",
+            "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+            "args": ["run", "tests/mt5-parser.test.ts"],
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "fullstack: nuxt",
+            "configurations": ["server: nuxt", "client: chrome"]
+        }
+    ]
+}
