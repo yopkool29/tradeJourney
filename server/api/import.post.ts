@@ -176,6 +176,8 @@ const processTrades = async (
         })
     }
 
+    console.log("keepExistingTrades:", keepExistingTrades)
+
     if (!keepExistingTrades) {
         // Supprimer les trades existants pour les jours qui vont être réimportés
         for (const day of parsedTrades.accountInfo.tradingDays) {
@@ -186,7 +188,7 @@ const processTrades = async (
             console.log(`processTrades: Deleting trades from ${day} for account ${account.name} (importName: ${importName})`)
 
             // Supprimer directement les trades de la bonne base de données
-            await dataDb.trade.deleteMany({
+            const result = await dataDb.trade.deleteMany({
                 where: {
                     accountId: account.id,
                     openDate: {
@@ -196,6 +198,7 @@ const processTrades = async (
                     importName: importName
                 }
             })
+            console.log(`Deleted ${result.count} trades for day ${day} importName ${importName} account id: ${account.id}`)
         }
     } else {
         console.log(`processTrades: Keeping existing trades for account ${account.name} (importName: ${importName})`)
@@ -220,6 +223,7 @@ const processTrades = async (
                     data: {
                         ...parsedTrade,
                         uniqueId,
+                        importName,
                         active: true,
                         instrumentType,
                         screenshots: { create: [] }
