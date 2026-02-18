@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const UserSchema = z.object({
     id: z.number(),
     email: z.string(),
+    token: z.string().optional(),
     settings: z.string(),
     settings_object: z.record(z.any()).optional().nullable(),
 })
@@ -28,6 +29,8 @@ export const SettingsContentSchema = z.object({
     timezoneUtcOffset: z.number().default(0),
     pnlThreshold: z.number().default(0),
     defaultDatabaseId: z.number().optional().nullable(),
+    storageUrl: z.string().default('https://your-ngrok-url.ngrok.io'),
+    storagePassword: z.string().default(''),
     chartColors: z.object({
         cumulatedPnlChart: z.object({
             bar: z.object({
@@ -113,6 +116,8 @@ export const defaultSettings: SettingsContentType = {
     timezoneUtcOffset: 0,
     pnlThreshold: 0,
     defaultDatabaseId: null,
+    storageUrl: 'https://your-ngrok-url.ngrok.io',
+    storagePassword: '',
     chartColors: {
         cumulatedPnlChart: {
             bar: {

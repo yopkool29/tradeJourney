@@ -8,7 +8,7 @@
         <div class="p-4">
             <p class="text-secondary mb-6">{{ $t('components.settings.options.description') }}</p>
 
-            <div>
+            <UForm :state="formState" autocomplete="off">
                 <div class="space-y-6">
                     <!-- Section Interface -->
                     <div class="section-separator">
@@ -73,6 +73,78 @@
                                 />
                                 <template #description>
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.pnl_threshold_desc') }}</span>
+                                </template>
+                            </UFormField>
+                        </div>
+                    </div>
+
+                    <!-- Section Storage -->
+                    <div class="section-separator">
+                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.storage_section') }}</h3>
+                        <div class="grid grid-cols-1 gap-8">
+                            <UFormField name="storageUrl" :label="$t('components.settings.options.storage_url')">
+                                <UInput
+                                    class="w-128"
+                                    v-model="formState.storageUrl"
+                                    placeholder="https://your-ngrok-url.ngrok.io"
+                                />
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_url_desc') }}</span>
+                                </template>
+                            </UFormField>
+                            <UFormField name="storageToken" :label="$t('components.settings.options.storage_token')" class="w-128">
+                                <div class="flex gap-2">
+                                    <UInput
+                                        :model-value="userStore.user?.token || ''"
+                                        readonly
+                                        class="bg-gray-100 dark:bg-gray-800 flex-1"
+                                        :type="showToken ? 'text' : 'password'"
+                                    />
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        @click="showToken = !showToken"
+                                    >
+                                        {{ showToken ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
+                                    </UButton>
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        @click="copyToClipboard(userStore.user?.token || '')"
+                                    >
+                                        {{ $t('components.settings.options.copy') }}
+                                    </UButton>
+                                </div>
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_token_desc') }}</span>
+                                </template>
+                            </UFormField>
+                            <UFormField name="storagePassword" :label="$t('components.settings.options.storage_password')" class="w-128">
+                                <div class="flex gap-2">
+                                    <UInput
+                                        v-model="formState.storagePassword"
+                                        class="flex-1"
+                                        :type="showPassword ? 'text' : 'password'"
+                                        placeholder="Mot de passe de chiffrement"
+                                        autocomplete="off"
+                                    />
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        @click="showPassword = !showPassword"
+                                    >
+                                        {{ showPassword ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
+                                    </UButton>
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        @click="copyToClipboard(formState.storagePassword)"
+                                    >
+                                        {{ $t('components.settings.options.copy') }}
+                                    </UButton>
+                                </div>
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_password_desc') }}</span>
                                 </template>
                             </UFormField>
                         </div>
@@ -360,7 +432,7 @@
                 <div class="action-buttons mt-8">
                     <UButton type="button" color="neutral" @click="resetSettings">{{ $t('components.settings.options.reset_button') }}</UButton>
                 </div>
-            </div>
+            </UForm>
         </div>
     </UCard>
 </template>
@@ -378,6 +450,20 @@ const { t } = useI18n()
 const colorMode = useColorMode()
 
 const isDark = computed(() => colorMode.value === 'dark')
+
+// Visibility toggles for sensitive data
+const showToken = ref(false)
+const showPassword = ref(false)
+
+// Copy to clipboard helper
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    toastSuccess(t('components.settings.options.copied_title'), t('components.settings.options.copied_desc'))
+  } catch {
+    log_error('Failed to copy to clipboard')
+  }
+}
 
 const formState = ref<SettingsContentType>({
   ...defaultSettings,

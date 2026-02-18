@@ -193,6 +193,7 @@ const providerItems = computed(() => {
         { value: 'ibkr', label: getProviderLabel('ibkr') },
         { value: 'ibkr-api', label: getProviderLabel('ibkr-api') },
         { value: 'standard', label: getProviderLabel('standard') },
+        { value: 'standard-live', label: getProviderLabel('standard-live') },
     ]
 
     if (config.public.ninjaTraderApiEnable === true) {

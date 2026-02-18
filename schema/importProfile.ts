@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nameFormatRefine } from './index'
 
 export const INSTRUMENT_TYPES = ['any', 'forex', 'future', 'stock', 'crypto', 'call', 'put'] as const
 export type InstrumentType = typeof INSTRUMENT_TYPES[number]
@@ -11,16 +12,13 @@ export const DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER: Record<string, InstrumentType>
     ibkr: 'stock',
     'ibkr-api': 'stock',
     standard: 'any',
+    'standard-live': 'any',
 }
 
 /**
  * Schéma complet (lecture depuis l'API, avec relations Prisma)
  */
 const tagRelationSchema = z.array(z.object({ tagId: z.number() })).default([]).transform((arr) => arr.map((t) => t.tagId))
-
-const nameFormatRefine = (schema: z.ZodString) => schema.refine(val => /^[\p{L}\p{N}_]+$/u.test(val), {
-    params: { i18n: 'zodI18n.validation.name_format' }
-})
 
 export const ImportProfileSchema = z.object({
     id: z.number(),
@@ -48,9 +46,7 @@ export type ImportProfileType = z.output<typeof ImportProfileSchema>;
  * Schéma pour la création d'un profil (sans ID, createdAt, updatedAt)
  */
 export const CreateImportProfileSchema = z.object({
-    name: z.string().min(4).refine(val => /^[\p{L}\p{N}_]+$/u.test(val), {
-        params: { i18n: 'zodI18n.validation.name_format' }
-    }),
+    name: nameFormatRefine(z.string().min(3).max(64)),
     provider: z.string(),
     importMode: z.string().default('local'),
     timezone: z.string().default('Europe/Paris'),
@@ -90,9 +86,7 @@ export type CreateImportProfileType = z.input<typeof CreateImportProfileSchema>;
  */
 export const UpdateImportProfileSchema = z.object({
     id: z.number(),
-    name: z.string().min(4).refine(val => /^[\p{L}\p{N}_]+$/u.test(val), {
-        params: { i18n: 'zodI18n.validation.name_format' }
-    }),
+    name: nameFormatRefine(z.string().min(3).max(64)),
     provider: z.string(),
     importMode: z.string().default('local'),
     timezone: z.string().default('Europe/Paris'),

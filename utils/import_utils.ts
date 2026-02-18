@@ -6,6 +6,7 @@ export const providerLabels: Record<string, string> = {
     'ibkr': 'Interactive Brokers (CSV)',
     'ibkr-api': 'Interactive Brokers (Live)',
     'standard': 'Standard CSV Format',
+    'standard-live': 'Standard CSV Format (Cloud)',
 }
 
 export const providerIcons: Record<string, string> = {
@@ -16,6 +17,7 @@ export const providerIcons: Record<string, string> = {
     'ibkr': 'i-lucide-file-spreadsheet',
     'ibkr-api': 'i-lucide-wifi',
     'standard': 'i-lucide-file-spreadsheet',
+    'standard-live': 'i-lucide-cloud',
 }
 
 export const getProviderLabel = (provider: string) => providerLabels[provider] || provider

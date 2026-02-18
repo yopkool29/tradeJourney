@@ -45,7 +45,6 @@
                         />
                     </UFormField>
                 </div>
-
                 <!-- Info API pour les imports live -->
                 <div v-if="isApiImport" class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300 rounded">
                     <p class="text-sm font-semibold">{{ $t('components.import.profile_execute.api_info') }}</p>
@@ -55,12 +54,48 @@
                     <p v-if="profile.provider === 'nt8-api'" class="text-xs mt-1">
                         {{ $t('components.import.profile_execute.nt8_api_desc') }}
                     </p>
+                    <div v-if="profile.provider === 'standard-live'" class="text-xs mt-1 space-y-1">
+                        <p>{{ $t('components.import.profile_execute.storage_info') }}</p>
+                        <p>{{ $t('components.import.profile_execute.storage_desc') }}</p>
+                    </div>
+                </div>
+
+                <!-- Liste des fichiers disponibles (pour standard-live) -->
+                <div v-if="profile.provider === 'standard-live'" class="space-y-4">
+                    <UButton
+                        :loading="isLoadingFiles"
+                        variant="soft"
+                        icon="i-lucide-refresh-cw"
+                        @click="loadStorageFiles"
+                    >
+                        {{ $t('components.import.profile_execute.refresh_files') }}
+                    </UButton>
+                    <div v-if="storageFiles.length > 0" class="space-y-2">
+                        <div
+                            v-for="file in storageFiles"
+                            :key="file.file_id"
+                            class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                            :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': selectedFileId === file.file_id }"
+                            @click="selectedFileId = file.file_id"
+                        >
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium">{{ file.filename }}</p>
+                                    <p class="text-xs text-secondary">{{ new Date(file.timestamp).toLocaleString() }} • {{ (file.file_size / 1024).toFixed(2) }} KB</p>
+                                </div>
+                                <UBadge v-if="file.retrieved" color="neutral" variant="subtle">{{ $t('components.import.profile_execute.already_retrieved') }}</UBadge>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="!isLoadingFiles" class="text-center text-secondary py-4">
+                        {{ $t('components.import.profile_execute.no_files') }}
+                    </div>
                 </div>
 
                 <!-- Boutons d'action -->
                 <div class="flex gap-2 pt-4">
                     <UButton
-                        :disabled="!isApiImport && !file"
+                        :disabled="(profile.provider === 'standard-live' && !selectedFileId) || (!isApiImport && profile.provider !== 'standard-live' && !file)"
                         :loading="isLoading"
                         @click="onImport"
                     >
@@ -82,6 +117,7 @@ const { t } = useI18n()
 const userStore = useUserStore()
 const { log_error, log_info } = useLogView()
 const { importTrades } = useTrades()
+const { listFiles, retrieveFile, deleteFile } = useStorageServer()
 
 const props = defineProps<{
     profile: ImportProfileType
@@ -97,8 +133,11 @@ const fileInputKey = ref(0)
 const errorStr = ref<string | null>(null)
 const successStr = ref<string | null>(null)
 const isLoading = ref(false)
+const isLoadingFiles = ref(false)
+const storageFiles = ref<any[]>([])
+const selectedFileId = ref<string | null>(null)
 
-const isApiImport = computed(() => props.profile.provider === 'nt8-api' || props.profile.provider === 'ibkr-api')
+const isApiImport = computed(() => props.profile.provider === 'nt8-api' || props.profile.provider === 'ibkr-api' || props.profile.provider === 'standard-live')
 
 // IBKR Flex Query composable avec token/queryId du profil
 const ibkrToken = computed(() => props.profile.ibkrFlexQueryToken || '')
@@ -111,8 +150,27 @@ const getFileLabel = computed(() => {
         case 'quantower': return t('components.import.index.file_quantower')
         case 'ibkr': return t('components.import.index.file_ibkr')
         case 'standard': return t('components.import.index.file_standard')
+        case 'standard-live': return t('components.import.index.file_standard_live')
         case 'nt8':
         default: return t('components.import.index.file_ninja')
+    }
+})
+
+async function loadStorageFiles() {
+    isLoadingFiles.value = true
+    try {
+        storageFiles.value = await listFiles()
+    } catch (err) {
+        log_error('Failed to load storage files')
+    } finally {
+        isLoadingFiles.value = false
+    }
+}
+
+// Auto-load files for standard-live on mount
+onMounted(() => {
+    if (props.profile.provider === 'standard-live') {
+        loadStorageFiles()
     }
 })
 
@@ -132,6 +190,11 @@ async function onImport() {
 
     if (props.profile.provider === 'ibkr-api') {
         await importFromIBKRFlexQuery()
+        return
+    }
+
+    if (props.profile.provider === 'standard-live') {
+        await importFromStorageServer()
         return
     }
 
@@ -243,6 +306,59 @@ async function importFromIBKRFlexQuery() {
 
         const result = await importTrades(formData)
         successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+    } catch (err) {
+        const { message } = catchTagMessage(err, t)
+        errorStr.value = message || t('components.import.index.api_import_error')
+        log_error(message)
+    } finally {
+        isLoading.value = false
+        stopLoading()
+    }
+}
+
+async function importFromStorageServer() {
+    if (!selectedFileId.value) {
+        errorStr.value = t('components.import.profile_execute.select_file_from_storage')
+        return
+    }
+
+    isLoading.value = true
+    const { startLoading, stopLoading } = useGlobalLoading()
+    startLoading()
+
+    try {
+        // Récupérer le fichier chiffré du serveur
+        const encryptedData = await retrieveFile(selectedFileId.value)
+        if (!encryptedData) {
+            throw new Error('Failed to retrieve file from storage server')
+        }
+
+        // Créer un Blob et un File à partir des données chiffrées
+        const blob = new Blob([encryptedData], { type: 'text/csv' })
+        const csvFile = new File([blob], 'storage-server-export.csv', { type: 'text/csv' })
+
+        const formData = new FormData()
+        formData.append('file', csvFile)
+        formData.append('reportType', 'standard')
+        formData.append('importMode', props.profile.importMode)
+        formData.append('timezone', props.profile.timezone)
+        formData.append('keepExistingTrades', String(props.profile.keepExistingTrades))
+        formData.append('instrumentType', props.profile.instrumentType || 'any')
+        formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
+        formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
+
+        log_info('importFromStorageServer importMode:', props.profile.importMode)
+        log_info('importFromStorageServer timezone:', props.profile.timezone)
+
+        const result = await importTrades(formData)
+        successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+
+        // Optionnel: supprimer le fichier du serveur après import réussi
+        // await deleteFile(selectedFileId.value)
+
+        // Recharger la liste des fichiers
+        await loadStorageFiles()
+        selectedFileId.value = null
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         errorStr.value = message || t('components.import.index.api_import_error')

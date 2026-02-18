@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
             select: {
                 id: true,
                 email: true,
+                token: true,
                 settings: true
             }
         })
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
         return {
             id: user.id,
             email: user.email,
+            token: user.token,
             settings: user.settings
         }
     } catch (error) {

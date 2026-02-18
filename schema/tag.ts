@@ -1,12 +1,9 @@
 import { z } from 'zod'
+import { nameFormatRefine } from './index'
 
 /**
  * Schéma de validation pour les tags
  */
-
-const nameFormatRefine = (schema: z.ZodString) => schema.refine(val => /^[\p{L}\p{N}_]+$/u.test(val), {
-    params: { i18n: 'zodI18n.validation.name_format' }
-})
 
 export const TagSchema = z.object({
     id: z.number(),

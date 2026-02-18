@@ -1,18 +1,15 @@
 import { z } from 'zod';
+import { nameFormatRefine } from './index'
 
 /**
  * Schéma de validation pour les comptes
  */
 
-const nameFormatRefine = (schema: z.ZodString) => schema.refine(val => /^[\p{L}\p{N}_]+$/u.test(val), {
-    params: { i18n: 'zodI18n.validation.name_format' }
-})
-
 export const AccountSchema = z.object({
     id: z.number(),
     name: z.string().min(3).max(64),
-    fullname: z.string().min(3),
-    displayName: z.string().min(3),
+    fullname: z.string().min(3).max(256),
+    displayName: z.string().min(3).max(256),
     aliases: z.string().default('').transform((val) => {
         // Nettoyer les alias : split par virgule, trim chaque élément, filtrer les vides, rejoindre
         if (!val || val.trim() === '') return '';

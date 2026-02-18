@@ -159,7 +159,15 @@ export const useUserStore = defineStore(
                         last_results: [] as TradeExtendedType[]
                     }
                 }
-                return dashBoardFiltersPerDb.value[dbName]
+                
+                // Ensure dates are Date objects (localStorage restores them as strings)
+                const filters = dashBoardFiltersPerDb.value[dbName]
+                filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
+                filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
+                filters.customStartDate = filters.customStartDate instanceof Date ? filters.customStartDate : new Date(filters.customStartDate)
+                filters.customEndDate = filters.customEndDate instanceof Date ? filters.customEndDate : new Date(filters.customEndDate)
+                
+                return filters
             },
             set: (val) => {
                 const dbName = getCurrentDbName()

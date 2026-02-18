@@ -11,7 +11,7 @@ export const useNotes = () => {
     // Fetch a single note by date
     const fetchNote = async (date: string | Date) => {
         const dateStr = typeof date === 'string' ? date : toISODate(date)
-        return await $fetch<InternalApi['/api/notes']['get']>(`/api/notes?date=${dateStr}`, { method: 'GET' })
+        return await $fetch(`/api/notes?date=${dateStr}`, { method: 'GET' })
     }
 
     // Save a note (create or update)
