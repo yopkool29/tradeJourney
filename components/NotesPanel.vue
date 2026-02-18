@@ -489,13 +489,13 @@ watch(
 const handleKeyDown = async (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         if (props.isOpen) {
-            e.preventDefault()
+            // e.preventDefault()
             await saveNote()
             closePanel()
         }
     } else if (e.key === 'Escape') {
         if (props.isOpen) {
-            e.preventDefault()
+            // e.preventDefault()
             closePanel()
         }
     }
