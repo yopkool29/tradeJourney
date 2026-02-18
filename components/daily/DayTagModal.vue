@@ -42,6 +42,7 @@ import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import { normalizeDateToLocalString } from '~/utils/date-utils'
 
 const { t } = useI18n()
+const { success: toastSuccess, error: toastError } = useAppToast()
 
 const { fetchGroups } = useTags()
 const { createDayTag, updateDayTag } = useDayTags()
@@ -104,14 +105,17 @@ async function onSubmit(event: FormSubmitEvent<CreateDayTagType | UpdateDayTagTy
         
         if (props.dayTag) {
             result = await updateDayTag({ ...event.data, id: props.dayTag.id } as UpdateDayTagType)
+            toastSuccess(t('components.daily.day_tag_modal.success_updated'))
         } else {
             result = await createDayTag({ ...event.data, date: normalizedDate } as CreateDayTagType)
+            toastSuccess(t('components.daily.day_tag_modal.success_created'))
         }
         emit('saved', result)
         emit('update:open', false)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         errorStr.value = message
+        if (message) toastError(message)
     }
 }
 

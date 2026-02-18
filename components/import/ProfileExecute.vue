@@ -116,6 +116,7 @@ const userStore = useUserStore()
 const { log_error, log_info } = useLogView()
 const { importTrades } = useTrades()
 const { listFiles, retrieveFile, deleteFile } = useStorageServer()
+const { success: toastSuccess, error: toastError } = useAppToast()
 
 const props = defineProps<{
     profile: ImportProfileType
@@ -219,10 +220,13 @@ async function onImport() {
 
     try {
         const result = await importTrades(formData)
-        successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        successStr.value = msg
+        toastSuccess(msg)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         errorStr.value = message
+        if (message) toastError(message)
         log_error(message)
     } finally {
         isLoading.value = false
@@ -261,10 +265,14 @@ async function importFromNinjaTraderApi() {
         log_info('importFromNinjaTraderApi timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
-        successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        successStr.value = msg
+        toastSuccess(msg)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message || t('components.import.index.api_import_error')
+        const errorMsg = message || t('components.import.index.api_import_error')
+        errorStr.value = errorMsg
+        toastError(errorMsg)
         log_error(message)
     } finally {
         isLoading.value = false
@@ -302,10 +310,14 @@ async function importFromIBKRFlexQuery() {
         log_info('importFromIBKRFlexQuery timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
-        successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        successStr.value = msg
+        toastSuccess(msg)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message || t('components.import.index.api_import_error')
+        const errorMsg = message || t('components.import.index.api_import_error')
+        errorStr.value = errorMsg
+        toastError(errorMsg)
         log_error(message)
     } finally {
         isLoading.value = false
@@ -348,7 +360,9 @@ async function importFromStorageServer() {
         log_info('importFromStorageServer timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
-        successStr.value = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
+        successStr.value = msg
+        toastSuccess(msg)
 
         // Optionnel: supprimer le fichier du serveur après import réussi
         // await deleteFile(selectedFileId.value)
@@ -358,7 +372,9 @@ async function importFromStorageServer() {
         selectedFileId.value = null
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message || t('components.import.index.api_import_error')
+        const errorMsg = message || t('components.import.index.api_import_error')
+        errorStr.value = errorMsg
+        toastError(errorMsg)
         log_error(message)
     } finally {
         isLoading.value = false

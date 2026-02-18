@@ -485,7 +485,24 @@ watch(
     { immediate: true }
 )
 
+// Gérer Ctrl+S pour sauvegarder et fermer, Echap pour fermer
+const handleKeyDown = async (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        await saveNote()
+        closePanel()
+    } else if (e.key === 'Escape') {
+        e.preventDefault()
+        closePanel()
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeyDown)
+})
+
 onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKeyDown)
     const editorInstance = unref(editor)
     if (editorInstance) {
         editorInstance.destroy()

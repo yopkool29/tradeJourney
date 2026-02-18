@@ -304,6 +304,7 @@ const isDark = computed(() => colorMode.value === 'dark')
 const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, tagGroups } = useTags()
 
 const { log_error } = useLogView()
+const { success: toastSuccess, error: toastError } = useAppToast()
 
 const errorStr = ref<string | null>(null)
 const successStr = ref<string | null>(null)
@@ -353,18 +354,23 @@ async function onSubmitGroup(event: FormSubmitEvent<CreateTagGroupType | UpdateT
     try {
         if (editGroupStateId.value) {
             await updateGroup(event.data as UpdateTagGroupType)
-            displayMessage(t('components.settings.tags.group_updated'), null)
+            const msg = t('components.settings.tags.group_updated')
+            displayMessage(msg, null)
+            toastSuccess(msg)
             await fetchGroups()
             editGroupStateId.value = null
         } else {
             await createGroup(event.data as CreateTagGroupType)
-            displayMessage(t('components.settings.tags.group_created'), null)
+            const msg = t('components.settings.tags.group_created')
+            displayMessage(msg, null)
+            toastSuccess(msg)
             await fetchGroups()
             showAddGroup.value = false
         }
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
+        if (message) toastError(message)
         log_error(message)
     }
 }
@@ -373,10 +379,13 @@ async function onDeleteGroup(group: TagGroupType) {
     try {
         await deleteGroup(group.id, deleteAssoc.value)
         await fetchGroups()
-        displayMessage(t('components.settings.tags.group_deleted'), null)
+        const msg = t('components.settings.tags.group_deleted')
+        displayMessage(msg, null)
+        toastSuccess(msg)
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
+        if (message) toastError(message)
         log_error(message)
     }
 }
@@ -412,7 +421,9 @@ async function onSubmitTag(event: FormSubmitEvent<CreateTagType | UpdateTagType>
             if (event.data.color) {
                 onColorPicked(event.data.color)
             }
-            displayMessage(t('components.settings.tags.tag_updated'), null)
+            const msg = t('components.settings.tags.tag_updated')
+            displayMessage(msg, null)
+            toastSuccess(msg)
             await fetchGroups()
             editTagStateId.value = null
         } else {
@@ -420,13 +431,16 @@ async function onSubmitTag(event: FormSubmitEvent<CreateTagType | UpdateTagType>
             if (event.data.color) {
                 onColorPicked(event.data.color)
             }
-            displayMessage(t('components.settings.tags.tag_created'), null)
+            const msg = t('components.settings.tags.tag_created')
+            displayMessage(msg, null)
+            toastSuccess(msg)
             await fetchGroups()
             groupTagToAdd.value = null
         }
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
+        if (message) toastError(message)
         log_error(message)
     }
 }
@@ -435,10 +449,13 @@ async function onDeleteTag(group: TagGroupType, tag: TagType) {
     try {
         await deleteTag(group.id, tag.id, deleteAssoc.value)
         await fetchGroups()
-        displayMessage(t('components.settings.tags.tag_deleted'), null)
+        const msg = t('components.settings.tags.tag_deleted')
+        displayMessage(msg, null)
+        toastSuccess(msg)
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
+        if (message) toastError(message)
         log_error(message)
     }
 }

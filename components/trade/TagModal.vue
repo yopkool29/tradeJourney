@@ -60,6 +60,7 @@ const { updateTradeTags } = useTradeTags()
 const { fetchTrade } = useTrades()
 const { log_error } = useLogView()
 const { t } = useI18n()
+const { success: toastSuccess, error: toastError } = useAppToast()
 
 const props = defineProps<{
     isOpen: boolean
@@ -180,10 +181,13 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         })
 
         // Fermer la modal et émettre l'événement updated
+        toastSuccess(t('components.trade.tagModal.success.saved'))
         emit('saved', event.data.note, event.data.tagIds)
         emit('update:open', false)
     } catch (error) {
-        errorStr.value = error instanceof Error ? error.message : t('components.trade.tagModal.errors.generic')
+        const msg = error instanceof Error ? error.message : t('components.trade.tagModal.errors.generic')
+        errorStr.value = msg
+        toastError(msg)
     } finally {
         isLoading.value = false
     }
