@@ -19,6 +19,8 @@ const defaultSettings = {
 async function main() {
     console.log('Starting to create admin user...')
 
+    const adminToken = process.env.ADMIN_API_TOKEN!
+
     const existingUser = await prisma.user.findUnique({
         where: {
             email: 'admin@mail.fr'
@@ -32,7 +34,8 @@ async function main() {
             data: {
                 email: 'admin@mail.fr',
                 password: hashedPassword,
-                settings: JSON.stringify(defaultSettings)
+                settings: JSON.stringify(defaultSettings),
+                token: adminToken
             }
         })
         console.log(`✓ Admin user created with ID: ${user.id}`)

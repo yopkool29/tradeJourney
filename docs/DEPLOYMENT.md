@@ -160,6 +160,8 @@ Get-Content .\.env.production |
   }
 ```
 
+*=> Launch Docker Desktop (Windows)*
+
 *Build and startup:*
 ```bash
 docker compose build --no-cache
