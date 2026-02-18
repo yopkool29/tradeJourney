@@ -54,7 +54,7 @@ export const useStorageServer = () => {
             // Decrypt the file with password
             const decryptedData = decryptData(encryptedData, storagePassword.value)
             
-            console.log(decryptedData)
+            // console.log(decryptedData)
 
             if (!decryptedData) {
                 log_error(`Failed to decrypt file ${fileId}`)

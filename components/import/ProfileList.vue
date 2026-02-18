@@ -23,7 +23,7 @@
                 <template #header>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <UIcon :name="getProviderIcon(profile.provider)" class="w-5 h-5 text-primary-500" />
+                            <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)" class="w-5 h-5 text-primary-500" />
                             <span class="font-semibold">{{ profile.name }}</span>
                         </div>
                         <UBadge variant="subtle" size="xs">{{ getProviderLabel(profile.provider) }}</UBadge>
@@ -99,6 +99,7 @@
 
 <script setup lang="ts">
 import type { ImportProfileType } from '~/schema/importProfile'
+import { getProviderIconWithMetadata, getProviderLabel } from '~/utils/import_utils'
 
 defineProps<{
     profiles: ImportProfileType[]

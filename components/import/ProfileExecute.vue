@@ -3,7 +3,7 @@
         <div class="flex items-center gap-3 mb-6">
             <UButton variant="ghost" icon="i-lucide-arrow-left" size="xs" @click="emit('back')" />
             <div class="flex items-center gap-2">
-                <UIcon :name="getProviderIcon(profile.provider)" class="w-5 h-5 text-primary-500" />
+                <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)" class="w-5 h-5 text-primary-500" />
                 <h2 class="text-lg font-semibold">{{ profile.name }}</h2>
                 <UBadge variant="subtle" size="xs">{{ getProviderLabel(profile.provider) }}</UBadge>
             </div>
@@ -31,7 +31,7 @@
                 </div>
 
                 <!-- Sélection de fichier (pour les imports fichier) -->
-                <div v-if="!isApiImport" class="flex gap-2">
+                <div v-if="!isApiImport && !useCloudStorage" class="flex gap-2">
                     <UFormField
                         :label="getFileLabel"
                         required
@@ -54,14 +54,14 @@
                     <p v-if="profile.provider === 'nt8-api'" class="text-xs mt-1">
                         {{ $t('components.import.profile_execute.nt8_api_desc') }}
                     </p>
-                    <div v-if="profile.provider === 'standard-live'" class="text-xs mt-1 space-y-1">
+                    <div v-if="useCloudStorage" class="text-xs mt-1 space-y-1">
                         <p>{{ $t('components.import.profile_execute.storage_info') }}</p>
                         <p>{{ $t('components.import.profile_execute.storage_desc') }}</p>
                     </div>
                 </div>
 
-                <!-- Liste des fichiers disponibles (pour standard-live) -->
-                <div v-if="profile.provider === 'standard-live'" class="space-y-4">
+                <!-- Liste des fichiers disponibles (pour cloud storage) -->
+                <div v-if="useCloudStorage" class="space-y-4">
                     <UButton
                         :loading="isLoadingFiles"
                         variant="soft"
@@ -95,7 +95,7 @@
                 <!-- Boutons d'action -->
                 <div class="flex gap-2 pt-4">
                     <UButton
-                        :disabled="(profile.provider === 'standard-live' && !selectedFileId) || (!isApiImport && profile.provider !== 'standard-live' && !file)"
+                        :disabled="(useCloudStorage && !selectedFileId) || (!isApiImport && !useCloudStorage && !file)"
                         :loading="isLoading"
                         @click="onImport"
                     >
@@ -112,6 +112,7 @@
 
 <script setup lang="ts">
 import type { ImportProfileType } from '~/schema/importProfile'
+import { getProviderIconWithMetadata, getProviderLabel } from '~/utils/import_utils'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -137,7 +138,12 @@ const isLoadingFiles = ref(false)
 const storageFiles = ref<any[]>([])
 const selectedFileId = ref<string | null>(null)
 
-const isApiImport = computed(() => props.profile.provider === 'nt8-api' || props.profile.provider === 'ibkr-api' || props.profile.provider === 'standard-live')
+const useCloudStorage = computed(() => {
+    const value = props.profile.metadata?.useCloudStorage || false
+    console.log('🔍 useCloudStorage:', value, 'metadata:', props.profile.metadata)
+    return value
+})
+const isApiImport = computed(() => props.profile.provider === 'nt8-api' || props.profile.provider === 'ibkr-api' || useCloudStorage.value)
 
 // IBKR Flex Query composable avec token/queryId du profil
 const ibkrToken = computed(() => props.profile.ibkrFlexQueryToken || '')
@@ -150,7 +156,6 @@ const getFileLabel = computed(() => {
         case 'quantower': return t('components.import.index.file_quantower')
         case 'ibkr': return t('components.import.index.file_ibkr')
         case 'standard': return t('components.import.index.file_standard')
-        case 'standard-live': return t('components.import.index.file_standard_live')
         case 'nt8':
         default: return t('components.import.index.file_ninja')
     }
@@ -167,9 +172,9 @@ async function loadStorageFiles() {
     }
 }
 
-// Auto-load files for standard-live on mount
+// Auto-load files for cloud storage on mount
 onMounted(() => {
-    if (props.profile.provider === 'standard-live') {
+    if (useCloudStorage.value) {
         loadStorageFiles()
     }
 })
@@ -193,7 +198,7 @@ async function onImport() {
         return
     }
 
-    if (props.profile.provider === 'standard-live') {
+    if (useCloudStorage.value) {
         await importFromStorageServer()
         return
     }

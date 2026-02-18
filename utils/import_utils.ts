@@ -6,7 +6,6 @@ export const providerLabels: Record<string, string> = {
     'ibkr': 'Interactive Brokers (CSV)',
     'ibkr-api': 'Interactive Brokers (Live)',
     'standard': 'Standard CSV Format',
-    'standard-live': 'Standard CSV Format (Cloud)',
 }
 
 export const providerIcons: Record<string, string> = {
@@ -17,8 +16,17 @@ export const providerIcons: Record<string, string> = {
     'ibkr': 'i-lucide-file-spreadsheet',
     'ibkr-api': 'i-lucide-wifi',
     'standard': 'i-lucide-file-spreadsheet',
-    'standard-live': 'i-lucide-cloud',
 }
 
 export const getProviderLabel = (provider: string) => providerLabels[provider] || provider
+
 export const getProviderIcon = (provider: string) => providerIcons[provider] || 'i-lucide-file'
+
+// Fonction qui prend en compte les métadonnées pour afficher l'icône cloud si nécessaire
+export const getProviderIconWithMetadata = (provider: string, metadata?: { useCloudStorage?: boolean } | null) => {
+    // Si c'est un profil standard avec cloud storage activé, afficher l'icône cloud
+    if (provider === 'standard' && metadata?.useCloudStorage) {
+        return 'i-lucide-cloud'
+    }
+    return getProviderIcon(provider)
+}

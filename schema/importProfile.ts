@@ -12,8 +12,12 @@ export const DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER: Record<string, InstrumentType>
     ibkr: 'stock',
     'ibkr-api': 'stock',
     standard: 'any',
-    'standard-live': 'any',
 }
+
+// Schéma pour les métadonnées du profil d'import
+export const ImportProfileMetadataSchema = z.object({
+    useCloudStorage: z.boolean().optional().default(false),
+}).passthrough() // Permet d'autres propriétés non définies
 
 /**
  * Schéma complet (lecture depuis l'API, avec relations Prisma)
@@ -30,7 +34,7 @@ export const ImportProfileSchema = z.object({
     instrumentType: z.string().default('any'),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
-    metadata: z.any().nullable().optional(),
+    metadata: ImportProfileMetadataSchema.nullable().optional(),
     dayTags: tagRelationSchema,
     tradeTags: tagRelationSchema,
     createdAt: z.string().or(z.date()),
@@ -54,7 +58,7 @@ export const CreateImportProfileSchema = z.object({
     instrumentType: z.string().default('any'),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
-    metadata: z.any().nullable().optional(),
+    metadata: ImportProfileMetadataSchema.nullable().optional(),
     dayTagIds: z.array(z.number()).default([]),
     tradeTagIds: z.array(z.number()).default([]),
 }).superRefine((data, ctx) => {
@@ -94,7 +98,7 @@ export const UpdateImportProfileSchema = z.object({
     instrumentType: z.string().default('any'),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
-    metadata: z.any().nullable().optional(),
+    metadata: ImportProfileMetadataSchema.nullable().optional(),
     dayTagIds: z.array(z.number()).default([]),
     tradeTagIds: z.array(z.number()).default([]),
 }).superRefine((data, ctx) => {

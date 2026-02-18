@@ -42,6 +42,14 @@
                 <UCheckbox v-model="formState.keepExistingTrades" :label="$t('components.import.index.keep_existing_trades')" />
             </UFormField>
 
+            <!-- Use Cloud Storage (pour provider standard uniquement) -->
+            <UFormField v-if="formState.provider === 'standard'" name="metadata.useCloudStorage" class="no-select">
+                <UCheckbox v-model="formState.metadata.useCloudStorage" :label="$t('components.import.profile_form.use_cloud_storage')" />
+                <template #description>
+                    <span class="text-sm text-secondary">{{ $t('components.import.profile_form.use_cloud_storage_desc') }}</span>
+                </template>
+            </UFormField>
+
             <!-- Instrument type -->
             <UFormField :label="$t('components.import.profile_form.instrument_type')" name="instrumentType">
                 <USelect
@@ -148,6 +156,7 @@ const formState = reactive<{
     tradeTagIds: number[]
     ibkrFlexQueryToken: string
     ibkrFlexQueryId: string
+    metadata: { useCloudStorage: boolean }
 }>({
     name: props.profile?.name || '',
     provider: (props.profile?.provider as ReportType) || 'mt5',
@@ -159,6 +168,7 @@ const formState = reactive<{
     tradeTagIds: props.profile?.tradeTags ? [...props.profile.tradeTags] : [],
     ibkrFlexQueryToken: props.profile?.ibkrFlexQueryToken || '',
     ibkrFlexQueryId: props.profile?.ibkrFlexQueryId || '',
+    metadata: { useCloudStorage: props.profile?.metadata?.useCloudStorage ?? false },
 })
 
 // Re-initialize form when profile prop changes (for edit mode)
@@ -169,6 +179,7 @@ watch(() => props.profile, (newProfile) => {
         formState.importMode = newProfile.importMode as 'local' | 'utc'
         formState.timezone = newProfile.timezone
         formState.keepExistingTrades = newProfile.keepExistingTrades
+        formState.metadata.useCloudStorage = newProfile.metadata?.useCloudStorage ?? false
         formState.instrumentType = newProfile.instrumentType || DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER[newProfile.provider] || 'any'
         formState.dayTagIds = [...newProfile.dayTags]
         formState.tradeTagIds = [...newProfile.tradeTags]
@@ -193,7 +204,6 @@ const providerItems = computed(() => {
         { value: 'ibkr', label: getProviderLabel('ibkr') },
         { value: 'ibkr-api', label: getProviderLabel('ibkr-api') },
         { value: 'standard', label: getProviderLabel('standard') },
-        { value: 'standard-live', label: getProviderLabel('standard-live') },
     ]
 
     if (config.public.ninjaTraderApiEnable === true) {

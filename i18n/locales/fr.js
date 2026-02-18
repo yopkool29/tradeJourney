@@ -698,6 +698,8 @@ export default {
                 provider: "Fournisseur d'import",
                 instrument_type: "Type d'instrument",
                 instrument_type_desc: "Type d'instrument par défaut pour les trades importés avec ce profil.",
+                use_cloud_storage: 'Utiliser le serveur de stockage cloud',
+                use_cloud_storage_desc: 'Récupérer les fichiers depuis votre serveur de stockage cloud au lieu de les uploader manuellement.',
                 create: 'Créer le profil',
             },
         },

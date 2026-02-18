@@ -687,6 +687,8 @@ export default {
                 provider: 'Import provider',
                 instrument_type: 'Instrument type',
                 instrument_type_desc: 'Default instrument type for trades imported with this profile.',
+                use_cloud_storage: 'Use cloud storage server',
+                use_cloud_storage_desc: 'Retrieve files from your cloud storage server instead of uploading them manually.',
                 create: 'Create profile',
             },
         },
