@@ -3,7 +3,8 @@
         <div class="flex items-center gap-3 mb-6">
             <UButton variant="ghost" icon="i-lucide-arrow-left" size="xs" @click="emit('back')" />
             <div class="flex items-center gap-2">
-                <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)" class="w-5 h-5 text-primary-500" />
+                <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)"
+                    class="w-5 h-5 text-primary-500" />
                 <h2 class="text-lg font-semibold">{{ profile.name }}</h2>
                 <UBadge variant="subtle" size="xs">{{ getProviderLabel(profile.provider) }}</UBadge>
             </div>
@@ -20,33 +21,29 @@
                         <div>
                             <span class="text-secondary">{{ $t('components.import.profiles.timezone') }}:</span>
                             <span class="ml-2 font-medium">
-                                {{ profile.importMode === 'utc' ? `UTC${Number(profile.timezone) >= 0 ? '+' : ''}${profile.timezone}` : profile.timezone }}
+                                {{ profile.importMode === 'utc' ? `UTC${Number(profile.timezone) >= 0 ? '+' :
+                                    ''}${profile.timezone}` : profile.timezone }}
                             </span>
                         </div>
                         <div>
                             <span class="text-secondary">{{ $t('components.import.profiles.keep_existing') }}:</span>
-                            <span class="ml-2 font-medium">{{ profile.keepExistingTrades ? $t('common.yes') : $t('common.no') }}</span>
+                            <span class="ml-2 font-medium">{{ profile.keepExistingTrades ? $t('common.yes') :
+                                $t('common.no') }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sélection de fichier (pour les imports fichier) -->
                 <div v-if="!isApiImport && !useCloudStorage" class="flex gap-2">
-                    <UFormField
-                        :label="getFileLabel"
-                        required
-                        class="w-full"
-                    >
-                        <UInput
-                            :key="fileInputKey"
-                            type="file"
+                    <UFormField :label="getFileLabel" required class="w-full">
+                        <UInput :key="fileInputKey" type="file"
                             :accept="profile.provider === 'mt5' ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : '.csv,text/csv'"
-                            @change="onFileChange"
-                        />
+                            @change="onFileChange" />
                     </UFormField>
                 </div>
                 <!-- Info API pour les imports live -->
-                <div v-if="isApiImport" class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300 rounded">
+                <div v-if="isApiImport"
+                    class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300 rounded">
                     <p class="text-sm font-semibold">{{ $t('components.import.profile_execute.api_info') }}</p>
                     <p v-if="profile.provider === 'ibkr-api'" class="text-xs mt-1">
                         {{ $t('components.import.profile_execute.ibkr_api_desc') }}
@@ -59,28 +56,24 @@
 
                 <!-- Liste des fichiers disponibles (pour cloud storage) -->
                 <div v-if="useCloudStorage" class="space-y-4">
-                    <UButton
-                        :loading="isLoadingFiles"
-                        variant="soft"
-                        icon="i-lucide-refresh-cw"
-                        @click="loadStorageFiles"
-                    >
+                    <UButton :loading="isLoadingFiles" variant="soft" icon="i-lucide-refresh-cw"
+                        @click="loadStorageFiles">
                         {{ $t('components.import.profile_execute.refresh_files') }}
                     </UButton>
                     <div v-if="storageFiles.length > 0" class="space-y-2">
-                        <div
-                            v-for="file in storageFiles"
-                            :key="file.file_id"
+                        <div v-for="file in storageFiles" :key="file.file_id"
                             class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                             :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': selectedFileId === file.file_id }"
-                            @click="selectedFileId = file.file_id"
-                        >
+                            @click="selectedFileId = file.file_id">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="font-medium">{{ file.filename }}</p>
-                                    <p class="text-xs text-secondary">{{ new Date(file.timestamp).toLocaleString() }} • {{ (file.file_size / 1024).toFixed(2) }} KB</p>
+                                    <p class="font-medium"><span>{{ file.source ? file.source + '-' : ''
+                                            }}</span><span>{{ file.filename }}</span></p>
+                                    <p class="text-xs text-secondary">{{ new Date(file.timestamp).toLocaleString() }} •
+                                        {{ (file.file_size / 1024).toFixed(2) }} KB</p>
                                 </div>
-                                <UBadge v-if="file.retrieved" color="neutral" variant="subtle">{{ $t('components.import.profile_execute.already_retrieved') }}</UBadge>
+                                <UBadge v-if="file.retrieved" color="neutral" variant="subtle">{{
+                                    $t('components.import.profile_execute.already_retrieved') }}</UBadge>
                             </div>
                         </div>
                     </div>
@@ -93,9 +86,7 @@
                 <div class="flex gap-2 pt-4">
                     <UButton
                         :disabled="(useCloudStorage && !selectedFileId) || (!isApiImport && !useCloudStorage && !file)"
-                        :loading="isLoading"
-                        @click="onImport"
-                    >
+                        :loading="isLoading" @click="onImport">
                         {{ $t('components.import.index.import_button') }}
                     </UButton>
                     <UButton variant="soft" @click="emit('back')">
