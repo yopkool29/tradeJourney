@@ -7,7 +7,6 @@ export type InstrumentType = typeof INSTRUMENT_TYPES[number]
 export const DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER: Record<string, InstrumentType> = {
     mt5: 'forex',
     nt8: 'future',
-    'nt8-api': 'future',
     quantower: 'future',
     ibkr: 'stock',
     'ibkr-api': 'stock',

@@ -51,9 +51,6 @@
                     <p v-if="profile.provider === 'ibkr-api'" class="text-xs mt-1">
                         {{ $t('components.import.profile_execute.ibkr_api_desc') }}
                     </p>
-                    <p v-if="profile.provider === 'nt8-api'" class="text-xs mt-1">
-                        {{ $t('components.import.profile_execute.nt8_api_desc') }}
-                    </p>
                     <div v-if="useCloudStorage" class="text-xs mt-1 space-y-1">
                         <p>{{ $t('components.import.profile_execute.storage_info') }}</p>
                         <p>{{ $t('components.import.profile_execute.storage_desc') }}</p>
@@ -143,7 +140,7 @@ const useCloudStorage = computed(() => {
     console.log('🔍 useCloudStorage:', value, 'metadata:', props.profile.metadata)
     return value
 })
-const isApiImport = computed(() => props.profile.provider === 'nt8-api' || props.profile.provider === 'ibkr-api' || useCloudStorage.value)
+const isApiImport = computed(() => props.profile.provider === 'ibkr-api' || useCloudStorage.value)
 
 // IBKR Flex Query composable avec token/queryId du profil
 const ibkrToken = computed(() => props.profile.ibkrFlexQueryToken || '')
@@ -187,11 +184,6 @@ function onFileChange(e: Event) {
 async function onImport() {
     errorStr.value = null
     successStr.value = null
-
-    if (props.profile.provider === 'nt8-api') {
-        await importFromNinjaTraderApi()
-        return
-    }
 
     if (props.profile.provider === 'ibkr-api') {
         await importFromIBKRFlexQuery()
@@ -344,7 +336,7 @@ async function importFromStorageServer() {
 
         const formData = new FormData()
         formData.append('file', csvFile)
-        formData.append('reportType', 'standard')
+        formData.append('reportType', props.profile.provider)
         formData.append('importMode', props.profile.importMode)
         formData.append('timezone', props.profile.timezone)
         formData.append('keepExistingTrades', String(props.profile.keepExistingTrades))

@@ -46,7 +46,7 @@ export interface CustomInputs {
     [key: string]: CustomInput
 }
 
-export type ReportType = 'mt5' | 'nt8' | 'nt8-api' | 'quantower' | 'ibkr' | 'ibkr-api' | 'standard'
+export type ReportType = 'mt5' | 'nt8' | 'quantower' | 'ibkr' | 'ibkr-api' | 'standard'
 
 export interface ImportOptions {
     timezoneType: Record<ReportType, string>

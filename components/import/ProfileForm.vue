@@ -42,8 +42,8 @@
                 <UCheckbox v-model="formState.keepExistingTrades" :label="$t('components.import.index.keep_existing_trades')" />
             </UFormField>
 
-            <!-- Use Cloud Storage (pour provider standard uniquement) -->
-            <UFormField v-if="formState.provider === 'standard'" name="metadata.useCloudStorage" class="no-select">
+            <!-- Use Cloud Storage (pour provider standard et nt8) -->
+            <UFormField v-if="formState.provider === 'standard' || formState.provider === 'nt8'" name="metadata.useCloudStorage" class="no-select">
                 <UCheckbox v-model="formState.metadata.useCloudStorage" :label="$t('components.import.profile_form.use_cloud_storage')" />
                 <template #description>
                     <span class="text-sm text-secondary">{{ $t('components.import.profile_form.use_cloud_storage_desc') }}</span>
@@ -206,11 +206,8 @@ const providerItems = computed(() => {
         { value: 'standard', label: getProviderLabel('standard') },
     ]
 
-    if (config.public.ninjaTraderApiEnable === true) {
-        items.splice(2, 0, { value: 'nt8-api', label: getProviderLabel('nt8-api') })
-    }
     if (config.public.quantowerEnable === true) {
-        items.splice(3, 0, { value: 'quantower', label: getProviderLabel('quantower') })
+        items.splice(2, 0, { value: 'quantower', label: getProviderLabel('quantower') })
     }
 
     return items

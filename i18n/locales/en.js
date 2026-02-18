@@ -651,7 +651,6 @@ export default {
             profile_execute: {
                 api_info: 'Automatic import from API',
                 ibkr_api_desc: 'Trades will be automatically retrieved from Interactive Brokers Flex Query.',
-                nt8_api_desc: 'Trades will be automatically retrieved from the NinjaTrader addon.',
                 storage_info: 'Import from storage server',
                 storage_desc: 'Select a file available on your cloud storage server.',
                 storage_api_desc: 'Files will be automatically retrieved from your storage server.',
@@ -661,7 +660,6 @@ export default {
                 select_file_from_storage: 'Please select a file from the storage server.',
                 api_info_live: 'This import uses a live API connection.',
                 ibkr_api_desc_live: 'The Flex Query will be executed with the token and query ID configured in this profile.',
-                nt8_api_desc_live: 'NinjaTrader addon must be installed and running.',
             },
             profiles: {
                 title: 'Import Profiles',
