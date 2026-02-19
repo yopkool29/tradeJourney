@@ -1056,6 +1056,9 @@ export default {
                 buttons: {
                     update: 'Mettre à jour',
                 },
+                success: {
+                    saved: 'Note et tags mis à jour avec succès',
+                },
                 errors: {
                     form: 'Veuillez corriger les erreurs du formulaire.',
                     specific:

@@ -1036,6 +1036,9 @@ export default {
                 buttons: {
                     update: 'Update',
                 },
+                success: {
+                    saved: 'Note and tags updated successfully',
+                },
                 errors: {
                     form: 'Please correct the form errors.',
                     specific: 'Please correct the error "{message}: {name}"',
