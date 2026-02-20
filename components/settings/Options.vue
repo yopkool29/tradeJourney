@@ -151,7 +151,7 @@
                     </div>
 
                     <!-- Section API NinjaTrader -->
-                    <div class="section-separator">
+                    <!-- <div class="section-separator">
                         <h3 class="section-subtitle-lg">{{ $t('components.settings.options.ninja_api_section') }}</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <UFormField name="ninjaTraderApiPort" :label="$t('components.settings.options.ninja_api_port')" class="w-full">
@@ -179,7 +179,7 @@
                                 </template>
                             </UFormField>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Section Fuseau horaire pour l'affichage -->
                     <div class="section-separator">
