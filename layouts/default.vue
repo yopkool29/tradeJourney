@@ -82,9 +82,31 @@ const openNotesPanel = () => {
     selectedDate.value = localDate
 }
 
+let lastEscapeTime = 0
+
 const closeNotesPanel = () => {
     isNotesPanelOpen.value = false
+    lastEscapeTime = Date.now()
 }
+
+// Gestionnaire pour ouvrir le panneau de notes avec Escape
+const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && !isNotesPanelOpen.value) {
+        // Ignorer si Escape a été pressé il y a moins de 300ms (pour éviter la réouverture)
+        if (Date.now() - lastEscapeTime > 300) {
+            e.preventDefault()
+            openNotesPanel()
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown)
+})
 
 // Pour permettre d'ouvrir le panneau de notes depuis d'autres composants
 defineExpose({
