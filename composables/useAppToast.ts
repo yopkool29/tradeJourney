@@ -1,7 +1,7 @@
 export const useAppToast = () => {
     const toast = useToast()
 
-    const DURATION = 2000
+    const DURATION = 1000
 
     const success = (title: string, description?: string) => {
         toast.add({

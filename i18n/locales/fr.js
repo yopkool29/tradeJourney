@@ -1077,6 +1077,8 @@ export default {
                 update: 'Mettre à jour',
                 error_form: 'Veuillez corriger les erreurs du formulaire.',
                 error_field: 'Veuillez corriger l\'erreur "{message} : {name}"',
+                success_updated: 'Note du jour mise à jour avec succès',
+                success_created: 'Note du jour créée avec succès',
             },
             index: {
                 accounts: 'Comptes',

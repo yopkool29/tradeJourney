@@ -35,14 +35,9 @@
 
                 <UButton type="submit" form="loginForm" size="lg" color="primary" :loading="isLoading" block class="mt-6">{{ $t('pages.login.submit_button') }}</UButton>
 
-                <UAlert
-                    v-if="errorStr"
-                    :title="$t('pages.login.error_title')"
-                    icon="i-heroicons-exclamation-circle"
-                    color="error"
-                    class="mt-6"
-                    :description="errorStr || ''"
-                />
+                <div class="mt-6">
+                    <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
+                </div>
             </UCard>
             <AlreadyLoggedIn v-if="mounted && userStore.user && auth_display" />
         </div>
@@ -59,12 +54,25 @@ const router = useRouter()
 const route = useRoute()
 const { login } = useAuth()
 const userStore = useUserStore()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { log_error } = useLogView()
 
 const mounted = ref(false)
 
 const isLoading = ref(false)
 const auth_display = ref(true)
-const errorStr = ref<string | null>(null)
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 // Utilisation des tokens de traduction pour les messages de validation
 const UserSchema = z.object({
@@ -86,7 +94,7 @@ onMounted(() => {
 
 async function onSubmit(event: FormSubmitEvent<UserType>) {
     isLoading.value = true
-    errorStr.value = null
+    displayMessage(null, null)
 
     try {
         // Hide AlreadyLoggedIn component before redirect
@@ -100,7 +108,7 @@ async function onSubmit(event: FormSubmitEvent<UserType>) {
         router.push('/select-database')
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message
+        displayMessage(null, message)
         isLoading.value = false
         auth_display.value = true
     }

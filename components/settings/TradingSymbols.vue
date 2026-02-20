@@ -77,22 +77,7 @@
                 {{ $t('components.settings.tradingSymbols.description') }}
             </p>
 
-            <UAlert
-                v-if="errorStr"
-                icon="i-lucide-message-circle-warning"
-                class="mb-8"
-                :description="errorStr || ''"
-                color="error"
-                variant="outline"
-            />
-            <UAlert
-                v-if="successStr"
-                icon="i-lucide-message-circle-check"
-                class="mb-8"
-                :description="successStr || ''"
-                color="success"
-                variant="outline"
-            />
+            <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
             <!-- Filtres avancés -->
             <CommonAdvancedFilters
@@ -212,14 +197,18 @@ const settings = userStore.user?.settings_object as SettingsContentType
 const { t, locale } = useI18n()
 
 const { log_error } = useLogView()
-
-const errorStr = ref<string | null>(null)
-const successStr = ref<string | null>(null)
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 
 const displayMessage = (success: string | null, error: string | null) => {
-    successStr.value = success || null
-    errorStr.value = error || null
-    if (error) log_error(error)
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
 }
 
 const getDefaultSymbol = () => ({ symbol: '', digit: 2, notes: null, aliases: '', active: true, userId: 0 }) // À adapter selon le contexte utilisateur

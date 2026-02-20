@@ -6,7 +6,7 @@
         </div>
 
         <!-- Error Alert -->
-        <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+        <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
         <!-- Database List -->
         <div v-if="databases.length > 0" class="space-y-4">
@@ -124,6 +124,9 @@ const router = useRouter()
 const userStore = useUserStore()
 const { fetchDatabases, selectDatabase, currentDatabase, deleteDatabase } = useDatabase()
 const { updateUserSettings, getUserSetting } = useAuth()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { log_error } = useLogView()
 
 interface Database {
     id: number
@@ -139,9 +142,19 @@ const selectedDatabaseId = ref<number | null>(null)
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
 const deleteState = ref({ password: '' })
-const errorStr = ref<string | null>(null)
 
 const selectedDatabase = computed(() => databases.value.find((db) => db.id === selectedDatabaseId.value))
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 onMounted(async () => {
     await loadDatabases()
@@ -216,12 +229,12 @@ const handleDatabaseCreated = async (database: Database) => {
 
 const handleDeleteDatabase = async () => {
     if (!selectedDatabaseId.value || !deleteState.value.password) {
-        errorStr.value = t('api.auth.verify.unauthorized')
+        displayMessage(null, t('api.auth.verify.unauthorized'))
         return
     }
 
     try {
-        errorStr.value = null
+        displayMessage(null, null)
 
         // Delete database using composable
         await deleteDatabase(selectedDatabaseId.value, deleteState.value.password)
@@ -241,7 +254,7 @@ const handleDeleteDatabase = async () => {
         await loadDatabases()
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message || ''
+        displayMessage(null, message)
     }
 }
 </script>

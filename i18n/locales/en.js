@@ -1056,6 +1056,8 @@ export default {
                 update: 'Update',
                 error_form: 'Please correct the form errors.',
                 error_field: 'Please correct the error "{message}: {name}"',
+                success_updated: 'Day note updated successfully',
+                success_created: 'Day note created successfully',
             },
             index: {
                 accounts: 'Accounts',

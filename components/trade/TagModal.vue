@@ -9,7 +9,7 @@
     >
         <template #body>
             <UForm id="form1" :state="newState" :schema="formSchema" :validate-on="['change', 'input']" @submit="onSubmit" @error="onError">
-                <UAlert v-if="errorStr" :description="errorStr" color="error" variant="outline" class="mb-4" />
+                <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
                 <!-- Note pour le trade -->
                 <UFormField name="note" :label="$t('components.trade.tagModal.note.label')" class="mb-4">
@@ -61,6 +61,7 @@ const { fetchTrade } = useTrades()
 const { log_error } = useLogView()
 const { t } = useI18n()
 const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 
 const props = defineProps<{
     isOpen: boolean
@@ -71,8 +72,18 @@ const modalTitle = computed(() =>
     props.trade ? t('components.trade.tagModal.titleWithSymbol', { symbol: props.trade.symbol }) : t('components.trade.tagModal.title')
 )
 
-const errorStr = ref('')
 const isLoading = ref(false)
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 const getDefault = (): NoteTagIdsType => ({ idTrade: -1, note: '', tagIds: [] })
 const newState = ref(getDefault())
@@ -122,7 +133,7 @@ const initializeData = async () => {
     initializeScreenshots([])
 
     tagGroups.value = await fetchGroups()
-    errorStr.value = ''
+    displayMessage(null, null)
 
     const trade = await fetchTrade(props.trade.id)
     if (!trade) {
@@ -141,14 +152,16 @@ const initializeData = async () => {
 }
 
 function onError(event: FormErrorEvent) {
-    errorStr.value = t('components.trade.tagModal.errors.form')
+    const errorMessage = t('components.trade.tagModal.errors.form')
+    displayMessage(null, errorMessage)
     const val = event?.errors?.[0]
     if (val) {
         if (val.id) {
             const element = document.getElementById(val.id)
             element?.focus()
         } else {
-            errorStr.value = t('components.trade.tagModal.errors.specific', { message: val.message, name: val.name })
+            const specificError = t('components.trade.tagModal.errors.specific', { message: val.message, name: val.name })
+            displayMessage(null, specificError)
         }
     }
 }
@@ -181,13 +194,13 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         })
 
         // Fermer la modal et émettre l'événement updated
-        toastSuccess(t('components.trade.tagModal.success.saved'))
+        const msg = t('components.trade.tagModal.success.saved')
+        displayMessage(msg, null)
         emit('saved', event.data.note, event.data.tagIds)
         emit('update:open', false)
     } catch (error) {
         const msg = error instanceof Error ? error.message : t('components.trade.tagModal.errors.generic')
-        errorStr.value = msg
-        toastError(msg)
+        displayMessage(null, msg)
     } finally {
         isLoading.value = false
     }

@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <UAlert v-if="errorStr" :description="errorStr" color="error" variant="outline" class="mb-4" />
+        <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
         <!-- Vue liste des profils -->
         <ImportProfileList
@@ -54,6 +54,7 @@ const { profiles, fetchProfiles, createProfile, updateProfile, deleteProfile } =
 const { fetchGroups } = useTags()
 const { log_error } = useLogView()
 const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 const { t } = useI18n()
 
 const tagGroups = ref<TagGroupType[]>([])
@@ -62,7 +63,17 @@ type ViewMode = 'list' | 'form' | 'execute'
 const currentView = ref<ViewMode>('list')
 const editingProfile = ref<ImportProfileType | null>(null)
 const activeProfile = ref<ImportProfileType | null>(null)
-const errorStr = ref('')
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 onMounted(async () => {
     await Promise.all([
@@ -95,7 +106,7 @@ function onUseProfile(profile: ImportProfileType) {
 }
 
 async function onSaveProfile(data: CreateImportProfileType & { id?: number }) {
-    errorStr.value = ''
+    displayMessage(null, null)
     try {
         if (data.id) {
             await updateProfile({ ...data, id: data.id } as UpdateImportProfileType)
@@ -105,33 +116,27 @@ async function onSaveProfile(data: CreateImportProfileType & { id?: number }) {
 
         await fetchProfiles()
 
-        toastSuccess(t('components.import.profiles.toast_saved'))
+        const msg = t('components.import.profiles.toast_saved')
+        displayMessage(msg, null)
 
         currentView.value = 'list'
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        log_error(message)
-        if (message) {
-            errorStr.value = message
-            toastError(message)
-        }
+        displayMessage(null, message)
     }
 }
 
 async function onDeleteProfile(id: number) {
-    errorStr.value = ''
+    displayMessage(null, null)
     try {
         await deleteProfile(id)
         await fetchProfiles()
 
-        toastSuccess(t('components.import.profiles.toast_deleted'))
+        const msg = t('components.import.profiles.toast_deleted')
+        displayMessage(msg, null)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        log_error(message)
-        if (message) {
-            errorStr.value = message
-            toastError(message)
-        }
+        displayMessage(null, message)
     }
 }
 

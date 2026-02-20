@@ -11,8 +11,7 @@
         </div>
 
         <UCard>
-            <UAlert v-if="errorStr" variant="outline" color="error" class="mb-4" :description="errorStr" />
-            <UAlert v-if="successStr" variant="outline" color="success" class="mb-4" :description="successStr" />
+            <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
             <div class="space-y-6">
                 <!-- Résumé du profil -->
@@ -108,6 +107,7 @@ const { log_error, log_info } = useLogView()
 const { importTrades } = useTrades()
 const { listFiles, retrieveFile, deleteFile } = useStorageServer()
 const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 
 const props = defineProps<{
     profile: ImportProfileType
@@ -120,8 +120,17 @@ const emit = defineEmits<{
 
 const file = ref<File | null>(null)
 const fileInputKey = ref(0)
-const errorStr = ref<string | null>(null)
-const successStr = ref<string | null>(null)
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 const isLoading = ref(false)
 const isLoadingFiles = ref(false)
 const storageFiles = ref<any[]>([])
@@ -174,8 +183,7 @@ function onFileChange(e: Event) {
 }
 
 async function onImport() {
-    errorStr.value = null
-    successStr.value = null
+    displayMessage(null, null)
 
     if (props.profile.provider === 'ibkr-api') {
         await importFromIBKRFlexQuery()
@@ -188,7 +196,7 @@ async function onImport() {
     }
 
     if (!file.value) {
-        errorStr.value = t('components.import.index.select_file')
+        displayMessage(null, t('components.import.index.select_file'))
         return
     }
 
@@ -212,13 +220,10 @@ async function onImport() {
     try {
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
-        successStr.value = msg
-        toastSuccess(msg)
+        displayMessage(msg, null)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message
-        if (message) toastError(message)
-        log_error(message)
+        displayMessage(null, message)
     } finally {
         isLoading.value = false
         stopLoading()
@@ -257,14 +262,11 @@ async function importFromNinjaTraderApi() {
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
-        successStr.value = msg
-        toastSuccess(msg)
+        displayMessage(msg, null)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         const errorMsg = message || t('components.import.index.api_import_error')
-        errorStr.value = errorMsg
-        toastError(errorMsg)
-        log_error(message)
+        displayMessage(null, errorMsg)
     } finally {
         isLoading.value = false
         stopLoading()
@@ -302,14 +304,11 @@ async function importFromIBKRFlexQuery() {
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
-        successStr.value = msg
-        toastSuccess(msg)
+        displayMessage(msg, null)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         const errorMsg = message || t('components.import.index.api_import_error')
-        errorStr.value = errorMsg
-        toastError(errorMsg)
-        log_error(message)
+        displayMessage(null, errorMsg)
     } finally {
         isLoading.value = false
         stopLoading()
@@ -318,7 +317,7 @@ async function importFromIBKRFlexQuery() {
 
 async function importFromStorageServer() {
     if (!selectedFileId.value) {
-        errorStr.value = t('components.import.profile_execute.select_file_from_storage')
+        displayMessage(null, t('components.import.profile_execute.select_file_from_storage'))
         return
     }
 
@@ -352,8 +351,7 @@ async function importFromStorageServer() {
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
-        successStr.value = msg
-        toastSuccess(msg)
+        displayMessage(msg, null)
 
         // Optionnel: supprimer le fichier du serveur après import réussi
         // await deleteFile(selectedFileId.value)
@@ -364,9 +362,7 @@ async function importFromStorageServer() {
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         const errorMsg = message || t('components.import.index.api_import_error')
-        errorStr.value = errorMsg
-        toastError(errorMsg)
-        log_error(message)
+        displayMessage(null, errorMsg)
     } finally {
         isLoading.value = false
         stopLoading()

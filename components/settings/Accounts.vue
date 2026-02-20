@@ -3,69 +3,49 @@
         <template #header>
             <div class="header-layout">
                 <span class="section-title">{{ $t('components.settings.accounts.title') }}</span>
-                <CommonModalDefault
-                    v-model:open="showAddAccount"
-                    :title="editingAccountId ? $t('components.settings.accounts.edit_account') : $t('components.settings.accounts.add_account_modal')"
-                >
+                <CommonModalDefault v-model:open="showAddAccount"
+                    :title="editingAccountId ? $t('components.settings.accounts.edit_account') : $t('components.settings.accounts.add_account_modal')">
                     <template #trigger>
-                        <UButton icon="i-lucide-plus" size="xs" @click="newAccount()">{{ $t('components.settings.accounts.add_account') }}</UButton>
+                        <UButton icon="i-lucide-plus" size="xs" @click="newAccount()">{{
+                            $t('components.settings.accounts.add_account') }}</UButton>
                     </template>
                     <template #content>
-                        <UForm
-                            id="createAccountForm1"
-                            :state="newAccountState"
-                            :validate-on="['change', 'input']"
-                            :schema="CreateAccountSchema"
-                            @submit="onSubmitAccount"
-                            @error="onError"
-                        >
+                        <UForm id="createAccountForm1" :state="newAccountState" :validate-on="['change', 'input']"
+                            :schema="CreateAccountSchema" @submit="onSubmitAccount" @error="onError">
                             <div class="form-fields-container">
                                 <UFormField name="name" :label="$t('components.settings.accounts.name_label')" required>
                                     <div class="flex items-center gap-2">
-                                        <UInput
-                                            v-model="newAccountState.name"
-                                            :placeholder="$t('components.settings.accounts.name_placeholder')"
-                                            disabled
-                                            autofocus
-                                            class="flex-1"
-                                        />
-                                        <UButton
-                                            icon="i-lucide-copy"
-                                            size="xs"
-                                            variant="ghost"
-                                            color="neutral"
-                                            @click="copyAccountName"
-                                        />
+                                        <UInput v-model="newAccountState.name"
+                                            :placeholder="$t('components.settings.accounts.name_placeholder')" disabled
+                                            autofocus class="flex-1" />
+                                        <UButton icon="i-lucide-copy" size="xs" variant="ghost" color="neutral"
+                                            @click="copyAccountName" />
                                     </div>
                                 </UFormField>
-                                <UFormField name="displayName" :label="$t('components.settings.accounts.display_name_label')">
-                                    <UInput class="md:w-2/3"
-                                        autofocus
-                                        v-model="newAccountState.displayName"
-                                        :placeholder="$t('components.settings.accounts.display_name_placeholder')"
-                                    />
+                                <UFormField name="displayName"
+                                    :label="$t('components.settings.accounts.display_name_label')">
+                                    <UInput class="md:w-2/3" autofocus v-model="newAccountState.displayName"
+                                        :placeholder="$t('components.settings.accounts.display_name_placeholder')" />
                                 </UFormField>
                                 <UFormField name="fullname" :label="$t('components.settings.accounts.fullname_label')">
-                                    <UInput class="md:w-2/3" 
-                                        v-model="newAccountState.fullname"
-                                        :placeholder="$t('components.settings.accounts.fullname_placeholder')"
-                                    />
+                                    <UInput class="md:w-2/3" v-model="newAccountState.fullname"
+                                        :placeholder="$t('components.settings.accounts.fullname_placeholder')" />
                                 </UFormField>
                                 <UFormField name="aliases" :label="$t('components.settings.accounts.aliases_label')">
-                                    <UInput class="md:w-2/3"
-                                        v-model="newAccountState.aliases"
-                                        :placeholder="$t('components.settings.accounts.aliases_placeholder')"
-                                    />
+                                    <UInput class="md:w-2/3" v-model="newAccountState.aliases"
+                                        :placeholder="$t('components.settings.accounts.aliases_placeholder')" />
                                 </UFormField>
                             </div>
                         </UForm>
                     </template>
                     <template #footer>
                         <div class="action-buttons-end">
-                            <UButton type="submit" form="createAccountForm1" :disabled="!newAccountState.name && editingAccountId != null">{{
-                                $t('common.actions.save')
-                            }}</UButton>
-                            <UButton type="button" variant="soft" @click.prevent="showAddAccount = false">{{ $t('common.actions.cancel') }}</UButton>
+                            <UButton type="submit" form="createAccountForm1"
+                                :disabled="!newAccountState.name && editingAccountId != null">{{
+                                    $t('common.actions.save')
+                                }}</UButton>
+                            <UButton type="button" variant="soft" @click.prevent="showAddAccount = false">{{
+                                $t('common.actions.cancel') }}</UButton>
                         </div>
                     </template>
                 </CommonModalDefault>
@@ -74,19 +54,11 @@
         <div class="p-4">
             <p class="text-secondary mb-6">{{ $t('components.settings.accounts.description') }}</p>
 
-            <UAlert v-if="successStr" variant="outline" color="success" class="mb-4" :description="successStr || ''" />
-            <UAlert v-if="errorStr" variant="outline" color="error" class="mb-4" :description="errorStr || ''" />
+            <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
             <!-- Filtres avancés -->
-            <CommonAdvancedFilters
-                v-model="filters"
-                :columns="filterableColumnsConfig"
-                :loading="filterLoading"
-                @add="addFilter"
-                @remove="removeFilter"
-                @apply="onApplyFilters"
-                @reset="resetFilters"
-            />
+            <CommonAdvancedFilters v-model="filters" :columns="filterableColumnsConfig" :loading="filterLoading"
+                @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters" />
 
             <!-- Liste des comptes -->
             <div class="mt-6">
@@ -94,7 +66,8 @@
                 <UTable :data="filteredAccounts" :columns="columns" class="mb-2">
                     <template #actions-cell="{ row }">
                         <div class="action-buttons">
-                            <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost" @click="editAccount(row.original)">
+                            <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
+                                @click="editAccount(row.original)">
                                 {{ $t('components.settings.accounts.edit_account') }}
                             </UButton>
                             <CommonModalDelete @confirm="onDeleteAccount(row.original.id)">
@@ -143,6 +116,8 @@ import type { TradeFilter, FilterColumn } from '~/type'
 const { t } = useI18n()
 const userStore = useUserStore()
 const { log_error } = useLogView()
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 const { accounts, fetchAccounts, createAccount, updateAccount, deleteAccount } = useAccount()
 const { deleteAccountTrades } = useTrades()
 
@@ -219,19 +194,21 @@ const filteredAccounts = computed(() => {
     })
 })
 
-const errorStr = ref<string | null>(null)
-const successStr = ref<string | null>(null)
-
 const displayMessage = (success: string | null, error: string | null) => {
-    successStr.value = success || null
-    errorStr.value = error || null
-    if (error) log_error(error)
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
 }
 
-const getDefaultCreateAccount = () => ({ 
-    name: '', 
-    fullname: '', 
-    displayName: '', 
+const getDefaultCreateAccount = () => ({
+    name: '',
+    fullname: '',
+    displayName: '',
     aliases: '',
 })
 
