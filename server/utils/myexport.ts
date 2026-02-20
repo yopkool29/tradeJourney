@@ -64,8 +64,10 @@ interface ImportData {
         importMode: string
         timezone: string
         keepExistingTrades: boolean
+        instrumentType: string
         ibkrFlexQueryToken: string | null
         ibkrFlexQueryId: string | null
+        metadata: any | null
         createdAt: Date | string
         updatedAt: Date | string
         dayTags: Array<{ tagId: number }>
@@ -483,8 +485,10 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         importMode: profile.importMode,
                         timezone: profile.timezone,
                         keepExistingTrades: profile.keepExistingTrades,
+                        instrumentType: profile.instrumentType || "any",
                         ibkrFlexQueryToken: profile.ibkrFlexQueryToken,
                         ibkrFlexQueryId: profile.ibkrFlexQueryId,
+                        metadata: profile.metadata || null,
                         createdAt: new Date(profile.createdAt),
                         updatedAt: new Date(profile.updatedAt),
                         dayTags: {
@@ -492,7 +496,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         },
                         tradeTags: {
                             create: (profile.tradeTags || []).map((t: { tagId: number }) => ({ tagId: t.tagId }))
-                        }
+                        },
                     }
                 })
             )
