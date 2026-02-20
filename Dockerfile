@@ -25,15 +25,26 @@ WORKDIR /app
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-COPY . .
-
+# Copy configuration files first (changes less frequently)
+COPY package.json package-lock.json ./
 COPY .env.production .env
+COPY nuxt.config.ts tsconfig.json app.config.js ./
+
+# Copy Prisma schemas (changes less frequently than source code)
+COPY prisma ./prisma
+
+# Generate Prisma clients before copying source code
+# This layer will be cached unless Prisma schemas change
+RUN npx prisma generate --schema=prisma/auth/schema.prisma
+RUN npx prisma generate --schema=prisma/data/schema.prisma
+
+# Now copy the rest of the source code
+# Changes here won't invalidate Prisma generation cache
+COPY . .
 
 RUN npm install -g npm@latest
 
 RUN npx nuxt prepare
-RUN npx prisma generate --schema=prisma/auth/schema.prisma
-RUN npx prisma generate --schema=prisma/data/schema.prisma
 RUN npm run build
 
 # CMD ["tail", "-f", "/dev/null"]
