@@ -96,7 +96,9 @@ EOF
 npm dev
 ```
 
-The application will be accessible at `http://localhost:3000`
+The application will be accessible at `http://localhost:3000` in development mode else on port `http://localhost:3001` in production mode.
+
+**Login credentials:** admin@mail.fr / admin
 
 ### Stopping the database
 
@@ -169,6 +171,12 @@ docker compose build --no-cache
 # Build and start all services
 docker compose up -d --build
 ```
+
+#### Access the application
+
+The application will be accessible at the configured domain on port 3001.
+
+**Login credentials:** admin@mail.fr / admin
 
 ### Update
 
