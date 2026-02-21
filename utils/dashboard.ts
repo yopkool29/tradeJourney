@@ -311,8 +311,8 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
                     fill: false,
                     tension: 0.2,
                     pointRadius: 4,
-                    pointBackgroundColor: '', // Sera défini dans le composant
-                    pointBorderColor: '',
+                    pointBackgroundColor: [], // Sera défini dans le composant
+                    pointBorderColor: [],
                     pointBorderWidth: 2,
                     yAxisID: 'y',
                 },
@@ -388,7 +388,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
             labels: [],
             datasets: [
                 {
-                    type: 'line',
+                    type: 'line' as const,
                     label: 'Moyenne mobile',
                     data: [],
                     borderColor: '#6366f1',
@@ -400,7 +400,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
                     yAxisID: 'y',
                 },
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'APPT',
                     data: [],
                     backgroundColor: '', // Sera défini dans le composant
@@ -430,7 +430,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: movingAverages,
                 borderColor: '#6366f1',
@@ -442,7 +442,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'APPT',
                 data: periodAppt,
                 backgroundColor: '#4ade80',
@@ -516,7 +516,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
             labels: [],
             datasets: [
                 {
-                    type: 'line',
+                    type: 'line' as const,
                     label: 'Moyenne mobile',
                     data: [],
                     borderColor: '#6366f1',
@@ -528,7 +528,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
                     yAxisID: 'y',
                 },
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'P/L Ratio',
                     data: [],
                     backgroundColor: '#f59e0b',
@@ -555,7 +555,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: movingAverages,
                 borderColor: '#6366f1',
@@ -567,7 +567,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'P/L Ratio',
                 data: periodPlRatio,
                 backgroundColor: '#f59e0b',
@@ -584,7 +584,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
             labels: [],
             datasets: [
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'Winrate',
                     data: [],
                     backgroundColor: '', // Sera défini dans le composant
@@ -614,7 +614,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: winrateMovingAvg,
                 borderColor: '#6366f1',
@@ -626,7 +626,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'Winrate',
                 data: periodWinrate,
                 backgroundColor: '#f472b6',

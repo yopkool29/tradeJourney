@@ -15,7 +15,7 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`">
+        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Line ref="lineChartRef" :data="chartData" :options="chartDisplayOptions" @click="isModalOpen = true" />
         </div>
     </UCard>
@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { Line } from 'vue-chartjs'
-import type { ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
+import type { ChartOptions, TooltipItem, ChartTypeRegistry, ChartDataset } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { CommonModalChart } from '#components'
 import { useTypeColors } from '~/composables/useTypeColors'
@@ -59,22 +59,23 @@ const chartData = computed(() => {
         data.datasets = [data.datasets[0]]
 
         if (data.datasets[0]) {
-            const values = data.datasets[0].data as number[]
+            const dataset = data.datasets[0] as ChartDataset<'line'>
+            const values = dataset.data as number[]
 
-            data.datasets[0].label = t('components.dashboard.index.cumulated_label')
-            data.datasets[0].tension = 0.05
-            data.datasets[0].pointRadius = 0
-            data.datasets[0].pointBorderWidth = 0
-            data.datasets[0].borderWidth = 2
-            data.datasets[0].fill = 'start'
+            dataset.label = t('components.dashboard.index.cumulated_label')
+            dataset.tension = 0.05
+            dataset.pointRadius = 0
+            dataset.pointBorderWidth = 0
+            dataset.borderWidth = 2
+            dataset.fill = 'start'
 
             // Couleurs conditionnelles pour les segments
             data.datasets[0].segment = {
-                borderColor: (ctx: any) => {
+                borderColor: (ctx: { p1: { parsed: { y: number } } }) => {
                     const value = ctx.p1.parsed.y
                     return value >= 0 ? profitColor.value : lossColor.value
                 },
-                backgroundColor: (ctx: any) => {
+                backgroundColor: (ctx: { p1: { parsed: { y: number } } }) => {
                     const value = ctx.p1.parsed.y
                     return value >= 0 ? profitBgColor : lossBgColor
                 }

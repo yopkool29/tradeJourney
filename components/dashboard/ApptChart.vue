@@ -17,7 +17,7 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`">
+        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Bar
                 ref="barChartRef"
                 :data="chartData"
@@ -34,7 +34,6 @@ import type { Context } from 'chartjs-plugin-datalabels'
 import { useUserStore } from '~/stores/user'
 import { generateApptChartData } from '~/utils/dashboard'
 import type { TooltipItem, ChartTypeRegistry } from 'chart.js'
-import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 

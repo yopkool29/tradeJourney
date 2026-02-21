@@ -17,7 +17,7 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`">
+        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Bar
                 ref="barChartRef"
                 :data="chartData"
