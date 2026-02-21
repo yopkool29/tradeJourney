@@ -1,7 +1,7 @@
 <template>
-    <div class="min-h-screen flex justify-center px-4 pt-20 dark:bg-gray-900 no-select">
+    <div class="min-h-screen flex justify-center px-4 pt-20 no-select">
         <div class="w-full max-w-md">
-            <UCard v-if="!userStore.user" class="shadow-lg dark:shadow-gray-800/30">
+            <UCard v-if="!userStore.user" class="bg-gray-100 dark:bg-gray-800">
                 <template #header>
                     <div class="flex flex-col">
                         <h1 class="text-3xl font-bold mb-2 text-primary-600 dark:text-primary-400">{{ $t('pages.login.title') }}</h1>

@@ -149,11 +149,10 @@ const chartDisplayOptions = computed(
                     beginAtZero: true,
                     max: 100,
                     grid: { color: isDark.value ? '#444' : '#e5e7eb' },
-                    ticks: { color: isDark.value ? '#fff' : '#222', callback: (v) => v + '%' },
+                    ticks: { callback: (v) => v + '%' },
                 },
                 x: {
                     grid: { color: isDark.value ? '#444' : '#e5e7eb' },
-                    ticks: { color: isDark.value ? '#fff' : '#222' },
                 },
             },
             backgroundColor: isDark.value ? '#18181b' : '#fff',

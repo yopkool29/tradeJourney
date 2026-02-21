@@ -150,13 +150,11 @@ const chartDisplayOptions = computed(() => ({
             beginAtZero: false,
             grid: { color: isDark.value ? '#444' : '#e5e7eb' },
             ticks: {
-                color: isDark.value ? '#fff' : '#222',
                 callback: (value) => formatCurrency(Number(value)),
             },
         },
         x: {
             grid: { color: isDark.value ? '#444' : '#e5e7eb' },
-            ticks: { color: isDark.value ? '#fff' : '#222' },
         },
     },
     backgroundColor: isDark.value ? '#18181b' : '#fff',

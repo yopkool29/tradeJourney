@@ -25,9 +25,11 @@
                     <slot />
                 </div>
                 <LoadingDisplay />
-            </main>
 
+            </main>
+            
             <AppFooter />
+
         </div>
 
         <!-- Panneau de notes -->
