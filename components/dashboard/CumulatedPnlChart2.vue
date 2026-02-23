@@ -25,6 +25,7 @@
 import { Line } from 'vue-chartjs'
 import type { ChartOptions, TooltipItem, ChartTypeRegistry, ChartDataset } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
+import { colorToRgba } from '~/utils/color-utils'
 import { CommonModalChart } from '#components'
 import { useTypeColors } from '~/composables/useTypeColors'
 
@@ -50,8 +51,8 @@ const chartData = computed(() => {
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year'
     )
 
-    const profitBgColor = profitColor.value.replace(/[\d.]+\)$/, '0.2)')
-    const lossBgColor = lossColor.value.replace(/[\d.]+\)$/, '0.2)')
+    const profitBgColor = colorToRgba(profitColor.value, 0.2)
+    const lossBgColor = colorToRgba(lossColor.value, 0.2)
 
     // Configuration pour afficher une courbe pleine avec transparence
     if (data.datasets && data.datasets.length > 0) {
