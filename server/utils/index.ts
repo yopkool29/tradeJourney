@@ -39,6 +39,13 @@ export interface TradesImport {
     commission: number;
     exchange: number;
     screenshotUrl: string | null;
+    // Options-specific fields
+    instrumentType?: string;
+    strikePrice?: number;
+    expirationDate?: string;
+    optionType?: string;
+    premium?: number;
+    metadata?: string;
 }
 
 /**

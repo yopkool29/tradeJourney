@@ -1,6 +1,7 @@
 import type { AccountTrades, TradesImport, AccountInfoImport } from './index'
 import { ImportMode, parseISO8601Date } from '~/utils/date-utils'
 import { DateTime } from 'luxon'
+import { parseCSVLine } from './csv-utils'
 
 export interface AccountTradesWithImportName extends AccountTrades {
     importName: string
@@ -132,6 +133,31 @@ export function parseStandardCSV(
                 trade.mfe = parseFloat(values[colIndex['mfe']])
             }
 
+            // Options-specific fields
+            if (colIndex['instrumentType'] !== undefined && values[colIndex['instrumentType']]) {
+                trade.instrumentType = values[colIndex['instrumentType']]
+            }
+
+            if (colIndex['strikePrice'] !== undefined && values[colIndex['strikePrice']]) {
+                trade.strikePrice = parseFloat(values[colIndex['strikePrice']])
+            }
+
+            if (colIndex['expirationDate'] !== undefined && values[colIndex['expirationDate']]) {
+                trade.expirationDate = values[colIndex['expirationDate']]
+            }
+
+            if (colIndex['optionType'] !== undefined && values[colIndex['optionType']]) {
+                trade.optionType = values[colIndex['optionType']]
+            }
+
+            if (colIndex['premium'] !== undefined && values[colIndex['premium']]) {
+                trade.premium = parseFloat(values[colIndex['premium']])
+            }
+
+            if (colIndex['metadata'] !== undefined && values[colIndex['metadata']]) {
+                trade.metadata = values[colIndex['metadata']]
+            }
+
             // Valider le type
             if (trade.type !== 'buy' && trade.type !== 'sell') {
                 throw new Error(`Type de trade invalide à la ligne ${i + 1}: ${trade.type}`)
@@ -183,29 +209,3 @@ export function parseStandardCSV(
     return result
 }
 
-/**
- * Parse une ligne CSV en gérant les guillemets
- * @param line - Ligne CSV à parser
- * @returns Tableau des valeurs
- */
-function parseCSVLine(line: string): string[] {
-    const values: string[] = []
-    let current = ''
-    let inQuotes = false
-
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i]
-
-        if (char === '"') {
-            inQuotes = !inQuotes
-        } else if (char === ',' && !inQuotes) {
-            values.push(current.trim())
-            current = ''
-        } else {
-            current += char
-        }
-    }
-
-    values.push(current.trim())
-    return values
-}

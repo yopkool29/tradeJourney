@@ -225,7 +225,7 @@ const processTrades = async (
                         uniqueId,
                         importName,
                         active: true,
-                        instrumentType,
+                        instrumentType: trade.instrumentType || instrumentType,
                         screenshots: { create: [] }
                     }
                 })

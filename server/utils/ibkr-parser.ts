@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import type { AccountTrades, TradesImport, AccountInfoImport } from './index';
 import { parseIBKRFlexQueryActivityDate } from '~/utils/date-utils';
 import type { ImportMode } from '~/utils/date-utils';
+import { parseCSVLine } from './csv-utils';
 
 export interface IBKRRawTrade {
     'Account': string;
@@ -432,31 +433,3 @@ function parseIBKRCsv(csvContent: string): IBKRRawTrade[] {
     });
 }
 
-/**
- * Parse une ligne CSV en tenant compte des guillemets
- */
-function parseCSVLine(line: string): string[] {
-    const result: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-
-        if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-
-    // Ajouter le dernier champ
-    if (current) {
-        result.push(current.trim());
-    }
-
-    return result;
-}
