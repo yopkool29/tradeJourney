@@ -36,6 +36,21 @@ Copy `.env.example` to `.env` and edit the values:
 ```bash
 cp .env.example .env
 ```
+or 
+
+*Linux / mac*
+
+```bash
+./env-create.sh
+```
+
+or
+
+*Windows*
+
+```bash
+./env-create.ps1
+```
 
 #### 3. Generate Prisma clients
 
@@ -136,6 +151,24 @@ cp .env.production.example .env.production
 
 # Edit the .env.production file with your values
 nano .env.production
+```
+
+or 
+
+*Linux / mac*
+
+```bash
+./env-create.sh
+```
+
+or
+
+*Windows*
+
+```bash
+./env-create.ps1
+```
+
 
 # Generate a strong JWT secret (if necessary)
 openssl rand -base64 32
