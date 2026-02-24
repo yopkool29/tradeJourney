@@ -176,11 +176,11 @@ export const defaultSettings: SettingsContentType = {
         tradeTypeBadges: {
             buy: {
                 light: '#10b981',
-                dark: '#86efac',
+                dark: '#21c65e',
             },
             sell: {
                 light: '#f97316',
-                dark: '#fca5a5',
+                dark: '#f58383',
             },
         },
     },

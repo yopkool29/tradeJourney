@@ -27,8 +27,8 @@ export function parseStandardCSV(
         throw new Error('Le fichier CSV est vide ou ne contient pas de données')
     }
 
-    // Parser l'en-tête
-    const header = lines[0].split(',').map(h => h.trim())
+    // Parser l'en-tête et retirer les guillemets
+    const header = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'))
     
     console.log('Header:', header)
 
@@ -41,7 +41,7 @@ export function parseStandardCSV(
     
     for (const col of requiredColumns) {
         if (!header.includes(col)) {
-            throw new Error(`Colonne obligatoire manquante: ${col}`)
+            throw new Error(`Missing required column: ${col}`)
         }
     }
 
