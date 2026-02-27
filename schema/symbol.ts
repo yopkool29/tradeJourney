@@ -5,7 +5,7 @@ import { z } from 'zod';
  */
 export const SymbolSchema = z.object({
     id: z.number(),
-    symbol: z.string().min(2).transform(val => val.toUpperCase()),
+    symbol: z.string().min(1).transform(val => val.toUpperCase()),
     digit: z.preprocess((v) => typeof v === 'string' ? Number(v) : v, z.number().int().min(0).max(6)),
     active: z.boolean().default(true),
     notes: z.string().nullable(),

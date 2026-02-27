@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { nameFormatRefine } from './index'
 
-export const INSTRUMENT_TYPES = ['any', 'forex', 'future', 'stock', 'crypto', 'call', 'put'] as const
+export const INSTRUMENT_TYPES = ['any', 'forex', 'future', 'stock', 'crypto', 'options'] as const
 export type InstrumentType = typeof INSTRUMENT_TYPES[number]
 
 export const DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER: Record<string, InstrumentType> = {
