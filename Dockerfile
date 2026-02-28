@@ -27,7 +27,7 @@ COPY --from=deps /app/node_modules ./node_modules
 
 # Copy configuration files first (changes less frequently)
 COPY package.json package-lock.json ./
-COPY .env.production .env
+COPY .env .env
 COPY nuxt.config.ts tsconfig.json app.config.js ./
 
 # Copy Prisma schemas (changes less frequently than source code)

@@ -147,10 +147,10 @@ Production deployment uses `docker-compose.yml` which contains:
 Create a `.env.production` file on the server with production values:
 
 ```bash
-cp .env.production.example .env.production
+cp .env.production.example .env
 
 # Edit the .env.production file with your values
-nano .env.production
+nano .env
 ```
 
 or 
@@ -167,32 +167,6 @@ or
 
 ```bash
 ./env-create.ps1
-```
-
-
-# Generate a strong JWT secret (if necessary)
-openssl rand -base64 32
-```
-
-#### 2. Build and startup
-
-*Linux:*
-```bash
-# Load environment variables from .env.production under Linux
-export $(grep -v '^#' .env.production | xargs)
-```
-
-*Windows: (powershell)*
-```bash
-# Load environment variables from .env.production under Windows
-Get-Content .\.env.production |
-  Where-Object { $_ -and $_ -notmatch '^\s*#' -and $_ -match '=' } |
-  ForEach-Object {
-    $name, $value = $_ -split '=', 2
-    $name = $name.Trim()
-    $value = $value.Trim().Trim('"')
-    Set-Item -Path "Env:$name" -Value $value
-  }
 ```
 
 *=> Launch Docker Desktop (Windows)*

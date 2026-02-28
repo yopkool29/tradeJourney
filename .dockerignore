@@ -5,7 +5,6 @@ node_modules
 .git
 .gitignore
 README.md
-.env
 *.log
 dev.db
 upload
