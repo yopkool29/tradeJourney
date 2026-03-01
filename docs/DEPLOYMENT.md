@@ -181,7 +181,7 @@ docker compose up -d --build
 
 #### Access the application
 
-The application will be accessible at the configured domain on port 3001.
+The application will be accessible at the configured domain on port 3001 or the external port configured in the .env file.
 
 **Login credentials:** admin@mail.fr / admin
 
