@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
             throw createAppError({
                 statusCode: 401,
                 message: 'Unauthorized',
-                tag: 'api.database.delete.unauthorized'
+                tag: 'api.database.common.unauthorized'
             })
         }
 
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
             throw createAppError({
                 statusCode: 404,
                 message: 'Database not found',
-                tag: 'api.database.delete.not_found'
+                tag: 'api.database.common.not_found'
             })
         }
 
@@ -135,7 +135,7 @@ export default defineEventHandler(async (event) => {
         throw createAppError({
             statusCode: 500,
             message: 'Failed to delete database',
-            tag: 'api.database.delete.server_error',
+            tag: 'api.database.common.server_error',
             error
         })
     }

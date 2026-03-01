@@ -1374,6 +1374,28 @@ export default {
                 },
             },
         },
+        database: {
+            common: {
+                unauthorized: 'Unauthorized',
+                not_found: 'Database not found',
+                server_error: 'An error occurred'
+            },
+            create: {
+                missing_fields: 'Name and display name are required',
+                invalid_name: 'Name must contain only lowercase letters, numbers, and underscores',
+                duplicate_name: 'A database with this name already exists'
+            },
+            delete: {
+                missing_params: 'Database ID and password are required',
+                invalid_password: 'Invalid password',
+                schema_error: 'Failed to delete database schema'
+            },
+            list: {
+            },
+            select: {
+                missing_id: 'Database ID is required'
+            }
+        },
         register: {
             missing_fields: 'Email and password are required',
             email_exists: 'This email is already registered',

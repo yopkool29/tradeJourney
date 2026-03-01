@@ -1412,6 +1412,28 @@ export default {
                 },
             },
         },
+        database: {
+            common: {
+                unauthorized: 'Non autorisé',
+                not_found: 'Base de données non trouvée',
+                server_error: 'Une erreur est survenue'
+            },
+            create: {
+                missing_fields: 'Nom et nom d\'affichage requis',
+                invalid_name: 'Le nom ne peut contenir que des lettres minuscules, chiffres et tirets bas',
+                duplicate_name: 'Une base de données avec ce nom existe déjà'
+            },
+            delete: {
+                missing_params: 'ID de base de données et mot de passe requis',
+                invalid_password: 'Mot de passe invalide',
+                schema_error: 'Échec de la suppression du schéma de base de données'
+            },
+            list: {
+            },
+            select: {
+                missing_id: 'ID de base de données requis'
+            }
+        },
         register: {
             missing_fields: 'Email et mot de passe requis',
             email_exists: 'Cet email est déjà enregistré',
