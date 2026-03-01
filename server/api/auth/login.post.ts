@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
         // Générer un JWT (sans database pour l'instant, sera ajouté après sélection)
         const token = jwt.sign(
             { userId: user.id },
-            process.env.JWT_SECRET || 'devsecret',
+            process.env.JWT_SECRET!,
             { expiresIn: '7d' }
         )
 

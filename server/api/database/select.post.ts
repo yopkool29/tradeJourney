@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
                 databaseId: database.id,
                 dbName: database.name
             },
-            process.env.JWT_SECRET || 'devsecret',
+            process.env.JWT_SECRET!,
             { expiresIn: '7d' }
         )
 
