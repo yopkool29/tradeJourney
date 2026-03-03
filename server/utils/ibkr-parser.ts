@@ -82,7 +82,7 @@ export function parseIBKRTrades(
         const effectiveTimezone = accountTimezoneInfo?.timezone ?? timezone
         const effectiveImportMode = accountTimezoneInfo?.importMode ?? finalImportMode
 
-        console.log(`parseIBKRTrades: Processing account ${accountName} with timezone ${effectiveTimezone} and import mode ${effectiveImportMode}`)
+        // console.log(`parseIBKRTrades: Processing account ${accountName} with timezone ${effectiveTimezone} and import mode ${effectiveImportMode}`)
 
         const parseDate = (dateStr: string): Date => {
             return parseIBKRFlexQueryActivityDate(dateStr, effectiveImportMode, effectiveTimezone);
