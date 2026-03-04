@@ -4,8 +4,12 @@
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
-                        <NuxtLink to="/">
+                        <NuxtLink to="/" class="relative">
                             <AppLogo :width="120" :height="36" />
+                            <span v-if="isDevMode"
+                                class="absolute -bottom-3 -right-1 text-[10px] font-bold text-blue-500 dark:text-red-500 uppercase tracking-wide">
+                                dev
+                            </span>
                         </NuxtLink>
                     </div>
                     <!-- Database Indicator (clickable) -->
@@ -202,6 +206,8 @@ const { log_debug, log_error } = useLogView()
 const mobileMenuOpen = ref(false)
 
 const displayLog = ref(import.meta.env.DEV)
+
+const isDevMode = computed(() => import.meta.env.DEV)
 
 const isDark = computed(() => colorMode.value === 'dark')
 
