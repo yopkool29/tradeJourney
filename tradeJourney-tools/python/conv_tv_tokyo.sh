@@ -21,4 +21,4 @@ echo "Debug: INPUT_FILE = $INPUT_FILE"
 echo "Debug: OUTPUT_FILE = $OUTPUT_FILE"
 
 source .venv/bin/activate
-python3 tradingview_to_standard-csv.py "$INPUT_FILE" "$OUTPUT_FILE" --account-name TEST --account-fullname "TEST TradingView" --symbol US30 -c 1
+python3 tradingview_to_standard-csv.py "$INPUT_FILE" "$OUTPUT_FILE" --account-name "TradingView_backtest" --account-fullname "TradingView backtest import" --symbol US30 -c 1
