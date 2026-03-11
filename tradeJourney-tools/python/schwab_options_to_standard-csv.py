@@ -318,15 +318,34 @@ def match_trades_with_cash(
         List of tuples (trade, cash_transaction or None)
     """
     matched = []
+    used_cash = set()  # Track used cash transactions to avoid duplicates
     
     for trade in trades:
-        # Find matching cash transaction by time (within same minute)
+        # Find matching cash transaction by time and spread type
         matching_cash = None
-        for cash in cash_transactions:
+        best_match_score = -1
+        
+        for i, cash in enumerate(cash_transactions):
+            if i in used_cash:
+                continue
+                
             time_diff = abs((trade.exec_time - cash.date).total_seconds())
-            if time_diff < 60:  # Within 1 minute
+            if time_diff > 60:  # Not within 1 minute
+                continue
+            
+            # Check if spread type matches description
+            spread_match = trade.spread_type.upper() in cash.description.upper()
+            
+            # Calculate match score (lower time diff and spread match = better)
+            match_score = (1000 if spread_match else 0) - time_diff
+            
+            if match_score > best_match_score:
+                best_match_score = match_score
                 matching_cash = cash
-                break
+                matching_index = i
+        
+        if matching_cash:
+            used_cash.add(matching_index)
         
         matched.append((trade, matching_cash))
     
@@ -409,6 +428,13 @@ def pair_open_close_trades(
                 else:
                     trade_type = 'sell'  # Opened short
                 
+                # Calculate total profit: open_amount + close_amount
+                # For BUY TO OPEN: open_amount is negative (cost)
+                # For SELL TO OPEN: open_amount is positive (credit)
+                # For SELL TO CLOSE: close_amount is positive (credit)
+                # For BUY TO CLOSE: close_amount is negative (cost)
+                total_profit = open_trade['profit'] + trade_data['profit']
+                
                 # Create complete round-trip trade
                 complete_trades.append({
                     'open_time': open_trade['exec_time'],
@@ -421,7 +447,7 @@ def pair_open_close_trades(
                     'option_type': trade_data['option_type'],
                     'open_price': open_trade['net_price'],
                     'close_price': trade_data['net_price'],
-                    'profit': trade_data['profit'],
+                    'profit': total_profit,
                     'commission': open_trade['commission'] + trade_data['commission'],
                     'metadata': trade_data['metadata'],
                     'legs': trade_data['legs'],
@@ -545,7 +571,7 @@ def convert_to_standard_format(
                 'mae': None,
                 'mfe': None,
                 'screenshotUrl': '',
-                'instrumentType': trade['option_type'],
+                'instrumentType': 'option',
                 'strikePrice': trade['primary_strike'],
                 'expirationDate': trade['expiration'],
                 'optionType': trade['option_type'],

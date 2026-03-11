@@ -2,7 +2,7 @@ import type { H3Event, EventHandlerRequest } from 'h3'
 import type { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
 import { IncomingForm } from 'formidable'
 import { type MT5XlsRawRow, parseMT5Xls } from '~/server/utils/mt5-parser';
-import { isTimezoneInput } from '~/type';
+import { isTimezoneInput, InstrumentType } from '~/type';
 import { parseNTExecutions } from '../utils/nt-parser'
 import { parseQuantowerExecutions } from '../utils/quantower-parser'
 import { parseIBKRTrades } from '../utils/ibkr-parser'
@@ -138,7 +138,7 @@ const processTrades = async (
     keepExistingTrades: boolean = false,
     dayTagIds: number[] = [],
     tradeTagIds: number[] = [],
-    instrumentType: string = 'any'
+    instrumentType: InstrumentType = InstrumentType.Any
 ) => {
     if (!parsedTrades) {
         throw { statusCode: 400, message: 'Fichier invalide.' }
@@ -337,7 +337,7 @@ export default defineEventHandler(async (event) => {
                     throw { statusCode: 400, message: `Format de timezone invalide ou manquant: ${timezone}` };
                 }
                 const keepExistingTrades = fields.keepExistingTrades![0] === 'true';
-                const instrumentType = fields.instrumentType?.[0] || 'any';
+                const instrumentType = (fields.instrumentType?.[0] || InstrumentType.Any) as InstrumentType;
 
                 // Parser les tags depuis le FormData
                 const dayTagIdsStr = fields.dayTagIds?.[0]

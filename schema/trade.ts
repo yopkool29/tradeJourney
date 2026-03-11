@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TagSchema } from './tag'
+import { InstrumentType } from '~/type'
 /**
  * Schéma de validation pour les trades
  */
@@ -70,7 +71,7 @@ export const TradeSchema = z.object({
 
     profit_points: z.number().default(0),
 
-    instrumentType: z.string().optional().default('any'),
+    instrumentType: z.nativeEnum(InstrumentType).optional().default(InstrumentType.Any),
 
     // Champs optionnels avec valeurs par défaut
     stopLoss: z.number().optional().default(0),

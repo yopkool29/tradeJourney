@@ -37,4 +37,4 @@ flex_results.csv
 docs/README_CONVERTER_TO_STANDARD_CSV.md
 docs/STANDARD_CSV_FORMAT.md
 docs/*.js
-tradeJourney-tools/python/Tradingview_to_standard.csv
+tradeJourney-tools/python/*.csv

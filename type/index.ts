@@ -27,6 +27,15 @@ export type TradeFilterValue = number | string | [number, number, number] | numb
 
 export type TradeFilter = { column: string, operator: string, value: TradeFilterValue }
 
+export enum InstrumentType {
+    Stock = 'stock',
+    Future = 'future',
+    Forex = 'forex',
+    Option = 'option',
+    Crypto = 'crypto',
+    Any = 'any'
+}
+
 export interface FilterColumn {
     label: string
     value: string

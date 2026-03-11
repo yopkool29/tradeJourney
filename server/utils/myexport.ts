@@ -8,6 +8,7 @@ import extract from 'extract-zip'
 import { getDataDb, validateSchemaExists } from '../utils/db'
 import { getUploadPath } from "./index"
 import { createAppError } from './errors'
+import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
 
@@ -64,7 +65,7 @@ interface ImportData {
         importMode: string
         timezone: string
         keepExistingTrades: boolean
-        instrumentType: string
+        instrumentType: InstrumentType
         ibkrFlexQueryToken: string | null
         ibkrFlexQueryId: string | null
         metadata: any | null

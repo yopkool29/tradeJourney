@@ -127,6 +127,7 @@
 import type { ImportProfileType, CreateImportProfileType } from '~/schema/importProfile'
 import { CreateImportProfileSchema, INSTRUMENT_TYPES, DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER } from '~/schema/importProfile'
 import type { ReportType } from '~/type'
+import { InstrumentType } from '~/type'
 import type { TagGroupType } from '~/schema/tagGroup'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 
@@ -151,7 +152,7 @@ const formState = reactive<{
     importMode: 'local' | 'utc'
     timezone: string
     keepExistingTrades: boolean
-    instrumentType: string
+    instrumentType: InstrumentType
     dayTagIds: number[]
     tradeTagIds: number[]
     ibkrFlexQueryToken: string
