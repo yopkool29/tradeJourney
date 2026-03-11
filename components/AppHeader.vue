@@ -21,7 +21,7 @@
                             currentDatabase.displayName }}</span>
                     </button>
                     <nav v-if="userStore.user && currentDatabase"
-                        class="hidden xl:flex w-full items-center space-x-2 gap-x-4">
+                        class="hidden xl:flex w-full items-center gap-x-2">
                         <NuxtLink :to="menuItems[0].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[0].icon" class="header-icon mb-1 transition-colors" />
@@ -47,10 +47,15 @@
                             <UIcon :name="menuItems[4].icon" class="header-icon mb-1 transition-colors" />
                             <span class="font-medium">{{ menuItems[4].label }}</span>
                         </NuxtLink>
+                        <NuxtLink :to="menuItems[5].to" class="header-desktop-link"
+                            active-class="header-desktop-link-active">
+                            <UIcon :name="menuItems[5].icon" class="header-icon mb-1 transition-colors" />
+                            <span class="font-medium">{{ menuItems[5].label }}</span>
+                        </NuxtLink>
                         <div v-if="displayLog">
                             <button class="header-desktop-link cursor-pointer" @click.prevent="onLogActivity()">
-                                <UIcon :name="menuItems[6].icon" class="header-icon mb-1 transition-colors" />
-                                <span class="font-medium">{{ menuItems[6].label }}</span>
+                                <UIcon :name="menuItems[7].icon" class="header-icon mb-1 transition-colors" />
+                                <span class="font-medium">{{ menuItems[7].label }}</span>
                             </button>
                         </div>
                     </nav>
@@ -139,12 +144,18 @@
                                     <UIcon :name="menuItems[4].icon" class="header-menu-icon" />
                                     {{ menuItems[4].label }}
                                 </NuxtLink>
+
+                                <NuxtLink :to="menuItems[5].to" class="header-mobile-link"
+                                    active-class="header-mobile-link-active" @click="mobileMenuOpen = false">
+                                    <UIcon :name="menuItems[5].icon" class="header-menu-icon" />
+                                    {{ menuItems[5].label }}
+                                </NuxtLink>
                             </template>
 
                             <!-- Menu Log (always visible in dev mode) -->
                             <li v-if="displayLog" class="header-mobile-link cursor-pointer" @click="onLogActivity()">
-                                <UIcon :name="menuItems[6].icon" class="header-menu-icon" />
-                                {{ menuItems[6].label }}
+                                <UIcon :name="menuItems[7].icon" class="header-menu-icon" />
+                                {{ menuItems[7].label }}
                             </li>
 
                             <!-- GitHub Link -->
@@ -238,6 +249,11 @@ const menuItems = computed(() => [
         label: t('pages.trades.tabs.trades'),
         icon: 'i-heroicons-chart-bar',
         to: '/main',
+    },
+    {
+        label: t('pages.trades.tabs.import'),
+        icon: 'i-lucide-import',
+        to: '/import',
     },
     {
         label: t('components.app_header.menu_items.settings'),

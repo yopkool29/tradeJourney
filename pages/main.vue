@@ -1,46 +1,59 @@
 <template>
     <div class="container mx-auto px-4 py-8">
-        <UTabs v-model="active" :items="items" class="w-full md:w-2xl" :ui="{ trigger: ['grow', 'cursor-pointer'] }" />
-        <div class="mt-6">
-            <KeepAlive :include="whitelistedViews">
-                <component :is="items[items.findIndex((item) => item.value === active)].component" @imported="handleImported" />
-            </KeepAlive>
+        <div class="flex items-center mb-6 gap-x-4">
+            <h1 class="page-title">{{ $t('components.trade.index.title') }}</h1>
+            <div class="form-row-lg">
+                <UButton color="primary" icon="i-heroicons-pencil-square" @click="onAddTrade">
+                    {{ $t('components.trade.index.button') }}
+                </UButton>
+            </div>
         </div>
+
+        <TradeFormModal
+            :open="showAdd"
+            :trade="editingTrade"
+            @update:open="showAdd = $event"
+            @saved="onSaveTrade"
+        />
+        <UCard class="mb-8">
+            <TradeTable ref="tradeTableRef" :key="refreshKey" @edit="onEdit" @delete="onDeleteRow" />
+        </UCard>
     </div>
 </template>
 
 <script setup lang="ts">
-import { Import, Trade } from '#components'
+import { TradeFormModal } from '#components'
+import type { TradeType } from '~/schema/trade'
 
-const { t } = useI18n()
+const showAdd = ref(false)
+const editingTrade = ref<TradeType | null>(null)
+const importMode = ref(false)
 
-const whitelistedViews = ref<string[]>()
-
-async function clearCachedViews() {
-    whitelistedViews.value = []
-    await nextTick()
-    whitelistedViews.value = undefined
+const onAddTrade = async () => {
+    importMode.value = false
+    showAdd.value = true
+    editingTrade.value = null
 }
 
-async function handleImported() {
-    await clearCachedViews()
-    active.value = 'trades'
+const onEdit = async (trade: TradeType) => {
+    editingTrade.value = { ...trade }
+    showAdd.value = true
 }
 
-const items = computed(() => [
-    {
-        label: t('pages.trades.tabs.trades'),
-        value: 'trades' as const,
-        icon: 'i-lucide-receipt-text',
-        component: markRaw(Trade),
-    },
-    {
-        label: t('pages.trades.tabs.import'),
-        value: 'import' as const,
-        icon: 'i-lucide-import',
-        component: markRaw(Import),
-    },
-])
+const onSaveTrade = async () => {
+    showAdd.value = false
+    importMode.value = false
+    editingTrade.value = null
+    tradeTableRef.value.applyFilters()
+}
 
-const active = useState<string>('main-active-tab', () => 'trades')
+const refreshKey = ref(0)
+const tradeTableRef = ref()
+
+const onDeleteRow = async (tradeId: number) => {
+    if (editingTrade.value?.id === tradeId) {
+        editingTrade.value = null
+        showAdd.value = false
+    }
+}
 </script>

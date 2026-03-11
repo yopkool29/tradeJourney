@@ -1,8 +1,5 @@
 <template>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-4">
-            <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" @click="$router.back()">{{ $t('common.actions.back') }}</UButton>
-        </div>
         <UTabs v-model="active" :items="items" class="w-full md:w-3xl" :ui="{ trigger: ['grow', 'cursor-pointer'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">
