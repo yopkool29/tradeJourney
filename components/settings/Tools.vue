@@ -1,19 +1,15 @@
 <template>
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex items-center justify-between">
-            <div class="page-header">
-                <h1 class="text-2xl font-bold dark:text-white">{{ $t('components.settings.tools.title') }}</h1>
+    <UCard class="card-container-2xl">
+        <template #header>
+            <div class="header-layout">
+                <span class="section-title">{{ $t('components.settings.tools.title') }}</span>
             </div>
-        </div>
-        <div class="mb-6">
-            <p class="text-gray-700 dark:text-gray-300">{{ $t('components.settings.tools.description') }}</p>
-        </div>
+        </template>
+        <div class="p-4">
+            <p class="text-secondary mb-6">{{ $t('components.settings.tools.description') }}</p>
 
-        <div class="space-y-6">
-            <UCard>
-                <template #header>
-                    <h2 class="text-lg font-semibold">{{ $t('components.settings.tools.csv_converter.title') }}</h2>
-                </template>
+            <div class="section-separator">
+                <h3 class="section-subtitle-lg">{{ $t('components.settings.tools.csv_converter.title') }}</h3>
 
                 <UForm id="converterForm" :state="converterParams" :schema="converterParamsSchema"
                     @submit="onSubmitConvert" class="space-y-4">
@@ -77,19 +73,19 @@
                             {{ $t('common.actions.convert') }}
                         </UButton>
                     </div>
+
+                    <!-- Success Message -->
+                    <UAlert v-if="conversionSuccess" color="success" variant="soft" icon="i-lucide-check-circle"
+                        :title="$t('components.settings.tools.csv_converter.success')"
+                        :description="$t('components.settings.tools.csv_converter.success_description')" />
+
+                    <!-- Error Message -->
+                    <UAlert v-if="conversionError" color="error" variant="soft" icon="i-lucide-alert-circle"
+                        :title="$t('components.settings.tools.csv_converter.error')" :description="conversionError" />
                 </UForm>
-
-                <!-- Success Message -->
-                <UAlert v-if="conversionSuccess" color="success" variant="soft" icon="i-lucide-check-circle"
-                    :title="$t('components.settings.tools.csv_converter.success')"
-                    :description="$t('components.settings.tools.csv_converter.success_description')" />
-
-                <!-- Error Message -->
-                <UAlert v-if="conversionError" color="error" variant="soft" icon="i-lucide-alert-circle"
-                    :title="$t('components.settings.tools.csv_converter.error')" :description="conversionError" />
-            </UCard>
+            </div>
         </div>
-    </div>
+    </UCard>
 </template>
 
 <script setup lang="ts">

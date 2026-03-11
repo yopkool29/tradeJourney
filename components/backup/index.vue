@@ -1,18 +1,18 @@
 <template>
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex items-center justify-between">
-            <div class="page-header">
-                <h1 class="text-2xl font-bold dark:text-white">{{ $t('components.backup.title') }}</h1>
+    <UCard class="card-container-2xl">
+        <template #header>
+            <div class="header-layout">
+                <span class="section-title">{{ $t('components.backup.title') }}</span>
+            </div>
+        </template>
+        <div class="p-4">
+            <p class="text-secondary mb-6">{{ $t('components.backup.description') }}</p>
+
+            <div class="section-separator">
+                <BackupManager @imported="emit('imported')" />
             </div>
         </div>
-        <div class="mb-6">
-            <p class="text-gray-700 dark:text-gray-300">{{ $t('components.backup.description') }}</p>
-        </div>
-
-        <div class="space-y-6">
-            <BackupManager @imported="emit('imported')" />
-        </div>
-    </div>
+    </UCard>
 </template>
 
 <script setup lang="ts">
