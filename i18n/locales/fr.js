@@ -183,8 +183,8 @@ export default {
         yes: 'Oui',
         no: 'Non',
         cancel: 'Annuler',
-        convert: 'Convertir',
         actions: {
+            convert: 'Convertir',
             save: 'Enregistrer',
             cancel: 'Annuler',
             delete: 'Supprimer',

@@ -46,6 +46,13 @@
                             @blur="saveConverterParams" />
                     </UFormField>
 
+                    <div class="flex justify-start mb-4">
+                        <UButton variant="soft" size="sm" color="neutral" icon="i-lucide-refresh-ccw"
+                            @click="resetToDefaults">
+                            {{ $t('common.actions.reset') }}
+                        </UButton>
+                    </div>
+
                     <!-- File Upload -->
                     <UFormField :label="$t('components.settings.tools.csv_converter.select_file')" name="file">
                         <UInput type="file" accept=".csv,.xls,.xlsx" @change="handleFileSelect" />
@@ -67,7 +74,7 @@
                     <div class="flex justify-start gap-4 pt-4">
                         <UButton type="submit" form="converterForm" :disabled="!selectedFile || isConverting"
                             :loading="isConverting" color="primary" icon="i-lucide-refresh-cw">
-                            {{ $t('common.convert') }}
+                            {{ $t('common.actions.convert') }}
                         </UButton>
                     </div>
                 </UForm>
@@ -162,6 +169,15 @@ const loadConverterParamsForType = (type: 'schwab-options' | 'tradingview') => {
         converterParams.accountFullname = defaults.accountFullname
         converterParams.importName = defaults.importName
     }
+}
+
+const resetToDefaults = async () => {
+    const type = userStore.conversionType.value as 'schwab-options' | 'tradingview'
+    const defaults = defaultParams[type]
+    converterParams.accountName = defaults.accountName
+    converterParams.accountFullname = defaults.accountFullname
+    converterParams.importName = defaults.importName
+    await saveConverterParams()
 }
 
 const saveConverterParams = async () => {

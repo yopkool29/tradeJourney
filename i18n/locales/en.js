@@ -177,8 +177,8 @@ export default {
         yes: 'Yes',
         no: 'No',
         cancel: 'Cancel',
-        convert: 'Convert',
         actions: {
+            convert: 'Convert',
             save: 'Save',
             cancel: 'Cancel',
             delete: 'Delete',

@@ -55,8 +55,12 @@ RUN npm run build
 
 FROM node:20.19.0-alpine AS production
 
-# Install netcat for PostgreSQL readiness check and postgresql-client for psql
-RUN apk add --no-cache netcat-openbsd postgresql-client
+# Install netcat for PostgreSQL readiness check, postgresql-client for psql, and Python 3.13
+RUN apk add --no-cache netcat-openbsd postgresql-client python3 curl
+
+# Install uv for Python package management (via official installer)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.cargo/bin/uv /usr/local/bin/uv
 
 WORKDIR /app
 
@@ -69,6 +73,15 @@ COPY --from=builder /app/generated/prisma-data ./generated/prisma-data
 
 # Copier les scripts nécessaires
 COPY --from=builder /app/scripts /app/scripts
+
+# Copier les outils Python
+COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/python
+
+# Installer les dépendances Python avec uv
+WORKDIR /app/tradeJourney-tools/python
+RUN uv sync --frozen
+
+WORKDIR /app
 
 # Convert line endings from CRLF to LF and make executable
 RUN apk add --no-cache dos2unix && \
