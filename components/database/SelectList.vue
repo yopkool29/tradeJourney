@@ -22,14 +22,21 @@
                     @dblclick="handleDoubleClick(db.id)"
                 >
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 flex-1">
                             <UIcon name="i-heroicons-circle-stack" class="text-2xl text-primary-500" />
-                            <div>
+                            <div class="flex-1">
                                 <h3 class="font-semibold">{{ db.displayName }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ db.name }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <UButton
+                                variant="ghost"
+                                color="neutral"
+                                icon="i-lucide-pencil"
+                                size="xs"
+                                @click.stop="openRenameModal(db)"
+                            />
                             <UBadge v-if="db.isDefault" color="primary" variant="subtle">
                                 {{ $t('pages.select_database.default') }}
                             </UBadge>
@@ -115,6 +122,13 @@
                 </div>
             </template>
         </CommonModalDelete>
+
+        <!-- Database Rename Modal -->
+        <DatabaseRenameModal 
+            v-model="showRenameModal" 
+            :database="databaseToRename" 
+            @renamed="handleDatabaseRenamed" 
+        />
     </div>
 </template>
 
@@ -141,7 +155,9 @@ const databases = ref<Database[]>([])
 const selectedDatabaseId = ref<number | null>(null)
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
+const showRenameModal = ref(false)
 const deleteState = ref({ password: '' })
+const databaseToRename = ref<Database | null>(null)
 
 const selectedDatabase = computed(() => databases.value.find((db) => db.id === selectedDatabaseId.value))
 
@@ -256,6 +272,18 @@ const handleDeleteDatabase = async () => {
         const { message } = catchTagMessage(err, t)
         displayMessage(null, message)
     }
+}
+
+const openRenameModal = (db: Database) => {
+    databaseToRename.value = db
+    showRenameModal.value = true
+}
+
+const handleDatabaseRenamed = async () => {
+    displayMessage(t('pages.select_database.rename_success'), null)
+    showRenameModal.value = false
+    databaseToRename.value = null
+    await loadDatabases()
 }
 </script>
 

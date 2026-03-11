@@ -3,7 +3,7 @@
         <div class="mb-4">
             <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" @click="$router.back()">{{ $t('common.actions.back') }}</UButton>
         </div>
-        <UTabs v-model="active" :items="items" class="w-full md:w-2xl" :ui="{ trigger: ['grow', 'cursor-pointer'] }" />
+        <UTabs v-model="active" :items="items" class="w-full md:w-3xl" :ui="{ trigger: ['grow', 'cursor-pointer'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">
                 <component
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, Backup } from '#components'
+import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, SettingsTools, Backup } from '#components'
 import { markRaw } from 'vue'
 
 const { t } = useI18n()
@@ -60,6 +60,12 @@ const items = computed(() => [
         value: 'backup' as const,
         icon: 'i-lucide-database-backup',
         component: markRaw(Backup),
+    },
+    {
+        label: t('pages.settings.tabs.tools'),
+        value: 'tools' as const,
+        icon: 'i-lucide-wrench',
+        component: markRaw(SettingsTools),
     },
     {
         label: t('pages.settings.tabs.options'),

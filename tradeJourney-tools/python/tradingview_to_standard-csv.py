@@ -225,6 +225,9 @@ def main():
         trades = parse_tradingview_csv(args.input)
         print(f"✓ {len(trades)} trades found")
         
+        if len(trades) == 0:
+            raise ValueError("No trades found in the file. Please check that the file contains valid TradingView trade data.")
+        
         print(f"🔄 Converting to standard format...")
         standard_trades = convert_to_standard_format(
             trades,

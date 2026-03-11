@@ -31,6 +31,13 @@ export const SettingsContentSchema = z.object({
     defaultDatabaseId: z.number().optional().nullable(),
     storageUrl: z.string().default('https://your-ngrok-url.ngrok.io'),
     storagePassword: z.string().default(''),
+    converterParams: z.record(
+        z.object({
+            accountName: z.string(),
+            accountFullname: z.string(),
+            importName: z.string(),
+        })
+    ).optional(),
     chartColors: z.object({
         cumulatedPnlChart: z.object({
             bar: z.object({

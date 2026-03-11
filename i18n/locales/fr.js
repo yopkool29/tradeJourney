@@ -183,6 +183,7 @@ export default {
         yes: 'Oui',
         no: 'Non',
         cancel: 'Annuler',
+        convert: 'Convertir',
         actions: {
             save: 'Enregistrer',
             cancel: 'Annuler',
@@ -268,6 +269,7 @@ export default {
                 tags: 'Tags',
                 trading_symbols: 'Symboles de trading',
                 backup: 'Sauvegarde',
+                tools: 'Outils',
                 options: 'Options',
             },
         },
@@ -309,6 +311,10 @@ export default {
             password: 'Mot de passe',
             enter_password: 'Entrez votre mot de passe pour confirmer',
             delete: 'Supprimer',
+            rename_database: 'Renommer la base de données',
+            display_name: 'Nom affiché',
+            enter_display_name: 'Entrez le nouveau nom affiché',
+            rename_success: 'Base de données renommée avec succès',
         },
     },
     components: {
@@ -723,6 +729,32 @@ export default {
             },
         },
         settings: {
+            tools: {
+                title: 'Outils de conversion',
+                description: 'Convertissez vos fichiers CSV vers le format standard TradeJourney',
+                csv_converter: {
+                    title: 'Convertisseur CSV',
+                    conversion_type: 'Type de conversion',
+                    account_name: 'Nom du compte',
+                    account_name_placeholder: 'Ex: Schwab, IBKR, etc.',
+                    account_fullname: 'Nom complet du compte',
+                    account_fullname_placeholder: 'Ex: Charles Schwab Options',
+                    import_name: 'Nom d\'import',
+                    import_name_placeholder: 'Ex: SchwabOptions, TradingView',
+                    select_file: 'Sélectionner un fichier',
+                    success: 'Conversion réussie',
+                    success_description: 'Le fichier a été converti avec succès. Le téléchargement va démarrer automatiquement.',
+                    error: 'Erreur de conversion',
+                    unknown_error: 'Une erreur inconnue est survenue',
+                    params_validation_error: 'Les paramètres du convertisseur doivent contenir au moins 4 caractères',
+                    types: {
+                        schwab_options: 'Schwab Options',
+                        schwab_options_desc: 'Convertir un relevé de compte Schwab Options vers le format standard',
+                        tradingview: 'TradingView',
+                        tradingview_desc: 'Convertir un export TradingView vers le format standard',
+                    },
+                },
+            },            
             options: {
                 title: "Paramètres de l'application",
                 description:

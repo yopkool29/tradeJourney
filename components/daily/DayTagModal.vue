@@ -23,7 +23,7 @@
             </UForm>
         </template>
         <template #footer>
-            <div class="flex justify-end gap-2 mt-6">
+            <div class="flex justify-end gap-4 mt-6">
                 <UButton form="form1" type="submit">{{ dayTag ? $t('components.daily.day_tag_modal.update') : $t('common.actions.save') }}</UButton>
                 <UButton type="button" variant="soft" @click="$emit('update:open', false)">{{ $t('common.actions.cancel') }}</UButton>
             </div>

@@ -652,6 +652,9 @@ def main():
         print(f"✓ {len(trades)} trades found in Trade History")
         print(f"✓ {len(cash_transactions)} cash transactions found")
         
+        if len(trades) == 0:
+            raise ValueError("No trades found in the file. Please check that the file contains valid trades data.")
+        
         print(f"🔗 Matching trades with cash transactions...")
         matched = match_trades_with_cash(trades, cash_transactions)
         
@@ -683,8 +686,6 @@ def main():
         
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc()
         sys.exit(1)
 
 

@@ -177,6 +177,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         cancel: 'Cancel',
+        convert: 'Convert',
         actions: {
             save: 'Save',
             cancel: 'Cancel',
@@ -262,6 +263,7 @@ export default {
                 tags: 'Tags',
                 trading_symbols: 'Trading Symbols',
                 backup: 'Backup',
+                tools: 'Tools',
                 options: 'Options',
             },
         },
@@ -303,6 +305,10 @@ export default {
             password: 'Password',
             enter_password: 'Enter your password to confirm',
             delete: 'Delete',
+            rename_database: 'Rename Database',
+            display_name: 'Display Name',
+            enter_display_name: 'Enter new display name',
+            rename_success: 'Database renamed successfully',
         },
     },
     components: {
@@ -711,6 +717,32 @@ export default {
             },
         },
         settings: {
+            tools: {
+                title: 'Conversion Tools',
+                description: 'Convert your CSV files to TradeJourney standard format',
+                csv_converter: {
+                    title: 'CSV Converter',
+                    conversion_type: 'Conversion Type',
+                    account_name: 'Account Name',
+                    account_name_placeholder: 'e.g., Schwab, IBKR, etc.',
+                    account_fullname: 'Account Full Name',
+                    account_fullname_placeholder: 'e.g., Charles Schwab Options',
+                    import_name: 'Import Name',
+                    import_name_placeholder: 'e.g., SchwabOptions, TradingView',
+                    select_file: 'Select File',
+                    success: 'Conversion Successful',
+                    success_description: 'The file has been successfully converted. Download will start automatically.',
+                    error: 'Conversion Error',
+                    unknown_error: 'An unknown error occurred',
+                    params_validation_error: 'Converter parameters must contain at least 4 characters',
+                    types: {
+                        schwab_options: 'Schwab Options',
+                        schwab_options_desc: 'Convert a Schwab Options account statement to standard format',
+                        tradingview: 'TradingView',
+                        tradingview_desc: 'Convert a TradingView export to standard format',
+                    },
+                },
+            },
             options: {
                 title: 'Application Settings',
                 description:
