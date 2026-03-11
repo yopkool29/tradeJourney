@@ -200,7 +200,6 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from '~/composables/useAuth'
 import type { ILogView } from '~/type'
 
 const myLogView = useState<ILogView | null>('myLogView', () => null)

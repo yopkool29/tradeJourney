@@ -33,7 +33,6 @@ import { Bar } from 'vue-chartjs'
 import type { ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { CommonModalChart } from '#components'
-import { useTypeColors } from '~/composables/useTypeColors'
 
 const { formatCurrency } = useUtils()
 

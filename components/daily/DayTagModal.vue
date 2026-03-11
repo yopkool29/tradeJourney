@@ -35,8 +35,6 @@
 import type { TagGroupType } from '~/schema/tagGroup'
 import type { DayTagType, CreateDayTagType, UpdateDayTagType } from '~/schema/dayTag'
 import type { TagType } from '~/schema/tag'
-import { useTags } from '~/composables/useTags'
-import { useDayTags } from '~/composables/useDayTags'
 import { CreateDayTagSchema } from '~/schema/dayTag'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import { normalizeDateToLocalString } from '~/utils/date-utils'

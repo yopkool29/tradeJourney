@@ -42,7 +42,6 @@
 
 <script setup lang="ts">
 import type { z } from 'zod'
-import { useTags } from '~/composables/useTags'
 import type { TagGroupType } from '~/schema/tagGroup'
 import type { TagSchema } from '~/schema/tag'
 

@@ -27,7 +27,6 @@ import type { ChartOptions, TooltipItem, ChartTypeRegistry, ChartDataset } from 
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { colorToRgba } from '~/utils/color-utils'
 import { CommonModalChart } from '#components'
-import { useTypeColors } from '~/composables/useTypeColors'
 
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
