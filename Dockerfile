@@ -60,7 +60,8 @@ RUN apk add --no-cache netcat-openbsd postgresql-client python3 curl
 
 # Install uv for Python package management (via official installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.cargo/bin/uv /usr/local/bin/uv
+    mv /root/.local/bin/uv /usr/local/bin/uv && \
+    mv /root/.local/bin/uvx /usr/local/bin/uvx
 
 WORKDIR /app
 
