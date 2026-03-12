@@ -3,73 +3,7 @@
         <template #header>
             <div class="header-layout">
                 <span class="section-title">{{ $t('components.settings.tradingSymbols.title') }}</span>
-                <CommonModalDefault
-                    v-model:open="showAddSymbol"
-                    :title="
-                        editingSymbolId
-                            ? $t('components.settings.tradingSymbols.edit_symbol_modal')
-                            : $t('components.settings.tradingSymbols.add_symbol_modal')
-                    "
-                >
-                    <template #trigger>
-                        <UButton icon="i-lucide-plus" size="xs" @click="newSymbol()">{{
-                            $t('components.settings.tradingSymbols.new_symbol')
-                        }}</UButton>
-                    </template>
-                    <template #content>
-                        <UForm
-                            id="createSymbolForm1"
-                            :state="newSymbolState"
-                            :schema="CreateSymbolSchema"
-                            :validate-on="['change', 'input']"
-                            @submit.prevent="submitSymbol"
-                        >
-                            <div class="form-fields-container">
-                                <UFormField name="symbol" :label="$t('components.settings.tradingSymbols.symbol_label')" required>
-                                    <UInput
-                                        v-model="newSymbolState.symbol"
-                                        :placeholder="$t('components.settings.tradingSymbols.symbol_placeholder')"
-                                        autofocus
-                                    />
-                                </UFormField>
-                                <UFormField name="digit" :label="$t('components.settings.tradingSymbols.digit_label')">
-                                    <UInput
-                                        v-model="newSymbolState.digit"
-                                        :placeholder="$t('components.settings.tradingSymbols.digit_placeholder')"
-                                    />
-                                </UFormField>
-                                <UFormField name="pricePerPoint" :label="$t('components.settings.tradingSymbols.price_per_point_label')">
-                                    <UInput
-                                        v-model="newSymbolState.pricePerPoint"
-                                        :placeholder="$t('components.settings.tradingSymbols.price_per_point_placeholder')"
-                                    />
-                                </UFormField>
-                                <UFormField name="notes" :label="$t('components.settings.tradingSymbols.notes_label')">
-                                    <UInput
-                                        v-model="newSymbolState.notes"
-                                        class="md:w-2/3"
-                                        :placeholder="$t('components.settings.tradingSymbols.notes_placeholder')"
-                                    />
-                                </UFormField>
-                                <UFormField name="aliases" :label="$t('components.settings.tradingSymbols.aliases_label')">
-                                    <UInput
-                                        v-model="newSymbolState.aliases"
-                                        class="md:w-2/3"
-                                        :placeholder="$t('components.settings.tradingSymbols.aliases_placeholder')"
-                                    />
-                                </UFormField>
-                            </div>
-                        </UForm>
-                    </template>
-                    <template #footer>
-                        <div class="action-buttons-end">
-                            <UButton type="submit" form="createSymbolForm1" color="primary">{{ $t('common.actions.save') }}</UButton>
-                            <UButton type="button" color="neutral" variant="soft" @click.prevent="showAddSymbol = false">{{
-                                $t('common.actions.cancel')
-                            }}</UButton>
-                        </div>
-                    </template>
-                </CommonModalDefault>
+                <SymbolCreateModal @created="onSymbolCreated" @error="onSymbolError" />
             </div>
         </template>
         <div class="p-4">
@@ -126,16 +60,6 @@
                     </template>
                     <template #actions-cell="{ row }">
                         <div class="action-buttons">
-                            <UTooltip :text="$t('components.settings.tradingSymbols.edit')">
-                                <UButton
-                                    icon="i-heroicons-pencil-square"
-                                    color="primary"
-                                    size="xs"
-                                    variant="ghost"
-                                    @click="editSymbol(row.original)"
-                                    >{{ $t('components.settings.tradingSymbols.edit') }}</UButton
-                                >
-                            </UTooltip>
                             <UTooltip
                                 :text="
                                     row.original.active
@@ -151,6 +75,18 @@
                                     }}
                                 </UButton>
                             </UTooltip>
+                            <SymbolCreateModal :symbol="row.original" @updated="onSymbolUpdated" @error="onSymbolError">
+                                <template #trigger>
+                                    <UTooltip :text="$t('components.settings.tradingSymbols.edit')">
+                                        <UButton
+                                            icon="i-heroicons-pencil-square"
+                                            color="primary"
+                                            size="xs"
+                                            variant="ghost"
+                                        />
+                                    </UTooltip>
+                                </template>
+                            </SymbolCreateModal>
                             <CommonModalDelete @confirm="onDelete(row.original.id)">
                                 <template #trigger>
                                     <UTooltip :text="$t('common.actions.delete')">
@@ -184,10 +120,8 @@
 </template>
 
 <script setup lang="ts">
-import type { FormSubmitEvent } from '@nuxt/ui'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
-import { CreateSymbolSchema } from '~/schema/symbol'
-import type { CreateSymbolType, SymbolType, UpdateSymbolType } from '~/schema/symbol'
+import type { SymbolType, UpdateSymbolType } from '~/schema/symbol'
 import type { SettingsContentType } from '~/schema/user'
 import type { TradeFilter, FilterColumn } from '~/type'
 
@@ -210,12 +144,6 @@ const displayMessage = (success: string | null, error: string | null) => {
         log_error(error)
     }
 }
-
-const getDefaultSymbol = () => ({ symbol: '', digit: 2, notes: null, aliases: '', active: true, userId: 0 }) // À adapter selon le contexte utilisateur
-
-const newSymbolState = ref<Partial<SymbolType>>(getDefaultSymbol())
-const editingSymbolId = ref<number | null>(null)
-const showAddSymbol = ref(false)
 
 const addMeta = (defaultClass: string = 'w-[80px]') => {
     return {
@@ -304,7 +232,7 @@ const onApplyFilters = () => {
 const filteredSymbols = computed(() => {
     return symbols.value.filter((symbol) => {
         return filters.value.every((filter) => {
-            if (!filter.value && filter.value !== false) return true
+            if (!filter.value && filter.value !== false && filter.value !== 0) return true
 
             const symbolValue = symbol[filter.column as keyof typeof symbol]
             const filterValue = filter.value
@@ -314,11 +242,13 @@ const filteredSymbols = computed(() => {
                     if (filter.column === 'active') {
                         return symbol.active === (filterValue === 'true')
                     }
+                    if (!symbolValue && symbolValue !== 0) return false
                     return String(symbolValue).toLowerCase().includes(String(filterValue).toLowerCase())
                 case '!=':
                     if (filter.column === 'active') {
                         return symbol.active !== (filterValue === 'true')
                     }
+                    if (!symbolValue && symbolValue !== 0) return true
                     return !String(symbolValue).toLowerCase().includes(String(filterValue).toLowerCase())
                 default:
                     return true
@@ -345,38 +275,22 @@ watch([page, pageCount], () => {
     }
 })
 
-function newSymbol() {
-    displayMessage(null, null)
-    editingSymbolId.value = null
-    newSymbolState.value = getDefaultSymbol()
-    showAddSymbol.value = true
+// Gérer la création d'un symbole via le modal
+async function onSymbolCreated() {
+    displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
+    await fetchSymbols()
 }
 
-function editSymbol(symbol: SymbolType) {
-    displayMessage(null, null)
-    editingSymbolId.value = symbol.id
-    newSymbolState.value = { ...symbol }
-    showAddSymbol.value = true
+// Gérer la mise à jour d'un symbole via le modal
+async function onSymbolUpdated() {
+    displayMessage(t('components.settings.tradingSymbols.symbol_updated'), null)
+    await fetchSymbols()
 }
 
-async function submitSymbol(event: FormSubmitEvent<CreateSymbolType | UpdateSymbolType>) {
-    try {
-        if (editingSymbolId.value) {
-            // Edition
-            await updateSymbol(event.data as UpdateSymbolType)
-            displayMessage(t('components.settings.tradingSymbols.symbol_updated'), null)
-        } else {
-            // Création
-            await createSymbol(event.data as CreateSymbolType)
-            displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
-        }
-        await fetchSymbols()
-        editingSymbolId.value = null
-        showAddSymbol.value = false
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        errorStr.value = message
-        log_error(message)
+// Gérer les erreurs de création/édition de symbole
+function onSymbolError(error: string | null) {
+    if (error) {
+        displayMessage(null, error)
     }
 }
 

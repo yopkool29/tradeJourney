@@ -41,14 +41,28 @@
                             "
                         >
                             <div class="field-help-text">{{ $t('components.trade.formModal.symbol.help') }}</div>
-                            <USelect
-                                v-model="newState.symbol"
-                                :items="availableSymbols.map((s) => s.symbol)"
-                                :placeholder="$t('components.trade.formModal.symbol.placeholder')"
-                                searchable
-                                size="lg"
-                                class="min-w-[200px]"
-                            />
+                            <div class="flex gap-2 items-center">
+                                <USelect
+                                    v-model="newState.symbol"
+                                    :items="availableSymbols.map((s) => s.symbol)"
+                                    :placeholder="$t('components.trade.formModal.symbol.placeholder')"
+                                    searchable
+                                    size="lg"
+                                    class="min-w-[200px] flex-1"
+                                />
+                                <SymbolCreateModal @created="onSymbolCreated" @error="onSymbolError">
+                                    <template #trigger>
+                                        <UTooltip :text="$t('components.settings.tradingSymbols.new_symbol')">
+                                            <UButton 
+                                                icon="i-lucide-plus-circle" 
+                                                color="primary" 
+                                                variant="soft"
+                                                size="lg"
+                                            />
+                                        </UTooltip>
+                                    </template>
+                                </SymbolCreateModal>
+                            </div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.type.label')" name="type" class="text-base">
                             <div class="field-help-text">{{ $t('components.trade.formModal.type.help') }}</div>
@@ -114,6 +128,22 @@ const isLoading = ref(false)
 const { t } = useI18n()
 
 const { log_error } = useLogView()
+
+// Gérer la création d'un nouveau symbole
+async function onSymbolCreated(symbol: any) {
+    displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
+    // Rafraîchir la liste des symboles
+    await fetchActiveSymbols()
+    // Sélectionner automatiquement le symbole créé
+    newState.value.symbol = symbol.symbol
+}
+
+// Gérer les erreurs de création de symbole
+function onSymbolError(error: string | null) {
+    if (error) {
+        displayMessage(null, error)
+    }
+}
 
 const open = defineModel<boolean>('open', { required: true })
 
