@@ -2,6 +2,7 @@ import type { AccountTrades, TradesImport, AccountInfoImport } from './index'
 import { ImportMode, parseISO8601Date } from '~/utils/date-utils'
 import { DateTime } from 'luxon'
 import { parseCSVLine } from './csv-utils'
+import { InstrumentType } from '~/type'
 
 export interface AccountTradesWithImportName extends AccountTrades {
     importName: string
@@ -135,7 +136,7 @@ export function parseStandardCSV(
 
             // Options-specific fields
             if (colIndex['instrumentType'] !== undefined && values[colIndex['instrumentType']]) {
-                trade.instrumentType = values[colIndex['instrumentType']]
+                trade.instrumentType = values[colIndex['instrumentType']] as InstrumentType
             }
 
             if (colIndex['strikePrice'] !== undefined && values[colIndex['strikePrice']]) {

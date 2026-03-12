@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     
     try {
         const prisma = getAuthDb()
-        const userId = event.context.userId
+        const userId = Number(event.context.userId)
 
         const user = await prisma.user.findUnique({
             where: { id: userId },

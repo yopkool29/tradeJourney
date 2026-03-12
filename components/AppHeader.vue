@@ -217,6 +217,25 @@ const mobileMenuOpen = ref(false)
 
 const displayLog = ref(import.meta.env.DEV)
 
+// Vérification périodique de la session
+const { startSessionCheck, stopSessionCheck } = useSessionCheck()
+
+// Démarrer la vérification quand le composant est monté et qu'un utilisateur est connecté
+onMounted(() => {
+    if (userStore.user) {
+        startSessionCheck()
+    }
+})
+
+// Surveiller les changements d'utilisateur pour démarrer/arrêter la vérification
+watch(() => userStore.user, (newUser) => {
+    if (newUser) {
+        startSessionCheck()
+    } else {
+        stopSessionCheck()
+    }
+})
+
 const isDevMode = computed(() => import.meta.env.DEV)
 
 const isDark = computed(() => colorMode.value === 'dark')
