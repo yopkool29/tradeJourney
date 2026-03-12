@@ -25,8 +25,8 @@ export const useDashboard = () => {
     const userStore = useUserStore()
 
     const fetchAccounts = async () => {
-        await $fetch<AccountType[]>('/api/account').then((res) => {
-            accounts.value = res
+        await $fetch('/api/account').then((res) => {
+            accounts.value = res as AccountType[]
         })
     }
 
@@ -58,7 +58,7 @@ export const useDashboard = () => {
             }
         }
 
-        let trades = await fetchTrades(filtersForApi)
+        let trades = await fetchTrades(filtersForApi, -1)
 
         // Filtrer les trades dont le P&L absolu est inférieur au seuil
         const pnlThreshold = userStore.user?.settings_object?.pnlThreshold || 0

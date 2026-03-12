@@ -8,8 +8,8 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
     const userStore = useUserStore()
 
     const fetchAccounts = async () => {
-        await $fetch<AccountType[]>('/api/account').then((res) => {
-            accounts.value = res
+        await $fetch('/api/account').then((res) => {
+            accounts.value = res as AccountType[]
         })
     }
 
@@ -43,7 +43,7 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
 
         const showInactive = 'showInactive' in userStore[storeKey] ? (userStore[storeKey] as any).showInactive : false
 
-        const trades = await fetchTrades(filtersForApi, -1, showInactive)
+        const trades = await fetchTrades(filtersForApi, 1000, showInactive)
 
         userStore[storeKey].last_results = trades
 

@@ -749,7 +749,7 @@ const columns = [
     },
 ]
 
-const fetchTradesWrapper = async (params = {}, limit = -1) => {
+const fetchTradesWrapper = async (params = {}, limit = 1000) => {
     // Convertir les paramètres en tableau de filtres
     const filtersArray = Array.isArray(params) ? [...params] : []
     // Ajouter le filtre sur les trades inactifs

@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
         let showInactive = false
         const query = getQuery(event)
         let filters: TradeFilter[] = []
+        let limit = 1000 // Valeur par défaut
 
         try {
             if (query.filters) {
@@ -32,6 +33,12 @@ export default defineEventHandler(async (event) => {
             }
             if (query.showInactive) {
                 showInactive = query.showInactive === 'true'
+            }
+            if (query.limit !== undefined) {
+                const parsedLimit = parseInt(query.limit as string, 10)
+                if (!isNaN(parsedLimit)) {
+                    limit = parsedLimit
+                }
             }
         } catch {
             filters = []
@@ -134,9 +141,8 @@ export default defineEventHandler(async (event) => {
             where.active = true
 
         // Récupérer les trades avec leurs associations de tags
-        const trades = await prisma.trade.findMany({
+        const queryOptions: any = {
             where,
-            take: 1000,
             orderBy: { openDate: 'desc' },
             include: {
                 tags: {
@@ -147,7 +153,14 @@ export default defineEventHandler(async (event) => {
                 account: true,
                 screenshots: true
             }
-        })
+        }
+
+        // N'appliquer take que si limit >= 0
+        if (limit >= 0) {
+            queryOptions.take = limit
+        }
+
+        const trades = await prisma.trade.findMany(queryOptions)
 
         // Transformer les résultats pour correspondre au type TradeWithTags
         const tradesWithTags = trades.map(trade => {
