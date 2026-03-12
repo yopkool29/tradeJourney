@@ -133,6 +133,10 @@ export default defineNuxtConfig({
         experimental: {
             wasm: false
         },
+        // compressPublicAssets: {
+        //     gzip: true,
+        //     brotli: true
+        // },
         publicAssets: [
             {
                 dir: 'upload',
