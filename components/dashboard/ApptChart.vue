@@ -17,7 +17,7 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`">
+        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Bar
                 ref="barChartRef"
                 :data="chartData"
@@ -34,7 +34,6 @@ import type { Context } from 'chartjs-plugin-datalabels'
 import { useUserStore } from '~/stores/user'
 import { generateApptChartData } from '~/utils/dashboard'
 import type { TooltipItem, ChartTypeRegistry } from 'chart.js'
-import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 
@@ -150,13 +149,11 @@ const chartDisplayOptions = computed(() => ({
             beginAtZero: false,
             grid: { color: isDark.value ? '#444' : '#e5e7eb' },
             ticks: {
-                color: isDark.value ? '#fff' : '#222',
                 callback: (value) => formatCurrency(Number(value)),
             },
         },
         x: {
             grid: { color: isDark.value ? '#444' : '#e5e7eb' },
-            ticks: { color: isDark.value ? '#fff' : '#222' },
         },
     },
     backgroundColor: isDark.value ? '#18181b' : '#fff',

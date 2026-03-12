@@ -1,4 +1,3 @@
-import { useState } from '#app'
 import { useTrades } from './useTrades'
 
 // Interface pour représenter un screenshot (nouveau ou existant)

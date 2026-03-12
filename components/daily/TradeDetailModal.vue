@@ -62,6 +62,50 @@
                     </div>
                     <div></div>
                 </div>
+                <div v-if="isOption && optionMetadata" class="border-t pt-4">
+                    <span class="text-secondary-sm block mb-2 font-semibold">Option Details</span>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-secondary-sm block">Spread Type</span>
+                            <UBadge color="primary" variant="soft">{{ optionMetadata.spreadType }}</UBadge>
+                        </div>
+                        <div>
+                            <span class="text-secondary-sm block">Position Effect</span>
+                            <span class="font-semibold">{{ optionMetadata.posEffect }}</span>
+                        </div>
+                        <div>
+                            <span class="text-secondary-sm block">Order Type</span>
+                            <span class="font-semibold">{{ optionMetadata.orderType }}</span>
+                        </div>
+                    </div>
+                    <div v-if="optionMetadata.legs && optionMetadata.legs.length > 0" class="mt-3">
+                        <span class="text-secondary-sm block mb-2">Legs</span>
+                        <div class="space-y-2">
+                            <div v-for="(leg, index) in optionMetadata.legs" :key="index" 
+                                class="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div>
+                                        <span class="text-xs text-gray-500">Strike</span>
+                                        <div class="font-semibold">{{ leg.strike }}</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500">Type</span>
+                                        <div class="font-semibold uppercase">{{ leg.type }}</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500">Qty</span>
+                                        <div class="font-semibold">{{ leg.qty }}</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500">Price</span>
+                                        <div class="font-semibold">{{ leg.price.toFixed(2) }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-1 text-xs text-gray-500">Exp: {{ formatDate(leg.expiration) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div v-if="trade.note">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.note') }}</span>
                     <p class="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded">{{ trade.note }}</p>
@@ -145,6 +189,28 @@ const allScreenshots = computed(() => {
             : []),
     ]
 })
+
+const isOption = computed(() => {
+    return props.trade?.instrumentType === 'option'
+})
+
+const optionMetadata = computed(() => {
+    if (!props.trade?.metadata) return null
+    try {
+        return typeof props.trade.metadata === 'string' 
+            ? JSON.parse(props.trade.metadata) 
+            : props.trade.metadata
+    } catch (e) {
+        console.error('Failed to parse metadata:', e)
+        return null
+    }
+})
+
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    return date.toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' })
+}
 
 const openScreenshotsModal = (screenshots: Array<{ id?: number; url: string }>, index: number = 0) => {
     currentScreenshotIndex.value = index

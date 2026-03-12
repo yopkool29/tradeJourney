@@ -269,7 +269,7 @@
                                         :disabled="row.original.active === false"
                                         @click="openTradeTagModal(row.original)" />
                                 </UTooltip>
-                                <UTooltip v-if="row.original.note || row.original.tags?.length > 0"
+                                <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
                                     :text="$t('components.common.actions.clear_notes_tags')">
                                     <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
                                         :disabled="row.original.active === false"

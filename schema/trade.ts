@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TagSchema } from './tag'
+import { InstrumentType } from '~/type'
 /**
  * Schéma de validation pour les trades
  */
@@ -70,7 +71,7 @@ export const TradeSchema = z.object({
 
     profit_points: z.number().default(0),
 
-    instrumentType: z.string().optional().default('any'),
+    instrumentType: z.nativeEnum(InstrumentType).optional().default(InstrumentType.Any),
 
     // Champs optionnels avec valeurs par défaut
     stopLoss: z.number().optional().default(0),
@@ -91,6 +92,31 @@ export const TradeSchema = z.object({
         .refine(val => val > 0, {
             params: { i18n: 'zodI18n.validation.trade.account_id_positive' }
         }),
+
+    // Options-specific fields
+    mae: z.number().nullable().optional(),
+    mfe: z.number().nullable().optional(),
+    strikePrice: z.number().nullable().optional(),
+    expirationDate: z.preprocess(
+        val => val ? (typeof val === 'string' ? new Date(val) : val) : null,
+        z.date().nullable().optional()
+    ),
+    optionType: z.string().nullable().optional(),
+    premium: z.number().nullable().optional(),
+    metadata: z.preprocess(
+        val => {
+            if (!val) return null;
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    return null;
+                }
+            }
+            return val;
+        },
+        z.any().nullable().optional()
+    ),
 });
 
 export function generateUniqueId(importName: string = "Default", accountId: number, symbol: string, openDate: string | Date, closeDate: string | Date, id?: string): string {

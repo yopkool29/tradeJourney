@@ -2,7 +2,7 @@ import type { H3Event, EventHandlerRequest } from 'h3'
 import type { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
 import { IncomingForm } from 'formidable'
 import { type MT5XlsRawRow, parseMT5Xls } from '~/server/utils/mt5-parser';
-import { isTimezoneInput } from '~/type';
+import { isTimezoneInput, InstrumentType } from '~/type';
 import { parseNTExecutions } from '../utils/nt-parser'
 import { parseQuantowerExecutions } from '../utils/quantower-parser'
 import { parseIBKRTrades } from '../utils/ibkr-parser'
@@ -138,7 +138,7 @@ const processTrades = async (
     keepExistingTrades: boolean = false,
     dayTagIds: number[] = [],
     tradeTagIds: number[] = [],
-    instrumentType: string = 'any'
+    instrumentType: InstrumentType = InstrumentType.Any
 ) => {
     if (!parsedTrades) {
         throw { statusCode: 400, message: 'Fichier invalide.' }
@@ -176,6 +176,8 @@ const processTrades = async (
         })
     }
 
+    console.log("keepExistingTrades:", keepExistingTrades)
+
     if (!keepExistingTrades) {
         // Supprimer les trades existants pour les jours qui vont être réimportés
         for (const day of parsedTrades.accountInfo.tradingDays) {
@@ -186,7 +188,7 @@ const processTrades = async (
             console.log(`processTrades: Deleting trades from ${day} for account ${account.name} (importName: ${importName})`)
 
             // Supprimer directement les trades de la bonne base de données
-            await dataDb.trade.deleteMany({
+            const result = await dataDb.trade.deleteMany({
                 where: {
                     accountId: account.id,
                     openDate: {
@@ -196,6 +198,7 @@ const processTrades = async (
                     importName: importName
                 }
             })
+            console.log(`Deleted ${result.count} trades for day ${day} importName ${importName} account id: ${account.id}`)
         }
     } else {
         console.log(`processTrades: Keeping existing trades for account ${account.name} (importName: ${importName})`)
@@ -220,8 +223,9 @@ const processTrades = async (
                     data: {
                         ...parsedTrade,
                         uniqueId,
+                        importName,
                         active: true,
-                        instrumentType,
+                        instrumentType: trade.instrumentType || instrumentType,
                         screenshots: { create: [] }
                     }
                 })
@@ -333,7 +337,7 @@ export default defineEventHandler(async (event) => {
                     throw { statusCode: 400, message: `Format de timezone invalide ou manquant: ${timezone}` };
                 }
                 const keepExistingTrades = fields.keepExistingTrades![0] === 'true';
-                const instrumentType = fields.instrumentType?.[0] || 'any';
+                const instrumentType = (fields.instrumentType?.[0] || InstrumentType.Any) as InstrumentType;
 
                 // Parser les tags depuis le FormData
                 const dayTagIdsStr = fields.dayTagIds?.[0]

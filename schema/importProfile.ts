@@ -1,16 +1,23 @@
-import { z } from 'zod';
+import { z } from 'zod'
+import { InstrumentType } from '~/type'
 import { nameFormatRefine } from './index'
 
-export const INSTRUMENT_TYPES = ['any', 'forex', 'future', 'stock', 'crypto', 'call', 'put'] as const
-export type InstrumentType = typeof INSTRUMENT_TYPES[number]
+export const INSTRUMENT_TYPES = [
+    InstrumentType.Any,
+    InstrumentType.Forex,
+    InstrumentType.Future,
+    InstrumentType.Stock,
+    InstrumentType.Crypto,
+    InstrumentType.Option
+] as const
 
 export const DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER: Record<string, InstrumentType> = {
-    mt5: 'forex',
-    nt8: 'future',
-    quantower: 'future',
-    ibkr: 'stock',
-    'ibkr-api': 'stock',
-    standard: 'any',
+    mt5: InstrumentType.Forex,
+    nt8: InstrumentType.Future,
+    quantower: InstrumentType.Future,
+    ibkr: InstrumentType.Stock,
+    'ibkr-api': InstrumentType.Stock,
+    standard: InstrumentType.Any,
 }
 
 // Schéma pour les métadonnées du profil d'import
@@ -30,7 +37,7 @@ export const ImportProfileSchema = z.object({
     importMode: z.string().default('local'),
     timezone: z.string().default('Europe/Paris'),
     keepExistingTrades: z.boolean().default(false),
-    instrumentType: z.string().default('any'),
+    instrumentType: z.nativeEnum(InstrumentType).default(InstrumentType.Any),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
     metadata: ImportProfileMetadataSchema.nullable().optional(),
@@ -54,7 +61,7 @@ export const CreateImportProfileSchema = z.object({
     importMode: z.string().default('local'),
     timezone: z.string().default('Europe/Paris'),
     keepExistingTrades: z.boolean().default(false),
-    instrumentType: z.string().default('any'),
+    instrumentType: z.nativeEnum(InstrumentType).default(InstrumentType.Any),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
     metadata: ImportProfileMetadataSchema.nullable().optional(),
@@ -94,7 +101,7 @@ export const UpdateImportProfileSchema = z.object({
     importMode: z.string().default('local'),
     timezone: z.string().default('Europe/Paris'),
     keepExistingTrades: z.boolean().default(false),
-    instrumentType: z.string().default('any'),
+    instrumentType: z.nativeEnum(InstrumentType).default(InstrumentType.Any),
     ibkrFlexQueryToken: z.string().nullable().optional(),
     ibkrFlexQueryId: z.string().nullable().optional(),
     metadata: ImportProfileMetadataSchema.nullable().optional(),

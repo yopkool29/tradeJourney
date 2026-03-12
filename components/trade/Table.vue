@@ -259,7 +259,6 @@ import {
 } from '~/utils'
 import { formatDateWithUserTimezone, parseDateStringToTimestamp } from '~/utils/date-utils'
 import type { Value } from '@prisma/client/runtime/library'
-import { useTypeColors } from '~/composables/useTypeColors'
 
 const appConfig = useAppConfig()
 const { formatCurrency } = useUtils()

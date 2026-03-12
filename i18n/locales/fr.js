@@ -184,6 +184,7 @@ export default {
         no: 'Non',
         cancel: 'Annuler',
         actions: {
+            convert: 'Convertir',
             save: 'Enregistrer',
             cancel: 'Annuler',
             delete: 'Supprimer',
@@ -268,6 +269,7 @@ export default {
                 tags: 'Tags',
                 trading_symbols: 'Symboles de trading',
                 backup: 'Sauvegarde',
+                tools: 'Outils',
                 options: 'Options',
             },
         },
@@ -309,6 +311,10 @@ export default {
             password: 'Mot de passe',
             enter_password: 'Entrez votre mot de passe pour confirmer',
             delete: 'Supprimer',
+            rename_database: 'Renommer la base de données',
+            display_name: 'Nom affiché',
+            enter_display_name: 'Entrez le nouveau nom affiché',
+            rename_success: 'Base de données renommée avec succès',
         },
     },
     components: {
@@ -723,6 +729,32 @@ export default {
             },
         },
         settings: {
+            tools: {
+                title: 'Outils de conversion',
+                description: 'Convertissez vos fichiers CSV vers le format standard TradeJourney',
+                csv_converter: {
+                    title: 'Convertisseur CSV',
+                    conversion_type: 'Type de conversion',
+                    account_name: 'Nom du compte',
+                    account_name_placeholder: 'Ex: Schwab, IBKR, etc.',
+                    account_fullname: 'Nom complet du compte',
+                    account_fullname_placeholder: 'Ex: Charles Schwab Options',
+                    import_name: 'Nom d\'import',
+                    import_name_placeholder: 'Ex: SchwabOptions, TradingView',
+                    select_file: 'Sélectionner un fichier',
+                    success: 'Conversion réussie',
+                    success_description: 'Le fichier a été converti avec succès. Le téléchargement va démarrer automatiquement.',
+                    error: 'Erreur de conversion',
+                    unknown_error: 'Une erreur inconnue est survenue',
+                    params_validation_error: 'Les paramètres du convertisseur doivent contenir au moins 4 caractères',
+                    types: {
+                        schwab_options: 'Schwab Options',
+                        schwab_options_desc: 'Convertir un relevé de compte Schwab Options vers le format standard',
+                        tradingview: 'TradingView',
+                        tradingview_desc: 'Convertir un export TradingView vers le format standard',
+                    },
+                },
+            },            
             options: {
                 title: "Paramètres de l'application",
                 description:
@@ -1056,6 +1088,9 @@ export default {
                 buttons: {
                     update: 'Mettre à jour',
                 },
+                success: {
+                    saved: 'Note et tags mis à jour avec succès',
+                },
                 errors: {
                     form: 'Veuillez corriger les erreurs du formulaire.',
                     specific:
@@ -1074,6 +1109,8 @@ export default {
                 update: 'Mettre à jour',
                 error_form: 'Veuillez corriger les erreurs du formulaire.',
                 error_field: 'Veuillez corriger l\'erreur "{message} : {name}"',
+                success_updated: 'Note du jour mise à jour avec succès',
+                success_created: 'Note du jour créée avec succès',
             },
             index: {
                 accounts: 'Comptes',
@@ -1406,6 +1443,28 @@ export default {
                     fetch_error: "Échec du chargement de l'image",
                 },
             },
+        },
+        database: {
+            common: {
+                unauthorized: 'Non autorisé',
+                not_found: 'Base de données non trouvée',
+                server_error: 'Une erreur est survenue'
+            },
+            create: {
+                missing_fields: 'Nom et nom d\'affichage requis',
+                invalid_name: 'Le nom ne peut contenir que des lettres minuscules, chiffres et tirets bas',
+                duplicate_name: 'Une base de données avec ce nom existe déjà'
+            },
+            delete: {
+                missing_params: 'ID de base de données et mot de passe requis',
+                invalid_password: 'Mot de passe invalide',
+                schema_error: 'Échec de la suppression du schéma de base de données'
+            },
+            list: {
+            },
+            select: {
+                missing_id: 'ID de base de données requis'
+            }
         },
         register: {
             missing_fields: 'Email et mot de passe requis',

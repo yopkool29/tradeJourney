@@ -4,8 +4,12 @@
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
-                        <NuxtLink to="/">
+                        <NuxtLink to="/" class="relative">
                             <AppLogo :width="120" :height="36" />
+                            <span v-if="isDevMode"
+                                class="absolute -bottom-3 -right-1 text-[10px] font-bold text-blue-500 dark:text-red-500 uppercase tracking-wide">
+                                dev
+                            </span>
                         </NuxtLink>
                     </div>
                     <!-- Database Indicator (clickable) -->
@@ -17,7 +21,7 @@
                             currentDatabase.displayName }}</span>
                     </button>
                     <nav v-if="userStore.user && currentDatabase"
-                        class="hidden xl:flex w-full items-center space-x-2 gap-x-4">
+                        class="hidden xl:flex w-full items-center gap-x-2">
                         <NuxtLink :to="menuItems[0].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[0].icon" class="header-icon mb-1 transition-colors" />
@@ -43,10 +47,15 @@
                             <UIcon :name="menuItems[4].icon" class="header-icon mb-1 transition-colors" />
                             <span class="font-medium">{{ menuItems[4].label }}</span>
                         </NuxtLink>
+                        <NuxtLink :to="menuItems[5].to" class="header-desktop-link"
+                            active-class="header-desktop-link-active">
+                            <UIcon :name="menuItems[5].icon" class="header-icon mb-1 transition-colors" />
+                            <span class="font-medium">{{ menuItems[5].label }}</span>
+                        </NuxtLink>
                         <div v-if="displayLog">
                             <button class="header-desktop-link cursor-pointer" @click.prevent="onLogActivity()">
-                                <UIcon :name="menuItems[6].icon" class="header-icon mb-1 transition-colors" />
-                                <span class="font-medium">{{ menuItems[6].label }}</span>
+                                <UIcon :name="menuItems[7].icon" class="header-icon mb-1 transition-colors" />
+                                <span class="font-medium">{{ menuItems[7].label }}</span>
                             </button>
                         </div>
                     </nav>
@@ -135,12 +144,18 @@
                                     <UIcon :name="menuItems[4].icon" class="header-menu-icon" />
                                     {{ menuItems[4].label }}
                                 </NuxtLink>
+
+                                <NuxtLink :to="menuItems[5].to" class="header-mobile-link"
+                                    active-class="header-mobile-link-active" @click="mobileMenuOpen = false">
+                                    <UIcon :name="menuItems[5].icon" class="header-menu-icon" />
+                                    {{ menuItems[5].label }}
+                                </NuxtLink>
                             </template>
 
                             <!-- Menu Log (always visible in dev mode) -->
                             <li v-if="displayLog" class="header-mobile-link cursor-pointer" @click="onLogActivity()">
-                                <UIcon :name="menuItems[6].icon" class="header-menu-icon" />
-                                {{ menuItems[6].label }}
+                                <UIcon :name="menuItems[7].icon" class="header-menu-icon" />
+                                {{ menuItems[7].label }}
                             </li>
 
                             <!-- GitHub Link -->
@@ -185,7 +200,6 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from '~/composables/useAuth'
 import type { ILogView } from '~/type'
 
 const myLogView = useState<ILogView | null>('myLogView', () => null)
@@ -202,6 +216,27 @@ const { log_debug, log_error } = useLogView()
 const mobileMenuOpen = ref(false)
 
 const displayLog = ref(import.meta.env.DEV)
+
+// Vérification périodique de la session
+const { startSessionCheck, stopSessionCheck } = useSessionCheck()
+
+// Démarrer la vérification quand le composant est monté et qu'un utilisateur est connecté
+onMounted(() => {
+    if (userStore.user) {
+        startSessionCheck()
+    }
+})
+
+// Surveiller les changements d'utilisateur pour démarrer/arrêter la vérification
+watch(() => userStore.user, (newUser) => {
+    if (newUser) {
+        startSessionCheck()
+    } else {
+        stopSessionCheck()
+    }
+})
+
+const isDevMode = computed(() => import.meta.env.DEV)
 
 const isDark = computed(() => colorMode.value === 'dark')
 
@@ -232,6 +267,11 @@ const menuItems = computed(() => [
         label: t('pages.trades.tabs.trades'),
         icon: 'i-heroicons-chart-bar',
         to: '/main',
+    },
+    {
+        label: t('pages.trades.tabs.import'),
+        icon: 'i-lucide-import',
+        to: '/import',
     },
     {
         label: t('components.app_header.menu_items.settings'),

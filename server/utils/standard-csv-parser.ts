@@ -1,6 +1,8 @@
 import type { AccountTrades, TradesImport, AccountInfoImport } from './index'
 import { ImportMode, parseISO8601Date } from '~/utils/date-utils'
 import { DateTime } from 'luxon'
+import { parseCSVLine } from './csv-utils'
+import { InstrumentType } from '~/type'
 
 export interface AccountTradesWithImportName extends AccountTrades {
     importName: string
@@ -26,8 +28,8 @@ export function parseStandardCSV(
         throw new Error('Le fichier CSV est vide ou ne contient pas de données')
     }
 
-    // Parser l'en-tête
-    const header = lines[0].split(',').map(h => h.trim())
+    // Parser l'en-tête et retirer les guillemets
+    const header = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'))
     
     console.log('Header:', header)
 
@@ -40,7 +42,7 @@ export function parseStandardCSV(
     
     for (const col of requiredColumns) {
         if (!header.includes(col)) {
-            throw new Error(`Colonne obligatoire manquante: ${col}`)
+            throw new Error(`Missing required column: ${col}`)
         }
     }
 
@@ -132,6 +134,31 @@ export function parseStandardCSV(
                 trade.mfe = parseFloat(values[colIndex['mfe']])
             }
 
+            // Options-specific fields
+            if (colIndex['instrumentType'] !== undefined && values[colIndex['instrumentType']]) {
+                trade.instrumentType = values[colIndex['instrumentType']] as InstrumentType
+            }
+
+            if (colIndex['strikePrice'] !== undefined && values[colIndex['strikePrice']]) {
+                trade.strikePrice = parseFloat(values[colIndex['strikePrice']])
+            }
+
+            if (colIndex['expirationDate'] !== undefined && values[colIndex['expirationDate']]) {
+                trade.expirationDate = values[colIndex['expirationDate']]
+            }
+
+            if (colIndex['optionType'] !== undefined && values[colIndex['optionType']]) {
+                trade.optionType = values[colIndex['optionType']]
+            }
+
+            if (colIndex['premium'] !== undefined && values[colIndex['premium']]) {
+                trade.premium = parseFloat(values[colIndex['premium']])
+            }
+
+            if (colIndex['metadata'] !== undefined && values[colIndex['metadata']]) {
+                trade.metadata = values[colIndex['metadata']]
+            }
+
             // Valider le type
             if (trade.type !== 'buy' && trade.type !== 'sell') {
                 throw new Error(`Type de trade invalide à la ligne ${i + 1}: ${trade.type}`)
@@ -183,29 +210,3 @@ export function parseStandardCSV(
     return result
 }
 
-/**
- * Parse une ligne CSV en gérant les guillemets
- * @param line - Ligne CSV à parser
- * @returns Tableau des valeurs
- */
-function parseCSVLine(line: string): string[] {
-    const values: string[] = []
-    let current = ''
-    let inQuotes = false
-
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i]
-
-        if (char === '"') {
-            inQuotes = !inQuotes
-        } else if (char === ',' && !inQuotes) {
-            values.push(current.trim())
-            current = ''
-        } else {
-            current += char
-        }
-    }
-
-    values.push(current.trim())
-    return values
-}

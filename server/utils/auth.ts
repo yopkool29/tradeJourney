@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
     
     if (!payload.userId)
         throw createAppError({ statusCode: 401, tag: 'api.auth.verify.unauthorized', message: 'Unauthorized' })
-    
+
+    // throw createAppError({ statusCode: 401, tag: 'api.auth.verify.unauthorized', message: 'Unauthorized' })
+
     // Store user and database info in context
     event.context.userId = String(payload.userId)
     event.context.databaseId = payload.databaseId

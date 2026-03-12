@@ -1,15 +1,15 @@
 <template>
     <footer class="w-full border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 py-8 mt-12">
         <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex flex-col md:flex-row items-center justify-around gap-4">
                 <!-- Left: Branding -->
                 <div class="flex flex-col items-center md:items-start gap-1">
                     <div class="font-semibold text-gray-900 dark:text-white">TradeJourney</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.app_footer.copyright') }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.app_footer.copyright') }} © {{ new Date().getFullYear() }}</div>
                 </div>
 
                 <!-- Center: Links -->
-                <div class="flex items-center justify-center gap-6">
+                <div class="flex items-center justify-center gap-4">
                     <a 
                         href="https://github.com/yopkool29/tradeJourney" 
                         target="_blank" 
@@ -22,10 +22,6 @@
                     </a>
                 </div>
 
-                <!-- Right: Year -->
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                    © {{ new Date().getFullYear() }}
-                </div>
             </div>
         </div>
     </footer>

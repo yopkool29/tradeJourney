@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
             throw createAppError({
                 statusCode: 401,
                 message: 'Unauthorized',
-                tag: 'api.database.select.unauthorized'
+                tag: 'api.database.common.unauthorized'
             })
         }
 
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
             throw createAppError({
                 statusCode: 404,
                 message: 'Database not found',
-                tag: 'api.database.select.not_found'
+                tag: 'api.database.common.not_found'
             })
         }
 
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
                 databaseId: database.id,
                 dbName: database.name
             },
-            process.env.JWT_SECRET || 'devsecret',
+            process.env.JWT_SECRET!,
             { expiresIn: '7d' }
         )
 
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
         throw createAppError({
             statusCode: 500,
             message: 'Failed to select database',
-            tag: 'api.database.select.server_error',
+            tag: 'api.database.common.server_error',
             error
         })
     }

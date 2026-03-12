@@ -6,7 +6,7 @@
             <p class="text-xl text-secondary">{{ $t('pages.index.subtitle') }}</p>
         </div>
 
-        <UCard class="max-w-md w-full shadow-lg dark:shadow-gray-800/30 mb-8">
+        <UCard class="max-w-md w-full mb-8">
             <div class="p-2">
                 <div class="flex flex-col items-center mb-6">
                     <UIcon name="i-heroicons-chart-bar" class="size-16 text-primary-500 mb-4" />

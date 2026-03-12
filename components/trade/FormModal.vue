@@ -11,7 +11,7 @@
                         <UButton type="submit" :loading="isLoading" color="primary">{{ $t('common.actions.save') }}</UButton>
                         <UButton type="button" color="neutral" @click="$emit('update:open', false)">{{ $t('common.actions.cancel') }}</UButton>
                     </div>
-                    <UAlert v-if="errorStr" variant="outline" :description="errorStr || ''" color="error" />
+                    <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                     <div class="flex">
                         <UFormField :label="$t('components.trade.formModal.account.label')" name="accountId" :help="$t('components.trade.formModal.account.help')" class="text-base">
                             <USelect
@@ -107,7 +107,8 @@ import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 const { symbols: availableSymbols, fetchActiveSymbols } = useSymbols()
 const { createTrade, updateTrade } = useTrades()
 const { accounts, fetchAccounts } = useAccount()
-const { success: toastSuccess } = useAppToast()
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 const isLoading = ref(false)
 
 const { t } = useI18n()
@@ -123,7 +124,16 @@ const props = defineProps({
     },
 })
 
-const errorStr = ref<string | null>(null)
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 const selectedSymbol = ref<{ id: number; symbol: string; digit: number }>()
 
@@ -151,14 +161,16 @@ const newState = ref<CreateTradeType>(getDefaultForm())
 const { screenshots, initializeScreenshots, prepareForUpdate, uploadNewScreenshots, cleanup } = useSharedScreenshots(3)
 
 function onError(event: FormErrorEvent) {
-    errorStr.value = t('components.trade.formModal.errors.form')
+    const errorMessage = t('components.trade.formModal.errors.form')
+    displayMessage(null, errorMessage)
     const val = event?.errors?.[0]
     if (val) {
         if (val.id) {
             const element = document.getElementById(val.id)
             element?.focus()
         } else {
-            errorStr.value = t('components.trade.formModal.errors.specific', { message: val.message, name: val.name })
+            const specificError = t('components.trade.formModal.errors.specific', { message: val.message, name: val.name })
+            displayMessage(null, specificError)
         }
     }
 }
@@ -235,10 +247,12 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
             }
 
             saved = await updateTrade(updateData as UpdateTradeType)
-            toastSuccess(t('components.trade.formModal.success.updated_title'), t('components.trade.formModal.success.updated_description'))
+            const msg = t('components.trade.formModal.success.updated_title')
+            displayMessage(msg, null)
         } else {
             saved = await createTrade(event.data as CreateTradeType)
-            toastSuccess(t('components.trade.formModal.success.created_title'), t('components.trade.formModal.success.created_description'))
+            const msg = t('components.trade.formModal.success.created_title')
+            displayMessage(msg, null)
         }
 
         // Upload des nouveaux fichiers si présents
@@ -248,7 +262,7 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
         }
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
-        log_error(message)
+        displayMessage(null, message)
     } finally {
         // Nettoyer les ressources
         cleanup()

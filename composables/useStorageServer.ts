@@ -3,6 +3,7 @@ import { decryptData } from '~/utils/decrypt'
 
 export interface StorageFile {
     file_id: string
+    source?: string
     filename: string
     timestamp: string
     file_size: number

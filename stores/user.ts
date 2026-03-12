@@ -31,6 +31,7 @@ export const useUserStore = defineStore(
         const logDebug2 = ref(0)
         const isLoading = ref(false)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
+        const conversionType = ref<{ label: string; value: 'schwab-options' | 'tradingview' }>({ label: 'Schwab Options', value: 'schwab-options' })
         const auth = useAuth()
 
         // --- Auth user state (global) ---
@@ -416,6 +417,7 @@ export const useUserStore = defineStore(
             logDebug2,
             isLoading,
             quickNavHistory,
+            conversionType,
             recentColors,
             recentColors2,
             dayTags,
@@ -474,6 +476,7 @@ export const useUserStore = defineStore(
                 'logDebug2',
                 'needsDataRefresh',
                 'quickNavHistory',
+                'conversionType',
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
                 'dayTagsPerDb',

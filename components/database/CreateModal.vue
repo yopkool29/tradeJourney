@@ -24,12 +24,12 @@
         </template>
 
         <template #footer>
-            <div class="flex justify-end gap-2">
-                <UButton type="button" variant="ghost" :disabled="loading" @click="isOpen = false">
-                    {{ $t('common.cancel') }}
-                </UButton>
+            <div class="flex justify-end gap-4">
                 <UButton type="submit" form="createDatabaseForm" color="primary" :loading="loading">
                     {{ $t('database.create.submit') }}
+                </UButton>
+                <UButton type="button" variant="ghost" :disabled="loading" @click="isOpen = false">
+                    {{ $t('common.cancel') }}
                 </UButton>
             </div>
         </template>

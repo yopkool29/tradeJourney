@@ -9,19 +9,32 @@ export const getWeekNumber = (date: Date): number => {
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
 }
 
-export const formatDateByMode = (period: string, mode: string): string => {
+export const formatDateByMode = (period: string, mode: string, longDate = false): string => {
     const date = new Date(period);
     switch (mode) {
-        case 'day':
-            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
-        case 'week':
-            return `S${getWeekNumber(date)} ${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' })}`;
-        case 'month':
+        case 'day': {
+            const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'numeric' };
+            if (longDate) {
+                options.year = 'numeric';
+            }
+            return date.toLocaleDateString('fr-FR', options);
+        }
+        case 'week': {
+            const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'numeric' };
+            if (longDate) {
+                options.year = 'numeric';
+            }
+            return `S${getWeekNumber(date)} ${date.toLocaleDateString('fr-FR', options)}`;
+        }
+        case 'month': {
             return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-        case 'year':
+        }
+        case 'year': {
             return date.getFullYear().toString();
-        default:
+        }
+        default: {
             return period;
+        }
     }
 }
 
@@ -258,7 +271,7 @@ export const groupTradesByPeriod = (trades: TradeType[], mode: 'day' | 'week' | 
 
                 key = formatDateString(monday, false, 'en') // ex: DD/MM/YYY
                 key = key.split('/').reverse().join('-') // YYYY-MM-DD
-                
+
                 // key = monday.toISOString().split('T')[0] // YYYY-MM-DD du lundi
                 break
             case 'month':
@@ -290,7 +303,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
             labels: [],
             datasets: [
                 {
-                    type: 'line',
+                    type: 'line' as const,
                     label: 'Cumulé',
                     data: [],
                     borderColor: '', // Sera défini dans le composant
@@ -298,11 +311,13 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
                     fill: false,
                     tension: 0.2,
                     pointRadius: 4,
-                    pointBackgroundColor: '', // Sera défini dans le composant
+                    pointBackgroundColor: [], // Sera défini dans le composant
+                    pointBorderColor: [],
+                    pointBorderWidth: 2,
                     yAxisID: 'y',
                 },
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'PnL',
                     data: [],
                     backgroundColor: '', // Sera défini dans le composant
@@ -331,13 +346,13 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
     })
 
     // Formater les labels selon le mode
-    const formattedLabels = periods.map(period => formatDateByMode(period, mode))
+    const formattedLabels = periods.map(period => formatDateByMode(period, mode, false))
 
     return {
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: 'Cumulé',
                 data: cumulatedPnl,
                 borderColor: '#facc15',
@@ -349,7 +364,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'PnL',
                 data: periodPnl,
                 backgroundColor: '#38bdf8',
@@ -373,7 +388,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
             labels: [],
             datasets: [
                 {
-                    type: 'line',
+                    type: 'line' as const,
                     label: 'Moyenne mobile',
                     data: [],
                     borderColor: '#6366f1',
@@ -385,7 +400,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
                     yAxisID: 'y',
                 },
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'APPT',
                     data: [],
                     backgroundColor: '', // Sera défini dans le composant
@@ -415,7 +430,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: movingAverages,
                 borderColor: '#6366f1',
@@ -427,7 +442,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'APPT',
                 data: periodAppt,
                 backgroundColor: '#4ade80',
@@ -501,7 +516,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
             labels: [],
             datasets: [
                 {
-                    type: 'line',
+                    type: 'line' as const,
                     label: 'Moyenne mobile',
                     data: [],
                     borderColor: '#6366f1',
@@ -513,7 +528,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
                     yAxisID: 'y',
                 },
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'P/L Ratio',
                     data: [],
                     backgroundColor: '#f59e0b',
@@ -540,7 +555,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: movingAverages,
                 borderColor: '#6366f1',
@@ -552,7 +567,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'P/L Ratio',
                 data: periodPlRatio,
                 backgroundColor: '#f59e0b',
@@ -569,7 +584,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
             labels: [],
             datasets: [
                 {
-                    type: 'bar',
+                    type: 'bar' as const,
                     label: 'Winrate',
                     data: [],
                     backgroundColor: '', // Sera défini dans le composant
@@ -599,7 +614,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
         labels: formattedLabels,
         datasets: [
             {
-                type: 'line',
+                type: 'line' as const,
                 label: `Moyenne mobile (${movingAvgWindow})`,
                 data: winrateMovingAvg,
                 borderColor: '#6366f1',
@@ -611,7 +626,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
                 yAxisID: 'y',
             },
             {
-                type: 'bar',
+                type: 'bar' as const,
                 label: 'Winrate',
                 data: periodWinrate,
                 backgroundColor: '#f472b6',

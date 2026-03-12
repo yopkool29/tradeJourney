@@ -6,7 +6,7 @@
         </div>
 
         <!-- Error Alert -->
-        <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+        <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
         <!-- Database List -->
         <div v-if="databases.length > 0" class="space-y-4">
@@ -22,14 +22,21 @@
                     @dblclick="handleDoubleClick(db.id)"
                 >
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 flex-1">
                             <UIcon name="i-heroicons-circle-stack" class="text-2xl text-primary-500" />
-                            <div>
+                            <div class="flex-1">
                                 <h3 class="font-semibold">{{ db.displayName }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ db.name }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <UButton
+                                variant="ghost"
+                                color="neutral"
+                                icon="i-lucide-pencil"
+                                size="xs"
+                                @click.stop="openRenameModal(db)"
+                            />
                             <UBadge v-if="db.isDefault" color="primary" variant="subtle">
                                 {{ $t('pages.select_database.default') }}
                             </UBadge>
@@ -115,6 +122,13 @@
                 </div>
             </template>
         </CommonModalDelete>
+
+        <!-- Database Rename Modal -->
+        <DatabaseRenameModal 
+            v-model="showRenameModal" 
+            :database="databaseToRename" 
+            @renamed="handleDatabaseRenamed" 
+        />
     </div>
 </template>
 
@@ -124,6 +138,9 @@ const router = useRouter()
 const userStore = useUserStore()
 const { fetchDatabases, selectDatabase, currentDatabase, deleteDatabase } = useDatabase()
 const { updateUserSettings, getUserSetting } = useAuth()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { success: toastSuccess, error: toastError } = useAppToast()
+const { log_error } = useLogView()
 
 interface Database {
     id: number
@@ -138,10 +155,22 @@ const databases = ref<Database[]>([])
 const selectedDatabaseId = ref<number | null>(null)
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
+const showRenameModal = ref(false)
 const deleteState = ref({ password: '' })
-const errorStr = ref<string | null>(null)
+const databaseToRename = ref<Database | null>(null)
 
 const selectedDatabase = computed(() => databases.value.find((db) => db.id === selectedDatabaseId.value))
+
+const displayMessage = (success: string | null, error: string | null) => {
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
+}
 
 onMounted(async () => {
     await loadDatabases()
@@ -216,12 +245,12 @@ const handleDatabaseCreated = async (database: Database) => {
 
 const handleDeleteDatabase = async () => {
     if (!selectedDatabaseId.value || !deleteState.value.password) {
-        errorStr.value = t('api.auth.verify.unauthorized')
+        displayMessage(null, t('api.auth.verify.unauthorized'))
         return
     }
 
     try {
-        errorStr.value = null
+        displayMessage(null, null)
 
         // Delete database using composable
         await deleteDatabase(selectedDatabaseId.value, deleteState.value.password)
@@ -241,8 +270,20 @@ const handleDeleteDatabase = async () => {
         await loadDatabases()
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message || ''
+        displayMessage(null, message)
     }
+}
+
+const openRenameModal = (db: Database) => {
+    databaseToRename.value = db
+    showRenameModal.value = true
+}
+
+const handleDatabaseRenamed = async () => {
+    displayMessage(t('pages.select_database.rename_success'), null)
+    showRenameModal.value = false
+    databaseToRename.value = null
+    await loadDatabases()
 }
 </script>
 

@@ -37,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { normalizeColorToHex } from '~/utils/color-utils'
+
 const props = defineProps<{
     label: string
     defaultColor?: string
@@ -49,16 +51,18 @@ const isOpen = ref(false)
 const tempColor = ref<string>('')
 
 function openPicker() {
-    tempColor.value = modelValue.value || '#000000'
+    tempColor.value = normalizeColorToHex(modelValue.value || '#000000')
     isOpen.value = true
 }
 
 function saveColor() {
-    modelValue.value = tempColor.value
+    // Normalize to hex format before saving
+    const hexColor = normalizeColorToHex(tempColor.value)
+    modelValue.value = hexColor
     
     // Ajouter la couleur aux couleurs récentes (recentColors2)
-    if (tempColor.value && !userStore.recentColors2.includes(tempColor.value)) {
-        userStore.recentColors2.unshift(tempColor.value)
+    if (hexColor && !userStore.recentColors2.includes(hexColor)) {
+        userStore.recentColors2.unshift(hexColor)
         // Limiter à 10 couleurs récentes
         if (userStore.recentColors2.length > 10) {
             userStore.recentColors2.pop()
@@ -74,8 +78,9 @@ function cancelColor() {
 
 function resetColor() {
     if (props.defaultColor) {
-        tempColor.value = props.defaultColor
-        modelValue.value = props.defaultColor
+        const hexColor = normalizeColorToHex(props.defaultColor)
+        tempColor.value = hexColor
+        modelValue.value = hexColor
         isOpen.value = false
     }
 }

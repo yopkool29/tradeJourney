@@ -36,6 +36,21 @@ Copy `.env.example` to `.env` and edit the values:
 ```bash
 cp .env.example .env
 ```
+or 
+
+*Linux / mac*
+
+```bash
+./env-create.sh
+```
+
+or
+
+*Windows*
+
+```bash
+./env-create.ps1
+```
 
 #### 3. Generate Prisma clients
 
@@ -96,7 +111,9 @@ EOF
 npm dev
 ```
 
-The application will be accessible at `http://localhost:3000`
+The application will be accessible at `http://localhost:3000` in development mode else on port `http://localhost:3001` in production mode.
+
+**Login credentials:** admin@mail.fr / admin
 
 ### Stopping the database
 
@@ -130,35 +147,29 @@ Production deployment uses `docker-compose.yml` which contains:
 Create a `.env.production` file on the server with production values:
 
 ```bash
-cp .env.production.example .env.production
+cp .env.production.example .env
 
 # Edit the .env.production file with your values
-nano .env.production
-
-# Generate a strong JWT secret (if necessary)
-openssl rand -base64 32
+nano .env
 ```
 
-#### 2. Build and startup
+or 
 
-*Linux:*
+*Linux / mac*
+
 ```bash
-# Load environment variables from .env.production under Linux
-export $(grep -v '^#' .env.production | xargs)
+./env-create.sh
 ```
 
-*Windows: (powershell)*
+or
+
+*Windows*
+
 ```bash
-# Load environment variables from .env.production under Windows
-Get-Content .\.env.production |
-  Where-Object { $_ -and $_ -notmatch '^\s*#' -and $_ -match '=' } |
-  ForEach-Object {
-    $name, $value = $_ -split '=', 2
-    $name = $name.Trim()
-    $value = $value.Trim().Trim('"')
-    Set-Item -Path "Env:$name" -Value $value
-  }
+./env-create.ps1
 ```
+
+*=> Launch Docker Desktop (Windows)*
 
 *Build and startup:*
 ```bash
@@ -167,6 +178,12 @@ docker compose build --no-cache
 # Build and start all services
 docker compose up -d --build
 ```
+
+#### Access the application
+
+The application will be accessible at the configured domain on port 3001 or the external port configured in the .env file.
+
+**Login credentials:** admin@mail.fr / admin
 
 ### Update
 

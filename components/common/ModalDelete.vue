@@ -7,7 +7,7 @@
         </template>
 
         <template #footer>
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-4">
                 <UButton
                     :color="confirmColor"
                     variant="solid"

@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
             throw createAppError({
                 statusCode: 401,
                 message: 'Unauthorized',
-                tag: 'api.database.list.unauthorized'
+                tag: 'api.database.common.unauthorized'
             })
         }
 
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
         throw createAppError({
             statusCode: 500,
             message: 'Failed to fetch databases',
-            tag: 'api.database.list.server_error',
+            tag: 'api.database.common.server_error',
             error
         })
     }

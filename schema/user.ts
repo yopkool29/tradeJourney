@@ -31,6 +31,13 @@ export const SettingsContentSchema = z.object({
     defaultDatabaseId: z.number().optional().nullable(),
     storageUrl: z.string().default('https://your-ngrok-url.ngrok.io'),
     storagePassword: z.string().default(''),
+    converterParams: z.record(
+        z.object({
+            accountName: z.string(),
+            accountFullname: z.string(),
+            importName: z.string(),
+        })
+    ).optional(),
     chartColors: z.object({
         cumulatedPnlChart: z.object({
             bar: z.object({
@@ -176,11 +183,11 @@ export const defaultSettings: SettingsContentType = {
         tradeTypeBadges: {
             buy: {
                 light: '#10b981',
-                dark: '#86efac',
+                dark: '#21c65e',
             },
             sell: {
                 light: '#f97316',
-                dark: '#fca5a5',
+                dark: '#f58383',
             },
         },
     },

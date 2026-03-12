@@ -2,7 +2,7 @@
     <UModal :open="isOpen" :title="modalTitle" @update:open="(open: boolean) => $emit('update:open', open)">
         <template #body>
             <UForm id="form1" :state="newState" :schema="CreateDayTagSchema" :validate-on="['change', 'input']" @submit="onSubmit" @error="onError">
-                <UAlert v-if="errorStr" :description="errorStr" color="error" variant="outline" class="mb-4" />
+                <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
                 <!-- Note pour la journée -->
                 <UFormField name="note" :label="$t('components.daily.day_tag_modal.note_label')" class="mb-4">
@@ -23,7 +23,7 @@
             </UForm>
         </template>
         <template #footer>
-            <div class="flex justify-end gap-2 mt-6">
+            <div class="flex justify-end gap-4 mt-6">
                 <UButton form="form1" type="submit">{{ dayTag ? $t('components.daily.day_tag_modal.update') : $t('common.actions.save') }}</UButton>
                 <UButton type="button" variant="soft" @click="$emit('update:open', false)">{{ $t('common.actions.cancel') }}</UButton>
             </div>
@@ -35,14 +35,13 @@
 import type { TagGroupType } from '~/schema/tagGroup'
 import type { DayTagType, CreateDayTagType, UpdateDayTagType } from '~/schema/dayTag'
 import type { TagType } from '~/schema/tag'
-import { useTags } from '~/composables/useTags'
-import { useDayTags } from '~/composables/useDayTags'
 import { CreateDayTagSchema } from '~/schema/dayTag'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import { normalizeDateToLocalString } from '~/utils/date-utils'
 
 const { t } = useI18n()
 const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage } = useAlert()
 
 const { fetchGroups } = useTags()
 const { createDayTag, updateDayTag } = useDayTags()
@@ -55,8 +54,6 @@ const props = defineProps<{
 
 const modalTitle = computed(() => (props.dayTag ? t('components.daily.day_tag_modal.edit_title') : t('components.daily.day_tag_modal.add_title')))
 
-const errorStr = ref<string | null>('')
-
 const getDefault = () => ({ id: -1, date: '', note: '', tagIds: [] as number[] })
 const newState = ref<CreateDayTagType>(getDefault())
 const tagGroups = ref<TagGroupType[]>([])
@@ -66,7 +63,7 @@ const tagGroups = ref<TagGroupType[]>([])
 // Initialiser les données
 const initializeData = async () => {
     tagGroups.value = await fetchGroups()
-    errorStr.value = ''
+    displayMessage(null, null)
     if (props.dayTag) {
         newState.value = {
             ...props.dayTag,
@@ -80,7 +77,8 @@ const initializeData = async () => {
 }
 
 function onError(event: FormErrorEvent) {
-    errorStr.value = t('components.daily.day_tag_modal.error_form')
+    const errorMessage = t('components.daily.day_tag_modal.error_form')
+    displayMessage(null, errorMessage)
     // Focus sur le premier champ avec erreur
     const val = event?.errors?.[0]
     if (val) {
@@ -88,7 +86,8 @@ function onError(event: FormErrorEvent) {
             const element = document.getElementById(val.id)
             element?.focus()
         } else {
-            errorStr.value = t('components.daily.day_tag_modal.error_field', { message: val.message, name: val.name })
+            const fieldError = t('components.daily.day_tag_modal.error_field', { message: val.message, name: val.name })
+            displayMessage(null, fieldError)
         }
     }
 }
@@ -105,17 +104,18 @@ async function onSubmit(event: FormSubmitEvent<CreateDayTagType | UpdateDayTagTy
         
         if (props.dayTag) {
             result = await updateDayTag({ ...event.data, id: props.dayTag.id } as UpdateDayTagType)
-            toastSuccess(t('components.daily.day_tag_modal.success_updated'))
+            const msg = t('components.daily.day_tag_modal.success_updated')
+            displayMessage(msg, null)
         } else {
             result = await createDayTag({ ...event.data, date: normalizedDate } as CreateDayTagType)
-            toastSuccess(t('components.daily.day_tag_modal.success_created'))
+            const msg = t('components.daily.day_tag_modal.success_created')
+            displayMessage(msg, null)
         }
         emit('saved', result)
         emit('update:open', false)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
-        errorStr.value = message
-        if (message) toastError(message)
+        displayMessage(null, message)
     }
 }
 

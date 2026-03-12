@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import type { InstrumentType } from '~/type';
 
 export interface AccountInfoImport {
     name: string;
@@ -39,6 +40,13 @@ export interface TradesImport {
     commission: number;
     exchange: number;
     screenshotUrl: string | null;
+    // Options-specific fields
+    instrumentType?: InstrumentType;
+    strikePrice?: number;
+    expirationDate?: string;
+    optionType?: string;
+    premium?: number;
+    metadata?: string;
 }
 
 /**

@@ -12,20 +12,21 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.pnl_bar_chart.enlarged_title')">
                     <template #content>
-                        <canvas ref="modalChartCanvas" style="width: 100%; height: 100%"></canvas>
+                        <Bar :data="chartData" :options="chartOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
         </template>
         <div class="w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: pointer;" @click="isModalOpen = true">
-            <canvas ref="chartCanvas"></canvas>
+            <Bar ref="barChartRef" :data="chartData" :options="chartOptions" />
         </div>
     </UCard>
 </template>
 
 <script setup lang="ts">
+import { Bar } from 'vue-chartjs'
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
-import { defaultSettings } from '~/schema/user'
+import type { TooltipItem } from 'chart.js'
 import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
 
@@ -35,11 +36,8 @@ const { locale } = useI18n()
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 const userStore = useUserStore()
-const chartCanvas = ref<HTMLCanvasElement | null>(null)
-const modalChartCanvas = ref<HTMLCanvasElement | null>(null)
+const barChartRef = ref()
 const isModalOpen = ref(false)
-let chartInstance: Chart | null = null
-let modalChartInstance: Chart | null = null
 
 const appConfig = useAppConfig()
 const chartConfigOptions = appConfig.charts.options
@@ -87,18 +85,21 @@ const chartData = computed(() => {
     }
 })
 
-const getChartOptions = () => ({
+const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+        duration: 200
+    },
     plugins: {
         legend: {
             display: false
         },
         tooltip: {
             callbacks: {
-                label: (context) => {
-                    const value = context.parsed.y
-                    const trade = context.dataset.trades?.[context.dataIndex]
+                label: (context: TooltipItem<'bar'>) => {
+                    const value = context.parsed.y ?? 0
+                    const trade = (context.dataset as any).trades?.[context.dataIndex] as TradeExtendedType | undefined
                     let date = ''
                     if (trade?.closeDate) {
                         date = formatDateWithUserTimezone(
@@ -127,7 +128,7 @@ const getChartOptions = () => ({
                 color: 'rgba(156, 163, 175, 0.2)'
             },
             ticks: {
-                callback: (value) => formatCurrency(Number(value))
+                callback: (value: string | number) => formatCurrency(Number(value))
             }
         },
         x: {
@@ -136,71 +137,5 @@ const getChartOptions = () => ({
             }
         }
     }
-})
-
-const updateChart = () => {
-    if (!chartCanvas.value) return
-    
-    if (chartInstance) {
-        chartInstance.data = chartData.value
-        chartInstance.update()
-    } else {
-        chartInstance = new Chart(chartCanvas.value, {
-            type: 'bar',
-            data: chartData.value,
-            options: getChartOptions()
-        })
-    }
-}
-
-const updateModalChart = () => {
-    if (!modalChartCanvas.value) return
-    
-    if (modalChartInstance) {
-        modalChartInstance.data = chartData.value
-        modalChartInstance.update()
-    } else {
-        modalChartInstance = new Chart(modalChartCanvas.value, {
-            type: 'bar',
-            data: chartData.value,
-            options: getChartOptions()
-        })
-    }
-}
-
-watch(() => chartData.value, () => {
-    updateChart()
-    if (isModalOpen.value && modalChartCanvas.value) {
-        updateModalChart()
-    }
-}, { deep: true })
-
-watch(isModalOpen, (newVal) => {
-    if (newVal) {
-        nextTick(() => {
-            updateModalChart()
-        })
-    } else {
-        // Détruire le graphique modal à la fermeture pour permettre de le recréer
-        if (modalChartInstance) {
-            modalChartInstance.destroy()
-            modalChartInstance = null
-        }
-    }
-})
-
-onMounted(() => {
-    updateChart()
-})
-
-onUnmounted(() => {
-    if (chartInstance) {
-        chartInstance.destroy()
-        chartInstance = null
-    }
-    if (modalChartInstance) {
-        modalChartInstance.destroy()
-        modalChartInstance = null
-    }
-})
+}))
 </script>

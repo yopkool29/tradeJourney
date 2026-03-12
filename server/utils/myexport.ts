@@ -8,6 +8,7 @@ import extract from 'extract-zip'
 import { getDataDb, validateSchemaExists } from '../utils/db'
 import { getUploadPath } from "./index"
 import { createAppError } from './errors'
+import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
 
@@ -64,8 +65,10 @@ interface ImportData {
         importMode: string
         timezone: string
         keepExistingTrades: boolean
+        instrumentType: InstrumentType
         ibkrFlexQueryToken: string | null
         ibkrFlexQueryId: string | null
+        metadata: any | null
         createdAt: Date | string
         updatedAt: Date | string
         dayTags: Array<{ tagId: number }>
@@ -385,7 +388,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         name: sanitizeName_1_0_0(tag.name),
                         description: tag.description,
                         color: tag.color,
-                        dark_fg_reverse: tag.dark_fg_reverse,
+                        dark_fg_reverse: tag.dark_fg_reverse ?? false,
                         groupId: tag.groupId,
                         createdAt: new Date(tag.createdAt),
                         updatedAt: new Date(tag.updatedAt)
@@ -411,6 +414,8 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             ...data.trades.map(trade => {
                 const tradeData = {
                     ...trade,
+                    instrumentType: trade.instrumentType || 'any',
+                    exchange: trade.exchange ?? 0,                    
                     openDate: new Date(trade.openDate),
                     closeDate: new Date(trade.closeDate),
                     createdAt: new Date(trade.createdAt),
@@ -434,8 +439,13 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             ...data.configSymbols.map(symbol =>
                 dataDb.configSymbol.create({
                     data: {
-                        ...symbol,
-                        aliases: symbol.aliases,
+                        id: symbol.id,
+                        symbol: symbol.symbol,
+                        digit: symbol.digit,
+                        active: symbol.active,
+                        notes: symbol.notes,
+                        aliases: symbol.aliases || '',
+                        pricePerPoint: symbol.pricePerPoint ?? -1,
                         createdAt: new Date(symbol.createdAt),
                         updatedAt: new Date(symbol.updatedAt)
                     }
@@ -483,8 +493,10 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         importMode: profile.importMode,
                         timezone: profile.timezone,
                         keepExistingTrades: profile.keepExistingTrades,
+                        instrumentType: profile.instrumentType || "any",
                         ibkrFlexQueryToken: profile.ibkrFlexQueryToken,
                         ibkrFlexQueryId: profile.ibkrFlexQueryId,
+                        metadata: profile.metadata || null,
                         createdAt: new Date(profile.createdAt),
                         updatedAt: new Date(profile.updatedAt),
                         dayTags: {
@@ -492,7 +504,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         },
                         tradeTags: {
                             create: (profile.tradeTags || []).map((t: { tagId: number }) => ({ tagId: t.tagId }))
-                        }
+                        },
                     }
                 })
             )

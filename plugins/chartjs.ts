@@ -10,7 +10,8 @@ import {
   PointElement,
   LineElement,
   LineController,
-  BarController
+  BarController,
+  Filler
 } from 'chart.js'
 import DataLabels from 'chartjs-plugin-datalabels'
 
@@ -33,6 +34,7 @@ export default defineNuxtPlugin(() => {
     Title,
     Tooltip,
     Legend,
+    Filler,
     
     // Plugins
     DataLabels

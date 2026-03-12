@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     env_file:
-      - .env.production
+      - .env
     ports:
       - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"
     environment:
@@ -21,7 +21,7 @@ services:
   app:
     build: .
     env_file:
-      - .env.production
+      - .env
     depends_on:
       postgres:
         condition: service_healthy

@@ -15,7 +15,7 @@
                             :schema="CreateTagGroupSchema"
                             @submit.prevent="onSubmitGroup"
                         >
-                            <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+                            <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                             <UFormField name="name" :label="$t('components.settings.tags.group_name_label')" class="mb-3">
                                 <UInput v-model="newGroupState.name" :placeholder="$t('components.settings.tags.group_name_placeholder')" autofocus />
                             </UFormField>
@@ -40,8 +40,7 @@
             </div>
         </template>
         <div>
-            <UAlert v-if="successStr" variant="outline" color="success" class="mb-4" :description="successStr || ''" />
-            <UAlert v-if="errorStr" variant="outline" color="error" class="mb-4" :description="errorStr || ''" />
+            <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
             <div v-if="tagGroups.length === 0" class="text-gray-500 text-center py-4">{{ $t('components.settings.tags.no_tags') }}</div>
             <div class="flex flex-col gap-6">
@@ -72,7 +71,7 @@
                                         :validate-on="['change', 'input']"
                                         @submit="onSubmitGroup"
                                     >
-                                        <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+                                        <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                                         <UFormField name="name" :label="$t('components.settings.tags.group_name_label')" class="mb-3">
                                             <UInput
                                                 v-model="newGroupState.name"
@@ -138,7 +137,7 @@
                                     :schema="CreateTagSchema"
                                     @submit.prevent="onSubmitTag"
                                 >
-                                    <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+                                    <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                                     <UFormField name="name" :label="$t('components.settings.tags.tag_name_label')" class="mb-3">
                                         <UInput
                                             v-model="newTagState.name"
@@ -210,7 +209,7 @@
                                         :schema="UpdateTagSchema"
                                         @submit.prevent="onSubmitTag"
                                     >
-                                        <UAlert v-if="errorStr" :description="errorStr || ''" color="error" variant="outline" class="mb-4" />
+                                        <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                                         <UFormField name="name" :label="$t('components.settings.tags.tag_name_label')" class="mb-3">
                                             <UInput
                                                 v-model="newTagState.name"
@@ -305,15 +304,19 @@ const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createT
 
 const { log_error } = useLogView()
 const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 
-const errorStr = ref<string | null>(null)
-const successStr = ref<string | null>(null)
 const deleteAssoc = ref<boolean>(false)
 
 const displayMessage = (success: string | null, error: string | null) => {
-    successStr.value = success || null
-    errorStr.value = error || null
-    if (error) log_error(error)
+    displayAlertMessage(success, error)
+    if (success) {
+        toastSuccess(success)
+    }
+    if (error) {
+        toastError(error)
+        log_error(error)
+    }
 }
 
 const getDefaultTagGroup = () => ({ name: '' })
@@ -356,22 +359,18 @@ async function onSubmitGroup(event: FormSubmitEvent<CreateTagGroupType | UpdateT
             await updateGroup(event.data as UpdateTagGroupType)
             const msg = t('components.settings.tags.group_updated')
             displayMessage(msg, null)
-            toastSuccess(msg)
             await fetchGroups()
             editGroupStateId.value = null
         } else {
             await createGroup(event.data as CreateTagGroupType)
             const msg = t('components.settings.tags.group_created')
             displayMessage(msg, null)
-            toastSuccess(msg)
             await fetchGroups()
             showAddGroup.value = false
         }
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
-        if (message) toastError(message)
-        log_error(message)
     }
 }
 
@@ -381,12 +380,9 @@ async function onDeleteGroup(group: TagGroupType) {
         await fetchGroups()
         const msg = t('components.settings.tags.group_deleted')
         displayMessage(msg, null)
-        toastSuccess(msg)
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
-        if (message) toastError(message)
-        log_error(message)
     }
 }
 
@@ -423,7 +419,6 @@ async function onSubmitTag(event: FormSubmitEvent<CreateTagType | UpdateTagType>
             }
             const msg = t('components.settings.tags.tag_updated')
             displayMessage(msg, null)
-            toastSuccess(msg)
             await fetchGroups()
             editTagStateId.value = null
         } else {
@@ -433,15 +428,12 @@ async function onSubmitTag(event: FormSubmitEvent<CreateTagType | UpdateTagType>
             }
             const msg = t('components.settings.tags.tag_created')
             displayMessage(msg, null)
-            toastSuccess(msg)
             await fetchGroups()
             groupTagToAdd.value = null
         }
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
-        if (message) toastError(message)
-        log_error(message)
     }
 }
 
@@ -451,12 +443,9 @@ async function onDeleteTag(group: TagGroupType, tag: TagType) {
         await fetchGroups()
         const msg = t('components.settings.tags.tag_deleted')
         displayMessage(msg, null)
-        toastSuccess(msg)
     } catch (err) {
         const { tag, message } = catchTagMessage(err, t)
         displayMessage(null, message)
-        if (message) toastError(message)
-        log_error(message)
     }
 }
 </script>
