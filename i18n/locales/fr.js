@@ -615,7 +615,7 @@ export default {
             pnl_bar_chart: {
                 title: 'Historique P&L par Trade',
                 enlarge: 'Agrandir le graphique',
-                enlarged_title: 'Historique P&L par Trade - Vue agrandie',
+                enlarged_title: 'Historique P&L par Trade  (agrandi)',
             },
         },
         import: {

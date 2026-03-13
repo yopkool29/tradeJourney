@@ -604,7 +604,7 @@ export default {
             pnl_bar_chart: {
                 title: 'P&L History',
                 enlarge: 'Enlarge chart',
-                enlarged_title: 'P&L History - Enlarged view',
+                enlarged_title: 'P&L History (enlarged)',
             },
         },
         import: {
