@@ -114,6 +114,7 @@ export interface DashBoardResult {
     avgTradeDuration: number
     maxTradeDuration: number
     expectancy: number
+    totalCommission: number
     totalProfit: number
     winningTradesCount: number
     winningContractsCount: number
@@ -122,6 +123,7 @@ export interface DashBoardResult {
     stdDevWin: number
     avgWinDuration: number
     maxWinDuration: number
+    winningTradesCommission: number
     maxRunUp: number
     maxRunUpDateFrom: Date | null
     maxRunUpDateTo: Date | null
@@ -134,6 +136,7 @@ export interface DashBoardResult {
     stdDevLoss: number
     avgLossDuration: number
     maxLossDuration: number
+    losingTradesCommission: number
     maxDrawdown: number
     maxDrawdownDateFrom: Date | null
     maxDrawdownDateTo: Date | null

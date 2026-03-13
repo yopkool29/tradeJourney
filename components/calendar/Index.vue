@@ -86,6 +86,10 @@
                                                 {{ formatCurrency(day.pnl) }}
                                             </span>
                                         </div>
+                                        <div v-if="day.commission" class="form-row">
+                                            <span class="stat-label-alt">Com:</span>
+                                            <span class="text-xs text-gray-500">{{ formatCurrency(day.commission) }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -178,6 +182,7 @@ type DayData = {
     isCurrentMonth: boolean
     count: number
     pnl: number
+    commission?: number
     winrate: number
     trades: TradeExtendedType[]
 }
@@ -321,14 +326,17 @@ const getDaysStats = () => {
         return closeDate >= start && closeDate <= end && matchAccount
     })
 
-    const stats: { [key: string]: { count: number; pnl: number; trades: TradeExtendedType[] } } = {}
+    const stats: { [key: string]: { count: number; pnl: number; commission: number; trades: TradeExtendedType[] } } = {}
+    
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
         const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
-        const pnl = tradesOfDay.reduce((sum, t) => sum + (t.profit || 0), 0)
+        const pnl = tradesOfDay.reduce((sum, t) => sum + (t.netProfit || 0), 0)
+        const commission = tradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
         stats[key] = {
             count: tradesOfDay.length,
             pnl,
+            commission,
             trades: tradesOfDay,
         }
     })
@@ -369,6 +377,7 @@ const calendarWeeks = computed(() => {
             isCurrentMonth,
             count: dayData?.count || 0,
             pnl: dayData?.pnl || 0,
+            commission: dayData?.commission || 0,
             winrate: dayData?.trades ? getWinrate(dayData.trades, 0) : 0,
             trades: dayData?.trades || [],
         }

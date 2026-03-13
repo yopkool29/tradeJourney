@@ -312,7 +312,7 @@ pnpm prisma generate --schema=prisma/data/schema.prisma
 ```bash
 # Generate incremental SQL migration
 pnpm prisma migrate diff \
-  --from-schema-datamodel prisma/data/schema.prev.prisma.bak \
+  --from-schema-datamodel prisma/data/schema.prisma.prev.bak \
   --to-schema-datamodel prisma/data/schema.prisma \
   --script | sed 's/"public"\./"SCHEMA_PLACEHOLDER"\./g' \
   > scripts/migrations/XXX-description.sql

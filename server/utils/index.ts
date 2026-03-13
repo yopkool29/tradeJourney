@@ -31,7 +31,8 @@ export interface TradesImport {
     lot: number;
     openPrice: number;
     closePrice: number;
-    profit: number;
+    profit: number;  // Profit BRUT (avant déduction des commissions)
+    netProfit?: number;  // Profit NET (après déduction des commissions)
     profit_points?: number;  // Optionnel car pas toujours présent dans les imports MT5
     mae?: number;
     mfe?: number;

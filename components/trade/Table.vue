@@ -47,36 +47,12 @@
                         />
                     </template>
                 </CommonAdvancedFilters>
-                <div class="filter-actions">
-                    <UDropdownMenu
-                        class="flex justify-end"
-                        :items="
-                            table?.tableApi
-                                ?.getAllColumns()
-                                .filter((column) => column.getCanHide() && !['actions', 'symbol', 'type', 'profit'].includes(column.id))
-                                .map((column) => ({
-                                    label: labelColumnsHeader[column.id] as string,
-                                    type: 'checkbox' as const,
-                                    checked: column.getIsVisible(),
-                                    onUpdateChecked(checked: boolean) {
-                                        table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
-                                    },
-                                    onSelect(e?: Event) {
-                                        e?.preventDefault()
-                                    },
-                                }))
-                        "
-                        :content="{ align: 'end' }"
-                    >
-                        <UButton
-                            class="ml-auto"
-                            :label="$t('components.common.columns.button')"
-                            color="neutral"
-                            size="sm"
-                            variant="outline"
-                            trailing-icon="i-lucide-chevron-down"
-                        />
-                    </UDropdownMenu>
+                <div class="filter-actions justify-end">
+                    <ColumnVisibilityMenu
+                        :table="table"
+                        :label-columns-header="labelColumnsHeader"
+                        :exclude-columns="['actions', 'symbol', 'type', 'profit']"
+                    />
                 </div>
             </template>
         </UCard>
@@ -207,8 +183,8 @@
                     </span>
                 </template>
                 <template #profit-cell="{ row }">
-                    <span :class="row.original.profit >= 0 ? 'profit-text' : 'loss-text'">
-                        {{ formatCurrency(row.original.profit) }}
+                    <span :class="(row.original.netProfit || 0) >= 0 ? 'profit-text' : 'loss-text'">
+                        {{ formatCurrency(row.original.netProfit || 0) }}
                     </span>
                 </template>
                 <template #type-cell="{ row }">
@@ -322,6 +298,7 @@ const labelColumnsHeader = computed(() => {
         openPrice: t('components.common.columns.headers.openPrice'),
         closePrice: t('components.common.columns.headers.closePrice'),
         profit: t('components.common.columns.headers.profit'),
+        commission: t('components.common.columns.headers.commission'),
         // Index signature is added via the type assertion below
     }
 })
@@ -719,7 +696,7 @@ const columns = [
     },
     {
         id: 'profit',
-        accessorKey: 'profit',
+        accessorKey: 'netProfit',
         header: () =>
             h(
                 'button',
@@ -727,15 +704,15 @@ const columns = [
                     class: 'flex items-center gap-1 select-none',
                     onClick: () =>
                         onSort({
-                            column: { accessorKey: 'profit' },
-                            direction: sortBy.value === 'profit' && !sortDesc.value ? 'desc' : 'asc',
+                            column: { accessorKey: 'netProfit' },
+                            direction: sortBy.value === 'netProfit' && !sortDesc.value ? 'desc' : 'asc',
                         }),
                 },
                 [
                     labelColumnsHeader.value.profit,
                     h(UIcon, {
                         name:
-                            sortBy.value === 'profit'
+                            sortBy.value === 'netProfit'
                                 ? sortDesc.value
                                     ? 'i-lucide-arrow-down-wide-narrow'
                                     : 'i-lucide-arrow-up-narrow-wide'
@@ -746,6 +723,14 @@ const columns = [
             ),
         sortable: true,
         meta: addMeta(),
+    },
+    {
+        id: 'commission',
+        accessorKey: 'commission',
+        header: () => t('components.common.columns.headers.commission'),
+        cell: ({ row }) => formatCurrency(row.original.commission || 0),
+        sortable: false,
+        meta: addMeta('w-[100px]'),
     },
 ]
 

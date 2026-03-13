@@ -287,19 +287,25 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
         : openPrice - closePrice;
     profit_points = parseFloat(profit_points.toFixed(2));
 
+    const netProfit = parseFloat((totalProfit - totalCommission).toFixed(2));
+
     // Créer le trade agrégé
     return {
-        ...firstTrade,
-        extendId: firstTrade.extendId + '_agg' + tradeGroup.length,
         openDate: earliestOpenDate,
         closeDate: latestCloseDate,
+        symbol: firstTrade.symbol,
+        type: firstTrade.type,
         lot: totalLot,
         openPrice: openPrice,
         closePrice: closePrice,
-        profit: parseFloat(totalProfit.toFixed(2)), // Arrondir pour éviter les erreurs de précision flottante
+        profit: parseFloat(totalProfit.toFixed(2)), // Profit BRUT
+        netProfit: netProfit,  // Profit NET
         profit_points,
+        stopLoss: 0,
+        takeProfit: 0,
         commission: totalCommission,
-        exchange: totalExchange
+        exchange: totalExchange,
+        screenshotUrl: null
     };
 }
 
@@ -345,27 +351,29 @@ function createIBKRTrade(
     
     // Calculer le profit
     // Pour les actions, le profit = (closePrice - openPrice) * quantity pour un buy
-    // ou (openPrice - closePrice) * quantity pour un sell
+    // Pour les futures, le profit est déjà calculé correctement par les prix
     const grossProfit = type === 'buy'
         ? (closePrice - openPrice) * tradeQuantity
         : (openPrice - closePrice) * tradeQuantity;
     
     // Arrondir à 2 décimales pour respecter la validation Zod (profit = argent)
-    const netProfit = grossProfit - totalCommission;
-    const profit = parseFloat(netProfit.toFixed(2));
+    const netProfitValue = grossProfit - totalCommission;
+    const profit = parseFloat(grossProfit.toFixed(2));  // Profit BRUT
+    const netProfit = parseFloat(netProfitValue.toFixed(2));  // Profit NET
     
     const tradeId = `${openDate.getTime()}_${symbol}_${type}`;
     
     return {
         extendId: tradeId,
-        openDate,
-        closeDate,
-        symbol,
-        type,
+        openDate: openDate,
+        closeDate: closeDate,
+        symbol: symbol,
+        type: type,
         lot: tradeQuantity,
-        openPrice,
-        closePrice,
-        profit,
+        openPrice: openPrice,
+        closePrice: closePrice,
+        profit,  // Profit BRUT
+        netProfit,  // Profit NET
         profit_points,
         stopLoss: 0,
         takeProfit: 0,

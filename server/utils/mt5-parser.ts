@@ -93,6 +93,14 @@ export function parseMT5Xls(
         if (!symbol || !['buy', 'sell'].includes(type?.toLowerCase()))
             continue;
         // console.log(openTime)
+        const commissionValue = parseFloat((commission || '0').toString().replace(',', '.'));
+        const profitFromMT5 = parseFloat((profit || '0').toString().replace(',', '.'));
+        
+        // MT5 fournit le profit NET (après commission)
+        // On calcule le profit BRUT en ajoutant la commission
+        const grossProfit = round(profitFromMT5 + commissionValue, 2);
+        const netProfit = round(profitFromMT5, 2);
+
         const trade: TradesImport = {
             openDate: parseMT5Date(openTime, effectiveImportMode, effectiveTimezone),
             closeDate: parseMT5Date(closeTime, effectiveImportMode, effectiveTimezone),
@@ -101,16 +109,15 @@ export function parseMT5Xls(
             lot: parseFloat((volume || '0').toString().replace(',', '.')),
             openPrice: parseFloat((openPrice || '0').toString().replace(',', '.')),
             closePrice: parseFloat((closePrice || '0').toString().replace(',', '.')),
-            profit: parseFloat((profit || '0').toString().replace(',', '.')),
+            profit: grossProfit,  // Profit BRUT
+            netProfit: netProfit,  // Profit NET
             profit_points: undefined,
             stopLoss: parseFloat((stopLoss || '0').toString().replace(',', '.')),
             takeProfit: parseFloat((takeProfit || '0').toString().replace(',', '.')),
-            commission: parseFloat((commission || '0').toString().replace(',', '.')),
+            commission: commissionValue,
             exchange: parseFloat((swap || '0').toString().replace(',', '.')), // swap devient exchange
             screenshotUrl: null,
         };
-
-        trade.profit = round(trade.profit + trade.commission, 2); // commission est déjà incluse dans profit, arrondi à 2 chiffres après la virgule
 
         // Validation et transformation via le schéma
         try {

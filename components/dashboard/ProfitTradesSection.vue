@@ -38,6 +38,11 @@
             </div>
             
             <div class="flex justify-between">
+                <span class="text-secondary">{{ $t('components.dashboard.profit_trades.commission') }}:</span>
+                <span class="font-semibold">{{ formatCurrency(result.winningTradesCommission) }}</span>
+            </div>
+            
+            <div class="flex justify-between">
                 <span class="text-secondary">{{ $t('components.dashboard.profit_trades.avg_win_time') }}:</span>
                 <span class="font-semibold">{{ formatDurationMinutes(result.avgWinDuration) }}</span>
             </div>

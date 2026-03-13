@@ -1,15 +1,15 @@
 import { startOfDay, endOfDay } from 'date-fns';
 import { round as _round } from "~/utils";
 
-export const getPNL = (trades: { profit: number }[], round = -1) => {
-    const result = trades.reduce((acc, trade) => acc + trade.profit, 0)
+export const getPNL = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
+    const result = trades.reduce((acc, trade) => acc + (useNet ? trade.netProfit : trade.profit), 0)
     if (round < 0)
         return result
     return _round(result, round)
 }
 
-export const getAPPT = (trades: { profit: number }[], fixNanToZero: boolean, round = -1) => {
-    const totalProfit = getPNL(trades, -1)
+export const getAPPT = (trades: { profit: number; netProfit: number }[], fixNanToZero: boolean, round = -1, useNet = true) => {
+    const totalProfit = getPNL(trades, -1, useNet)
     const totalTrades = trades.length
     let result = (totalProfit / totalTrades)
     if (round >= 0)
@@ -18,11 +18,11 @@ export const getAPPT = (trades: { profit: number }[], fixNanToZero: boolean, rou
     return result
 }
 
-export const getPLRatio = (trades: { profit: number }[], round = -1) => {
-    const winners = trades.filter(trade => trade.profit > 0)
-    const losers = trades.filter(trade => trade.profit < 0)
-    const avgWin = winners.length > 0 ? winners.reduce((acc, t) => acc + t.profit, 0) / winners.length : 0
-    const avgLoss = losers.length > 0 ? Math.abs(losers.reduce((acc, t) => acc + t.profit, 0) / losers.length) : 0
+export const getPLRatio = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
+    const winners = trades.filter(trade => (useNet ? trade.netProfit : trade.profit) > 0)
+    const losers = trades.filter(trade => (useNet ? trade.netProfit : trade.profit) < 0)
+    const avgWin = winners.length > 0 ? winners.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0) / winners.length : 0
+    const avgLoss = losers.length > 0 ? Math.abs(losers.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0) / losers.length) : 0
 
     const result = avgLoss === 0 ? 0 : avgWin / avgLoss
     if (round < 0)
@@ -30,10 +30,10 @@ export const getPLRatio = (trades: { profit: number }[], round = -1) => {
     return _round(result, round)
 }
 
-export const getWinrate = (trades: { profit: number }[], round = -1) => {
+export const getWinrate = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
     const totalTrades = trades.length
     if (totalTrades === 0) return 0
-    const winningTrades = trades.filter(trade => trade.profit > 0).length
+    const winningTrades = trades.filter(trade => (useNet ? trade.netProfit : trade.profit) > 0).length
     const result = (winningTrades / totalTrades) * 100
     if (round < 0)
         return result
@@ -46,11 +46,11 @@ export const getNbTrades = (trades: { closeDate: Date | string }[], date: Date) 
     return trades.filter(trade => new Date(trade.closeDate).getTime() >= sd.getTime() && new Date(trade.closeDate).getTime() <= ed.getTime()).length
 }
 
-export const getWinLossNb = (trades: { closeDate: Date | string, profit: number }[], date: Date) => {
+export const getWinLossNb = (trades: { closeDate: Date | string; profit: number; netProfit: number }[], date: Date, useNet = true) => {
     const sd = startOfDay(date)
     const ed = endOfDay(date)
-    const wins = trades.filter(trade => new Date(trade.closeDate).getTime() >= sd.getTime() && new Date(trade.closeDate).getTime() <= ed.getTime() && trade.profit > 0).length
-    const losses = trades.filter(trade => new Date(trade.closeDate).getTime() >= sd.getTime() && new Date(trade.closeDate).getTime() <= ed.getTime() && trade.profit < 0).length
+    const wins = trades.filter(trade => new Date(trade.closeDate).getTime() >= sd.getTime() && new Date(trade.closeDate).getTime() <= ed.getTime() && (useNet ? trade.netProfit : trade.profit) > 0).length
+    const losses = trades.filter(trade => new Date(trade.closeDate).getTime() >= sd.getTime() && new Date(trade.closeDate).getTime() <= ed.getTime() && (useNet ? trade.netProfit : trade.profit) < 0).length
     return { wins, losses }
 }
 
@@ -83,17 +83,18 @@ export function movingAverage(data: number[], windowSize: number): number[] {
  * @param round Nombre de décimales pour l'arrondi (-1 pour ne pas arrondir)
  * @returns Facteur de profit
  */
-export const getProfitFactor = (trades: { profit: number }[], round = -1) => {
+export const getProfitFactor = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
     // Séparer les profits et les pertes
     let grossProfit = 0;
     let grossLoss = 0;
 
     // Calculer le profit brut et la perte brute
     trades.forEach(trade => {
-        if (trade.profit > 0) {
-            grossProfit += trade.profit;
-        } else if (trade.profit < 0) {
-            grossLoss += Math.abs(trade.profit);
+        const value = useNet ? trade.netProfit : trade.profit;
+        if (value > 0) {
+            grossProfit += value;
+        } else if (value < 0) {
+            grossLoss += Math.abs(value);
         }
     });
 
@@ -112,10 +113,10 @@ export const getProfitFactor = (trades: { profit: number }[], round = -1) => {
  * @param round Nombre de décimales pour l'arrondi (-1 pour ne pas arrondir)
  * @returns Facteur de récupération
  */
-export const getRecoveryFactor = (trades: { profit: number }[], round = -1) => {
+export const getRecoveryFactor = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
     if (trades.length === 0) return 0
 
-    const netProfit = getPNL(trades, -1)
+    const netProfit = getPNL(trades, -1, useNet)
 
     // Calcul du drawdown maximal
     let balance = 0
@@ -123,7 +124,7 @@ export const getRecoveryFactor = (trades: { profit: number }[], round = -1) => {
     let maxDrawdown = 0
 
     for (const trade of trades) {
-        balance += trade.profit
+        balance += useNet ? trade.netProfit : trade.profit
         if (balance > peak) {
             peak = balance
         } else {
@@ -147,11 +148,11 @@ export const getRecoveryFactor = (trades: { profit: number }[], round = -1) => {
  * @param round Nombre de décimales pour l'arrondi (-1 pour ne pas arrondir)
  * @returns Ratio de Sharpe
  */
-export const getSharpeRatio = (trades: { profit: number }[], riskFreeRate = 0, round = -1) => {
+export const getSharpeRatio = (trades: { profit: number; netProfit: number }[], riskFreeRate = 0, round = -1, useNet = true) => {
     if (trades.length < 2) return 0
 
     // Calculer les rendements quotidiens (ou par trade)
-    const returns = trades.map(trade => trade.profit)
+    const returns = trades.map(trade => useNet ? trade.netProfit : trade.profit)
 
     // Calculer le rendement moyen
     const meanReturn = returns.reduce((sum, val) => sum + val, 0) / returns.length
@@ -212,17 +213,17 @@ export const getMaxTradeDuration = (trades: { openDate: Date | string, closeDate
  * Calcule l'expectancy (espérance mathématique)
  * Formule: (Win% × Avg Win) - (Loss% × Avg Loss)
  */
-export const getExpectancy = (trades: { profit: number }[], round = -1) => {
+export const getExpectancy = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
     if (trades.length === 0) return 0
     
-    const winners = trades.filter(t => t.profit > 0)
-    const losers = trades.filter(t => t.profit < 0)
+    const winners = trades.filter(t => (useNet ? t.netProfit : t.profit) > 0)
+    const losers = trades.filter(t => (useNet ? t.netProfit : t.profit) < 0)
     
     const winRate = winners.length / trades.length
     const lossRate = losers.length / trades.length
     
-    const avgWin = winners.length > 0 ? winners.reduce((acc, t) => acc + t.profit, 0) / winners.length : 0
-    const avgLoss = losers.length > 0 ? Math.abs(losers.reduce((acc, t) => acc + t.profit, 0) / losers.length) : 0
+    const avgWin = winners.length > 0 ? winners.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0) / winners.length : 0
+    const avgLoss = losers.length > 0 ? Math.abs(losers.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0) / losers.length) : 0
     
     const result = (winRate * avgWin) - (lossRate * avgLoss)
     
@@ -256,8 +257,8 @@ export const getTotalContracts = (trades: { lot: number }[]) => {
 /**
  * Calcule les métriques des trades gagnants
  */
-export const getWinningTradesMetrics = (trades: { profit: number, lot: number, openDate: Date | string, closeDate: Date | string }[]) => {
-    const winners = trades.filter(t => t.profit > 0)
+export const getWinningTradesMetrics = (trades: { profit: number; netProfit: number; lot: number; commission?: number; openDate: Date | string; closeDate: Date | string }[], useNet = true) => {
+    const winners = trades.filter(t => (useNet ? t.netProfit : t.profit) > 0)
     
     if (winners.length === 0) {
         return {
@@ -268,29 +269,31 @@ export const getWinningTradesMetrics = (trades: { profit: number, lot: number, o
             average: 0,
             stdDev: 0,
             avgDuration: 0,
-            maxDuration: 0
+            maxDuration: 0,
+            totalCommission: 0
         }
     }
     
-    const profits = winners.map(t => t.profit)
+    const profits = winners.map(t => useNet ? t.netProfit : t.profit)
     
     return {
         count: winners.length,
-        totalProfit: _round(winners.reduce((acc, t) => acc + t.profit, 0), 2),
+        totalProfit: _round(winners.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0), 2),
         totalContracts: getTotalContracts(winners),
         largest: _round(Math.max(...profits), 2),
         average: _round(profits.reduce((a, b) => a + b, 0) / profits.length, 2),
         stdDev: getStdDev(profits, 2),
         avgDuration: getAvgTradeDuration(winners, 2),
-        maxDuration: getMaxTradeDuration(winners, 2)
+        maxDuration: getMaxTradeDuration(winners, 2),
+        totalCommission: _round(winners.reduce((acc, t) => acc + (t.commission || 0), 0), 2)
     }
 }
 
 /**
  * Calcule les métriques des trades perdants
  */
-export const getLosingTradesMetrics = (trades: { profit: number, lot: number, openDate: Date | string, closeDate: Date | string }[]) => {
-    const losers = trades.filter(t => t.profit < 0)
+export const getLosingTradesMetrics = (trades: { profit: number; netProfit: number; lot: number; commission?: number; openDate: Date | string; closeDate: Date | string }[], useNet = true) => {
+    const losers = trades.filter(t => (useNet ? t.netProfit : t.profit) < 0)
     
     if (losers.length === 0) {
         return {
@@ -301,29 +304,31 @@ export const getLosingTradesMetrics = (trades: { profit: number, lot: number, op
             average: 0,
             stdDev: 0,
             avgDuration: 0,
-            maxDuration: 0
+            maxDuration: 0,
+            totalCommission: 0
         }
     }
     
-    const losses = losers.map(t => Math.abs(t.profit))
+    const losses = losers.map(t => Math.abs(useNet ? t.netProfit : t.profit))
     
     return {
         count: losers.length,
-        totalLoss: _round(losers.reduce((acc, t) => acc + t.profit, 0), 2),
+        totalLoss: _round(losers.reduce((acc, t) => acc + (useNet ? t.netProfit : t.profit), 0), 2),
         totalContracts: getTotalContracts(losers),
         largest: _round(Math.max(...losses), 2),
         average: _round(losses.reduce((a, b) => a + b, 0) / losses.length, 2),
         stdDev: getStdDev(losses, 2),
         avgDuration: getAvgTradeDuration(losers, 2),
-        maxDuration: getMaxTradeDuration(losers, 2)
+        maxDuration: getMaxTradeDuration(losers, 2),
+        totalCommission: _round(losers.reduce((acc, t) => acc + (t.commission || 0), 0), 2)
     }
 }
 
 /**
  * Calcule les métriques des trades breakeven
  */
-export const getBreakevenTradesMetrics = (trades: { profit: number, lot: number }[]) => {
-    const breakevens = trades.filter(t => t.profit === 0)
+export const getBreakevenTradesMetrics = (trades: { profit: number; netProfit: number; lot: number }[], useNet = true) => {
+    const breakevens = trades.filter(t => (useNet ? t.netProfit : t.profit) === 0)
     
     return {
         count: breakevens.length,
@@ -334,14 +339,14 @@ export const getBreakevenTradesMetrics = (trades: { profit: number, lot: number 
 /**
  * Calcule le winning streak maximum (nombre de trades gagnants consécutifs)
  */
-export const getMaxWinningStreak = (trades: { profit: number }[]): number => {
+export const getMaxWinningStreak = (trades: { profit: number; netProfit: number }[], useNet = true): number => {
     if (trades.length === 0) return 0
     
     let maxStreak = 0
     let currentStreak = 0
     
     for (const trade of trades) {
-        if (trade.profit > 0) {
+        if ((useNet ? trade.netProfit : trade.profit) > 0) {
             currentStreak++
             maxStreak = Math.max(maxStreak, currentStreak)
         } else {
@@ -355,14 +360,14 @@ export const getMaxWinningStreak = (trades: { profit: number }[]): number => {
 /**
  * Calcule le losing streak maximum (nombre de trades perdants consécutifs)
  */
-export const getMaxLosingStreak = (trades: { profit: number }[]): number => {
+export const getMaxLosingStreak = (trades: { profit: number; netProfit: number }[], useNet = true): number => {
     if (trades.length === 0) return 0
     
     let maxStreak = 0
     let currentStreak = 0
     
     for (const trade of trades) {
-        if (trade.profit < 0) {
+        if ((useNet ? trade.netProfit : trade.profit) < 0) {
             currentStreak++
             maxStreak = Math.max(maxStreak, currentStreak)
         } else {
@@ -376,7 +381,7 @@ export const getMaxLosingStreak = (trades: { profit: number }[]): number => {
 /**
  * Calcule le max drawdown avec les dates
  */
-export const getMaxDrawdownWithDates = (trades: { profit: number, closeDate: Date | string }[]): { maxDrawdown: number, dateFrom: Date | null, dateTo: Date | null } => {
+export const getMaxDrawdownWithDates = (trades: { profit: number; netProfit: number; closeDate: Date | string }[], useNet = true): { maxDrawdown: number; dateFrom: Date | null; dateTo: Date | null } => {
     if (trades.length === 0) {
         return {
             maxDrawdown: 0,
@@ -393,7 +398,7 @@ export const getMaxDrawdownWithDates = (trades: { profit: number, closeDate: Dat
     let maxDrawdownEndIndex = 0
     
     trades.forEach((trade, index) => {
-        balance += trade.profit
+        balance += useNet ? trade.netProfit : trade.profit
         
         if (balance > peak) {
             peak = balance
@@ -418,7 +423,7 @@ export const getMaxDrawdownWithDates = (trades: { profit: number, closeDate: Dat
 /**
  * Calcule le max run-up avec les dates
  */
-export const getMaxRunUpWithDates = (trades: { profit: number, closeDate: Date | string }[]) => {
+export const getMaxRunUpWithDates = (trades: { profit: number; netProfit: number; closeDate: Date | string }[], useNet = true) => {
     if (trades.length === 0) {
         return {
             maxRunUp: 0,
@@ -435,7 +440,7 @@ export const getMaxRunUpWithDates = (trades: { profit: number, closeDate: Date |
     let maxRunUpEndIndex = 0
     
     trades.forEach((trade, index) => {
-        balance += trade.profit
+        balance += useNet ? trade.netProfit : trade.profit
         
         if (balance < trough) {
             trough = balance

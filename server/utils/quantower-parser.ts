@@ -96,18 +96,24 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
         : openPrice - closePrice;
     profit_points = parseFloat(profit_points.toFixed(2));
     
+    const netProfit = totalProfit - totalCommission;
+
     return {
-        ...firstTrade,
-        extendId: firstTrade.extendId + '_agg' + tradeGroup.length,
         openDate: earliestOpenDate,
         closeDate: latestCloseDate,
+        symbol: firstTrade.symbol,
+        type: firstTrade.type,
         lot: totalLot,
         openPrice: openPrice,
         closePrice: closePrice,
-        profit: totalProfit,
+        profit: totalProfit,  // Profit BRUT
+        netProfit: netProfit,  // Profit NET
         profit_points,
+        stopLoss: 0,
+        takeProfit: 0,
         commission: totalCommission,
-        exchange: totalExchange
+        exchange: totalExchange,
+        screenshotUrl: null
     };
 }
 
@@ -319,20 +325,22 @@ function createTrade(
     
     // Use the Gross P/L directly from the CSV (already calculated by Quantower)
     // This is more accurate as it accounts for the correct point values for each instrument
-    const profit = parseCurrency(closeExec['Gross P/L']);
+    const profit = parseFloat(grossPL.toFixed(2));
+    const netProfit = parseFloat((profit - totalCommission).toFixed(2));
     
     const tradeId = `${openDate.getTime()}_${symbol}_${type}`;
     
     return {
         extendId: tradeId,
-        openDate,
-        closeDate,
-        symbol,
-        type,
-        lot: actualQuantity,
-        openPrice,
-        closePrice,
-        profit,
+        openDate: openDate,
+        closeDate: closeDate,
+        symbol: symbol,
+        type: type,
+        lot: quantity,
+        openPrice: openPrice,
+        closePrice: closePrice,
+        profit,  // Profit BRUT
+        netProfit,  // Profit NET
         profit_points,
         stopLoss: 0,
         takeProfit: 0,

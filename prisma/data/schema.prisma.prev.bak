@@ -30,6 +30,14 @@ model Trade {
     profit_points Float
     commission    Float?       @default(0)
     exchange      Float?       @default(0)
+    instrumentType String      @default("any") // stock, future, forex, call, put, any
+    mae           Float?       // Maximum Adverse Excursion
+    mfe           Float?       // Maximum Favorable Excursion
+    strikePrice   Float?       // Options: prix d'exercice
+    expirationDate DateTime?   // Options: date d'expiration
+    optionType    String?      // Options: 'call' ou 'put'
+    premium       Float?       // Options: prime payée/reçue
+    metadata      Json?        @db.JsonB // Données flexibles (dates originales, greeks, etc.)
     note          String?
     screenshotUrl String? // Garder pour compatibilité
     screenshots   Screenshot[] // Nouvelle relation pour plusieurs images (optionnel par défaut)
@@ -141,8 +149,10 @@ model ImportProfile {
     keepExistingTrades  Boolean  @default(false)
     dayTags             ImportProfileDayTag[]
     tradeTags           ImportProfileTradeTag[]
+    instrumentType      String   @default("any") // any, forex, future, stock, crypto, call, put
     ibkrFlexQueryToken  String?
     ibkrFlexQueryId     String?
+    metadata            Json?    @db.JsonB // Données flexibles (filtres symboles, etc.)
     createdAt           DateTime @default(now())
     updatedAt           DateTime @updatedAt
 }

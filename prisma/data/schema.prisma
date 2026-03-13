@@ -26,7 +26,8 @@ model Trade {
     closePrice    Float
     stopLoss      Float?       @default(0)
     takeProfit    Float?       @default(0)
-    profit        Float
+    profit        Float        // Profit BRUT (avant déduction des commissions)
+    netProfit     Float        // Profit NET (après déduction des commissions)
     profit_points Float
     commission    Float?       @default(0)
     exchange      Float?       @default(0)

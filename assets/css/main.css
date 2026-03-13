@@ -229,6 +229,10 @@ select {
     @apply font-semibold;
 }
 
+.stat-label-alt {
+    @apply text-xs text-gray-400;
+}
+
 .stat-value {
     @apply ml-1;
 }

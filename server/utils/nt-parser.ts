@@ -156,16 +156,19 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
         : openPrice - closePrice;
     profit_points = parseFloat(profit_points.toFixed(2));
 
+    const netProfit = totalProfit - totalCommission;
+
     // Créer le trade agrégé
     return {
-        ...firstTrade,
-        extendId: firstTrade.extendId + '_agg' + tradeGroup.length,
         openDate: earliestOpenDate,
         closeDate: latestCloseDate,
+        symbol: firstTrade.symbol,
+        type: firstTrade.type,
         lot: totalLot,
         openPrice: openPrice,
         closePrice: closePrice,
-        profit: totalProfit,
+        profit: totalProfit,  // Profit BRUT
+        netProfit: netProfit,  // Profit NET
         profit_points,
         commission: totalCommission,
         exchange: totalExchange
@@ -226,6 +229,7 @@ export function parseNTExecutions(csvContent: string, timezone: string, importMo
         let nb_points = type === 'buy' ? closePrice - openPrice : openPrice - closePrice
         nb_points = parseFloat(nb_points.toFixed(2))
 
+        const netProfit = profit - commission;
 
         const trade: TradesImport = {
             extendId: "-" + tradeId,
@@ -236,7 +240,8 @@ export function parseNTExecutions(csvContent: string, timezone: string, importMo
             lot: quantity,
             openPrice,
             closePrice,
-            profit,
+            profit,  // Profit BRUT
+            netProfit,  // Profit NET
             profit_points: nb_points,
             stopLoss: 0,
             takeProfit: 0,

@@ -13,6 +13,13 @@
       "description": "Add instrumentType, MAE, MFE, options fields (strikePrice, expirationDate, optionType, premium) and metadata JSONB to Trade",
       "file": "002-add-instrument-mae-mfe-options-metadata.sql",
       "date": "2026-02-12"
+    },
+    {
+      "version": 3,
+      "name": "add-netprofit",
+      "description": "Add netProfit column to Trade table to store profit after commission deduction",
+      "file": "003-add-netprofit.sql",
+      "date": "2026-03-13"
     }
   ]
 }

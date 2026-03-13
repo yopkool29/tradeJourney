@@ -25,8 +25,10 @@
                         </div>
                         <div class="stat-item gap-2">
                             <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
-                            <span class="stat-value text-lg" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">{{
-                                formatCurrency(pnl) }}</span>
+                            <span class="stat-value text-lg" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
+                                {{ formatCurrency(pnl) }}
+                                <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{ formatCurrency(totalCommission) }}]</span>
+                            </span>
                         </div>
                     </div>
 
@@ -115,24 +117,13 @@
 
                 <template #content>
                     <div v-if="showTable">
-                        <UDropdownMenu class="flex justify-start" :items="table?.tableApi
-                                ?.getAllColumns()
-                                .filter((column) => column.getCanHide() && !['actions', 'actionToggle', 'symbol', 'type', 'profit'].includes(column.id))
-                                .map((column) => ({
-                                    label: labelColumnsHeader[column.id] as string,
-                                    type: 'checkbox' as const,
-                                    checked: column.getIsVisible(),
-                                    onUpdateChecked(checked: boolean) {
-                                        table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
-                                    },
-                                    onSelect(e?: Event) {
-                                        e?.preventDefault()
-                                    },
-                                }))
-                            " :content="{ align: 'start' }">
-                            <UButton class="ml-auto mr-2" :label="$t('components.common.columns.button')"
-                                color="neutral" size="sm" variant="outline" trailing-icon="i-lucide-chevron-down" />
-                        </UDropdownMenu>
+                        <ColumnVisibilityMenu
+                            :table="table"
+                            :label-columns-header="labelColumnsHeader"
+                            :exclude-columns="['actions', 'actionToggle', 'symbol', 'type', 'profit']"
+                            align="start"
+                            button-class="ml-auto mr-2"
+                        />
                     </div>
                     <UTable ref="table" :key="`${locale}-${timezoneKey}`"
                         v-model:column-visibility="userStore.dailyHistoryFilters.columnVisibility" :columns="columns"
@@ -172,8 +163,8 @@
                             <span class="font-semibold">{{ row.original.account_displayName }}</span>
                         </template>
                         <template #profit-cell="{ row }">
-                            <span :class="row.original.profit >= 0 ? 'profit-text' : 'loss-text'">
-                                {{ formatCurrency(row.original.profit) }}
+                            <span :class="(row.original.netProfit || 0) >= 0 ? 'profit-text' : 'loss-text'">
+                                {{ formatCurrency(row.original.netProfit || 0) }}
                             </span>
                         </template>
                         <template #type-cell="{ row }">
@@ -352,6 +343,7 @@ const activeTrades = computed(() => props.groupTrades.filter(t => t.active !== f
 const winLoss = computed(() => getWinLossNb(activeTrades.value, props.groupDate || new Date()))
 const winrate = computed(() => getWinrate(activeTrades.value, 1))
 const pnl = computed(() => getPNL(activeTrades.value, 2))
+const totalCommission = computed(() => activeTrades.value.reduce((sum, t) => sum + (t.commission || 0), 0))
 // Données pour les graphiques
 const intradayChartData = computed(() => {
     return generateIntradayPnlChartData(activeTrades.value)
@@ -396,6 +388,7 @@ const labelColumnsHeader = computed(() => {
         openPrice: t('components.common.columns.headers.openPrice'),
         closePrice: t('components.common.columns.headers.closePrice'),
         profit: t('components.common.columns.headers.profit'),
+        commission: t('components.common.columns.headers.commission'),
         // Index signature is added via the type assertion below
     }
 })
@@ -411,7 +404,14 @@ const columns = computed(() => {
         { id: 'closeDate', accessorKey: 'closeDate', header: labelColumnsHeader.value.closeHour, meta: addMeta() },
         { id: 'openPrice', accessorKey: 'openPrice', header: labelColumnsHeader.value.openPrice, meta: addMeta() },
         { id: 'closePrice', accessorKey: 'closePrice', header: labelColumnsHeader.value.closePrice, meta: addMeta() },
-        { id: 'profit', accessorKey: 'profit', header: labelColumnsHeader.value.profit, meta: addMeta() },
+        { id: 'profit', accessorKey: 'netProfit', header: labelColumnsHeader.value.profit, meta: addMeta() },
+        { 
+            id: 'commission', 
+            accessorKey: 'commission', 
+            header: labelColumnsHeader.value.commission,
+            cell: ({ row }) => formatCurrency(row.original.commission || 0),
+            meta: addMeta('w-[100px]')
+        },
         { id: 'actions', header: labelColumnsHeader.value.actions, meta: addMeta('w-[100px]') },
         {
             id: 'screenshots',

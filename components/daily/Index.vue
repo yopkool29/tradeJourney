@@ -137,11 +137,13 @@ const getDaysStats = () => {
         const key = formatDateToYYYYMMDD(day)
         const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
         const activeTradesOfDay = tradesOfDay.filter((trade) => trade.active !== false)
-        const pnl = activeTradesOfDay.reduce((sum, t) => sum + (t.profit || 0), 0)
+        const pnl = activeTradesOfDay.reduce((sum, t) => sum + (t.netProfit || 0), 0)
+        const commission = activeTradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
         stats[key] = {
             count: activeTradesOfDay.length,
             day: day,
             pnl,
+            commission,
             key: key,
             trades: tradesOfDay,
         }

@@ -179,7 +179,8 @@ const getDefaultForm = () =>
         closePrice: 0,
         stopLoss: 0,
         takeProfit: 0,
-        profit: 0,
+        profit: 0,  // Pour les trades manuels, profit = netProfit (commission = 0)
+        netProfit: 0,
         instrumentType: 'any',
         commission: 0,
         exchange: 0,
@@ -330,6 +331,16 @@ watch(
         }
     },
     { immediate: true }
+)
+
+// Synchroniser netProfit avec profit pour les trades manuels (commission = 0)
+watch(
+    () => newState.value.profit,
+    (profit) => {
+        if (newState.value.commission === 0) {
+            newState.value.netProfit = profit
+        }
+    }
 )
 
 const step = computed(() => {

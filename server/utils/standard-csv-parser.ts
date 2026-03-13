@@ -97,6 +97,10 @@ export function parseStandardCSV(
                 : 0
 
             // Créer le trade
+            const profit = parseFloat(values[colIndex['profit']]);
+            const commission = parseFloat(values[colIndex['commission']]);
+            const netProfit = profit - commission;
+
             const trade: TradesImport = {
                 openDate,
                 closeDate,
@@ -105,10 +109,11 @@ export function parseStandardCSV(
                 lot: parseFloat(values[colIndex['lot']]),
                 openPrice: parseFloat(values[colIndex['openPrice']]),
                 closePrice: parseFloat(values[colIndex['closePrice']]),
-                profit: parseFloat(values[colIndex['profit']]),
+                profit,  // Profit BRUT
+                netProfit,  // Profit NET
                 stopLoss: parseFloat(values[colIndex['stopLoss']]),
                 takeProfit: parseFloat(values[colIndex['takeProfit']]),
-                commission: parseFloat(values[colIndex['commission']]),
+                commission,
                 exchange,
                 screenshotUrl: null
             }

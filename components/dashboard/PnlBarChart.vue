@@ -67,16 +67,16 @@ const chartData = computed(() => {
         labels: displayTrades.map((_, index) => `#${index + 1}`),
         datasets: [{
             label: '',
-            data: displayTrades.map(trade => trade.profit),
+            data: displayTrades.map(trade => trade.netProfit),
             trades: displayTrades, // Stocker les trades pour accès dans le tooltip
             backgroundColor: displayTrades.map(trade => 
-                trade.profit > 0 ? profitColor.value : 
-                trade.profit < 0 ? lossColor.value : 
+                trade.netProfit > 0 ? profitColor.value : 
+                trade.netProfit < 0 ? lossColor.value : 
                 breakevenColor.value
             ),
             borderColor: displayTrades.map(trade => 
-                trade.profit > 0 ? profitColor.value.replace('0.8', '1') : 
-                trade.profit < 0 ? lossColor.value.replace('0.8', '1') : 
+                trade.netProfit > 0 ? profitColor.value.replace('0.8', '1') : 
+                trade.netProfit < 0 ? lossColor.value.replace('0.8', '1') : 
                 breakevenColor.value.replace('0.8', '1')
             ),
             borderWidth: 1,

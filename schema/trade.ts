@@ -69,6 +69,8 @@ export const TradeSchema = z.object({
             })
     ),
 
+    netProfit: z.number(),
+
     profit_points: z.number().default(0),
 
     instrumentType: z.nativeEnum(InstrumentType).optional().default(InstrumentType.Any),

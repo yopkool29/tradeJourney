@@ -63,7 +63,7 @@ export const useDashboard = () => {
         // Filtrer les trades dont le P&L absolu est inférieur au seuil
         const pnlThreshold = userStore.user?.settings_object?.pnlThreshold || 0
         if (pnlThreshold > 0) {
-            trades = trades.filter(t => Math.abs(t.profit) >= pnlThreshold)
+            trades = trades.filter(t => Math.abs(t.netProfit || 0) >= pnlThreshold)
         }
 
         userStore.dashBoardFilters.last_results = trades
@@ -84,6 +84,7 @@ export const useDashboard = () => {
         userStore.dashBoardResult.avgTradeDuration = getAvgTradeDuration(trades, 2)
         userStore.dashBoardResult.maxTradeDuration = getMaxTradeDuration(trades, 2)
         userStore.dashBoardResult.expectancy = getExpectancy(trades, 2)
+        userStore.dashBoardResult.totalCommission = trades.reduce((sum, t) => sum + (t.commission || 0), 0)
 
         // PROFIT TRADES
         const winMetrics = getWinningTradesMetrics(trades)
@@ -95,6 +96,7 @@ export const useDashboard = () => {
         userStore.dashBoardResult.stdDevWin = winMetrics.stdDev
         userStore.dashBoardResult.avgWinDuration = winMetrics.avgDuration
         userStore.dashBoardResult.maxWinDuration = winMetrics.maxDuration
+        userStore.dashBoardResult.winningTradesCommission = winMetrics.totalCommission
 
         // Max Run-up avec dates
         const runUpData = getMaxRunUpWithDates(trades)
@@ -112,6 +114,7 @@ export const useDashboard = () => {
         userStore.dashBoardResult.stdDevLoss = lossMetrics.stdDev
         userStore.dashBoardResult.avgLossDuration = lossMetrics.avgDuration
         userStore.dashBoardResult.maxLossDuration = lossMetrics.maxDuration
+        userStore.dashBoardResult.losingTradesCommission = lossMetrics.totalCommission
 
         // Max Drawdown avec dates
         const drawdownData = getMaxDrawdownWithDates(trades)

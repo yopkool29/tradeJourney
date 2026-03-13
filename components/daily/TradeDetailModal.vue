@@ -12,7 +12,7 @@
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.type') }}</span>
                         <UBadge :style="{
-                            backgroundColor: tradeTypeColor,
+                            backgroundColor: tradeTypeColors[trade.type],
                             color: 'white',
                         }">
                             {{ trade.type === 'buy' ? $t('common.trade_types.buy') : $t('common.trade_types.sell') }}
@@ -144,8 +144,6 @@ import type { TradeExtendedType } from '~/schema/trade'
 const colorMode = useColorMode()
 const { getDigitFromSymbol } = useSymbols()
 
-const isDark = computed(() => colorMode.value === 'dark')
-
 const props = defineProps<{
     trade: TradeExtendedType | null
     isOpen: boolean
@@ -167,13 +165,7 @@ const { t, locale } = useI18n()
 const showScreenshots = ref(false)
 const currentScreenshotIndex = ref(0)
 
-const tradeTypeColor = computed(() => {
-    if (!props.trade) return '#22c55e'
-    const colorMode = isDark.value ? 'dark' : 'light'
-    return props.trade.type === 'buy'
-        ? userStore.user?.settings_object!.tradeTypeBadges?.buy?.[colorMode]
-        : userStore.user?.settings_object!.tradeTypeBadges?.sell?.[colorMode]
-})
+const { tradeTypeColors } = useTypeColors()
 
 const allScreenshots = computed(() => {
     if (!props.trade) return []

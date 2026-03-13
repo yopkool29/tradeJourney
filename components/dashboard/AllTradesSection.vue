@@ -44,6 +44,13 @@
                 </span>
             </div>
             
+            <div class="flex justify-between">
+                <span class="text-secondary">{{ $t('components.dashboard.all_trades.commission') }}:</span>
+                <span class="font-semibold">
+                    {{ formatCurrency(result.totalCommission) }}
+                </span>
+            </div>
+            
             <div class="flex justify-between border-t pt-3 mt-3">
                 <span class="text-secondary font-medium">{{ $t('components.dashboard.all_trades.total_pnl') }}:</span>
                 <span class="font-bold text-base" :class="result.pnl >= 0 ? 'profit-text' : 'loss-text'">
