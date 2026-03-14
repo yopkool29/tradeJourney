@@ -8,7 +8,7 @@
         </div>
 
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div class="logmessage" contenteditable="false" readonly v-html="message" />
+        <div class="logmessage select-text" contenteditable="false" readonly v-html="message" />
     </div>
 </template>
 

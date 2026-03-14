@@ -1,6 +1,6 @@
 <template>
     <header v-show="!hideHeader"
-        class="w-full shadow bg-[var(--ui-bg)] dark:bg-gray-900 text-gray-900 dark:text-white no-select">
+        class="w-full shadow bg-[var(--ui-bg)] dark:bg-gray-900 text-gray-900 dark:text-white select-none">
         <div>
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">

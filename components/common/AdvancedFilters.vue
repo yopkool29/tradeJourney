@@ -4,13 +4,13 @@
             <USelect
                 :model-value="filter.column"
                 :items="columns"
-                class="min-w-[200px] no-select"
+                class="min-w-[200px] select-none"
                 @update:model-value="(val) => onColumnChange(idx, val)"
             />
             <USelect
                 :model-value="filter.operator"
                 :items="getOperatorOptions(filter.column)"
-                class="w-20 no-select"
+                class="w-20 select-none"
                 @update:model-value="(val) => onOperatorChange(idx, val)"
             />
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex justify-center px-4 pt-20 no-select">
+    <div class="min-h-screen flex justify-center px-4 pt-20 select-none">
         <div class="w-full max-w-2xl">
             <UCard class="bg-gray-100 dark:bg-gray-800">
                 <template #header>

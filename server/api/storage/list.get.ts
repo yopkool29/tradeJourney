@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
         }
 
         // Proxy request to storage server
-        const response = await $fetch<{ count: number; files: any[] }>(`${storageUrl}/api/upload/list`, {
+        const response = await $fetch(`${storageUrl}/api/upload/list`, {
             method: 'GET',
             headers: {
                 'X-API-Token': user.token

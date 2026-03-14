@@ -28,7 +28,7 @@ export const useStorageServer = () => {
      */
     const listFiles = async (): Promise<StorageFile[]> => {
         try {
-            const response = await $fetch<StorageListResponse>('/api/storage/list', {
+            const response = await $fetch('/api/storage/list', {
                 method: 'GET'
             })
 
@@ -45,7 +45,7 @@ export const useStorageServer = () => {
     const retrieveFile = async (fileId: string): Promise<string | null> => {
         try {
             // Get encrypted file from server
-            const encryptedData = await $fetch<string>(`/api/storage/retrieve/${fileId}`, {
+            const encryptedData = await $fetch(`/api/storage/retrieve/${fileId}`, {
                 method: 'GET',
                 responseType: 'text'
             })

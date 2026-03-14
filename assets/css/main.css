@@ -39,11 +39,7 @@ div[role='dialog'] {
 }
 
 select {
-    user-select: none;
-}
-
-.no-select {
-    user-select: none;
+    user-select: all;
 }
 
 .log-normal-text {

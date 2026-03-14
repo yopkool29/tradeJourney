@@ -38,12 +38,12 @@
             />
 
             <!-- Keep existing trades -->
-            <UFormField name="keepExistingTrades" class="no-select">
+            <UFormField name="keepExistingTrades" class="select-none">
                 <UCheckbox v-model="formState.keepExistingTrades" :label="$t('components.import.index.keep_existing_trades')" />
             </UFormField>
 
             <!-- Use Cloud Storage (pour provider standard et nt8) -->
-            <UFormField v-if="formState.provider === 'standard' || formState.provider === 'nt8'" name="metadata.useCloudStorage" class="no-select">
+            <UFormField v-if="formState.provider === 'standard' || formState.provider === 'nt8'" name="metadata.useCloudStorage" class="select-none">
                 <UCheckbox v-model="formState.metadata.useCloudStorage" :label="$t('components.import.profile_form.use_cloud_storage')" />
                 <template #description>
                     <span class="text-sm text-secondary">{{ $t('components.import.profile_form.use_cloud_storage_desc') }}</span>

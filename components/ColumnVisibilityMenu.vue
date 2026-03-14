@@ -1,6 +1,6 @@
 <template>
     <UDropdownMenu
-        class="no-select"
+        class="select-none"
         :class="align === 'start' ? 'flex justify-start' : 'flex justify-end'"
         :items="menuItems"
         :content="{ align }"

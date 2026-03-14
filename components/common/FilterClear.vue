@@ -2,7 +2,7 @@
     <UInput
         v-model="modelValue"
         :class="classWidth"
-        class="no-select"
+        class="select-none"
         :placeholder="placeholder"
         :ui="{ trailing: 'pe-1' }"
         v-bind="$attrs"
