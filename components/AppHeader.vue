@@ -191,11 +191,11 @@
                     </div>
                 </div>
             </div>
-            <div class="container mx-auto">
-                <div v-if="userStore.user && currentDatabase"
-                    class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" />
+            <div v-if="userStore.user && currentDatabase"
+                class="w-full flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                <div class="container mx-auto py-4 px-4 lg:flex flex-row">
                     <NetGrossToggle v-model="userStore.displayModeNet" />
+                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" />
                 </div>
             </div>
             <div class="container mx-auto flex justify-between items-center px-4">

@@ -1,5 +1,5 @@
 <template>
-    <div v-if="shortcuts.length > 0" class="container mx-auto px-4 py-1.5 flex items-center gap-2 flex-wrap lg:flex-nowrap lg:overflow-x-auto">
+    <div v-if="shortcuts.length > 0" class="container px-4 py-1.5 flex items-center gap-2">
         <UIcon name="i-lucide-zap" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
         <button
             v-for="item in shortcuts"

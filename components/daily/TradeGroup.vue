@@ -204,6 +204,10 @@ const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
 
+// Modal pour afficher les détails d'un trade
+const selectedTradeDetail = ref<TradeExtendedType | null>(null)
+const showTradeDetailModal = ref(false)
+
 // Trades actifs uniquement (pour les stats)
 const activeTrades = computed(() => props.groupTrades.filter(t => t.active !== false))
 
@@ -477,10 +481,6 @@ watch(
 )
 
 const showTable = defineModel('showTable', { type: Boolean, default: false })
-
-// Modal pour afficher les détails d'un trade
-const selectedTradeDetail = ref<TradeExtendedType | null>(null)
-const showTradeDetailModal = ref(false)
 
 const openTradeDetailModal = (trade: TradeExtendedType) => {
     selectedTradeDetail.value = trade

@@ -607,7 +607,7 @@ export default {
                 sharpe_ratio: 'Sharpe Ratio',
             },
             net_gross_toggle: {
-                label: 'Display',
+                label: 'P&L Display',
                 net: 'Net',
                 gross: 'Gross',
             },
