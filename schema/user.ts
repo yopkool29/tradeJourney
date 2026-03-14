@@ -81,8 +81,8 @@ export const SettingsContentSchema = z.object({
         }),
         pnlBarChart: z.object({
             profit: z.object({
-                light: z.string().default('#60E490'),
-                dark: z.string().default('#60E490'),
+                light: z.string().default('rgba(34, 197, 94, 0.8)'),
+                dark: z.string().default('rgba(34, 197, 94, 0.8)'),
             }),
             loss: z.object({
                 light: z.string().default('rgba(239, 68, 68, 0.8)'),
@@ -96,11 +96,11 @@ export const SettingsContentSchema = z.object({
         tradeTypeBadges: z.object({
             buy: z.object({
                 light: z.string().default('#10b981'),
-                dark: z.string().default('#86efac'),
+                dark: z.string().default('#21c65e'),
             }),
             sell: z.object({
                 light: z.string().default('#f97316'),
-                dark: z.string().default('#fca5a5'),
+                dark: z.string().default('#e27373'),
             }),
         }).optional(),
     }).optional(),
@@ -108,87 +108,5 @@ export const SettingsContentSchema = z.object({
 
 export type SettingsContentType = z.infer<typeof SettingsContentSchema>
 
-// État des paramètres par défaut
-export const defaultSettings: SettingsContentType = {
-    deleteConfirmationTrade: true,
-    deleteConfirmationNoteTags: true,
-    showCalendarDaily: true,
-    showCalendarCalendar: true,
-    autoDataSync: true,
-    showQuickNav: false,
-    ninjaTraderApiPort: 8080,
-    ninjaTraderApiDays: 1,
-    timezoneDisplay: 'CURRENT',
-    timezoneLocal: 'Europe/Paris',
-    timezoneUtcOffset: 0,
-    pnlThreshold: 0,
-    defaultDatabaseId: null,
-    storageUrl: 'https://your-ngrok-url.ngrok.io',
-    storagePassword: '',
-    chartColors: {
-        cumulatedPnlChart: {
-            bar: {
-                light: '#38bdf8',
-                dark: '#38bdf8',
-            },
-            point: {
-                light: '#444',
-                dark: '#e79a0b',
-            },
-        },
-        apptChart: {
-            bar: {
-                light: '#4ade80',
-                dark: '#4ade80',
-            },
-            movingAverage: {
-                light: '#444',
-                dark: 'rgb(52, 128, 204)',
-            },
-        },
-        plRatioChart: {
-            bar: {
-                light: '#f59e0b',
-                dark: '#f59e0b',
-            },
-            movingAverage: {
-                light: '#444',
-                dark: 'rgb(52, 128, 204)',
-            },
-        },
-        winrateChart: {
-            bar: {
-                light: '#ccba18',
-                dark: '#ccba18',
-            },
-            movingAverage: {
-                light: '#444',
-                dark: 'rgb(52, 128, 204)',
-            },
-        },
-        pnlBarChart: {
-            profit: {
-                light: 'rgba(34, 197, 94, 0.8)',
-                dark: 'rgba(34, 197, 94, 0.8)',
-            },
-            loss: {
-                light: 'rgba(239, 68, 68, 0.8)',
-                dark: 'rgba(239, 68, 68, 0.8)',
-            },
-            breakeven: {
-                light: 'rgba(156, 163, 175, 0.8)',
-                dark: 'rgba(156, 163, 175, 0.8)',
-            },
-        },
-        tradeTypeBadges: {
-            buy: {
-                light: '#10b981',
-                dark: '#21c65e',
-            },
-            sell: {
-                light: '#f97316',
-                dark: '#f58383',
-            },
-        },
-    },
-}
+// État des paramètres par défaut - généré automatiquement à partir du schéma
+export const defaultSettings: SettingsContentType = SettingsContentSchema.parse({})
