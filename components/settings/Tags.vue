@@ -100,7 +100,7 @@
                                 <template #content>
                                     <div class="flex flex-col gap-2">
                                         <p>{{ $t('components.settings.tags.confirm_delete_group', { name: groupToDelete?.name }) }}</p>
-                                        <UCheckbox v-model="deleteAssoc">{{ $t('components.settings.tags.delete_associations') }}</UCheckbox>
+                                        <UCheckbox v-model="deleteAssoc" :label="$t('components.settings.tags.delete_associations')" />
                                     </div>
                                 </template>
                             </CommonModalDelete>

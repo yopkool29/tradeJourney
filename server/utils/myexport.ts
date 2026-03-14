@@ -12,6 +12,11 @@ import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
 
+const versionToInt = (version: string): number => {
+    const parts = version.split('.').map(p => parseInt(p, 10))
+    return (parts[0] || 0) * 100 + (parts[1] || 0) * 10 + (parts[2] || 0)
+}
+
 interface ExportManifest {
     id: string
     createdAt: string
@@ -123,7 +128,7 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
             dataFile: 'database.db',
             uploads: [],
             metadata: {
-                version: '1.1.0',
+                version: '1.1.5',
                 totalFiles: 0,
                 totalSize: 0,
                 dataStats: {
@@ -329,11 +334,12 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
         )
 
         const backupVersion = manifest.metadata?.version || '1.0.0'
+        const backupVersionInt = versionToInt(backupVersion)
 
         console.log(`Restoring backup version ${backupVersion}`)
 
         const sanitizeName_1_0_0 = (name: string) =>
-            backupVersion === '1.0.0' && !/^[\p{L}\p{N}_]+$/u.test(name)
+            backupVersionInt === 100 && !/^[\p{L}\p{N}_]+$/u.test(name)
                 ? name.replace(/[^\p{L}\p{N}_]/gu, '_')
                 : name
 
@@ -365,6 +371,8 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             dataDb.dailyNote.deleteMany({}),
             dataDb.importProfile.deleteMany({})
         ])
+
+        // console.log(backupVersionInt)
 
         // Restore data in the correct order to respect foreign key constraints
         await dataDb.$transaction([
@@ -410,12 +418,14 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                 })
             ),
 
+
             // 4. Trades (depends on Accounts)
             ...data.trades.map(trade => {
                 const tradeData = {
                     ...trade,
+                    netProfit: backupVersionInt < 115 ? trade.profit - (trade.commission ?? 0) : trade.netProfit,
                     instrumentType: trade.instrumentType || 'any',
-                    exchange: trade.exchange ?? 0,                    
+                    exchange: trade.exchange ?? 0,
                     openDate: new Date(trade.openDate),
                     closeDate: new Date(trade.closeDate),
                     createdAt: new Date(trade.createdAt),
@@ -432,6 +442,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         }))
                     }
                 }
+
                 return dataDb.trade.create({ data: tradeData })
             }),
 
