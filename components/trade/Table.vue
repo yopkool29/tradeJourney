@@ -192,6 +192,11 @@
                         {{ formatCurrency(row.original.netProfit || 0) }}
                     </span>
                 </template>
+                <template #grossProfit-cell="{ row }">
+                    <span :class="(row.original.profit || 0) >= 0 ? 'profit-text' : 'loss-text'">
+                        {{ formatCurrency(row.original.profit || 0) }}
+                    </span>
+                </template>
                 <template #type-cell="{ row }">
                     <UBadge size="md" :style="{ backgroundColor: tradeTypeColors[row.original.type], color: 'white' }">
                         {{ row.original.type === 'buy' ? $t('common.trade_types.buy') : $t('common.trade_types.sell') }}
