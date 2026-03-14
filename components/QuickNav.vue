@@ -5,7 +5,7 @@
             v-for="item in shortcuts"
             :key="item.path"
             :class="[
-                'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md',
+                'inline-flex items-center gap-1.5 mr-1 px-2.5 py-1 text-xs font-medium rounded-md',
                 'transition-all duration-150 ease-out whitespace-nowrap flex-shrink-0 cursor-pointer',
                 item.path === route.path
                     ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-300 dark:border-primary-700'

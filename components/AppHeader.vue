@@ -15,7 +15,7 @@
                     </div>
                     <!-- Database Indicator (clickable) -->
                     <button v-if="userStore.user && currentDatabase"
-                        class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 ease-out hover:scale-105 focus-visible:scale-105 cursor-pointer"
+                        class="flex items-center gap-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 ease-out hover:scale-105 focus-visible:scale-105 cursor-pointer"
                         @click="navigateTo('/select-database')">
                         <UIcon name="i-heroicons-circle-stack" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
                         <span class="text-sm font-medium text-primary-700 dark:text-primary-300">{{
@@ -195,7 +195,7 @@
                 class="w-full flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                 <div class="container mx-auto py-4 px-4 lg:flex flex-row">
                     <NetGrossToggle v-model="userStore.displayModeNet" />
-                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" />
+                    <QuickNav class="hidden sm:block" v-if="userStore.user.settings_object?.showQuickNav" />
                 </div>
             </div>
             <div class="container mx-auto flex justify-between items-center px-4">
