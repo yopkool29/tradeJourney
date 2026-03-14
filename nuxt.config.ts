@@ -2,6 +2,13 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     vite: {
+        server: {
+            allowedHosts: [
+                'cindie-unpetalled-hourly.ngrok-free.dev',
+                '.ngrok-free.dev',
+                '.ngrok.io'
+            ]
+        },
         ssr: {
             noExternal: ['vue', 'vue-router']
         }

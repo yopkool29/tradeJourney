@@ -1,5 +1,6 @@
 <template>
-    <header v-show="!hideHeader" class="w-full shadow bg-[var(--ui-bg)] dark:bg-gray-900 text-gray-900 dark:text-white no-select">
+    <header v-show="!hideHeader"
+        class="w-full shadow bg-[var(--ui-bg)] dark:bg-gray-900 text-gray-900 dark:text-white no-select">
         <div>
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
@@ -20,8 +21,7 @@
                         <span class="text-sm font-medium text-primary-700 dark:text-primary-300">{{
                             currentDatabase.displayName }}</span>
                     </button>
-                    <nav v-if="userStore.user && currentDatabase"
-                        class="hidden xl:flex w-full items-center gap-x-2">
+                    <nav v-if="userStore.user && currentDatabase" class="hidden xl:flex w-full items-center gap-x-2">
                         <NuxtLink :to="menuItems[0].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[0].icon" class="header-icon mb-1 transition-colors" />
@@ -191,7 +191,13 @@
                     </div>
                 </div>
             </div>
-            <QuickNav v-if="userStore.user && currentDatabase && userStore.user.settings_object?.showQuickNav" />
+            <div class="container mx-auto">
+                <div v-if="userStore.user && currentDatabase"
+                    class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" />
+                    <NetGrossToggle v-model="userStore.displayModeNet" />
+                </div>
+            </div>
             <div class="container mx-auto flex justify-between items-center px-4">
                 <LogView ref="myLogView" class="w-full" />
             </div>

@@ -110,165 +110,27 @@
         </template>
         <div class="flex">
             <UCollapsible v-model:open="showTable" class="mb-2 w-full">
-                <UButton size="xs" class="w-32 group" :label="$t('components.daily.trade_group.show_trades')"
-                    color="neutral" variant="subtle" trailing-icon="i-lucide-chevron-down" :ui="{
-                        trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200',
-                    }" block />
+                <div v-if="showToggleButton" class="flex ml-[200px]">
+                    <UButton size="xs" class="w-32 group" :label="$t('components.daily.trade_group.show_trades')"
+                        color="neutral" variant="subtle" trailing-icon="i-lucide-chevron-down" :ui="{
+                            trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200',
+                        }" block />
+                </div>
 
                 <template #content>
-                    <div v-if="showTable">
-                        <ColumnVisibilityMenu
-                            :table="table"
-                            :label-columns-header="labelColumnsHeader"
-                            :exclude-columns="['actions', 'actionToggle', 'symbol', 'type', 'profit']"
-                            align="start"
-                            button-class="ml-auto mr-2"
-                        />
-                    </div>
-                    <UTable ref="table" :key="`${locale}-${timezoneKey}`"
-                        v-model:column-visibility="userStore.dailyHistoryFilters.columnVisibility" :columns="columns"
-                        :data="tableData"
-                        :empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.trade.table.no_trades.title') }"
-                        class="custom-table-hover table-fixed">
-                        <template #actionToggle-cell="{ row }">
-                            <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
-                                <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
-                                    :title="$t('components.trade.table.activate_title')"
-                                    :confirm-text="$t('common.actions.confirm')" confirm-color="primary"
-                                    @confirm="onActivate(row.original.id!)">
-                                    <template #trigger>
-                                        <UTooltip :text="$t('components.daily.trade_group.activate_button')">
-                                            <UButton icon="i-lucide-archive-restore" size="xs" color="primary"
-                                                variant="ghost"></UButton>
-                                        </UTooltip>
-                                    </template>
-                                    <template #content>{{ $t('components.trade.table.activate_confirm') }}</template>
-                                </CommonModalDelete>
-                                <CommonModalDelete v-else :from="'trade'" @confirm="onDeactivate(row.original.id!)">
-                                    <template #trigger>
-                                        <UTooltip :text="$t('components.daily.trade_group.deactivate_button')">
-                                            <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost">
-                                            </UButton>
-                                        </UTooltip>
-                                    </template>
-                                    <template #content>{{ $t('components.trade.table.deactivate_confirm') }}</template>
-                                </CommonModalDelete>
-
-                            </div>
-                        </template>
-                        <template #symbol-cell="{ row }">
-                            <span class="font-semibold">{{ row.original.symbol }}</span>
-                        </template>
-                        <template #account-cell="{ row }">
-                            <span class="font-semibold">{{ row.original.account_displayName }}</span>
-                        </template>
-                        <template #profit-cell="{ row }">
-                            <span :class="(row.original.netProfit || 0) >= 0 ? 'profit-text' : 'loss-text'">
-                                {{ formatCurrency(row.original.netProfit || 0) }}
-                            </span>
-                        </template>
-                        <template #type-cell="{ row }">
-                            <UBadge :style="{
-                                backgroundColor: tradeTypeColors[row.original.type],
-                                color: 'white',
-                            }">
-                                {{ row.original.type === 'buy' ? $t('common.trade_types.buy') :
-                                    $t('common.trade_types.sell') }}
-                            </UBadge>
-                        </template>
-
-                        <template #openDate-cell="{ row }">
-                            <div class="flex flex-col">
-                                <span class="text-secondary-xs">{{
-                                    formatDateWithUserTimezone(
-                                        row.original.openDate,
-                                        userStore.user?.settings_object!,
-                                        false,
-                                        locale as 'fr' | 'en' | 'us'
-                                    )
-                                }}</span>
-                                <span>{{
-                                    formatHourString(
-                                        new Date(row.original.openDate),
-                                        true,
-                                        locale as 'fr' | 'en' | 'us',
-                                        userStore.user?.settings_object?.timezoneDisplay,
-                                        userStore.user?.settings_object?.timezoneLocal,
-                                        userStore.user?.settings_object?.timezoneUtcOffset
-                                    )
-                                }}</span>
-                            </div>
-                        </template>
-                        <template #closeDate-cell="{ row }">
-                            {{
-                                formatHourString(
-                                    new Date(row.original.closeDate),
-                                    true,
-                                    locale as 'fr' | 'en' | 'us',
-                                    userStore.user?.settings_object?.timezoneDisplay,
-                                    userStore.user?.settings_object?.timezoneLocal,
-                                    userStore.user?.settings_object?.timezoneUtcOffset
-                                )
-                            }}
-                        </template>
-                        <template #openPrice-cell="{ row }">
-                            <span class="font-semibold">
-                                {{ row.original.openPrice.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
-                            </span>
-                        </template>
-                        <template #closePrice-cell="{ row }">
-                            <span class="font-semibold">
-                                {{ row.original.closePrice.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
-                            </span>
-                        </template>
-                        <template #note-cell="{ row }">
-                            <div class="tag-container cell-wide">
-                                <UTooltip :text="row.original.note ?? ''">
-                                    <UBadge v-if="row.original.note"
-                                        :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
-                                        color="neutral"
-                                        @click="row.original.active !== false && openTradeTagModal(row.original)">
-                                        <span class="truncate1 break-words">{{ row.original.note }}</span>
-                                    </UBadge>
-                                </UTooltip>
-                            </div>
-                        </template>
-                        <template #tags-cell="{ row }">
-                            <div class="tag-container cell-narrow">
-                                <UTooltip v-for="tag in row.original.tags" :key="tag.id"
-                                    :text="tag.description || tag.name">
-                                    <UBadge title="" :label="tag.name" :style="getTagStyle(tag)"
-                                        :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
-                                        @click="row.original.active !== false && openTradeTagModal(row.original)">
-                                        {{ tag.name }}
-                                    </UBadge>
-                                </UTooltip>
-                            </div>
-                        </template>
-                        <template #actions-cell="{ row }">
-                            <div class="action-buttons">
-                                <UTooltip :text="$t('components.daily.trade_group.view_details')">
-                                    <UButton icon="i-heroicons-eye" size="xs" color="gray" variant="ghost"
-                                        :disabled="row.original.active === false"
-                                        @click="openTradeDetailModal(row.original)"></UButton>
-                                </UTooltip>
-                                <UTooltip :text="row.original.note || row.original.tags?.length > 0
-                                        ? $t('components.common.actions.edit_notes_tags')
-                                        : $t('components.common.actions.add_notes_tags')
-                                    ">
-                                    <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
-                                        :disabled="row.original.active === false"
-                                        @click="openTradeTagModal(row.original)" />
-                                </UTooltip>
-                                <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
-                                    :text="$t('components.common.actions.clear_notes_tags')">
-                                    <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
-                                        :disabled="row.original.active === false"
-                                        @click="confirmClearTradeTags(row.original)" />
-                                </UTooltip>
-                            </div>
-                        </template>
-                    </UTable>
+                    <DailyTradeGroupTable
+                        :columns="columns"
+                        :table-data="tableData"
+                        :label-columns-header="labelColumnsHeader"
+                        :show-table="showTable"
+                        :timezone-key="timezoneKey"
+                        :get-tag-style="getTagStyle"
+                        @activate="onActivate"
+                        @deactivate="onDeactivate"
+                        @open-tag-modal="openTradeTagModal"
+                        @open-detail-modal="openTradeDetailModal"
+                        @clear-tags="confirmClearTradeTags"
+                    />
                 </template>
             </UCollapsible>
         </div>
@@ -309,6 +171,10 @@ const props = defineProps({
         type: Array as PropType<TradeExtendedType[]>,
         default: () => [],
     },
+    showToggleButton: {
+        type: Boolean,
+        default: true,
+    },
 })
 
 const table = useTemplateRef('table')
@@ -336,13 +202,14 @@ const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
 const { getDigitFromSymbol } = useSymbols()
 const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
+const { displayModeNet } = useNetGrossDisplay()
 
 // Trades actifs uniquement (pour les stats)
 const activeTrades = computed(() => props.groupTrades.filter(t => t.active !== false))
 
 const winLoss = computed(() => getWinLossNb(activeTrades.value, props.groupDate || new Date()))
 const winrate = computed(() => getWinrate(activeTrades.value, 1))
-const pnl = computed(() => getPNL(activeTrades.value, 2))
+const pnl = computed(() => getPNL(activeTrades.value, 2, displayModeNet.value))
 const totalCommission = computed(() => activeTrades.value.reduce((sum, t) => sum + (t.commission || 0), 0))
 // Données pour les graphiques
 const intradayChartData = computed(() => {
@@ -388,6 +255,7 @@ const labelColumnsHeader = computed(() => {
         openPrice: t('components.common.columns.headers.openPrice'),
         closePrice: t('components.common.columns.headers.closePrice'),
         profit: t('components.common.columns.headers.profit'),
+        grossProfit: t('components.common.columns.headers.grossProfit'),
         commission: t('components.common.columns.headers.commission'),
         // Index signature is added via the type assertion below
     }
@@ -405,6 +273,13 @@ const columns = computed(() => {
         { id: 'openPrice', accessorKey: 'openPrice', header: labelColumnsHeader.value.openPrice, meta: addMeta() },
         { id: 'closePrice', accessorKey: 'closePrice', header: labelColumnsHeader.value.closePrice, meta: addMeta() },
         { id: 'profit', accessorKey: 'netProfit', header: labelColumnsHeader.value.profit, meta: addMeta() },
+        { 
+            id: 'grossProfit', 
+            accessorKey: 'profit', 
+            header: labelColumnsHeader.value.grossProfit,
+            cell: ({ row }) => formatCurrency(row.original.profit || 0),
+            meta: addMeta('w-[100px]')
+        },
         { 
             id: 'commission', 
             accessorKey: 'commission', 

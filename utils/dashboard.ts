@@ -297,7 +297,7 @@ export const groupTradesByPeriod = (trades: TradeType[], mode: 'day' | 'week' | 
  * @param mode Mode de regroupement ('day', 'week', 'month', 'year')
  * @returns Données formatées pour le graphique
  */
-export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week') => {
+export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', useNet: boolean = true) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -334,7 +334,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
     // Calculer le PnL pour chaque période
     const periodPnl = periods.map(period => {
         const periodTrades = groupedTrades[period]
-        return getPNL(periodTrades, 2)
+        return getPNL(periodTrades, 2, useNet)
     })
 
     // Calculer le PnL cumulé
@@ -382,7 +382,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
  * @param movingAvgWindow Taille de la fenêtre pour la moyenne mobile (par défaut: 5)
  * @returns Données formatées pour le graphique
  */
-export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5) => {
+export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5, useNet: boolean = true) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -417,7 +417,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
     // Calculer l'APPT pour chaque période
     const periodAppt = periods.map(period => {
         const periodTrades = groupedTrades[period]
-        return getAPPT(periodTrades, true, 2)
+        return getAPPT(periodTrades, true, 2, useNet)
     })
 
     // Formater les labels selon le mode
@@ -578,7 +578,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
     }
 }
 
-export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5) => {
+export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5, useNet: boolean = true) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -601,7 +601,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
     // Calculer le Winrate pour chaque période
     const periodWinrate = periods.map(period => {
         const periodTrades = groupedTrades[period]
-        return getWinrate(periodTrades, 2)
+        return getWinrate(periodTrades, 2, useNet)
     })
 
     // Formater les labels selon le mode

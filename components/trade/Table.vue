@@ -25,34 +25,39 @@
                     </div>
                 </div>
 
-                <CommonAdvancedFilters
-                    v-model="filters"
-                    :columns="filterableColumnsConfig"
-                    :loading="filterLoading"
-                    @add="addFilter"
-                    @remove="removeFilter"
-                    @apply="onApplyFilters"
-                    @reset="resetFilters"
-                >
-                    <template #field-type="{ filter, onValueChange }">
-                        <USelect
-                            :model-value="filter.value as string"
-                            :items="[
-                                { label: 'Buy', value: 'buy' },
-                                { label: 'Sell', value: 'sell' },
-                            ]"
-                            placeholder="Buy/Sell"
-                            class="min-w-[200px]"
-                            @update:model-value="onValueChange"
+                <div class="flex flex-col gap-y-4">
+
+                    <CommonAdvancedFilters
+                        v-model="filters"
+                        :columns="filterableColumnsConfig"
+                        :loading="filterLoading"
+                        @add="addFilter"
+                        @remove="removeFilter"
+                        @apply="onApplyFilters"
+                        @reset="resetFilters"
+                    >
+                        <template #field-type="{ filter, onValueChange }">
+                            <USelect
+                                :model-value="filter.value as string"
+                                :items="[
+                                    { label: 'Buy', value: 'buy' },
+                                    { label: 'Sell', value: 'sell' },
+                                ]"
+                                placeholder="Buy/Sell"
+                                class="min-w-[200px]"
+                                @update:model-value="onValueChange"
+                            />
+                        </template>
+                    </CommonAdvancedFilters>
+                    
+                    <div class="filter-actions justify-start">
+                        <ColumnVisibilityMenu
+                            :table="table"
+                            :label-columns-header="labelColumnsHeader"
+                            :exclude-columns="['actions', 'symbol', 'type', 'profit']"
+                            button-class="w-36"
                         />
-                    </template>
-                </CommonAdvancedFilters>
-                <div class="filter-actions justify-end">
-                    <ColumnVisibilityMenu
-                        :table="table"
-                        :label-columns-header="labelColumnsHeader"
-                        :exclude-columns="['actions', 'symbol', 'type', 'profit']"
-                    />
+                    </div>
                 </div>
             </template>
         </UCard>
@@ -298,6 +303,7 @@ const labelColumnsHeader = computed(() => {
         openPrice: t('components.common.columns.headers.openPrice'),
         closePrice: t('components.common.columns.headers.closePrice'),
         profit: t('components.common.columns.headers.profit'),
+        grossProfit: t('components.common.columns.headers.grossProfit'),
         commission: t('components.common.columns.headers.commission'),
         // Index signature is added via the type assertion below
     }
@@ -723,6 +729,37 @@ const columns = [
             ),
         sortable: true,
         meta: addMeta(),
+    },
+    {
+        id: 'grossProfit',
+        accessorKey: 'profit',
+        header: () =>
+            h(
+                'button',
+                {
+                    class: 'flex items-center gap-1 select-none',
+                    onClick: () =>
+                        onSort({
+                            column: { accessorKey: 'profit' },
+                            direction: sortBy.value === 'profit' && !sortDesc.value ? 'desc' : 'asc',
+                        }),
+                },
+                [
+                    labelColumnsHeader.value.grossProfit,
+                    h(UIcon, {
+                        name:
+                            sortBy.value === 'profit'
+                                ? sortDesc.value
+                                    ? 'i-lucide-arrow-down-wide-narrow'
+                                    : 'i-lucide-arrow-up-narrow-wide'
+                                : 'i-lucide-arrow-up-down',
+                        class: 'w-4 h-4 ml-1',
+                    }),
+                ]
+            ),
+        cell: ({ row }) => formatCurrency(row.original.profit || 0),
+        sortable: true,
+        meta: addMeta('w-[100px]'),
     },
     {
         id: 'commission',

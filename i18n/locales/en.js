@@ -463,7 +463,8 @@ export default {
                     lot: 'Lot',
                     openPrice: 'Open Price',
                     closePrice: 'Close Price',
-                    profit: 'Profit',
+                    profit: 'Net Profit',
+                    grossProfit: 'Gross Profit',
                     commission: 'Commission',
                     note: 'Note',
                     tags: 'Tags',
@@ -604,6 +605,11 @@ export default {
                 pl_ratio: 'P/L Ratio',
                 recovery_factor: 'Recovery Factor',
                 sharpe_ratio: 'Sharpe Ratio',
+            },
+            net_gross_toggle: {
+                label: 'Display',
+                net: 'Net',
+                gross: 'Gross',
             },
             pnl_bar_chart: {
                 title: 'P&L History',

@@ -473,7 +473,8 @@ export default {
                     lot: 'Lot',
                     openPrice: 'Prix entrée',
                     closePrice: 'Prix sortie',
-                    profit: 'Profit',
+                    profit: 'Profit Net',
+                    grossProfit: 'Profit Brut',
                     commission: 'Commission',
                     note: 'Note',
                     tags: 'Tags',
@@ -615,6 +616,11 @@ export default {
                 pl_ratio: 'Ratio P/L',
                 recovery_factor: 'Facteur de Récupération',
                 sharpe_ratio: 'Ratio de Sharpe',
+            },
+            net_gross_toggle: {
+                label: 'Affichage',
+                net: 'Net',
+                gross: 'Brut',
             },
             pnl_bar_chart: {
                 title: 'Historique P&L par Trade',

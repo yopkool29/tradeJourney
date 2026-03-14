@@ -30,7 +30,7 @@ export const useDashboard = () => {
         })
     }
 
-    const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = []) => {
+    const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true) => {
         const _startDate = startDate ? startDate.getTime() : null
         const _endDate = endDate ? endDate.getTime() : null
 
@@ -68,26 +68,26 @@ export const useDashboard = () => {
 
         userStore.dashBoardFilters.last_results = trades
 
-        // Métriques existantes
-        userStore.dashBoardResult.pnl = getPNL(trades, 0)
-        userStore.dashBoardResult.appt = getAPPT(trades, true, 2)
-        userStore.dashBoardResult.plRatio = getPLRatio(trades, 2)
-        userStore.dashBoardResult.winrate = getWinrate(trades, 2)
-        userStore.dashBoardResult.profitFactor = getProfitFactor(trades, 2)
-        userStore.dashBoardResult.recoveryFactor = getRecoveryFactor(trades, 2)
-        userStore.dashBoardResult.sharpeRatio = getSharpeRatio(trades, 2)
+        // Métriques existantes - utiliser useNet pour basculer entre net et brut
+        userStore.dashBoardResult.pnl = getPNL(trades, 0, useNet)
+        userStore.dashBoardResult.appt = getAPPT(trades, true, 2, useNet)
+        userStore.dashBoardResult.plRatio = getPLRatio(trades, 2, useNet)
+        userStore.dashBoardResult.winrate = getWinrate(trades, 2, useNet)
+        userStore.dashBoardResult.profitFactor = getProfitFactor(trades, 2, useNet)
+        userStore.dashBoardResult.recoveryFactor = getRecoveryFactor(trades, 2, useNet)
+        userStore.dashBoardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
         userStore.dashBoardResult.tradesCount = trades.length
 
         // ALL TRADES - Nouvelles métriques
-        userStore.dashBoardResult.grossPnl = getPNL(trades, 2)
+        userStore.dashBoardResult.grossPnl = getPNL(trades, 2, useNet)
         userStore.dashBoardResult.totalContracts = getTotalContracts(trades)
         userStore.dashBoardResult.avgTradeDuration = getAvgTradeDuration(trades, 2)
         userStore.dashBoardResult.maxTradeDuration = getMaxTradeDuration(trades, 2)
-        userStore.dashBoardResult.expectancy = getExpectancy(trades, 2)
+        userStore.dashBoardResult.expectancy = getExpectancy(trades, 2, useNet)
         userStore.dashBoardResult.totalCommission = trades.reduce((sum, t) => sum + (t.commission || 0), 0)
 
         // PROFIT TRADES
-        const winMetrics = getWinningTradesMetrics(trades)
+        const winMetrics = getWinningTradesMetrics(trades, useNet)
         userStore.dashBoardResult.totalProfit = winMetrics.totalProfit
         userStore.dashBoardResult.winningTradesCount = winMetrics.count
         userStore.dashBoardResult.winningContractsCount = winMetrics.totalContracts
@@ -99,13 +99,13 @@ export const useDashboard = () => {
         userStore.dashBoardResult.winningTradesCommission = winMetrics.totalCommission
 
         // Max Run-up avec dates
-        const runUpData = getMaxRunUpWithDates(trades)
+        const runUpData = getMaxRunUpWithDates(trades, useNet)
         userStore.dashBoardResult.maxRunUp = runUpData.maxRunUp
         userStore.dashBoardResult.maxRunUpDateFrom = runUpData.dateFrom
         userStore.dashBoardResult.maxRunUpDateTo = runUpData.dateTo
 
         // LOSING TRADES
-        const lossMetrics = getLosingTradesMetrics(trades)
+        const lossMetrics = getLosingTradesMetrics(trades, useNet)
         userStore.dashBoardResult.totalLoss = lossMetrics.totalLoss
         userStore.dashBoardResult.losingTradesCount = lossMetrics.count
         userStore.dashBoardResult.losingContractsCount = lossMetrics.totalContracts

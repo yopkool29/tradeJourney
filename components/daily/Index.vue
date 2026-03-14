@@ -19,7 +19,7 @@
                     </div>
                 </USelect>
             </div>
-            <div class="flex gap-4">
+            <div class="flex gap-4 justify-between items-end">
                 <div class="flex flex-wrap gap-4 mb-2 items-end">
                     <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
                     <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{
@@ -29,8 +29,8 @@
                         @click="onExpand">
                         {{ isExpanded ? $t('components.daily.index.collapse') : $t('components.daily.index.expand') }}
                     </UButton>
+                    <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
                 </div>
-                <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
             </div>
         </UCard>
         <!-- Calendrier mensuel Nuxt UI customisé -->

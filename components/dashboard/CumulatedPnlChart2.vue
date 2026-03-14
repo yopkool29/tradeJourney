@@ -10,13 +10,13 @@
                 <CommonModalChart v-model="isModalOpen"
                     :title="$t('components.dashboard.cumulated_pnl_chart.enlarged_title')">
                     <template #content>
-                        <Line :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Line :key="`cumulated-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
         </template>
         <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
-            <Line ref="lineChartRef" :data="chartData" :options="chartDisplayOptions" @click="isModalOpen = true" />
+            <Line ref="lineChartRef" :key="`cumulated-chart-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" @click="isModalOpen = true" />
         </div>
     </UCard>
 </template>
@@ -34,6 +34,7 @@ const { t } = useI18n()
 const lineChartRef = ref()
 const isModalOpen = ref(false)
 const userStore = useUserStore()
+const { displayModeNet } = useNetGrossDisplay()
 
 // Récupérer la configuration des graphiques
 const appConfig = useAppConfig()
@@ -47,7 +48,8 @@ const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
         userStore.dashBoardFilters.last_results,
-        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year'
+        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+        displayModeNet.value
     )
 
     const profitBgColor = colorToRgba(profitColor.value, 0.2)

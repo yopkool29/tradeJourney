@@ -46,7 +46,7 @@
         </UCard>
 
         <div class="flex flex-col gap-4 max-w-5xl mb-8">
-            <div class="flex section-label">{{ $t('components.dashboard.index.quick_metrics') }}</div>
+
 
             <!-- Overview : Cards (Nuxt UI) -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
@@ -154,6 +154,7 @@ const { formatCurrency } = useUtils()
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchDashboardData, accounts } = useDashboard()
+const { displayModeNet} = useNetGrossDisplay()
 const filterLoading = ref(false)
 const { t, locale } = useI18n()
 
@@ -226,7 +227,8 @@ const onApplyFilters = async () => {
             userStore.dashBoardFilters.startDate,
             userStore.dashBoardFilters.endDate,
             true,
-            userStore.dashBoardFilters.accountIds
+            userStore.dashBoardFilters.accountIds,
+            displayModeNet.value
         )
     } finally {
         filterLoading.value = false
@@ -269,5 +271,13 @@ watch(
         onApplyFilters()
     },
     { deep: true }
+)
+
+// Relancer les filtres quand le mode d'affichage (Net/Brut) change
+watch(
+    () => displayModeNet.value,
+    () => {
+        onApplyFilters()
+    }
 )
 </script>

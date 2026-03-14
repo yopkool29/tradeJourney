@@ -60,38 +60,7 @@
                                     'calendar-day-neutral': day.pnl === 0 || !day.isCurrentMonth,
                                     'opacity-50': !day.isCurrentMonth,
                                 }" @click="openDayModal(day)">
-                                <div class="flex flex-col h-full">
-                                    <div class="font-bold text-lg mb-1 text-gray-600 dark:text-gray-300"
-                                        :class="{ 'text-gray-400': !day.isCurrentMonth }">
-                                        {{ day.dayNumber }}
-                                    </div>
-                                    <div v-if="day.isCurrentMonth && day.count > 0" class="flex flex-col gap-1 text-xs">
-                                        <div class="form-row">
-                                            <span class="stat-label">{{ $t('components.calendar.index.trades')
-                                            }}:</span>
-                                            <span class="stat-value">{{ day.count }}</span>
-                                        </div>
-                                        <div class="form-row">
-                                            <span class="stat-label">{{ $t('components.calendar.index.winrate')
-                                            }}:</span>
-                                            <span class="stat-value">{{ day.winrate }}%</span>
-                                        </div>
-                                        <div class="form-row">
-                                            <span class="stat-label">{{ $t('components.calendar.index.pnl')
-                                            }}:</span>
-                                            <span class="font-bold" :class="{
-                                                'calendar-pnl-positive': day.pnl > 0,
-                                                'calendar-pnl-negative': day.pnl < 0,
-                                            }">
-                                                {{ formatCurrency(day.pnl) }}
-                                            </span>
-                                        </div>
-                                        <div v-if="day.commission" class="form-row">
-                                            <span class="stat-label-alt">Com:</span>
-                                            <span class="text-xs text-gray-500">{{ formatCurrency(day.commission) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <CalendarDayCard :day="day" />
                             </div>
 
                             <!-- Total de la semaine -->
@@ -135,7 +104,7 @@
         <!-- Modal pour afficher les trades d'une journée -->
         <CommonModalDefault v-model:open="showDayModal" :title="dayModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
-                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" v-model:show-table="dayModalShowTable"
+                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false" v-model:show-table="dayModalShowTable"
                     :group-date="selectedDayDate" :group-trades="selectedDay.trades" />
                 <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_day') }}</div>
@@ -147,7 +116,7 @@
         <CommonModalDefault v-model:open="showWeekModal" :title="weekModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
                 <template v-for="day in selectedWeekDays" :key="day.dayNumber">
-                    <DailyTradeGroup v-if="day.count > 0" v-model:show-table="weekModalShowTable[day.dayNumber]"
+                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false" v-model:show-table="weekModalShowTable[day.dayNumber]"
                         :group-date="getDateFromDay(day)" :group-trades="day.trades" />
                 </template>
                 <div v-if="!selectedWeekDays.some(d => d.count > 0)"
@@ -173,6 +142,7 @@ const { formatCurrency } = useUtils()
 
 const userStore = useUserStore()
 const { startLoading, stopLoading } = useGlobalLoading()
+const { displayModeNet } = useNetGrossDisplay()
 const settings = userStore.user?.settings_object as SettingsContentType
 const filterLoading = ref(false)
 const { t } = useI18n()
@@ -331,7 +301,7 @@ const getDaysStats = () => {
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
         const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
-        const pnl = tradesOfDay.reduce((sum, t) => sum + (t.netProfit || 0), 0)
+        const pnl = tradesOfDay.reduce((sum, t) => sum + (displayModeNet.value ? (t.netProfit || 0) : (t.profit || 0)), 0)
         const commission = tradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
         stats[key] = {
             count: tradesOfDay.length,

@@ -12,13 +12,13 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.pnl_bar_chart.enlarged_title')">
                     <template #content>
-                        <Bar :data="chartData" :options="chartOptions" style="width: 100%; height: 100%" />
+                        <Bar :key="`pnl-chart-modal-${displayModeNet}`" :data="chartData" :options="chartOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
         </template>
         <div class="w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: pointer;" @click="isModalOpen = true">
-            <Bar ref="barChartRef" :data="chartData" :options="chartOptions" />
+            <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}`" :data="chartData" :options="chartOptions" />
         </div>
     </UCard>
 </template>
@@ -29,6 +29,8 @@ import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from '
 import type { TooltipItem } from 'chart.js'
 import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
+
+const { displayModeNet } = useNetGrossDisplay()
 
 const { formatCurrency } = useUtils()
 const { locale } = useI18n()
@@ -67,18 +69,20 @@ const chartData = computed(() => {
         labels: displayTrades.map((_, index) => `#${index + 1}`),
         datasets: [{
             label: '',
-            data: displayTrades.map(trade => trade.netProfit),
+            data: displayTrades.map(trade => displayModeNet.value ? trade.netProfit : trade.profit),
             trades: displayTrades, // Stocker les trades pour accès dans le tooltip
-            backgroundColor: displayTrades.map(trade => 
-                trade.netProfit > 0 ? profitColor.value : 
-                trade.netProfit < 0 ? lossColor.value : 
-                breakevenColor.value
-            ),
-            borderColor: displayTrades.map(trade => 
-                trade.netProfit > 0 ? profitColor.value.replace('0.8', '1') : 
-                trade.netProfit < 0 ? lossColor.value.replace('0.8', '1') : 
-                breakevenColor.value.replace('0.8', '1')
-            ),
+            backgroundColor: displayTrades.map(trade => {
+                const value = displayModeNet.value ? trade.netProfit : trade.profit
+                return value > 0 ? profitColor.value : 
+                       value < 0 ? lossColor.value : 
+                       breakevenColor.value
+            }),
+            borderColor: displayTrades.map(trade => {
+                const value = displayModeNet.value ? trade.netProfit : trade.profit
+                return value > 0 ? profitColor.value.replace('0.8', '1') : 
+                       value < 0 ? lossColor.value.replace('0.8', '1') : 
+                       breakevenColor.value.replace('0.8', '1')
+            }),
             borderWidth: 1,
             borderRadius: chartConfigOptions.borderRadius
         }]

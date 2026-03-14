@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.winrate_chart.enlarged_title')">
                     <template #content>
-                        <Bar ref="modalBarChartRef" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Bar ref="modalBarChartRef" :key="`winrate-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
@@ -20,6 +20,7 @@
         <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Bar
                 ref="barChartRef"
+                :key="`winrate-chart-${displayModeNet}`"
                 :data="chartData"
                 :options="chartDisplayOptions"
                 @click="isModalOpen = true"
@@ -39,6 +40,7 @@ const barChartRef = ref()
 const isModalOpen = ref(false)
 const modalBarChartRef = ref()
 const userStore = useUserStore()
+const { displayModeNet } = useNetGrossDisplay()
 const { t } = useI18n()
 
 // Récupérer la configuration des graphiques
@@ -54,7 +56,8 @@ const chartData = computed(() => {
     const data = generateWinrateChartData(
         userStore.dashBoardFilters.last_results,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
-        3 // fenêtre de moyenne mobile
+        3, // fenêtre de moyenne mobile
+        displayModeNet.value
     )
 
     // Personnaliser les couleurs et options pour chaque dataset

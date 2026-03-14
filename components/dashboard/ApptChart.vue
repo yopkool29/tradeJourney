@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.appt_chart.enlarged_title')">
                     <template #content>
-                        <Bar ref="modalBarChartRef" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Bar ref="modalBarChartRef" :key="`appt-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
@@ -20,6 +20,7 @@
         <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
             <Bar
                 ref="barChartRef"
+                :key="`appt-chart-${displayModeNet}`"
                 :data="chartData"
                 :options="chartDisplayOptions"
                 @click="isModalOpen = true"
@@ -41,6 +42,7 @@ const barChartRef = ref()
 const isModalOpen = ref(false)
 const modalBarChartRef = ref()
 const userStore = useUserStore()
+const { displayModeNet } = useNetGrossDisplay()
 
 const { t } = useI18n()
 
@@ -58,7 +60,9 @@ const { movingAverageColor, isDark, profitColor, lossColor } = useTypeColors('ap
 const chartData = computed(() => {
     const data = generateApptChartData(
         userStore.dashBoardFilters.last_results,
-        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year'
+        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+        5,
+        displayModeNet.value
     )
 
     // Appliquer les couleurs et options depuis la configuration

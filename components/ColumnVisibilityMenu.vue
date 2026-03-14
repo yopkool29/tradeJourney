@@ -1,5 +1,6 @@
 <template>
     <UDropdownMenu
+        class="no-select"
         :class="align === 'start' ? 'flex justify-start' : 'flex justify-end'"
         :items="menuItems"
         :content="{ align }"
@@ -11,6 +12,7 @@
             :size="size"
             variant="outline"
             trailing-icon="i-lucide-chevron-down"
+            class="justify-between"
         />
     </UDropdownMenu>
 </template>
@@ -26,7 +28,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    excludeColumns: () => ['actions', 'symbol', 'type', 'profit'],
+    excludeColumns: () => ['actions', 'symbol', 'type', 'profit', 'grossProfit'],
     align: 'end',
     size: 'sm',
     buttonClass: ''

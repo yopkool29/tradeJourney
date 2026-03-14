@@ -32,6 +32,7 @@ export const useUserStore = defineStore(
         const isLoading = ref(false)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
         const conversionType = ref<{ label: string; value: 'schwab-options' | 'tradingview' }>({ label: 'Schwab Options', value: 'schwab-options' })
+        const displayModeNet = ref<boolean>(true)
         const auth = useAuth()
 
         // --- Auth user state (global) ---
@@ -194,6 +195,8 @@ export const useUserStore = defineStore(
                             openPrice: true,
                             closePrice: true,
                             profit: true,
+                            grossProfit: false,
+                            commission: false,
                         }),
                         last_results: [] as TradeExtendedType[]
                     }
@@ -291,6 +294,8 @@ export const useUserStore = defineStore(
                         openPrice: true,
                         closePrice: true,
                         profit: true,
+                        grossProfit: false,
+                        commission: false,
                     }
                 }
                 return columnVisibilityPerDb.value[dbName]
@@ -418,6 +423,7 @@ export const useUserStore = defineStore(
             isLoading,
             quickNavHistory,
             conversionType,
+            displayModeNet,
             recentColors,
             recentColors2,
             dayTags,
@@ -477,6 +483,7 @@ export const useUserStore = defineStore(
                 'needsDataRefresh',
                 'quickNavHistory',
                 'conversionType',
+                'displayModeNet',
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
                 'dayTagsPerDb',
