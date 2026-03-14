@@ -217,6 +217,7 @@ export default {
     language: {
         switch: 'Français',
     },
+    locale: 'fr',
     database: {
         select: {
             title: 'Sélectionner une base de données',

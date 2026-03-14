@@ -211,6 +211,7 @@ export default {
     language: {
         switch: 'English',
     },
+    locale: 'en',
     database: {
         select: {
             title: 'Select Database',

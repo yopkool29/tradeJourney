@@ -41,69 +41,95 @@ export const SettingsContentSchema = z.object({
     chartColors: z.object({
         cumulatedPnlChart: z.object({
             bar: z.object({
-                light: z.string().default('#38bdf8'),
-                dark: z.string().default('#38bdf8'),
+                light: z.string(),
+                dark: z.string(),
             }),
             point: z.object({
-                light: z.string().default('#444'),
-                dark: z.string().default('#e79a0b'),
+                light: z.string(),
+                dark: z.string(),
             }),
         }),
         apptChart: z.object({
             bar: z.object({
-                light: z.string().default('#4ade80'),
-                dark: z.string().default('#4ade80'),
+                light: z.string(),
+                dark: z.string(),
             }),
             movingAverage: z.object({
-                light: z.string().default('#444'),
-                dark: z.string().default('rgb(52, 128, 204)'),
+                light: z.string(),
+                dark: z.string(),
             }),
         }),
         plRatioChart: z.object({
             bar: z.object({
-                light: z.string().default('#f59e0b'),
-                dark: z.string().default('#f59e0b'),
+                light: z.string(),
+                dark: z.string(),
             }),
             movingAverage: z.object({
-                light: z.string().default('#444'),
-                dark: z.string().default('rgb(52, 128, 204)'),
+                light: z.string(),
+                dark: z.string(),
             }),
         }),
         winrateChart: z.object({
             bar: z.object({
-                light: z.string().default('#ccba18'),
-                dark: z.string().default('#ccba18'),
+                light: z.string(),
+                dark: z.string(),
             }),
             movingAverage: z.object({
-                light: z.string().default('#444'),
-                dark: z.string().default('rgb(52, 128, 204)'),
+                light: z.string(),
+                dark: z.string(),
             }),
         }),
         pnlBarChart: z.object({
             profit: z.object({
-                light: z.string().default('rgba(34, 197, 94, 0.8)'),
-                dark: z.string().default('rgba(34, 197, 94, 0.8)'),
+                light: z.string(),
+                dark: z.string(),
             }),
             loss: z.object({
-                light: z.string().default('rgba(239, 68, 68, 0.8)'),
-                dark: z.string().default('rgba(239, 68, 68, 0.8)'),
+                light: z.string(),
+                dark: z.string(),
             }),
             breakeven: z.object({
-                light: z.string().default('rgba(156, 163, 175, 0.8)'),
-                dark: z.string().default('rgba(156, 163, 175, 0.8)'),
+                light: z.string(),
+                dark: z.string(),
             }),
         }),
         tradeTypeBadges: z.object({
             buy: z.object({
-                light: z.string().default('#10b981'),
-                dark: z.string().default('#21c65e'),
+                light: z.string(),
+                dark: z.string(),
             }),
             sell: z.object({
-                light: z.string().default('#f97316'),
-                dark: z.string().default('#e27373'),
+                light: z.string(),
+                dark: z.string(),
             }),
-        }).optional(),
-    }).optional(),
+        }),
+    }).default({
+        cumulatedPnlChart: {
+            bar: { light: '#38bdf8', dark: '#38bdf8' },
+            point: { light: '#444', dark: '#e79a0b' },
+        },
+        apptChart: {
+            bar: { light: '#4ade80', dark: '#4ade80' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+        },
+        plRatioChart: {
+            bar: { light: '#f59e0b', dark: '#f59e0b' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+        },
+        winrateChart: {
+            bar: { light: '#ccba18', dark: '#ccba18' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+        },
+        pnlBarChart: {
+            profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)' },
+            loss: { light: 'rgba(239, 68, 68, 0.8)', dark: 'rgba(239, 68, 68, 0.8)' },
+            breakeven: { light: 'rgba(156, 163, 175, 0.8)', dark: 'rgba(156, 163, 175, 0.8)' },
+        },
+        tradeTypeBadges: {
+            buy: { light: '#10b981', dark: '#21c65e' },
+            sell: { light: '#f97316', dark: '#e27373' },
+        },
+    }),
 })
 
 export type SettingsContentType = z.infer<typeof SettingsContentSchema>
