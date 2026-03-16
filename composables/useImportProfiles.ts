@@ -6,18 +6,18 @@ export const useImportProfiles = () => {
     const profiles = ref<ImportProfileType[]>([])
 
     const fetchProfiles = async (): Promise<ImportProfileType[]> => {
-        const result = await $fetch<ImportProfileType[]>('/api/import-profiles')
+        const result = await $fetch('/api/import-profiles')
         profiles.value = z.array(ImportProfileSchema).parse(result)
         return profiles.value
     }
 
     const createProfile = async (profile: CreateImportProfileType) => {
-        const result = await $fetch<ImportProfileType>('/api/import-profiles', { method: 'POST', body: profile })
+        const result = await $fetch('/api/import-profiles', { method: 'POST', body: profile })
         return ImportProfileSchema.parse(result)
     }
 
     const updateProfile = async (profile: UpdateImportProfileType) => {
-        const result = await $fetch<ImportProfileType>('/api/import-profiles', { method: 'PATCH', body: profile })
+        const result = await $fetch('/api/import-profiles', { method: 'PATCH', body: profile })
         return ImportProfileSchema.parse(result)
     }
 
