@@ -186,6 +186,7 @@ export const useUserStore = defineStore(
                         accountIds: [] as number[],
                         selectedMonth: formatDateToYYYYMM(new Date()),
                         showInactive: false,
+                        isExpanded: false,
                         columnVisibility: ({
                             lot: true,
                             openDate: true,

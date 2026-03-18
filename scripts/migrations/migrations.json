@@ -20,6 +20,13 @@
       "description": "Add netProfit column to Trade table to store profit after commission deduction",
       "file": "003-add-netprofit.sql",
       "date": "2026-03-13"
+    },
+    {
+      "version": 4,
+      "name": "add-metadata-fields",
+      "description": "Add metadata JSONB column to Screenshot, TagGroup, Tag, DayTag, Account, ConfigSymbol, and DailyNote tables",
+      "file": "004-add-metadata-fields.sql",
+      "date": "2026-03-18"
     }
   ]
 }

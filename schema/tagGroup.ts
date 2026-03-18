@@ -7,6 +7,20 @@ export const TagGroupSchema = z.object({
     name: nameFormatRefine(z.string().min(3).max(64)),
     // name: z.string().min(3).max(64),
     tags: z.array(TagSchema).default([]),
+    metadata: z.preprocess(
+        val => {
+            if (!val) return null;
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    return null;
+                }
+            }
+            return val;
+        },
+        z.any().nullable().optional()
+    ),
 })
 
 // --- Typescript types ---

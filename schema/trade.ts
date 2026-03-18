@@ -84,7 +84,21 @@ export const TradeSchema = z.object({
     screenshotUrl: z.string().nullable().optional(), // Garder pour compatibilité
     screenshots: z.array(z.object({
         id: z.number().optional(),
-        url: z.string()
+        url: z.string(),
+        metadata: z.preprocess(
+            val => {
+                if (!val) return null;
+                if (typeof val === 'string') {
+                    try {
+                        return JSON.parse(val);
+                    } catch {
+                        return null;
+                    }
+                }
+                return val;
+            },
+            z.any().nullable().optional()
+        ),
     })).optional().default([]),
 
     note: z.string().nullable().optional(),

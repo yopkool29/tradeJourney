@@ -90,6 +90,7 @@ export interface DailyHistoryFilters {
     accountIds: number[]
     selectedMonth: string
     showInactive: boolean
+    isExpanded: boolean
     columnVisibility: Record<string, boolean>
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }

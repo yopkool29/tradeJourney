@@ -56,6 +56,7 @@ model Screenshot {
     url       String
     tradeId   Int
     trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+    metadata  Json?    @db.JsonB
     createdAt DateTime @default(now())
     @@index([tradeId])
 }
@@ -64,6 +65,7 @@ model TagGroup {
     id        Int      @id @default(autoincrement())
     name      String   @unique
     tags      Tag[]
+    metadata  Json?    @db.JsonB
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
@@ -77,6 +79,7 @@ model Tag {
     groupId           Int
     group             TagGroup              @relation(fields: [groupId], references: [id])
     tradeTags         TradeTagAssociation[]
+    metadata          Json?    @db.JsonB
     createdAt         DateTime              @default(now())
     updatedAt         DateTime              @updatedAt
     dayTags           DayTag[]              @relation("DayTagsOnTags")
@@ -92,6 +95,7 @@ model DayTag {
     date              DateTime // ou startDate et endDate pour une plage
     note              String?
     tags              Tag[]               @relation("DayTagsOnTags")
+    metadata          Json?    @db.JsonB
     createdAt         DateTime            @default(now())
     updatedAt         DateTime            @updatedAt
     DayTagAssociation DayTagAssociation[]
@@ -126,6 +130,7 @@ model Account {
     displayName   String   @default("abcdef")
     aliases       String   @default("")
     trades        Trade[]
+    metadata      Json?    @db.JsonB
     createdAt     DateTime @default(now())
 }
 
@@ -137,6 +142,7 @@ model ConfigSymbol {
     notes         String?
     aliases       String   @default("")
     pricePerPoint Float    @default(-1)
+    metadata      Json?    @db.JsonB
     createdAt     DateTime @default(now())
     updatedAt     DateTime @updatedAt
 }
@@ -180,6 +186,7 @@ model DailyNote {
     id        Int      @id @default(autoincrement())
     date      DateTime @unique // Date unique pour chaque note
     content   String   // Contenu riche de la note
+    metadata  Json?    @db.JsonB
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

@@ -210,8 +210,8 @@ async function onImport() {
     formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
     formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
 
-    log_info('importFromProfile importMode:', props.profile.importMode)
-    log_info('importFromProfile timezone:', props.profile.timezone)
+    // log_info('importFromProfile importMode:', props.profile.importMode)
+    // log_info('importFromProfile timezone:', props.profile.timezone)
 
     isLoading.value = true
     const { startLoading, stopLoading } = useGlobalLoading()
@@ -257,8 +257,8 @@ async function importFromNinjaTraderApi() {
         formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
         formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
 
-        log_info('importFromNinjaTraderApi importMode:', props.profile.importMode)
-        log_info('importFromNinjaTraderApi timezone:', props.profile.timezone)
+        // log_info('importFromNinjaTraderApi importMode:', props.profile.importMode)
+        // log_info('importFromNinjaTraderApi timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
@@ -299,8 +299,8 @@ async function importFromIBKRFlexQuery() {
         formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
         formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
 
-        log_info('importFromIBKRFlexQuery importMode:', props.profile.importMode)
-        log_info('importFromIBKRFlexQuery timezone:', props.profile.timezone)
+        // log_info('importFromIBKRFlexQuery importMode:', props.profile.importMode)
+        // log_info('importFromIBKRFlexQuery timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
@@ -346,8 +346,8 @@ async function importFromStorageServer() {
         formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
         formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
 
-        log_info('importFromStorageServer importMode:', props.profile.importMode)
-        log_info('importFromStorageServer timezone:', props.profile.timezone)
+        // log_info('importFromStorageServer importMode:', props.profile.importMode)
+        // log_info('importFromStorageServer timezone:', props.profile.timezone)
 
         const result = await importTrades(formData)
         const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })

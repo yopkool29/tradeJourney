@@ -11,7 +11,7 @@ import { createAppError } from './errors'
 import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
-
+const VERSION_MANIFEST = '1.1.6'
 const versionToInt = (version: string): number => {
     const parts = version.split('.').map(p => parseInt(p, 10))
     return (parts[0] || 0) * 100 + (parts[1] || 0) * 10 + (parts[2] || 0)
@@ -128,7 +128,7 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
             dataFile: 'database.db',
             uploads: [],
             metadata: {
-                version: '1.1.5',
+                version: VERSION_MANIFEST,
                 totalFiles: 0,
                 totalSize: 0,
                 dataStats: {
@@ -382,6 +382,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: group.id,
                         name: sanitizeName_1_0_0(group.name),
+                        metadata: (group as any).metadata || null,
                         createdAt: new Date(group.createdAt),
                         updatedAt: new Date(group.updatedAt)
                     }
@@ -398,6 +399,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         color: tag.color,
                         dark_fg_reverse: tag.dark_fg_reverse ?? false,
                         groupId: tag.groupId,
+                        metadata: (tag as any).metadata || null,
                         createdAt: new Date(tag.createdAt),
                         updatedAt: new Date(tag.updatedAt)
                     }
@@ -413,6 +415,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         displayName: account.displayName || 'abcdef',
                         fullname: account.fullname,
                         aliases: account.aliases || '',
+                        metadata: (account as any).metadata || null,
                         createdAt: new Date(account.createdAt),
                     }
                 })
@@ -438,6 +441,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     screenshots: {
                         create: trade.screenshots.map(screenshot => ({
                             url: screenshot.url,
+                            metadata: (screenshot as any).metadata || null,
                             createdAt: new Date(screenshot.createdAt)
                         }))
                     }
@@ -457,6 +461,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         notes: symbol.notes,
                         aliases: symbol.aliases || '',
                         pricePerPoint: symbol.pricePerPoint ?? -1,
+                        metadata: (symbol as any).metadata || null,
                         createdAt: new Date(symbol.createdAt),
                         updatedAt: new Date(symbol.updatedAt)
                     }
@@ -469,6 +474,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: dayTag.id,
                         note: dayTag.note,
+                        metadata: (dayTag as any).metadata || null,
                         date: new Date(dayTag.date),
                         createdAt: new Date(dayTag.createdAt),
                         updatedAt: new Date(dayTag.updatedAt),
@@ -487,6 +493,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: note.id,
                         content: note.content,
+                        metadata: (note as any).metadata || null,
                         date: new Date(note.date),
                         createdAt: new Date(note.createdAt),
                         updatedAt: new Date(note.updatedAt)

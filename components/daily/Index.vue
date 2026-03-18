@@ -15,21 +15,23 @@
                                 count:
                                     userStore.dailyHistoryFilters.accountIds?.length
                             })
-                            }}</span>
+                        }}</span>
                     </div>
                 </USelect>
             </div>
             <div class="flex gap-4 justify-between items-end">
                 <div class="flex flex-wrap gap-4 mb-2 items-end">
                     <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
-                    <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{
-                        $t('components.daily.index.filter')
+                    <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm"
+                        @click="onFilter">{{
+                            $t('components.daily.index.filter')
                         }}</UButton>
                     <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary" size="sm"
                         @click="onExpand">
                         {{ isExpanded ? $t('components.daily.index.collapse') : $t('components.daily.index.expand') }}
                     </UButton>
-                    <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
+                    <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
+                        :label="$t('components.trade.table.show_inactive')" />
                 </div>
             </div>
         </UCard>
@@ -52,9 +54,8 @@
             <!-- Colonne droite : Calendrier -->
             <div v-if="settings.showCalendarDaily"
                 class="px-2 border-2 border-gray-300 md:sticky md:top-4 md:self-start min-w-[250px]">
-                <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
-                    :year-controls="false" readonly class="mb-8" size="xl"
-                    @update:placeholder="onCalendarMonthChange">
+                <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
+                    readonly class="mb-8" size="xl" @update:placeholder="onCalendarMonthChange">
                     <template #day="{ day }">
                         <div class="flex flex-col items-center justify-center w-full h-full rounded p-1" :class="{
                             'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
@@ -85,7 +86,10 @@ const { fetchDayTags } = useDayTags()
 const filterLoading = ref(false)
 
 const expandedGroups = ref<{ [key: string]: boolean }>({})
-const isExpanded = ref(false)
+const isExpanded = computed({
+    get: () => userStore.dailyHistoryFilters.isExpanded,
+    set: (val) => userStore.dailyHistoryFilters.isExpanded = val
+})
 
 type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number }
 type TradeGroups = { [key: string]: TradeGroup }
@@ -162,27 +166,29 @@ const filteredGroups = computed(() => {
 })
 
 async function onExpand() {
-    isExpanded.value = !isExpanded.value
-    // Appliquer à tous les groupes
-    const groups = filteredGroups.value
-    const mid = Math.ceil(groups.length / 2)
-    for (let i = 0; i < groups.length; i++) {
-        expandedGroups.value[groups[i].key] = isExpanded.value
-        if (i === mid - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 100)) // 100ms à mi-chemin
+    filterLoading.value = true
+    setTimeout(async () => {
+        isExpanded.value = !isExpanded.value
+        // Appliquer à tous les groupes
+        const groups = filteredGroups.value
+        const mid = Math.ceil(groups.length / 2)
+        for (let i = 0; i < groups.length; i++) {
+            expandedGroups.value[groups[i].key] = isExpanded.value
+            // if (i === mid - 1) {
+            //     await new Promise((resolve) => setTimeout(resolve, 100)) // 100ms à mi-chemin
+            // }
         }
-    }
+        filterLoading.value = false
+    }, 100)
 }
 
 async function onFilter() {
-    filterLoading.value = true
-    forceReactivity()
+    await forceReactivity()
     setDialogToFirstTradingDay()
 }
 
 function onCalendarMonthChange(month: { year: number; month: number }) {
     expandedGroups.value = {}
-    isExpanded.value = false
     userStore.dailyHistoryFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
     selectedMonth.value = userStore.dailyHistoryFilters.selectedMonth
     setDialogToFirstTradingDay()
@@ -219,34 +225,40 @@ async function applyDaysTags(forceFetch: boolean = true) {
 }
 
 async function forceReactivity() {
+    filterLoading.value = true
     await applyDaysTags()
     await applyCalendar(selectedMonth.value)
 }
 
-onMounted(async () => {
+onMounted(() => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
         userStore.dailyHistoryFilters.last_results = []
     }
 
-    await fetchSymbols()
-    await fetchAccounts()
+    // Charger les données en arrière-plan sans bloquer le rendu
+    nextTick(async () => {
+        if (settings?.autoDataSync) filterLoading.value = true
 
-    // Déterminer si on doit forcer le chargement des données
-    const needForceDayTags = userStore.dayTags.length === 0
-    const needForceCalendar = userStore.dailyHistoryFilters.last_results.length === 0
+        await fetchSymbols()
+        await fetchAccounts()
 
-    // Charger les dayTags si nécessaire
-    await applyDaysTags(needForceDayTags)
+        // Déterminer si on doit forcer le chargement des données
+        const needForceDayTags = userStore.dayTags.length === 0
+        const needForceCalendar = userStore.dailyHistoryFilters.last_results.length === 0
 
-    // Charger les données du calendrier si nécessaire
-    await applyCalendar(selectedMonth.value, needForceCalendar)
+        // Charger les dayTags si nécessaire
+        await applyDaysTags(needForceDayTags)
 
-    // Forcer la réactivité UNIQUEMENT après une reconnexion
-    if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || userStore.dailyHistoryFilters.last_results.length > 0)) {
-        await forceReactivity()
-        userStore.clearDataRefresh()
-    }
+        // Charger les données du calendrier si nécessaire
+        await applyCalendar(selectedMonth.value, needForceCalendar)
+
+        // Forcer la réactivité UNIQUEMENT après une reconnexion
+        if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || userStore.dailyHistoryFilters.last_results.length > 0)) {
+            await forceReactivity()
+            userStore.clearDataRefresh()
+        }
+    })
 })
 
 // Vérifier que les comptes sélectionnés existent toujours
@@ -286,7 +298,15 @@ watch(
 
 // Synchronisation bidirectionnelle : quand selectedMonth change, on force la vue du calendrier
 watch(selectedMonth, async () => {
-    filterLoading.value = true
     forceReactivity()
 })
+
+// Synchroniser expandedGroups avec isExpanded quand les groupes changent
+watch([filteredGroups, isExpanded], ([groups, expanded]) => {
+    if (expanded) {
+        groups.forEach(group => {
+            expandedGroups.value[group.key] = true
+        })
+    }
+}, { immediate: false })
 </script>

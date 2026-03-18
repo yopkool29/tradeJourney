@@ -19,6 +19,20 @@ export const AccountSchema = z.object({
             .filter(alias => alias.length > 0)
             .join(', ');
     }),
+    metadata: z.preprocess(
+        val => {
+            if (!val) return null;
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    return null;
+                }
+            }
+            return val;
+        },
+        z.any().nullable().optional()
+    ),
     createdAt: z.string().or(z.date()),
 })
 

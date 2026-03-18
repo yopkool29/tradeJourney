@@ -19,6 +19,20 @@ export const SymbolSchema = z.object({
             .join(', ');
     }),
     pricePerPoint: z.preprocess((v) => typeof v === 'string' ? Number(v) : v, z.number().default(-1)),
+    metadata: z.preprocess(
+        val => {
+            if (!val) return null;
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    return null;
+                }
+            }
+            return val;
+        },
+        z.any().nullable().optional()
+    ),
     createdAt: z.string().or(z.date()),
     updatedAt: z.string().or(z.date())
 });

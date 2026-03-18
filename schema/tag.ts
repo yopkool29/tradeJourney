@@ -17,6 +17,20 @@ export const TagSchema = z.object({
             params: { i18n: 'zodI18n.validation.tag.description_min' }
         }
     ),
+    metadata: z.preprocess(
+        val => {
+            if (!val) return null;
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    return null;
+                }
+            }
+            return val;
+        },
+        z.any().nullable().optional()
+    ),
 })
 
 /**
