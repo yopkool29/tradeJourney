@@ -28,6 +28,10 @@ import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { colorToRgba } from '~/utils/color-utils'
 import { CommonModalChart } from '#components'
 
+const props = defineProps<{
+    startingCapital?: number | null
+}>()
+
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
 
@@ -62,7 +66,20 @@ const chartData = computed(() => {
 
         if (data.datasets[0]) {
             const dataset = data.datasets[0] as ChartDataset<'line'>
-            const values = dataset.data as number[]
+            let values = dataset.data as number[]
+
+            // Si capital de départ existe, faire commencer le graphique à ce montant
+            if (props.startingCapital && props.startingCapital > 0) {
+                // Ajouter un point initial au capital de départ (PnL = 0 + startingCapital)
+                values = [props.startingCapital, ...values.map(v => v + props.startingCapital!)]
+                
+                // Ajouter un label vide pour le point initial
+                if (data.labels) {
+                    data.labels = ['', ...data.labels]
+                }
+                
+                dataset.data = values
+            }
 
             dataset.label = t('components.dashboard.index.cumulated_label')
             dataset.tension = 0.05
@@ -71,21 +88,22 @@ const chartData = computed(() => {
             dataset.borderWidth = 2
             dataset.fill = 'start'
 
-            // Couleurs conditionnelles pour les segments
+            // Couleurs conditionnelles pour les segments (basées sur le capital de départ)
+            const threshold = props.startingCapital ?? 0
             data.datasets[0].segment = {
                 borderColor: (ctx: { p1: { parsed: { y: number } } }) => {
                     const value = ctx.p1.parsed.y
-                    return value >= 0 ? profitColor.value : lossColor.value
+                    return value >= threshold ? profitColor.value : lossColor.value
                 },
                 backgroundColor: (ctx: { p1: { parsed: { y: number } } }) => {
                     const value = ctx.p1.parsed.y
-                    return value >= 0 ? profitBgColor : lossBgColor
+                    return value >= threshold ? profitBgColor : lossBgColor
                 }
             }
 
             // Couleurs conditionnelles pour les points
             data.datasets[0].pointBackgroundColor = values.map(v =>
-                v >= 0 ? profitColor.value : lossColor.value
+                v >= threshold ? profitColor.value : lossColor.value
             )
         }
     }
@@ -139,7 +157,7 @@ const chartDisplayOptions = computed(
                             const date = context.label || ''
                             return [
                                 date ? `Date: ${date}` : '',
-                                `${label}: ${formatCurrency(value)}`
+                                `${label}: ${formatCurrency(value ?? 0)}`
                             ].filter(Boolean)
                         },
                     },
@@ -150,7 +168,7 @@ const chartDisplayOptions = computed(
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    beginAtZero: props.startingCapital ? false : true,
                     grid: { color: 'rgba(200, 200, 200, 0.2)' },
                     ticks: {
                         color: '#666',

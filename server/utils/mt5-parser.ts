@@ -97,8 +97,8 @@ export function parseMT5Xls(
         const profitFromMT5 = parseFloat((profit || '0').toString().replace(',', '.'));
         
         // MT5 fournit le profit NET (après commission)
-        // On calcule le profit BRUT en ajoutant la commission
-        const grossProfit = round(profitFromMT5 + commissionValue, 2);
+        // MT5 exporte la commission en négatif, donc on soustrait pour obtenir le profit BRUT
+        const grossProfit = round(profitFromMT5 - commissionValue, 2);
         const netProfit = round(profitFromMT5, 2);
 
         const trade: TradesImport = {

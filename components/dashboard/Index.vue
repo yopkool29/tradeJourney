@@ -128,7 +128,7 @@
         <!-- Graphiques -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <DashboardPnlBarChart />
-            <DashboardCumulatedPnlChart2 />
+            <DashboardCumulatedPnlChart2 :starting-capital="startingCapital" />
             <DashboardApptChart />
             <DashboardWinrateChart />
         </div>
@@ -148,6 +148,7 @@ import { periodOptions, getPeriodDates } from '~/utils/dashboard'
 import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
+import { metadataHelpers } from '~/utils'
 
 const { formatCurrency } = useUtils()
 
@@ -177,6 +178,26 @@ const accountOptions = computed(() => {
             label: account.displayName,
         }
     })
+})
+
+// Calculer le capital de départ si un seul compte est sélectionné
+const startingCapital = computed(() => {
+    const selectedAccountIds = userStore.dashBoardFilters.accountIds
+    
+    // Vérifier qu'un seul compte est sélectionné
+    if (!selectedAccountIds || selectedAccountIds.length !== 1) {
+        return null
+    }
+    
+    // Trouver le compte sélectionné
+    const selectedAccount = accounts.value.find(acc => acc.id === selectedAccountIds[0])
+    if (!selectedAccount) {
+        return null
+    }
+    
+    // Extraire le capital de départ depuis metadata
+    const capital = metadataHelpers.get<number>(selectedAccount.metadata, 'startingCapital')
+    return capital ?? null
 })
 
 const startDateStr = computed({

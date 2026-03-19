@@ -131,6 +131,7 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
+import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
@@ -382,11 +383,11 @@ async function onFilter() {
     await forceReactivity()
 }
 
-function onCalendarMonthChange(...args: unknown[]) {
+const onCalendarMonthChange = useDebounceFn((...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
     userStore.calendarFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
     selectedMonth.value = userStore.calendarFilters.selectedMonth
-}
+}, 200)
 
 async function applyCalendar(val: string, forceFetch: boolean = true) {
     if (val) {

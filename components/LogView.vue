@@ -5,6 +5,7 @@
             <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onClear">Clear</a>
             <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onDebug1">Debug1</a>
             <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onDebug2">Debug2</a>
+            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onFix">Fix</a>
         </div>
 
         <!-- eslint-disable-next-line vue/no-v-html -->
@@ -155,6 +156,10 @@ const onDebug1 = () => {
 
 const onDebug2 = () => {
     userStore.addDebug2()
+}
+
+const onFix = () => {
+    userStore.addFix()
 }
 
 defineExpose<ILogView>({ onClose, onOpen, isOpen, debug, info, warn, error })

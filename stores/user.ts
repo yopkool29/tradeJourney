@@ -29,6 +29,8 @@ export const useUserStore = defineStore(
         const logMessage = ref('')
         const logDebug1 = ref(0)
         const logDebug2 = ref(0)
+        const logFix = ref(0)
+
         const isLoading = ref(false)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
         const conversionType = ref<{ label: string; value: 'schwab-options' | 'tradingview' }>({ label: 'Schwab Options', value: 'schwab-options' })
@@ -339,6 +341,10 @@ export const useUserStore = defineStore(
             logDebug2.value++
         }
 
+        const addFix = () => {
+            logFix.value++
+        }
+
         function setUser(u: UserType | null) {
             user.value = u
         }
@@ -421,6 +427,7 @@ export const useUserStore = defineStore(
             logMessage,
             logDebug1,
             logDebug2,
+            logFix,
             isLoading,
             quickNavHistory,
             conversionType,
@@ -461,6 +468,7 @@ export const useUserStore = defineStore(
             setLogOpenFirstInit,
             addDebug1,
             addDebug2,
+            addFix,
             setUser,
             clearUser,
             shouldRefreshData,
@@ -481,6 +489,7 @@ export const useUserStore = defineStore(
                 'logMessage',
                 'logDebug1',
                 'logDebug2',
+                'fixdebug',
                 'needsDataRefresh',
                 'quickNavHistory',
                 'conversionType',

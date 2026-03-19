@@ -217,7 +217,7 @@ const { locale, setLocale, t } = useI18n()
 const { currentDatabase, clearCurrentDatabase } = useDatabase()
 const router = useRouter()
 
-const { log_debug, log_error } = useLogView()
+const { log_debug, log_error, log_info } = useLogView()
 
 const mobileMenuOpen = ref(false)
 
@@ -340,4 +340,14 @@ watch(
         log_error('logDebug2 changed')
     }
 )
+
+watch(
+    () => userStore.logFix,
+    async () => {
+        log_info('🔧 Correction des commissions négatives...')
+        const { fixNegativeCommissions } = useFix()
+        await fixNegativeCommissions()
+    }
+)
+
 </script>

@@ -35,6 +35,10 @@
                                     <UInput class="md:w-2/3" v-model="newAccountState.aliases"
                                         :placeholder="$t('components.settings.accounts.aliases_placeholder')" />
                                 </UFormField>
+                                <UFormField name="startingCapital" :label="$t('components.settings.accounts.starting_capital_label')">
+                                    <UInputNumber class="md:w-2/3" v-model="startingCapital" :min="100" :max="5000000" :step="100"
+                                        :placeholder="$t('components.settings.accounts.starting_capital_placeholder')" />
+                                </UFormField>
                             </div>
                         </UForm>
                     </template>
@@ -64,6 +68,12 @@
             <div class="mt-6">
                 <h3 class="section-subtitle">{{ $t('components.settings.accounts.accounts_list') }}</h3>
                 <UTable :data="filteredAccounts" :columns="columns" class="mb-2">
+                    <template #startingCapital-cell="{ row }">
+                        <span v-if="getStartingCapital(row.original)">
+                            {{ formatCurrency(getStartingCapital(row.original)) }}
+                        </span>
+                        <span v-else class="text-gray-400">-</span>
+                    </template>
                     <template #actions-cell="{ row }">
                         <div class="action-buttons">
                             <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
@@ -112,6 +122,7 @@
 import { CreateAccountSchema, type AccountType, type CreateAccountType, type UpdateAccountType } from '~/schema/account'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import type { TradeFilter, FilterColumn } from '~/type'
+import { metadataHelpers } from '~/utils'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -120,6 +131,7 @@ const { success: toastSuccess, error: toastError } = useAppToast()
 const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
 const { accounts, fetchAccounts, createAccount, updateAccount, deleteAccount } = useAccount()
 const { deleteAccountTrades } = useTrades()
+const { formatCurrency } = useUtils()
 
 onMounted(async () => {
     await fetchAccounts()
@@ -210,11 +222,13 @@ const getDefaultCreateAccount = () => ({
     fullname: '',
     displayName: '',
     aliases: '',
+    metadata: null,
 })
 
 const showAddAccount = ref(false)
 const newAccountState = ref<CreateAccountType>(getDefaultCreateAccount())
 const editingAccountId = ref<number | null>(null)
+const startingCapital = ref<number | null>(null)
 
 // Synchroniser displayName avec name quand on n'est pas en mode édition
 watch(
@@ -232,6 +246,7 @@ const columns = computed(() => [
     // { id: 'name', accessorKey: 'name', header: t('components.settings.accounts.column_name') },
     { id: 'displayName', accessorKey: 'displayName', header: t('components.settings.accounts.column_display_name') },
     { id: 'fullname', accessorKey: 'fullname', header: t('components.settings.accounts.column_fullname') },
+    { id: 'startingCapital', accessorKey: 'startingCapital', header: t('components.settings.accounts.column_starting_capital') },
     { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.accounts.column_aliases') }
 
 ])
@@ -256,10 +271,15 @@ function copyAccountName() {
     }
 }
 
+function getStartingCapital(account: AccountType): number | null {
+    return metadataHelpers.get<number>(account.metadata, 'startingCapital') ?? null
+}
+
 function newAccount() {
     displayMessage(null, null)
     editingAccountId.value = null
     newAccountState.value = getDefaultCreateAccount()
+    startingCapital.value = null
     showAddAccount.value = true
 }
 
@@ -267,18 +287,34 @@ function editAccount(account: AccountType) {
     displayMessage(null, null)
     editingAccountId.value = account.id
     newAccountState.value = { ...account }
+    // Extraire le capital de départ depuis metadata
+    startingCapital.value = metadataHelpers.get(account.metadata, 'startingCapital') ?? null
     showAddAccount.value = true
 }
 
 async function onSubmitAccount(event: FormSubmitEvent<CreateAccountType | UpdateAccountType>) {
     try {
+        // Définir le capital de départ dans les metadata
+        let metadata = event.data.metadata
+        
+        console.log("startingCapital", startingCapital.value)
+
+        metadata = metadataHelpers.merge(metadata, { startingCapital: startingCapital.value })
+
+        console.log("metadata", metadata)
+
+        const dataWithMetadata = {
+            ...event.data,
+            metadata
+        }
+        
         if (editingAccountId.value) {
             // Update
-            await updateAccount(event.data as UpdateAccountType)
+            await updateAccount(dataWithMetadata as UpdateAccountType)
             displayMessage(t('components.settings.accounts.account_updated'), null)
         } else {
             // Create
-            await createAccount(event.data as CreateAccountType)
+            await createAccount(dataWithMetadata as CreateAccountType)
             displayMessage(t('components.settings.accounts.account_created'), null)
         }
         await fetchAccounts()

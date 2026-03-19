@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
+import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -171,12 +172,8 @@ async function onExpand() {
         isExpanded.value = !isExpanded.value
         // Appliquer à tous les groupes
         const groups = filteredGroups.value
-        const mid = Math.ceil(groups.length / 2)
         for (let i = 0; i < groups.length; i++) {
             expandedGroups.value[groups[i].key] = isExpanded.value
-            // if (i === mid - 1) {
-            //     await new Promise((resolve) => setTimeout(resolve, 100)) // 100ms à mi-chemin
-            // }
         }
         filterLoading.value = false
     }, 100)
@@ -184,14 +181,19 @@ async function onExpand() {
 
 async function onFilter() {
     await forceReactivity()
-    setDialogToFirstTradingDay()
 }
 
-function onCalendarMonthChange(month: { year: number; month: number }) {
+// Fonction debounced unique pour tous les changements de mois
+const handleMonthChangeDebounced = useDebounceFn(async () => {
     expandedGroups.value = {}
+    await applyDaysTags()
+    await applyCalendar(selectedMonth.value)
+}, 200)
+
+function onCalendarMonthChange(...args: unknown[]) {
+    const month = args[0] as { year: number; month: number }
     userStore.dailyHistoryFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
     selectedMonth.value = userStore.dailyHistoryFilters.selectedMonth
-    setDialogToFirstTradingDay()
 }
 
 function setDialogToFirstTradingDay() {
@@ -201,9 +203,8 @@ function setDialogToFirstTradingDay() {
     if (first) {
         dialogGroup.value = first
         showDialog.value = true
-    } else {
-        showDialog.value = false
     }
+    // Ne pas fermer le dialog s'il n'y a pas de données (évite le clignotement pendant le chargement)
 }
 
 async function applyCalendar(val: string, forceFetch: boolean = true) {
@@ -258,6 +259,9 @@ onMounted(() => {
             await forceReactivity()
             userStore.clearDataRefresh()
         }
+
+        // Initialiser le dialog au premier chargement
+        setDialogToFirstTradingDay()
     })
 })
 
@@ -275,8 +279,8 @@ watch([() => userStore.dailyHistoryFilters.accountIds as number[], accounts], ([
 // Appliquer les filtres quand les comptes changent
 watch(
     () => [...(userStore.dailyHistoryFilters.accountIds || [])],
-    () => {
-        forceReactivity()
+    async () => {
+        await forceReactivity()
     },
     { deep: true }
 )
@@ -296,9 +300,9 @@ watch(
     }
 )
 
-// Synchronisation bidirectionnelle : quand selectedMonth change, on force la vue du calendrier
-watch(selectedMonth, async () => {
-    forceReactivity()
+// Synchronisation bidirectionnelle : quand selectedMonth change, on charge les données
+watch(selectedMonth, () => {
+    handleMonthChangeDebounced()
 })
 
 // Synchroniser expandedGroups avec isExpanded quand les groupes changent
