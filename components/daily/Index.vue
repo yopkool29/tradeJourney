@@ -85,6 +85,8 @@ const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
 const filterLoading = ref(false)
+const isInitialLoad = ref(true)
+const refreshTrigger = ref(0)
 
 const expandedGroups = ref<{ [key: string]: boolean }>({})
 const isExpanded = computed({
@@ -120,6 +122,9 @@ const calendarMonth = computed(() => {
 })
 
 const getDaysStats = () => {
+    // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
+    refreshTrigger.value
+    
     const trades = userStore.dailyHistoryFilters.last_results as TradeExtendedType[]
     if (!selectedMonth.value) return {}
     const [year, month] = selectedMonth.value.split('-').map(Number)
@@ -183,12 +188,17 @@ async function onFilter() {
     await forceReactivity()
 }
 
-// Fonction debounced unique pour tous les changements de mois
-const handleMonthChangeDebounced = useDebounceFn(async () => {
+// Fonction unique pour charger les données du mois
+async function loadMonthData() {
+    filterLoading.value = true
     expandedGroups.value = {}
     await applyDaysTags()
     await applyCalendar(selectedMonth.value)
-}, 200)
+    filterLoading.value = false
+}
+
+// Debounce pour éviter les appels multiples
+const loadMonthDataDebounced = useDebounceFn(loadMonthData, 200)
 
 function onCalendarMonthChange(...args: unknown[]) {
     const month = args[0] as { year: number; month: number }
@@ -226,21 +236,19 @@ async function applyDaysTags(forceFetch: boolean = true) {
 }
 
 async function forceReactivity() {
-    filterLoading.value = true
-    await applyDaysTags()
-    await applyCalendar(selectedMonth.value)
+    await loadMonthData()
 }
 
-onMounted(() => {
+onMounted(async () => {
     // Clear data if autoDataSync is enabled
-    if (settings?.autoDataSync) {
+    if (settings?.autoDataSync)
         userStore.dailyHistoryFilters.last_results = []
-    }
 
     // Charger les données en arrière-plan sans bloquer le rendu
     nextTick(async () => {
-        if (settings?.autoDataSync) filterLoading.value = true
-
+        if (settings?.autoDataSync) 
+            filterLoading.value = true
+        
         await fetchSymbols()
         await fetchAccounts()
 
@@ -260,8 +268,11 @@ onMounted(() => {
             userStore.clearDataRefresh()
         }
 
-        // Initialiser le dialog au premier chargement
-        setDialogToFirstTradingDay()
+        if (!settings?.autoDataSync) 
+            refreshTrigger.value++
+
+        filterLoading.value = false
+        isInitialLoad.value = false
     })
 })
 
@@ -302,7 +313,7 @@ watch(
 
 // Synchronisation bidirectionnelle : quand selectedMonth change, on charge les données
 watch(selectedMonth, () => {
-    handleMonthChangeDebounced()
+    loadMonthDataDebounced()
 })
 
 // Synchroniser expandedGroups avec isExpanded quand les groupes changent
@@ -313,4 +324,14 @@ watch([filteredGroups, isExpanded], ([groups, expanded]) => {
         })
     }
 }, { immediate: false })
+
+// Ouvrir le dialog automatiquement au premier chargement
+watch(filteredGroups, (groups) => {
+    if (isInitialLoad.value && groups.length > 0) {
+        nextTick(() => {
+            setDialogToFirstTradingDay()
+            isInitialLoad.value = false
+        })
+    }
+}, { immediate: true })
 </script>
