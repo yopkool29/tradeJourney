@@ -383,11 +383,17 @@ async function onFilter() {
     await forceReactivity()
 }
 
-const onCalendarMonthChange = useDebounceFn((...args: unknown[]) => {
+// Fonction debounced unique pour tous les changements de mois
+const handleMonthChangeDebounced = useDebounceFn(async () => {
+    filterLoading.value = true
+    await applyCalendar(selectedMonth.value)
+}, 200)
+
+function onCalendarMonthChange(...args: unknown[]) {
     const month = args[0] as { year: number; month: number }
     userStore.calendarFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
     selectedMonth.value = userStore.calendarFilters.selectedMonth
-}, 200)
+}
 
 async function applyCalendar(val: string, forceFetch: boolean = true) {
     if (val) {
@@ -442,10 +448,11 @@ watch(
     { deep: true }
 )
 
-// Synchroniser calendarValue quand selectedMonth change via le dropdown
+// Synchroniser calendarValue et charger les données quand selectedMonth change
 watch(selectedMonth, (newMonth) => {
     const [year, month] = newMonth.split('-').map(Number)
     calendarValue.value = new CalendarDate(year, month, 1)
+    handleMonthChangeDebounced()
 })
 
 // Rafraîchir les données quand les modales se ferment
@@ -462,10 +469,5 @@ watchEffect(() => {
     if (filteredGroups.value) {
         filterLoading.value = false
     }
-})
-
-watch(selectedMonth, async () => {
-    filterLoading.value = true
-    forceReactivity()
 })
 </script>
