@@ -291,62 +291,6 @@ const columns = computed(() => {
             cell: ({ row }) => formatCurrency(row.original.commission || 0),
             meta: addMeta('w-[100px]')
         },
-        { id: 'actions', header: labelColumnsHeader.value.actions, meta: addMeta('w-[100px]') },
-        {
-            id: 'screenshots',
-            accessorKey: 'screenshots',
-            header: () => h('div', { class: 'flex items-center' }, [h(UIcon, { name: 'i-lucide-image', class: 'w-4 h-4' })]),
-            cell: ({ row }) => {
-                const screenshots = row.original.screenshots || []
-                const hasScreenshots = screenshots.length > 0 || row.original.screenshotUrl
-
-                if (!hasScreenshots) return null
-
-                // Si on a à la fois des captures dans le tableau et l'ancien screenshotUrl
-                const allScreenshots = [
-                    ...screenshots,
-                    ...(row.original.screenshotUrl && !screenshots.some((s: { url: string }) => s.url === row.original.screenshotUrl)
-                        ? [{ url: row.original.screenshotUrl }]
-                        : []),
-                ]
-
-                return h('div', { class: 'flex justify-center items-center h-full' }, [
-                    h(
-                        UTooltipComp,
-                        {
-                            text:
-                                allScreenshots.length > 1
-                                    ? t('components.common.columns.screenshots.multiple', { count: allScreenshots.length })
-                                    : t('components.common.columns.screenshots.single'),
-                            class: 'flex items-center justify-center',
-                        },
-                        () =>
-                            h(
-                                UButtonComp,
-                                {
-                                    variant: 'ghost',
-                                    color: 'neutral',
-                                    icon: 'i-heroicons-photo',
-                                    class: [
-                                        'text-gray-500 dark:text-gray-400',
-                                        'hover:text-primary-500 dark:hover:text-primary-400',
-                                        'transition-colors duration-200',
-                                    ],
-                                    onClick: (e: Event) => {
-                                        e.stopPropagation()
-                                        openScreenshotsModal(allScreenshots)
-                                    },
-                                    'aria-label': t('components.common.columns.screenshots.aria_label'),
-                                },
-                                {}
-                            )
-                    ),
-                ])
-            },
-            meta: addMeta('w-[40px]'),
-        },
-        { id: 'tags', accessorKey: 'tags', header: labelColumnsHeader.value.tags, meta: addMeta('') },
-        { id: 'note', accessorKey: 'note', header: labelColumnsHeader.value.note, meta: addMeta() },
     ]
 })
 
