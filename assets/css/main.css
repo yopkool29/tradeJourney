@@ -357,35 +357,113 @@ select {
 
 /* Calendar cell states */
 .calendar-cell-positive {
-    @apply bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-600 hover:bg-green-200 dark:hover:bg-green-900/40;
+    @apply border-green-500 dark:border-green-600 shadow-sm hover:shadow-md dark:hover:shadow-green-900/50 transition-all;
+    background: linear-gradient(to bottom right, rgb(220, 252, 231), rgb(187, 247, 208));
+}
+
+.dark .calendar-cell-positive {
+    background: linear-gradient(to bottom right, rgba(20, 83, 45, 0.25), rgba(20, 83, 45, 0.35));
+}
+
+.calendar-cell-positive:hover {
+    background: linear-gradient(to bottom right, rgb(187, 247, 208), rgb(134, 239, 172));
+}
+
+.dark .calendar-cell-positive:hover {
+    background: linear-gradient(to bottom right, rgba(20, 83, 45, 0.35), rgba(20, 83, 45, 0.5));
 }
 
 .calendar-cell-negative {
-    @apply bg-red-100 dark:bg-red-900/30 border-red-400 dark:border-red-600 hover:bg-red-200 dark:hover:bg-red-900/40;
+    @apply border-red-500 dark:border-red-600 shadow-sm hover:shadow-md dark:hover:shadow-red-900/50 transition-all;
+    background: linear-gradient(to bottom right, rgb(254, 226, 226), rgb(254, 202, 202));
+}
+
+.dark .calendar-cell-negative {
+    background: linear-gradient(to bottom right, rgba(127, 29, 29, 0.25), rgba(127, 29, 29, 0.35));
+}
+
+.calendar-cell-negative:hover {
+    background: linear-gradient(to bottom right, rgb(254, 202, 202), rgb(252, 165, 165));
+}
+
+.dark .calendar-cell-negative:hover {
+    background: linear-gradient(to bottom right, rgba(127, 29, 29, 0.35), rgba(127, 29, 29, 0.5));
 }
 
 .calendar-cell-neutral {
-    @apply bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700;
+    @apply border-gray-400 dark:border-gray-600 shadow-sm hover:shadow-md transition-all;
+    background: linear-gradient(to bottom right, rgb(249, 250, 251), rgb(229, 231, 235));
+}
+
+.dark .calendar-cell-neutral {
+    background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.8), rgba(55, 65, 81, 0.9));
+}
+
+.calendar-cell-neutral:hover {
+    background: linear-gradient(to bottom right, rgb(243, 244, 246), rgb(209, 213, 219));
+}
+
+.dark .calendar-cell-neutral:hover {
+    background: linear-gradient(to bottom right, rgba(55, 65, 81, 0.9), rgba(75, 85, 99, 1));
 }
 
 /* Calendar day cell states (lighter version for individual days) */
 .calendar-day-positive {
-    @apply bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30;
+    @apply border-green-400 dark:border-green-700 shadow-sm hover:shadow transition-all;
+    background: linear-gradient(to bottom right, rgb(240, 253, 244), rgb(220, 252, 231));
+}
+
+.dark .calendar-day-positive {
+    background: linear-gradient(to bottom right, rgba(20, 83, 45, 0.15), rgba(20, 83, 45, 0.25));
+}
+
+.calendar-day-positive:hover {
+    background: linear-gradient(to bottom right, rgb(220, 252, 231), rgb(187, 247, 208));
+}
+
+.dark .calendar-day-positive:hover {
+    background: linear-gradient(to bottom right, rgba(20, 83, 45, 0.25), rgba(20, 83, 45, 0.35));
 }
 
 .calendar-day-negative {
-    @apply bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30;
+    @apply border-red-400 dark:border-red-700 shadow-sm hover:shadow transition-all;
+    background: linear-gradient(to bottom right, rgb(254, 242, 242), rgb(254, 226, 226));
+}
+
+.dark .calendar-day-negative {
+    background: linear-gradient(to bottom right, rgba(127, 29, 29, 0.15), rgba(127, 29, 29, 0.25));
+}
+
+.calendar-day-negative:hover {
+    background: linear-gradient(to bottom right, rgb(254, 226, 226), rgb(254, 202, 202));
+}
+
+.dark .calendar-day-negative:hover {
+    background: linear-gradient(to bottom right, rgba(127, 29, 29, 0.25), rgba(127, 29, 29, 0.35));
 }
 
 .calendar-day-neutral {
-    @apply bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800;
+    @apply border-gray-300 dark:border-gray-700 shadow-sm hover:shadow transition-all;
+    background: linear-gradient(to bottom right, rgb(255, 255, 255), rgb(243, 244, 246));
+}
+
+.dark .calendar-day-neutral {
+    background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.4), rgba(31, 41, 55, 0.6));
+}
+
+.calendar-day-neutral:hover {
+    background: linear-gradient(to bottom right, rgb(249, 250, 251), rgb(229, 231, 235));
+}
+
+.dark .calendar-day-neutral:hover {
+    background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.6), rgba(55, 65, 81, 0.8));
 }
 
 /* Calendar text colors for profit/loss */
 .calendar-pnl-positive {
-    @apply text-green-600 dark:text-green-400;
+    @apply text-green-700 dark:text-green-400 font-semibold;
 }
 
 .calendar-pnl-negative {
-    @apply text-red-600 dark:text-red-400;
+    @apply text-red-700 dark:text-red-400 font-semibold;
 }
