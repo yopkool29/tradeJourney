@@ -1,6 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
+
+    devtools: { 
+        enabled: true,
+        // timeline: {
+        //     enabled: true
+        // }
+     },
+
     vite: {
         server: {
             allowedHosts: [
@@ -23,8 +31,6 @@ export default defineNuxtConfig({
         '/': { ssr: true },
         '/**': { ssr: false },
     },
-
-    devtools: { enabled: false },
 
     debug: false,
 
@@ -58,7 +64,7 @@ export default defineNuxtConfig({
     ],
     i18n: {
         locales: [
-            { code: 'en', iso: 'en-US', file: 'en.js'},
+            { code: 'en', iso: 'en-US', file: 'en.js' },
             { code: 'fr', iso: 'fr-FR', file: 'fr.js' },
         ],
         defaultLocale: 'en',

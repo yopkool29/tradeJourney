@@ -3,44 +3,37 @@
         <UCard class="card-container">
             <div class="filter-container">
                 <div class="section-label">{{ $t('components.dashboard.index.accounts') }}</div>
-                <USelect
-                    v-model="userStore.dashBoardFilters.accountIds"
-                    :items="accountOptions"
-                    :placeholder="$t('components.dashboard.index.select_accounts')"
-                    multiple
-                    class="select-standard"
-                >
+                <USelect v-model="userStore.dashBoardFilters.accountIds" :items="accountOptions"
+                    :placeholder="$t('components.dashboard.index.select_accounts')" multiple class="select-standard">
                     <div>
-                        <span v-if="!userStore.dashBoardFilters.accountIds?.length">{{ $t('components.dashboard.index.all_accounts') }}</span>
+                        <span v-if="!userStore.dashBoardFilters.accountIds?.length">{{
+                            $t('components.dashboard.index.all_accounts') }}</span>
                         <span v-else>{{
-                            $t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })
-                        }}</span>
+                            $t('components.dashboard.index.selected_accounts', {
+                                count:
+                                    userStore.dashBoardFilters.accountIds?.length
+                            })
+                            }}</span>
                     </div>
                 </USelect>
             </div>
             <div class="filter-actions-lg mb-4">
-                <USelect
-                    v-model="userStore.dashBoardFilters.period"
-                    :items="periodOptions(locale)"
-                    :placeholder="$t('components.dashboard.index.period')"
-                    class="select-standard"
-                />
+                <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
+                    :placeholder="$t('components.dashboard.index.period')" class="select-standard" />
                 <UInput v-model="startDateStr" type="date" class="date-input" />
                 <UInput v-model="endDateStr" type="date" class="date-input" />
-                <UButton icon="i-lucide-filter" :loading="filterLoading" color="primary" size="sm" @click="onApplyFilters">
+                <UButton icon="i-lucide-filter" :loading="filterLoading" color="primary" size="sm"
+                    @click="onApplyFilters">
                     {{ $t('components.dashboard.index.filter') }}
                 </UButton>
             </div>
             <!-- Ligne d'options avancées -->
             <div class="filter-actions-lg">
                 <div class="form-row">
-                    <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation') }}</label>
-                    <USelect
-                        id="cumule-mode-select"
-                        v-model="userStore.dashBoardFilters.cumuleMode"
-                        :items="cumuleOptions"
-                        class="min-w-[120px] max-w-[200px] w-full"
-                    />
+                    <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
+                        }}</label>
+                    <USelect id="cumule-mode-select" v-model="userStore.dashBoardFilters.cumuleMode"
+                        :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full" />
                 </div>
             </div>
         </UCard>
@@ -52,81 +45,68 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.trades_count') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.trades_count_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
+                    <UTooltip :text="$t('components.dashboard.index.trades_count_tooltip')" :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ userStore.dashBoardResult.tradesCount }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.cumulated_pnl') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
+                    <UTooltip :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
+                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ formatCurrency(userStore.dashBoardResult.pnl) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.expectancy') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.expectancy_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
+                    <UTooltip :text="$t('components.dashboard.index.expectancy_tooltip')" :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ formatCurrency(userStore.dashBoardResult.appt) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.pl_ratio') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
+                    <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ userStore.dashBoardResult.plRatio?.toFixed(2) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.win_rate') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
+                    <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ userStore.dashBoardResult.winrate?.toFixed(2) }}%</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.profit_factor') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.profit_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.profitFactor) }}</span>
+                    <UTooltip :text="$t('components.dashboard.index.profit_factor_tooltip')"
+                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
+                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.profitFactor)
+                            }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.recovery_factor') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.recovery_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.recoveryFactor) }}</span>
+                    <UTooltip :text="$t('components.dashboard.index.recovery_factor_tooltip')"
+                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
+                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.recoveryFactor)
+                            }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.sharpe_ratio') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.sharpe_ratio_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.sharpeRatio?.toFixed(2) }}</span>
+                    <UTooltip :text="$t('components.dashboard.index.sharpe_ratio_tooltip')" :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center">
+                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.sharpeRatio?.toFixed(2)
+                            }}</span>
                     </UTooltip>
                 </div>
             </div>
         </div>
 
         <!-- Graphiques -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div v-if="chartsReady" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <DashboardPnlBarChart />
             <DashboardCumulatedPnlChart2 :starting-capital="startingCapital" />
             <DashboardApptChart />
@@ -134,7 +114,7 @@
         </div>
 
         <!-- 4 Sections principales : ALL / PROFIT / LOSING / COMPARISON -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div v-if="chartsReady" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <DashboardAllTradesSection />
             <DashboardProfitTradesSection />
             <DashboardLosingTradesSection />
@@ -155,8 +135,9 @@ const { formatCurrency } = useUtils()
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchDashboardData, accounts } = useDashboard()
-const { displayModeNet} = useNetGrossDisplay()
+const { displayModeNet } = useNetGrossDisplay()
 const filterLoading = ref(false)
+const chartsReady = ref(false)
 const { t, locale } = useI18n()
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {
@@ -183,18 +164,18 @@ const accountOptions = computed(() => {
 // Calculer le capital de départ si un seul compte est sélectionné
 const startingCapital = computed(() => {
     const selectedAccountIds = userStore.dashBoardFilters.accountIds
-    
+
     // Vérifier qu'un seul compte est sélectionné
     if (!selectedAccountIds || selectedAccountIds.length !== 1) {
         return null
     }
-    
+
     // Trouver le compte sélectionné
     const selectedAccount = accounts.value.find(acc => acc.id === selectedAccountIds[0])
     if (!selectedAccount) {
         return null
     }
-    
+
     // Extraire le capital de départ depuis metadata
     const capital = metadataHelpers.get<number>(selectedAccount.metadata, 'startingCapital')
     return capital ?? null
@@ -232,13 +213,20 @@ onMounted(async () => {
         userStore.dashBoardFilters.last_results = []
     }
 
-    await fetchAccounts()
+    nextTick(async () => {
+        await fetchAccounts()
 
-    // Fetch les données seulement si le tableau est vide (première visite ou après déconnexion)
-    // Cela évite le flash visuel lors du remount du composant
-    if (userStore.dashBoardFilters.last_results.length === 0) {
-        await onApplyFilters()
-    }
+        // Fetch les données seulement si le tableau est vide (première visite ou après déconnexion)
+        // Cela évite le flash visuel lors du remount du composant
+        if (userStore.dashBoardFilters.last_results.length === 0) {
+            await onApplyFilters()
+        }
+
+        // Activer le rendu des graphiques après un court délai pour ne pas bloquer le rendu initial
+        setTimeout(() => {
+            chartsReady.value = true
+        }, 50)
+    })
 })
 
 const onApplyFilters = async () => {
