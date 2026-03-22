@@ -104,8 +104,9 @@
         <!-- Modal pour afficher les trades d'une journée -->
         <CommonModalDefault v-model:open="showDayModal" :title="dayModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
-                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false" v-model:show-table="dayModalShowTable"
-                    :group-date="selectedDayDate" :group-trades="selectedDay.trades" />
+                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false"
+                    v-model:show-table="dayModalShowTable" :group-date="selectedDayDate"
+                    :group-trades="selectedDay.trades" />
                 <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_day') }}</div>
                 </div>
@@ -116,8 +117,9 @@
         <CommonModalDefault v-model:open="showWeekModal" :title="weekModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
                 <template v-for="day in selectedWeekDays" :key="day.dayNumber">
-                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false" v-model:show-table="weekModalShowTable[day.dayNumber]"
-                        :group-date="getDateFromDay(day)" :group-trades="day.trades" />
+                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false"
+                        v-model:show-table="weekModalShowTable[day.dayNumber]" :group-date="getDateFromDay(day)"
+                        :group-trades="day.trades" />
                 </template>
                 <div v-if="!selectedWeekDays.some(d => d.count > 0)"
                     class="py-8 text-center text-gray-500 dark:text-gray-400">
@@ -201,9 +203,9 @@ const dayModalTitle = computed(() => {
 
 const openDayModal = async (day: DayData) => {
     if (!day.isCurrentMonth || day.count === 0) return
-    
+
     startLoading()
-    
+
     await new Promise<void>((resolve) => setTimeout(() => {
         selectedDay.value = day
         showDayModal.value = true
@@ -244,7 +246,7 @@ const openWeekModal = async (week: WeekData) => {
     if (!hasTradesInWeek) return
 
     startLoading()
-    
+
     // Utiliser une Promise pour attendre le setTimeout
     await new Promise<void>((resolve) => {
         setTimeout(() => {
@@ -260,7 +262,7 @@ const openWeekModal = async (week: WeekData) => {
             resolve()
         }, 100)
     })
-    
+
     stopLoading()
 }
 
@@ -298,7 +300,7 @@ const getDaysStats = () => {
     })
 
     const stats: { [key: string]: { count: number; pnl: number; commission: number; trades: TradeExtendedType[] } } = {}
-    
+
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
         const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
@@ -414,20 +416,27 @@ onMounted(async () => {
     if (settings?.autoDataSync) {
         userStore.calendarFilters.last_results = []
     }
+    nextTick(async () => {
+        if (settings?.autoDataSync)
+            filterLoading.value = true
 
-    await fetchAccounts()
+        await fetchAccounts()
 
-    // Initialiser calendarValue avec le mois sélectionné
-    const [year, month] = selectedMonth.value.split('-').map(Number)
-    calendarValue.value = new CalendarDate(year, month, 1)
+        // Initialiser calendarValue avec le mois sélectionné
+        const [year, month] = selectedMonth.value.split('-').map(Number)
+        calendarValue.value = new CalendarDate(year, month, 1)
 
-    const needForceCalendar = userStore.calendarFilters.last_results.length === 0
-    await applyCalendar(selectedMonth.value, needForceCalendar)
+        const needForceCalendar = userStore.calendarFilters.last_results.length === 0
+        await applyCalendar(selectedMonth.value, needForceCalendar)
 
-    if (userStore.shouldRefreshData() && userStore.calendarFilters.last_results.length > 0) {
-        await forceReactivity()
-        userStore.clearDataRefresh()
-    }
+        if (userStore.shouldRefreshData() && userStore.calendarFilters.last_results.length > 0) {
+            await forceReactivity()
+            userStore.clearDataRefresh()
+        }
+
+        filterLoading.value = false
+
+    })
 })
 
 watch([() => userStore.calendarFilters.accountIds, accounts], ([currentIds, accountsList]) => {
@@ -459,7 +468,7 @@ watch(selectedMonth, (newMonth) => {
 watch([showDayModal, showWeekModal], ([newDay, newWeek], [oldDay, oldWeek]) => {
     const dayModalClosed = oldDay === true && newDay === false
     const weekModalClosed = oldWeek === true && newWeek === false
-    
+
     if (dayModalClosed || weekModalClosed) {
         forceReactivity()
     }

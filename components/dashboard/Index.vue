@@ -214,6 +214,9 @@ onMounted(async () => {
     }
 
     nextTick(async () => {
+        if (settings?.autoDataSync)
+            filterLoading.value = true
+
         await fetchAccounts()
 
         // Fetch les données seulement si le tableau est vide (première visite ou après déconnexion)
@@ -226,6 +229,9 @@ onMounted(async () => {
         setTimeout(() => {
             chartsReady.value = true
         }, 50)
+
+        filterLoading.value = false
+
     })
 })
 
