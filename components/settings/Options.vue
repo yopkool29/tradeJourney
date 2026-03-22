@@ -321,7 +321,7 @@
                         </div>
 
                         <!-- Cumulated P&L Chart -->
-                        <div class="mb-6">
+                        <!-- <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_cumulated_pnl') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
                                 <UFormField v-if="!isDark" :label="$t('components.settings.options.color_point')">
@@ -339,7 +339,7 @@
                                     />
                                 </UFormField>
                             </div>
-                        </div>
+                        </div> -->
 
                         <!-- APPT Chart -->
                         <div class="mb-6">

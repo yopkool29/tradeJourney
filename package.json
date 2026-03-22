@@ -13,7 +13,7 @@
     "postinstall": "nuxt prepare",
     "test": "vitest",
     "lint": "eslint \"**/*.{js,ts,vue}\" --ignore-pattern \"temp/**\" --rule '@typescript-eslint/no-unused-vars: off'",
-    "count": "find . -type f \\( -name \"*.vue\" -o -name \"*.ts\" -o -name \"*.js\" -o -name \"*.prisma\" -o -name \"*.py\" \\) -not -path \"*/node_modules/*\" -not -path \"*/generated/*\" -not -path \"*/.nuxt/*\" -not -path \"*/.ouput/*\" -not -path \"*/.vscode/*\" -not -path \"*/temp/*\" | xargs wc -l"
+    "count": "find . -type f \\( -name \"*.vue\" -o -name \"*.ts\" -o -name \"*.js\" -o -name \"*.prisma\" -o -name \"*.py\" \\) -not -path \"*/node_modules/*\" -not -path \"*/generated/*\" -not -path \"*/.nuxt/*\" -not -path \"*/.output/*\" -not -path \"*/.vscode/*\" -not -path \"*/temp/*\" -not -path \"*/.venv/*\" | xargs wc -l"
   },
   "dependencies": {
     "@internationalized/date": "^3.11.0",
