@@ -38,3 +38,6 @@ docs/README_CONVERTER_TO_STANDARD_CSV.md
 docs/STANDARD_CSV_FORMAT.md
 docs/*.js
 tradeJourney-tools/python/*.csv
+
+# Website (separate Git repo)
+website/
