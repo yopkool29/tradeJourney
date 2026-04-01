@@ -345,8 +345,8 @@ watch(
     () => userStore.logFix,
     async () => {
         log_info('🔧 Correction des commissions négatives...')
-        const { fixNegativeCommissions } = useFix()
-        await fixNegativeCommissions()
+        // const { fixNegativeCommissions } = useFix()
+        // await fixNegativeCommissions()
     }
 )
 

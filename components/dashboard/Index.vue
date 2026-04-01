@@ -161,24 +161,31 @@ const accountOptions = computed(() => {
     })
 })
 
-// Calculer le capital de départ si un seul compte est sélectionné
+// Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
     const selectedAccountIds = userStore.dashBoardFilters.accountIds
 
-    // Vérifier qu'un seul compte est sélectionné
-    if (!selectedAccountIds || selectedAccountIds.length !== 1) {
-        return null
+    // Filtrer les comptes sélectionnés qui existent réellement
+    let availableAccounts = accounts.value
+    if (selectedAccountIds && selectedAccountIds.length > 0) {
+        availableAccounts = accounts.value.filter(acc => selectedAccountIds.includes(acc.id))
     }
 
-    // Trouver le compte sélectionné
-    const selectedAccount = accounts.value.find(acc => acc.id === selectedAccountIds[0])
-    if (!selectedAccount) {
-        return null
+    // Additionner les capitaux de départ de tous les comptes disponibles
+    let totalCapital = 0
+
+    for (const account of availableAccounts) {
+        const capital = metadataHelpers.get<number>(account.metadata, 'startingCapital')
+        if (capital !== null && capital !== undefined) {
+            totalCapital += capital
+        }
+        else {
+            return null
+        }
     }
 
-    // Extraire le capital de départ depuis metadata
-    const capital = metadataHelpers.get<number>(selectedAccount.metadata, 'startingCapital')
-    return capital ?? null
+    // Retourner le total si au moins un compte a un capital, sinon null
+    return totalCapital
 })
 
 const startDateStr = computed({
