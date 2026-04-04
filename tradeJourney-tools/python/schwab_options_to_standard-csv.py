@@ -301,7 +301,7 @@ def match_trades_with_cash(trades: List[OptionTrade], cash_transactions: List[Ca
     for trade in trades:
         # Find matching cash transaction by time and spread type
         matching_cash = None
-        best_match_score = -1
+        best_match_score = -1.0
 
         for i, cash in enumerate(cash_transactions):
             if i in used_cash:
@@ -341,7 +341,7 @@ def pair_open_close_trades(matched_trades: List[Tuple[OptionTrade, Optional[Cash
         List of complete trade dictionaries
     """
     complete_trades = []
-    open_positions = {}  # Key: (symbol, spread_type, strikes_tuple)
+    open_positions: Dict[Tuple[str, str, Tuple[float, ...], str], List[Dict]] = {}  # Key: (symbol, spread_type, strikes_tuple, option_type)
 
     # First pass: collect all trades
     for trade, cash in matched_trades:

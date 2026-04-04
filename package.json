@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.11.0",
-    "@nuxt/eslint": "1.4.1",
+    "@nuxt/eslint": "^1.15.2",
     "@nuxt/fonts": "0.11.4",
     "@nuxt/icon": "1.13.0",
     "@nuxt/image": "1.10.0",
@@ -79,7 +79,7 @@
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
     "formidable": "^3.5.4",
-    "happy-dom": "^17.6.3",
+    "happy-dom": "^20.8.9",
     "jsonwebtoken": "^9.0.2",
     "mcp-remote": "^0.1.17",
     "node-html-parser": "^7.0.1",
