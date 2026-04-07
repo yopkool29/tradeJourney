@@ -113,7 +113,7 @@
                 <div v-if="trade.tags && trade.tags.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.tags') }}</span>
                     <div class="flex flex-wrap gap-1 mt-1">
-                        <UBadge v-for="tag in trade.tags" :key="tag.id" color="neutral">
+                        <UBadge v-for="tag in trade.tags" :key="tag.id" :style="getTagStyle(tag)">
                             {{ tag.name }}
                         </UBadge>
                     </div>
@@ -141,8 +141,8 @@
 
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
-const colorMode = useColorMode()
 const { getDigitFromSymbol } = useSymbols()
+const { getTagStyle } = useTags()
 
 const props = defineProps<{
     trade: TradeExtendedType | null
@@ -160,7 +160,7 @@ const isOpen = computed({
 
 const { formatCurrency } = useUtils()
 const userStore = useUserStore()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 
 const showScreenshots = ref(false)
 const currentScreenshotIndex = ref(0)
