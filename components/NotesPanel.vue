@@ -121,9 +121,9 @@
         </template>
         <template #footer>
             <div class="flex gap-4 justify-end">
-                <UButton :label="$t('components.notes_panel.unsaved_modal.discard')" color="error" variant="ghost" @click="onUnsavedDiscard" />
-                <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="() => { showUnsavedModal = false; pendingAction = null }" />
                 <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" @click="onUnsavedSaveAndContinue" />
+                <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="() => { showUnsavedModal = false; pendingAction = null }" />
+                <UButton :label="$t('components.notes_panel.unsaved_modal.discard')" color="error" variant="ghost" @click="onUnsavedDiscard" />
             </div>
         </template>
     </CommonModalDefault>
@@ -197,7 +197,7 @@ const isDark = computed(() => colorMode.value === 'dark')
 const noteDatesGrouped = computed(() => {
     const grouped = new Map<string, NoteType[]>()
     
-    noteDates.value.forEach(note => {
+    noteDates.value.forEach((note: NoteType) => {
         const dateKey = formatDateToYYYYMMDD(note.date)
         if (!grouped.has(dateKey)) {
             grouped.set(dateKey, [])
@@ -286,8 +286,8 @@ const loadNotes = async () => {
         // Restaurer la dernière note vue, sinon sélectionner la plus récente
         if (!selectedNote.value && noteDates.value.length > 0) {
             const lastId = userStore.lastViewedNoteId
-            const lastNote = lastId ? noteDates.value.find(n => n.id === lastId) : null
-            const noteToSelect = lastNote ?? noteDates.value.sort((a, b) =>
+            const lastNote = lastId ? noteDates.value.find((n: NoteType) => n.id === lastId) : null
+            const noteToSelect = lastNote ?? noteDates.value.sort((a: NoteType, b: NoteType) =>
                 new Date(b.date).getTime() - new Date(a.date).getTime()
             )[0]
             selectNote(noteToSelect)
@@ -298,12 +298,37 @@ const loadNotes = async () => {
     }
 }
 
+const convertBlobsToBase64 = async (markdown: string): Promise<string> => {
+    const blobRegex = /!\[([^\]]*)\]\((blob:[^)]+)\)/g
+    const matches = [...markdown.matchAll(blobRegex)]
+    if (matches.length === 0) return markdown
+
+    let result = markdown
+    for (const match of matches) {
+        const [full, alt, blobUrl] = match
+        try {
+            const response = await fetch(blobUrl)
+            const blob = await response.blob()
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result as string)
+                reader.onerror = reject
+                reader.readAsDataURL(blob)
+            })
+            result = result.replace(full, `![${alt}](${base64})`)
+        } catch {
+            // blob URL expired or invalid - leave as-is
+        }
+    }
+    return result
+}
+
 // Sauvegarder la note
 const saveNote = async () => {
     if (!selectedNote.value) return
 
     try {
-        const noteContent = getContent().trim()
+        const noteContent = await convertBlobsToBase64(getContent().trim())
         const noteData = {
             date: selectedNote.value.date,
             content: noteContent,
@@ -317,6 +342,7 @@ const saveNote = async () => {
             if (savedNote) {
                 selectedNote.value = savedNote
                 savedContent.value = noteContent
+                await setContent(noteContent)
                 await loadNotes() // Recharger la liste
 
                 toastSuccess(t('components.notes_panel.toast.save_success_title'), t('components.notes_panel.toast.save_success_desc'))
@@ -413,7 +439,7 @@ const deleteNoteConfirmed = async () => {
 // Surveiller l'ouverture/fermeture du panneau
 watch(
     () => props.isOpen,
-    async (isOpen) => {
+    async (isOpen: boolean) => {
         if (isOpen) {
             selectedNote.value = null
             await loadNotes() // Charger les notes à l'ouverture
@@ -424,13 +450,13 @@ watch(
 
 // Gérer Ctrl+S pour sauvegarder et fermer, Echap pour fermer
 const handleKeyDown = async (e: KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         if (props.isOpen) {
             e.preventDefault()
             // console.log("handleKeyDown")
             await saveNote()
         }
-    } else if (e.key === 'Escape') {
+    } else if (e.key.toLowerCase() === 'escape') {
         if (props.isOpen) {
             e.preventDefault()
             closePanel()
