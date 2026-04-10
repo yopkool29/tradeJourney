@@ -1,7 +1,3 @@
-/**
- * Database connection management utilities
- * Handles both Auth DB (singleton) and Data DB (dynamic per user)
- */
 import type { H3Event, EventHandlerRequest } from 'h3'
 import { PrismaClient as AuthPrismaClient } from '~/generated/prisma-auth'
 import { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
@@ -12,7 +8,7 @@ import { existsSync } from 'fs'
 // Singleton instance for Auth database
 let authDbInstance: AuthPrismaClient | null = null
 
-export function buildShemaName(userId: number, dbName: string): string {
+export const buildShemaName = (userId: number, dbName: string): string => {
     const schema = `user_${userId}_db_${dbName}`
     if (!/^[a-zA-Z0-9_]+$/.test(schema)) {
         throw new Error(`Invalid schema name: ${schema}. Schema names must only contain alphanumeric characters and underscores.`)
@@ -20,15 +16,12 @@ export function buildShemaName(userId: number, dbName: string): string {
     return schema
 }
 
-export function buildRoleName(userId: number, dbName: string): string {
+export const buildRoleName = (userId: number, dbName: string): string => {
     const schemaName = buildShemaName(userId, dbName)
     return `role_${schemaName}`
 }
 
-/**
- * Get Auth database connection (singleton)
- */
-export function getAuthDb(): AuthPrismaClient {
+export const getAuthDb = (): AuthPrismaClient => {
     if (!authDbInstance) {
         authDbInstance = new AuthPrismaClient()
     }
@@ -39,13 +32,7 @@ export function getAuthDb(): AuthPrismaClient {
 // Clients older than 1 hour are automatically recreated to avoid stale connections
 const dataDbCache = new Map<string, { client: DataPrismaClient; createdAt: number }>()
 
-/**
- * Get Data database connection for a specific user and database
- * This function enforces role-based isolation for security
- * @param userId - User ID
- * @param dbName - Database name
- */
-export async function getDataDb(userId: number, dbName: string): Promise<DataPrismaClient> {
+export const getDataDb = async (userId: number, dbName: string): Promise<DataPrismaClient> => {
     // Construct schema name from userId and dbName
     const schemaName = buildShemaName(userId, dbName)
 
@@ -105,14 +92,9 @@ export async function getDataDb(userId: number, dbName: string): Promise<DataPri
     return client
 }
 
-/**
- * Get Data database connection WITHOUT role check
- * WARNING: This function should ONLY be used during schema creation
- * It bypasses role-based isolation and should never be used for normal operations
- * @param userId - User ID
- * @param dbName - Database name
- */
-export function getDataDbUnsafe(userId: number, dbName: string): DataPrismaClient {
+// WARNING: This function should ONLY be used during schema creation
+// It bypasses role-based isolation and should never be used for normal operations
+export const getDataDbUnsafe = (userId: number, dbName: string): DataPrismaClient => {
     // Construct schema name from userId and dbName
     const schemaName = buildShemaName(userId, dbName)
 
@@ -139,18 +121,11 @@ export function getDataDbUnsafe(userId: number, dbName: string): DataPrismaClien
     return client
 }
 
-/**
- * Create a new data database (schema) for a user
- * @param userId - User ID
- * @param dbName - Database name (technical name/slug, e.g., "default", "trading_2024")
- * @param displayName - Display name (e.g., "Default Database", "Trading 2024")
- * @returns Database record
- */
-export async function createUserDatabase(
+export const createUserDatabase = async (
     userId: number,
     dbName: string,
     displayName: string
-) {
+) => {
     const authDb = getAuthDb()
 
     // Generate schema name: user_{userId}_db_{dbName}
@@ -271,13 +246,7 @@ export async function createUserDatabase(
 }
 
 
-/**
- * Validate that a database exists in the auth database
- * @param userId - User ID
- * @param dbName - Database name to validate
- * @throws Error if database doesn't exist for this user
- */
-export async function validateSchemaExists(userId: number, dbName: string): Promise<void> {
+export const validateSchemaExists = async (userId: number, dbName: string): Promise<void> => {
     const authDb = getAuthDb()
 
     // Validate schema name format
@@ -300,13 +269,7 @@ export async function validateSchemaExists(userId: number, dbName: string): Prom
     }
 }
 
-/**
- * Get Prisma client from event context (for API routes)
- * This is a convenience function that extracts userId and dbName from the event context
- * @param event - H3 event
- * @returns DataPrismaClient instance
- */
-export async function getPrisma(event: H3Event<EventHandlerRequest>): Promise<DataPrismaClient> {
+export const getPrisma = async (event: H3Event<EventHandlerRequest>): Promise<DataPrismaClient> => {
     const userId = Number(event.context.userId)
     const dbName = event.context.dbName as string
 
@@ -317,13 +280,7 @@ export async function getPrisma(event: H3Event<EventHandlerRequest>): Promise<Da
     return await getDataDb(userId, dbName)
 }
 
-/**
- * Close all database connections
- * NOTE: This function is only useful for tests or CLI scripts.
- * In production, Prisma manages connection lifecycle automatically.
- * DO NOT call this in API routes as it would disconnect all users.
- */
-// export async function closeAllConnections() {
+// export const closeAllConnections = async () => {
 //     if (authDbInstance) {
 //         await authDbInstance.$disconnect()
 //         authDbInstance = null

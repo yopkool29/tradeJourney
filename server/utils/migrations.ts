@@ -14,43 +14,31 @@ interface MigrationsManifest {
     migrations: Migration[]
 }
 
-/**
- * Get the max version from the migrations list
- */
-export function getMaxVersion(manifest: MigrationsManifest): number {
+export const getMaxVersion = (manifest: MigrationsManifest): number => {
     if (manifest.migrations.length === 0) return 0
     return Math.max(...manifest.migrations.map(m => m.version))
 }
 
-/**
- * Load the migrations manifest
- */
-export async function loadMigrationsManifest(): Promise<MigrationsManifest> {
+export const loadMigrationsManifest = async (): Promise<MigrationsManifest> => {
     const manifestPath = join(process.cwd(), 'scripts/migrations/migrations.json')
     const content = await readFile(manifestPath, 'utf-8')
     return JSON.parse(content)
 }
 
-/**
- * Get pending migrations for a schema
- */
-function getPendingMigrations(
+const getPendingMigrations = (
     currentVersion: number,
     manifest: MigrationsManifest
-): Migration[] {
+): Migration[] => {
     return manifest.migrations
         .filter(m => m.version > currentVersion)
         .sort((a, b) => a.version - b.version)
 }
 
-/**
- * Apply a single migration to a schema
- */
-async function applyMigration(
+const applyMigration = async (
     dataDb: DataPrismaClient,
     schemaName: string,
     migration: Migration
-): Promise<void> {
+): Promise<void> => {
     const migrationPath = join(process.cwd(), 'scripts/migrations', migration.file)
     let sqlScript = await readFile(migrationPath, 'utf-8')
 
@@ -87,14 +75,11 @@ async function applyMigration(
     console.log(`✅ Applied migration ${migration.version}: ${migration.name} to schema ${schemaName}`)
 }
 
-/**
- * Apply all pending migrations to a schema
- */
-export async function applyPendingMigrations(
+export const applyPendingMigrations = async (
     dataDb: DataPrismaClient,
     schemaName: string,
     currentVersion: number
-): Promise<number> {
+): Promise<number> => {
     const manifest = await loadMigrationsManifest()
     const pendingMigrations = getPendingMigrations(currentVersion, manifest)
 
@@ -115,16 +100,12 @@ export async function applyPendingMigrations(
     return newVersion
 }
 
-/**
- * Initialize a new schema with all migrations up to current version
- * This applies all migrations from version 0 to currentVersion
- */
-export async function initializeSchemaWithMigrations(
+export const initializeSchemaWithMigrations = async (
     dataDb: DataPrismaClient,
     schemaName: string,
     roleName: string,
     mainUser: string
-): Promise<number> {
+): Promise<number> => {
     const manifest = await loadMigrationsManifest()
 
     console.log(`📦 Initializing schema ${schemaName} with ${manifest.migrations.length} migration(s)...`)

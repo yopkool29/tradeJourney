@@ -1,11 +1,6 @@
 import { createError as h3CreateError } from 'h3';
 import type { H3Error } from 'h3';
 
-/**
- * Surcharge de la fonction createError de H3 qui ajoute automatiquement
- * le message d'erreur dans data.message pour faciliter la récupération
- * côté client
- */
 export type AppErrorParams = {
     statusCode?: number
     message?: string
@@ -14,11 +9,7 @@ export type AppErrorParams = {
     data?: Record<string, unknown>
 }
 
-/**
- * Fonction utilitaire pour extraire les données d'une erreur de manière sécurisée
- * et éviter les niveaux imbriqués de data
- */
-export function extractErrorData(error: unknown): Record<string, unknown> {
+export const extractErrorData = (error: unknown): Record<string, unknown> => {
     if (!error || typeof error !== 'object') {
         return {};
     }
@@ -40,8 +31,7 @@ export function extractErrorData(error: unknown): Record<string, unknown> {
     return {};
 }
 
-// Dans errors.ts
-export function createAppError(params: AppErrorParams): H3Error {
+export const createAppError = (params: AppErrorParams): H3Error => {
     const { message, data = {}, error, tag, ...rest } = params;
 
     // Extraire les données de l'erreur précédente en évitant les imbrications

@@ -8,12 +8,7 @@ export interface AccountInfoImport {
     tradingDays: string[];
 }
 
-/**
- * Get upload path for a specific database
- * @param userId - User ID
- * @param dbName - Database name
- */
-export function getUploadPath(userId: number, dbName: string): string {
+export const getUploadPath = (userId: number, dbName: string): string => {
     return `./upload/user_${userId}_data/${dbName}/screenshots`
 }
 
@@ -50,11 +45,6 @@ export interface TradesImport {
     metadata?: string;
 }
 
-/**
- * Met à jour les profits des trades futures en fonction du prix par point
- * @param trades Liste des trades à mettre à jour
- * @param symbolFilter Filtre optionnel sur le symbole
- */
 // export const updateFuturesTradesProfit = async (trades: TradesImport[], symbolFilter?: string) => {
 //     try {
 //         // Récupérer tous les symboles uniques

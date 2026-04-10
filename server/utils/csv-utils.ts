@@ -1,9 +1,4 @@
-/**
- * Parse une ligne CSV en tenant compte des guillemets et des guillemets échappés ("")
- * @param line - Ligne CSV à parser
- * @returns Tableau des valeurs
- */
-export function parseCSVLine(line: string): string[] {
+export const parseCSVLine = (line: string): string[] => {
     const values: string[] = []
     let current = ''
     let inQuotes = false

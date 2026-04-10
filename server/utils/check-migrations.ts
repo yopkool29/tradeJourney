@@ -1,6 +1,3 @@
-/**
- * Utility to check and apply pending migrations for a schema
- */
 import { getAuthDb, getDataDb } from './db'
 import { applyPendingMigrations, loadMigrationsManifest, getMaxVersion } from './migrations'
 import type { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
@@ -9,15 +6,11 @@ import type { H3Event, EventHandlerRequest } from 'h3'
 // Cache to track which schemas have been checked in this session
 const checkedSchemas = new Set<string>()
 
-/**
- * Check if a schema needs migrations and apply them if necessary
- * This should be called when connecting to an existing schema
- */
-export async function checkAndApplyMigrations(
+export const checkAndApplyMigrations = async (
     dataDb: DataPrismaClient,
     userId: number,
     dbName: string
-): Promise<void> {
+): Promise<void> => {
     const authDb = getAuthDb()
 
     // Get the database record from auth DB
@@ -60,20 +53,11 @@ export async function checkAndApplyMigrations(
 }
 
 
-/**
- * Ensure migrations are applied for a user's database
- * This should be called at the beginning of API endpoints that use the data DB
- * 
- * @param event - H3 event
- * @param userId - User ID
- * @param dbName - Database name
- * @returns DataPrismaClient instance
- */
-export async function ensureMigrationsApplied(
+export const ensureMigrationsApplied = async (
     event: H3Event<EventHandlerRequest>,
     userId: number,
     dbName: string
-) {
+) => {
     const schemaKey = `${userId}_${dbName}`
     
     // Get the data DB client
@@ -94,10 +78,7 @@ export async function ensureMigrationsApplied(
     return dataDb
 }
 
-/**
- * Clear the migration check cache (useful for testing or manual migration triggers)
- */
-export function clearMigrationCache(userId?: number, dbName?: string) {
+export const clearMigrationCache = (userId?: number, dbName?: string) => {
     if (userId && dbName) {
         const schemaKey = `${userId}_${dbName}`
         checkedSchemas.delete(schemaKey)
