@@ -21,11 +21,13 @@ export default defineEventHandler(async (event) => {
                 date: noteDate
             },
             update: {
-                content: body.content
+                content: body.content,
+                metadata: body.metadata ?? undefined
             },
             create: {
                 date: noteDate,
                 content: body.content,
+                metadata: body.metadata ?? undefined
             }
         })
 

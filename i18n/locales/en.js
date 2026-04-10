@@ -362,6 +362,7 @@ export default {
             },
             header: {
                 notes_of: 'Notes of {date}',
+                subtitle_placeholder: 'Add a subtitle...',
             },
             editor: {
                 placeholder: 'Start writing your note...',

@@ -78,7 +78,17 @@
                 <!-- En-tête -->
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <div class="flex-1">
-                        <h2 class="text-lg font-semibold">{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}</h2>
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-lg font-semibold whitespace-nowrap">{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}</h2>
+                            <input
+                                v-if="selectedNote"
+                                v-model="noteSubtitle"
+                                type="text"
+                                :placeholder="$t('components.notes_panel.header.subtitle_placeholder')"
+                                class="flex-1 text-sm bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 transition-colors"
+                                spellcheck="false"
+                            />
+                        </div>
                         <div v-if="selectedNote" class="text-sm text-gray-500 dark:text-gray-400">
                             {{ formatNoteTime(selectedNote.date) }}
                         </div>
@@ -180,18 +190,20 @@ const pendingAction = ref<(() => void) | null>(null)
 
 // État pour l'éditeur Milkdown
 const { 
-    editor: milkdownEditor, 
     loading: editorLoading, 
     containerRef: editorContainer,
     getContent, 
     setContent 
 } = useMilkdownEditor('')
 
-const isDirty = computed(() => getContent().trim() !== savedContent.value.trim())
+const noteSubtitle = ref('')
+const savedSubtitle = ref('')
+const isDirty = computed(() =>
+    getContent().trim() !== savedContent.value.trim() ||
+    noteSubtitle.value !== savedSubtitle.value
+)
 
 const { t, locale } = useI18n()
-const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
 
 // Grouper les notes par date
 const noteDatesGrouped = computed(() => {
@@ -218,10 +230,7 @@ const noteDatesGrouped = computed(() => {
 
 const selectedNoteId = computed(() => selectedNote.value?.id || null)
 
-// Formater la date pour l'affichage
-const formattedDate = computed(() => {
-    return formatDateLongString(props.selectedDate, locale.value)
-})
+const formattedDate = computed(() => formatDateLongString(props.selectedDate, locale.value))
 
 // Formater l'heure d'une note
 const formatNoteTime = (date: string | Date) => {
@@ -235,6 +244,9 @@ const formatNoteTime = (date: string | Date) => {
 const doSelectNote = (note: NoteType) => {
     selectedNote.value = note
     userStore.setLastViewedNoteId(note.id ?? null)
+    const subtitle = note.metadata?.subtitle || ''
+    noteSubtitle.value = subtitle
+    savedSubtitle.value = subtitle
     const c = note.content || ''
     savedContent.value = c
     setContent(c)
@@ -260,22 +272,13 @@ const createNewNote = (date: string) => {
         content: '',
         metadata: {}
     }
-    
+
+    noteSubtitle.value = ''
+    savedSubtitle.value = ''
     selectedNote.value = newNote as NoteType
     setContent('')
 }
 
-
-// Charger les dates des notes existantes
-const loadNoteDates = async () => {
-    try {
-        const dates = await fetchNoteDates()
-        noteDates.value = dates as NoteType[]
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
 
 // Charger les notes existantes
 const loadNotes = async () => {
@@ -332,7 +335,7 @@ const saveNote = async () => {
         const noteData = {
             date: selectedNote.value.date,
             content: noteContent,
-            metadata: selectedNote.value.metadata || {}
+            metadata: { ...(selectedNote.value.metadata || {}), subtitle: noteSubtitle.value }
         }
 
         if (noteContent) {
@@ -342,6 +345,7 @@ const saveNote = async () => {
             if (savedNote) {
                 selectedNote.value = savedNote
                 savedContent.value = noteContent
+                savedSubtitle.value = noteSubtitle.value
                 await setContent(noteContent)
                 await loadNotes() // Recharger la liste
 
@@ -453,7 +457,6 @@ const handleKeyDown = async (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         if (props.isOpen) {
             e.preventDefault()
-            // console.log("handleKeyDown")
             await saveNote()
         }
     } else if (e.key.toLowerCase() === 'escape') {
@@ -474,8 +477,8 @@ onBeforeUnmount(() => {
 
 defineExpose({
     saveNote,
-    createNewNote: (date: string) => createNewNote(date),
-    selectNote: (note: NoteType) => selectNote(note)
+    createNewNote,
+    selectNote
 })
 </script>
 

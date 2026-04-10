@@ -338,6 +338,7 @@ export default {
             },
             header: {
                 notes_of: 'Notes du {date}',
+                subtitle_placeholder: 'Ajouter un sous-titre...',
             },
             editor: {
                 placeholder: 'Commencez à écrire votre note...',

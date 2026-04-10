@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
                 id: true,
                 date: true,
                 content: true,
+                metadata: true,
                 updatedAt: true
             },
             orderBy: { date: 'desc' }
