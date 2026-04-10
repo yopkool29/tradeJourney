@@ -1,13 +1,9 @@
-/**
- * Composable for database management
- */
-
 interface Database {
     id: number
     name: string
     displayName: string
     isDefault: boolean
-    createdAt?: string
+    createdAt: string
 }
 
 const DB_STORAGE_KEY = 'currentDatabase'
@@ -37,12 +33,9 @@ export const useDatabase = () => {
         })
     }
 
-    /**
-     * Fetch list of databases for current user
-     */
     const fetchDatabases = async () => {
         try {
-            const data = await $fetch<Database[]>('/api/database/list')
+            const data = await $fetch('/api/database/list')
             databases.value = data
             return data
         } catch (error) {
@@ -51,12 +44,9 @@ export const useDatabase = () => {
         }
     }
 
-    /**
-     * Create a new database
-     */
     const createDatabase = async (name: string, displayName: string) => {
         try {
-            const data = await $fetch<Database>('/api/database/create', {
+            const data = await $fetch('/api/database/create', {
                 method: 'POST',
                 body: { name, displayName }
             })
@@ -68,12 +58,9 @@ export const useDatabase = () => {
         }
     }
 
-    /**
-     * Select a database as active
-     */
     const selectDatabase = async (databaseId: number) => {
         try {
-            const data = await $fetch<Database>('/api/database/select', {
+            const data = await $fetch('/api/database/select', {
                 method: 'POST',
                 body: { databaseId }
             })
@@ -85,9 +72,6 @@ export const useDatabase = () => {
         }
     }
 
-    /**
-     * Delete a database with password verification
-     */
     const deleteDatabase = async (databaseId: number, password: string) => {
         try {
             await $fetch('/api/database/delete', {
@@ -106,19 +90,10 @@ export const useDatabase = () => {
         }
     }
 
-    /**
-     * Get current database from state
-     */
     const getCurrentDatabase = () => currentDatabase.value
 
-    /**
-     * Check if user has any databases
-     */
     const hasDatabases = computed(() => databases.value.length > 0)
 
-    /**
-     * Get default database if exists
-     */
     const getDefaultDatabase = computed(() =>
         databases.value.find(db => db.isDefault) || databases.value[0] || null
     )

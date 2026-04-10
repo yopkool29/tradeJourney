@@ -76,7 +76,7 @@ const initializeData = async () => {
     }
 }
 
-function onError(event: FormErrorEvent) {
+const onError = (event: FormErrorEvent) => {
     const errorMessage = t('components.daily.day_tag_modal.error_form')
     displayMessage(null, errorMessage)
     // Focus sur le premier champ avec erreur
@@ -93,7 +93,7 @@ function onError(event: FormErrorEvent) {
 }
 
 // Soumettre le formulaire
-async function onSubmit(event: FormSubmitEvent<CreateDayTagType | UpdateDayTagType>) {
+const onSubmit = async (event: FormSubmitEvent<CreateDayTagType | UpdateDayTagType>) => {
     if (!props.date) return
     try {
         let result

@@ -1,7 +1,3 @@
-/**
- * Composable pour interagir avec l'API NinjaTrader HTTP
- */
-
 export const useNinjaTraderApi = () => {
     const config = useRuntimeConfig()
     const userStore = useUserStore()
@@ -11,9 +7,6 @@ export const useNinjaTraderApi = () => {
     const port = computed(() => userStore.user?.settings_object?.ninjaTraderApiPort || 8080)
     const ninjaTraderApiUrl = computed(() => `http://localhost:${port.value}`)
 
-    /**
-     * Vérifie si l'API NinjaTrader est accessible
-     */
     const checkApiHealth = async (): Promise<boolean> => {
         try {
             const response = await fetch(`${ninjaTraderApiUrl.value}/api/health`, {
@@ -35,11 +28,6 @@ export const useNinjaTraderApi = () => {
         }
     }
 
-    /**
-     * Récupère les trades depuis l'API NinjaTrader
-     * @param options Options de filtrage
-     * @returns CSV string des trades au format NinjaTrader
-     */
     const fetchTrades = async (options?: {
         account?: string
         startDate?: string
@@ -81,9 +69,6 @@ export const useNinjaTraderApi = () => {
         }
     }
 
-    /**
-     * Récupère les trades au format JSON
-     */
     const fetchTradesJson = async (options?: {
         account?: string
         startDate?: string
@@ -128,6 +113,6 @@ export const useNinjaTraderApi = () => {
         checkApiHealth,
         fetchTrades,
         fetchTradesJson,
-        ninjaTraderApiUrl: ninjaTraderApiUrl.value,
+        ninjaTraderApiUrl,
     }
 }

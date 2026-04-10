@@ -246,7 +246,7 @@ const isDevMode = computed(() => import.meta.env.DEV)
 
 const isDark = computed(() => colorMode.value === 'dark')
 
-async function onLogout() {
+const onLogout = async () => {
     mobileMenuOpen.value = false
     await logout()
     await router.push('/login')
@@ -297,11 +297,11 @@ const menuItems = computed(() => [
     },
 ])
 
-function toggleColorMode() {
+const toggleColorMode = () => {
     colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
 
-function toggleLanguage() {
+const toggleLanguage = () => {
     const newLocale = locale.value === 'fr' ? 'en' : ('fr' as const)
     setLocale(newLocale)
     localStorage.setItem('i18n-locale', newLocale)

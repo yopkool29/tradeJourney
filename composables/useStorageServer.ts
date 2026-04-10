@@ -33,8 +33,9 @@ export const useStorageServer = () => {
             })
 
             return response.files || []
-        } catch (error: any) {
-            log_error(`Failed to list files from storage server: ${error.message}`)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error)
+            log_error(`Failed to list files from storage server: ${message}`)
             return []
         }
     }
@@ -50,8 +51,6 @@ export const useStorageServer = () => {
                 responseType: 'text'
             })
 
-            console.log(storagePassword.value)
-
             // Decrypt the file with password
             const decryptedData = decryptData(encryptedData, storagePassword.value)
             
@@ -63,8 +62,9 @@ export const useStorageServer = () => {
             }
 
             return decryptedData
-        } catch (error: any) {
-            log_error(`Failed to retrieve file ${fileId}: ${error.message}`)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error)
+            log_error(`Failed to retrieve file ${fileId}: ${message}`)
             return null
         }
     }
@@ -79,8 +79,9 @@ export const useStorageServer = () => {
             })
 
             return true
-        } catch (error: any) {
-            log_error(`Failed to delete file ${fileId}: ${error.message}`)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error)
+            log_error(`Failed to delete file ${fileId}: ${message}`)
             return false
         }
     }

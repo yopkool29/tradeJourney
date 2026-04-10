@@ -1,11 +1,3 @@
-/**
- * Decryption utilities for MT5 encrypted data
- * Algorithm: XOR(password) -> Base64 decode -> ROT13
- */
-
-/**
- * Apply ROT13 cipher to text
- */
 export const applyROT13 = (text: string): string => {
   return text.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0)
@@ -14,9 +6,6 @@ export const applyROT13 = (text: string): string => {
   })
 }
 
-/**
- * Decode Base64 to bytes array
- */
 const base64ToBytes = (text: string): number[] | null => {
   try {
     const cleaned = text.replace(/[\s\r\n]/g, '')
@@ -48,9 +37,6 @@ const base64ToBytes = (text: string): number[] | null => {
   }
 }
 
-/**
- * Encode bytes array to Base64
- */
 const bytesToBase64 = (bytes: number[]): string => {
   const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   let result = ''
@@ -68,18 +54,12 @@ const bytesToBase64 = (bytes: number[]): string => {
   return result
 }
 
-/**
- * Decode Base64 to string (UTF-8)
- */
 export const decodeBase64 = (text: string): string | null => {
   const bytes = base64ToBytes(text)
   if (!bytes) return null
   return new TextDecoder('utf-8').decode(new Uint8Array(bytes))
 }
 
-/**
- * XOR decrypt: decode Base64, XOR with password, return ASCII string (which is Base64)
- */
 export const decryptXOR = (base64String: string, password: string): string | null => {
   try {
     if (!password) return null
@@ -105,16 +85,10 @@ export const decryptXOR = (base64String: string, password: string): string | nul
   }
 }
 
-/**
- * Check if string is valid Base64
- */
 const isBase64 = (str: string): boolean => {
   return /^[A-Za-z0-9+/]*={0,2}$/.test(str.trim())
 }
 
-/**
- * Full decryption: Base64 -> XOR(password) -> Base64 decode -> ROT13
- */
 export const decryptData = (encryptedData: string, password: string): string | null => {
   try {
     const cleanData = encryptedData.trim()
@@ -128,7 +102,6 @@ export const decryptData = (encryptedData: string, password: string): string | n
     
     // Check if data looks like Base64 (not hex)
     if (!isBase64(cleanData)) {
-      console.log('Data is not valid Base64')
       return null
     }
     
@@ -147,19 +120,13 @@ export const decryptData = (encryptedData: string, password: string): string | n
     }
     
     // Step 3: ROT13
-    const plainText = applyROT13(rot13Text)
-    
-    console.log(`Decrypted successfully: ${plainText.length} bytes`)
-    return plainText
+    return applyROT13(rot13Text)
   } catch (e) {
     console.error('Decryption failed:', e)
     return null
   }
 }
 
-/**
- * Decrypt CSV data and parse to array of objects
- */
 export const decryptCSV = (encryptedData: string, password: string): Record<string, string>[] | null => {
   const csvText = decryptData(encryptedData, password)
   if (!csvText) return null

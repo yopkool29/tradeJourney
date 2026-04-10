@@ -5,7 +5,7 @@ import { normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/da
 import type { CreateDayTagType, UpdateDayTagType, DayTagType } from '~/schema/dayTag'
 import { useUserStore } from '~/stores/user'
 
-export function useDayTags() {
+export const useDayTags = () => {
     // Utiliser le store utilisateur pour accéder à dayTags
     const userStore = useUserStore()
 

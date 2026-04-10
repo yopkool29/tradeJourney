@@ -67,7 +67,7 @@ const chartOptions = computed(() => ({
     },
 })) as ChartOptions
 
-function handleResize() {
+const handleResize = () => {
     if (pieChartRef.value && pieChartRef.value.chart) {
         pieChartRef.value.chart.resize()
     }

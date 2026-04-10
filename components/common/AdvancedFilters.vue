@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TradeFilter, FilterColumn } from '~/type'
+import type { TradeFilter, FilterColumn, TradeFilterValue } from '~/type'
 
 import {
     OPERATOR_EQUAL,
@@ -117,7 +117,7 @@ const onOperatorChange = (index: number, value: string) => {
     emit('update:modelValue', newFilters)
 }
 
-const onValueChange = (index: number, value: any) => {
+const onValueChange = (index: number, value: TradeFilterValue) => {
     const newFilters = [...props.modelValue]
     newFilters[index].value = value
     emit('update:modelValue', newFilters)

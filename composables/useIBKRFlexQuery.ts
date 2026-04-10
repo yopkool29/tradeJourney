@@ -1,7 +1,3 @@
-/**
- * Composable pour interagir avec l'API IBKR Flex Query
- */
-
 export const useIBKRFlexQuery = (
     tokenRef?: Ref<string> | ComputedRef<string>,
     queryIdRef?: Ref<string> | ComputedRef<string>
@@ -12,9 +8,6 @@ export const useIBKRFlexQuery = (
     const token = tokenRef ?? computed(() => userStore.user?.settings_object?.ibkrFlexQueryToken || '')
     const queryId = queryIdRef ?? computed(() => userStore.user?.settings_object?.ibkrFlexQueryId || '')
 
-    /**
-     * Envoie une requête Flex Query et retourne le code de référence
-     */
     const sendRequest = async (): Promise<string> => {
         if (!token.value || !queryId.value) {
             throw new Error('IBKR Flex Query token and query ID must be configured in settings')
@@ -41,9 +34,6 @@ export const useIBKRFlexQuery = (
         }
     }
 
-    /**
-     * Récupère les résultats d'une Flex Query avec vérification de statut
-     */
     const getStatement = async (
         refCode: string,
         maxWaitTime: number = 60,
@@ -94,9 +84,6 @@ export const useIBKRFlexQuery = (
         throw new Error(`Timeout after ${maxWaitTime}s - report may still be generating`)
     }
 
-    /**
-     * Exécute une Flex Query complète et retourne les données CSV
-     */
     const executeFlexQuery = async (): Promise<string> => {
         try {
             // Étape 1: Envoyer la requête
@@ -116,9 +103,6 @@ export const useIBKRFlexQuery = (
         }
     }
 
-    /**
-     * Vérifie si la configuration IBKR est valide
-     */
     const isConfigured = computed(() => {
         return !!(token.value && queryId.value)
     })

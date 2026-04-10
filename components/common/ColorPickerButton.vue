@@ -50,12 +50,12 @@ const modelValue = defineModel<string>()
 const isOpen = ref(false)
 const tempColor = ref<string>('')
 
-function openPicker() {
+const openPicker = () => {
     tempColor.value = normalizeColorToHex(modelValue.value || '#000000')
     isOpen.value = true
 }
 
-function saveColor() {
+const saveColor = () => {
     // Normalize to hex format before saving
     const hexColor = normalizeColorToHex(tempColor.value)
     modelValue.value = hexColor
@@ -72,11 +72,11 @@ function saveColor() {
     isOpen.value = false
 }
 
-function cancelColor() {
+const cancelColor = () => {
     isOpen.value = false
 }
 
-function resetColor() {
+const resetColor = () => {
     if (props.defaultColor) {
         const hexColor = normalizeColorToHex(props.defaultColor)
         tempColor.value = hexColor

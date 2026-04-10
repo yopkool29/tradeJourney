@@ -3,6 +3,11 @@
     "extends": "./.nuxt/tsconfig.json",
     "compilerOptions": {
         "sourceMap": true,
-        "inlineSources": true
+        "inlineSources": true,
+        "paths": {
+            "zod": ["./node_modules/zod"],
+            "~": ["."],
+            "~/*": ["./*"]
+        }
     }
 }

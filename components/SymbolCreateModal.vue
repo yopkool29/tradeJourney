@@ -111,8 +111,7 @@ const handleSubmit = async () => {
     }
 }
 
-async function submitSymbol(event: FormSubmitEvent<CreateSymbolType>) {
-    console.log('submitSymbol called', event.data)
+const submitSymbol = async (event: FormSubmitEvent<CreateSymbolType>) => {
     try {
         if (props.symbol?.id) {
             // Mode édition

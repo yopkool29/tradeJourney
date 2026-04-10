@@ -6,14 +6,9 @@
         <div class="flex flex-col min-h-screen relative">
             <!-- Bouton flottant pour ouvrir les notes -->
             <div class="fixed left-1 top-10 z-40 sm:top-30">
-                <UButton
-                    v-if="userStore.user && !isNotesPanelOpen && currentDatabase && !hideHeader"
-                    class="shadow-lg rounded-full p-3"
-                    icon="i-heroicons-document-text"
-                    color="primary"
-                    size="lg"
-                    @click="openNotesPanel"
-                >
+                <UButton v-if="userStore.user && !isNotesPanelOpen && currentDatabase && !hideHeader"
+                    class="shadow-lg rounded-full p-3" icon="i-heroicons-document-text" color="primary" size="lg"
+                    @click="openNotesPanel">
                     <span class="sr-only">Notes</span>
                 </UButton>
             </div>
@@ -27,21 +22,16 @@
                 <LoadingDisplay />
 
             </main>
-            
+
             <AppFooter />
 
         </div>
 
         <!-- Panneau de notes -->
         <div class="relative z-50">
-            <NotesPanel
-                ref="notesPanelRef"
-                :is-open="isNotesPanelOpen"
-                :selected-date="selectedDate"
-                @close="closeNotesPanel"
-                @update:is-open="(val: boolean) => (isNotesPanelOpen = val)"
-                @update:selected-date="(date: Date) => (selectedDate = new Date(date))"
-            />
+            <NotesPanel ref="notesPanelRef" :is-open="isNotesPanelOpen" :selected-date="selectedDate"
+                @close="closeNotesPanel" @update:is-open="(val: boolean) => (isNotesPanelOpen = val)"
+                @update:selected-date="(date: Date) => (selectedDate = new Date(date))" />
         </div>
     </div>
 </template>
@@ -91,23 +81,10 @@ const closeNotesPanel = () => {
     lastEscapeTime = Date.now()
 }
 
-// Gestionnaire pour ouvrir le panneau de notes avec Escape
-// const handleKeyDown = (e: KeyboardEvent) => {
-//     if (e.key === 'Escape' && !isNotesPanelOpen.value) {
-//         // Ignorer si Escape a été pressé il y a moins de 300ms (pour éviter la réouverture)
-//         if (Date.now() - lastEscapeTime > 300) {
-//             e.preventDefault()
-//             openNotesPanel()
-//         }
-//     }
-// }
-
 onMounted(() => {
-    // window.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
-    // window.removeEventListener('keydown', handleKeyDown)
 })
 
 // Pour permettre d'ouvrir le panneau de notes depuis d'autres composants

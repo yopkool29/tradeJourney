@@ -25,9 +25,7 @@ export const useDashboard = () => {
     const userStore = useUserStore()
 
     const fetchAccounts = async () => {
-        await $fetch('/api/account').then((res) => {
-            accounts.value = res as AccountType[]
-        })
+        accounts.value = await $fetch('/api/account') as AccountType[]
     }
 
     const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true) => {

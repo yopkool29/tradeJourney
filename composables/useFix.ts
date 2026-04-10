@@ -11,8 +11,9 @@ export const useFix = () => {
             
             log_info(`✅ Correction terminée : ${result.updated} trades mis à jour`)
             return result
-        } catch (error: any) {
-            const message = error?.data?.message || error?.message || 'Erreur lors de la correction des commissions'
+        } catch (error: unknown) {
+            const err = error as { data?: { message?: string }; message?: string }
+            const message = err?.data?.message || err?.message || 'Erreur lors de la correction des commissions'
             log_error(`❌ ${message}`)
             throw error
         }

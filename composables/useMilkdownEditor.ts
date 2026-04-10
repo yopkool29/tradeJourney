@@ -1,4 +1,3 @@
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { Crepe } from '@milkdown/crepe'
 import { commonmark } from '@milkdown/preset-commonmark'
 import { gfm } from '@milkdown/preset-gfm'

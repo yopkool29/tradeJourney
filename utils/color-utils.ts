@@ -1,14 +1,4 @@
-/**
- * Color utility functions for converting between color formats
- */
-
-/**
- * Convert hex color to rgba
- * @param hex - Hex color string (#RGB or #RRGGBB)
- * @param alpha - Alpha value (0-1)
- * @returns rgba string
- */
-export function hexToRgba(hex: string, alpha: number = 1): string {
+export const hexToRgba = (hex: string, alpha: number = 1): string => {
   // Remove # if present
   hex = hex.replace('#', '')
   
@@ -25,12 +15,7 @@ export function hexToRgba(hex: string, alpha: number = 1): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-/**
- * Convert rgba string to hex
- * @param rgba - rgba string (e.g., "rgba(255, 87, 51, 1)")
- * @returns hex string (e.g., "#FF5733")
- */
-export function rgbaToHex(rgba: string): string {
+export const rgbaToHex = (rgba: string): string => {
   // Extract RGB values from rgba string
   const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
   
@@ -51,13 +36,7 @@ export function rgbaToHex(rgba: string): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase()
 }
 
-/**
- * Convert any color format to rgba with specified alpha
- * @param color - Color string (hex or rgba)
- * @param alpha - Alpha value (0-1)
- * @returns rgba string
- */
-export function colorToRgba(color: string, alpha: number = 1): string {
+export const colorToRgba = (color: string, alpha: number = 1): string => {
   // If already rgba, replace alpha
   if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
     return color.replace(/[\d.]+\)$/, `${alpha})`)
@@ -72,12 +51,7 @@ export function colorToRgba(color: string, alpha: number = 1): string {
   return `rgba(0, 0, 0, ${alpha})`
 }
 
-/**
- * Normalize color to hex format
- * @param color - Color string (hex or rgba)
- * @returns hex string
- */
-export function normalizeColorToHex(color: string): string {
+export const normalizeColorToHex = (color: string): string => {
   // Already hex
   if (color.startsWith('#')) {
     return color.toUpperCase()

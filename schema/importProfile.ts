@@ -25,9 +25,6 @@ export const ImportProfileMetadataSchema = z.object({
     useCloudStorage: z.boolean().optional().default(false),
 }).passthrough() // Permet d'autres propriétés non définies
 
-/**
- * Schéma complet (lecture depuis l'API, avec relations Prisma)
- */
 const tagRelationSchema = z.array(z.object({ tagId: z.number() })).default([]).transform((arr) => arr.map((t) => t.tagId))
 
 export const ImportProfileSchema = z.object({
@@ -47,14 +44,8 @@ export const ImportProfileSchema = z.object({
     updatedAt: z.string().or(z.date()),
 })
 
-/**
- * Type pour les sorties (après validation/transformation)
- */
 export type ImportProfileType = z.output<typeof ImportProfileSchema>;
 
-/**
- * Schéma pour la création d'un profil (sans ID, createdAt, updatedAt)
- */
 export const CreateImportProfileSchema = z.object({
     name: nameFormatRefine(z.string().min(3).max(64)),
     provider: z.string(),
@@ -86,14 +77,8 @@ export const CreateImportProfileSchema = z.object({
     }
 })
 
-/**
- * Type pour la création d'un profil
- */
 export type CreateImportProfileType = z.input<typeof CreateImportProfileSchema>;
 
-/**
- * Schéma pour la mise à jour d'un profil (avec ID obligatoire)
- */
 export const UpdateImportProfileSchema = z.object({
     id: z.number(),
     name: nameFormatRefine(z.string().min(3).max(64)),
@@ -126,7 +111,4 @@ export const UpdateImportProfileSchema = z.object({
     }
 })
 
-/**
- * Type pour la mise à jour d'un profil
- */
 export type UpdateImportProfileType = z.input<typeof UpdateImportProfileSchema>;

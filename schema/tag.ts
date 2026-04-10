@@ -1,10 +1,6 @@
 import { z } from 'zod'
 import { nameFormatRefine } from './index'
 
-/**
- * Schéma de validation pour les tags
- */
-
 export const TagSchema = z.object({
     id: z.number(),
     name: nameFormatRefine(z.string().min(3).max(64)),
@@ -33,27 +29,12 @@ export const TagSchema = z.object({
     ),
 })
 
-/**
- * Type pour les sorties (après validation/transformation)
- */
 export type TagType = z.output<typeof TagSchema>
 
-/**
- * Schéma pour la création d'un tag (sans ID)
- */
 export const CreateTagSchema = TagSchema.omit({ id: true })
 
-/**
- * Type pour la création d'un tag
- */
 export type CreateTagType = z.output<typeof CreateTagSchema>
 
-/**
- * Schéma pour la mise à jour d'un tag (avec ID obligatoire)
- */
 export const UpdateTagSchema = TagSchema.partial().required({ id: true })
 
-/**
- * Type pour la mise à jour d'un tag
- */
 export type UpdateTagType = z.output<typeof UpdateTagSchema>

@@ -108,7 +108,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
 }))
 
-function handleResize() {
+const handleResize = () => {
     if (lineChartRef.value && lineChartRef.value.chart) {
         lineChartRef.value.chart.resize()
     }

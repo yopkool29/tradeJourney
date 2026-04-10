@@ -99,7 +99,7 @@ const formSchema = computed(() => {
     return NoteTagIdsSchema
 })
 
-function initializeScreenshotsFrom(trade: TradeType) {
+const initializeScreenshotsFrom = (trade: TradeType) => {
     // Préparer les screenshots existants pour le composable
     if (trade.screenshots && trade.screenshots.length > 0) {
         // Convertir les screenshots existants au format attendu

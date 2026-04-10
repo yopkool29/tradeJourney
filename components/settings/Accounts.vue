@@ -251,7 +251,7 @@ const columns = computed(() => [
 
 ])
 
-function onError(_event: FormErrorEvent) {
+const onError = (_event: FormErrorEvent) => {
     const errorMessages = Object.values(_event.errors).flat()
     const errorMessage = errorMessages.length > 0 ? errorMessages[0] : t('components.settings.accounts.error_occurred')
     log_error(errorMessage)
@@ -265,17 +265,17 @@ function onError(_event: FormErrorEvent) {
 
 onMounted(fetchAccounts)
 
-function copyAccountName() {
+const copyAccountName = () => {
     if (newAccountState.value.name) {
         navigator.clipboard.writeText(newAccountState.value.name)
     }
 }
 
-function getStartingCapital(account: AccountType): number | null {
+const getStartingCapital = (account: AccountType): number | null => {
     return metadataHelpers.get<number>(account.metadata, 'startingCapital') ?? null
 }
 
-function newAccount() {
+const newAccount = () => {
     displayMessage(null, null)
     editingAccountId.value = null
     newAccountState.value = getDefaultCreateAccount()
@@ -283,7 +283,7 @@ function newAccount() {
     showAddAccount.value = true
 }
 
-function editAccount(account: AccountType) {
+const editAccount = (account: AccountType) => {
     displayMessage(null, null)
     editingAccountId.value = account.id
     newAccountState.value = { ...account }
@@ -292,16 +292,12 @@ function editAccount(account: AccountType) {
     showAddAccount.value = true
 }
 
-async function onSubmitAccount(event: FormSubmitEvent<CreateAccountType | UpdateAccountType>) {
+const onSubmitAccount = async (event: FormSubmitEvent<CreateAccountType | UpdateAccountType>) => {
     try {
         // Définir le capital de départ dans les metadata
         let metadata = event.data.metadata
         
-        console.log("startingCapital", startingCapital.value)
-
         metadata = metadataHelpers.merge(metadata, { startingCapital: startingCapital.value })
-
-        console.log("metadata", metadata)
 
         const dataWithMetadata = {
             ...event.data,
@@ -327,7 +323,7 @@ async function onSubmitAccount(event: FormSubmitEvent<CreateAccountType | Update
     }
 }
 
-async function onDeleteAccount(id: number) {
+const onDeleteAccount = async (id: number) => {
     try {
         await deleteAccount(id)
         await fetchAccounts()
@@ -340,7 +336,7 @@ async function onDeleteAccount(id: number) {
     }
 }
 
-async function onDeleteAccountTrades(id: number) {
+const onDeleteAccountTrades = async (id: number) => {
     try {
         const result = await deleteAccountTrades(id)
         await fetchAccounts()
@@ -354,7 +350,7 @@ async function onDeleteAccountTrades(id: number) {
     }
 }
 
-async function onDeleteAccountDesactivatedTrades(id: number) {
+const onDeleteAccountDesactivatedTrades = async (id: number) => {
     try {
         const result = await deleteAccountTrades(id, true)
         await fetchAccounts()

@@ -38,7 +38,7 @@ const recentColors = computed(() => {
     return props.useAlternative ? userStore.recentColors2 : userStore.recentColors
 })
 
-function selectColor(color: string) {
+const selectColor = (color: string) => {
     modelValue.value = color
 }
 </script>

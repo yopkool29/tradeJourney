@@ -197,9 +197,8 @@ const saveConverterParams = async () => {
         await updateUserSettings({
             converterParams: updated,
         } as any)
-    } catch (error) {
+    } catch {
         // Validation error - don't save
-        console.log('Validation error, not saving:', error)
     }
 }
 
@@ -260,9 +259,9 @@ const onSubmitConvert = async (event: FormSubmitEvent<typeof converterParams>) =
 
         conversionSuccess.value = true
         selectedFile.value = null
-    } catch (error: any) {
-        console.error('Conversion error:', error)
-        conversionError.value = error.data?.message || error.message || t('components.settings.tools.csv_converter.unknown_error')
+    } catch (error: unknown) {
+        const err = error as { data?: { message?: string }; message?: string }
+        conversionError.value = err.data?.message || err.message || t('components.settings.tools.csv_converter.unknown_error')
     } finally {
         isConverting.value = false
     }

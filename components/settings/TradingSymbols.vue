@@ -276,25 +276,25 @@ watch([page, pageCount], () => {
 })
 
 // Gérer la création d'un symbole via le modal
-async function onSymbolCreated() {
+const onSymbolCreated = async () => {
     displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
     await fetchSymbols()
 }
 
 // Gérer la mise à jour d'un symbole via le modal
-async function onSymbolUpdated() {
+const onSymbolUpdated = async () => {
     displayMessage(t('components.settings.tradingSymbols.symbol_updated'), null)
     await fetchSymbols()
 }
 
 // Gérer les erreurs de création/édition de symbole
-function onSymbolError(error: string | null) {
+const onSymbolError = (error: string | null) => {
     if (error) {
         displayMessage(null, error)
     }
 }
 
-async function onDelete(id: number) {
+const onDelete = async (id: number) => {
     try {
         await deleteSymbol_(id)
         await fetchSymbols()
@@ -306,7 +306,7 @@ async function onDelete(id: number) {
     }
 }
 
-async function onToggleSymbolStatus(symbol: UpdateSymbolType) {
+const onToggleSymbolStatus = async (symbol: UpdateSymbolType) => {
     try {
         await updateSymbol({ id: symbol.id, active: !symbol.active })
         await fetchSymbols()

@@ -1,9 +1,6 @@
 import { z } from 'zod';
 import { TagSchema } from './tag'
 import { InstrumentType } from '~/type'
-/**
- * Schéma de validation pour les trades
- */
 export const TradeSchema = z.object({
     // Champs obligatoires
     id: z.number(),
@@ -135,7 +132,7 @@ export const TradeSchema = z.object({
     ),
 });
 
-export function generateUniqueId(importName: string = "Default", accountId: number, symbol: string, openDate: string | Date, closeDate: string | Date, id?: string): string {
+export const generateUniqueId = (importName: string = 'Default', accountId: number, symbol: string, openDate: string | Date, closeDate: string | Date, id?: string): string => {
     const open = typeof openDate === 'string' ? new Date(openDate) : openDate
     const close = typeof closeDate === 'string' ? new Date(closeDate) : closeDate
     return id ? `${importName}${accountId}${symbol}${open.getTime()}${close.getTime()}${id}` : `${importName}${accountId}${symbol}${open.getTime()}${close.getTime()}`
@@ -144,8 +141,7 @@ export function generateUniqueId(importName: string = "Default", accountId: numb
 // Utilitaire pour déterminer dynamiquement le type d'une colonne
 const tradeFieldTypes = TradeSchema.shape
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getBaseZodType(field: any): any {
+const getBaseZodType = (field: z.ZodTypeAny): z.ZodTypeAny => {
     // Déplie les transforms (ZodEffects)
     while (field && field._def && field._def.schema) {
         field = field._def.schema
@@ -153,60 +149,34 @@ function getBaseZodType(field: any): any {
     return field
 }
 
-export function getColumnType(column: string): 'number' | 'string' | 'date' {
+export const getColumnType = (column: string): 'number' | 'string' | 'date' => {
     if (!(column in tradeFieldTypes)) return 'string'
-    let field = tradeFieldTypes[column as keyof typeof tradeFieldTypes]
-    field = getBaseZodType(field)
+    const field = getBaseZodType(tradeFieldTypes[column as keyof typeof tradeFieldTypes] as z.ZodTypeAny)
     if (field instanceof z.ZodNumber) return 'number'
     if (field instanceof z.ZodDate) return 'date'
     if (field instanceof z.ZodUnion && field.options.some((opt: z.ZodTypeAny) => opt instanceof z.ZodDate)) return 'date'
     return 'string'
 }
 
-/**
- * Type de Trade pour les sorties (après validation/transformation)
- * Utilisé principalement dans l'application pour manipuler les données
- */
 export type TradeType = z.output<typeof TradeSchema>;
 
-/**
- * Schéma pour la création d'un trade (sans ID)
- */
 export const CreateTradeSchema = TradeSchema.omit({ id: true });
 
-/**
- * Type pour la création d'un trade (sans ID)
- */
 export type CreateTradeType = z.output<typeof CreateTradeSchema>;
 
-/**
- * Schéma pour la mise à jour d'un trade (avec ID obligatoire)
- */
 export const UpdateTradeSchema = TradeSchema.partial().required({ id: true });
 
-/**
- * Type pour la mise à jour d'un trade (avec ID obligatoire)
- */
 export type UpdateTradeType = z.output<typeof UpdateTradeSchema>;
 
-/**
- * Type pour la réponse de l'import
- */
 export type ImportTypeResult = { success: boolean, message: string, countUpdated: number, countDiscard: number }
 
 
 export type DeleteAccountTradesResult = { message: string, count: number }
 
-/**
- * Schéma pour la création/mise à jour des tags de trade
- */
 export const UpdateTradeTagsSchema = z.object({
     tagIds: z.array(z.number())
 });
 
-/**
- * Type pour la création/mise à jour des tags de trade
- */
 export type UpdateTradeExtendedType = z.output<typeof UpdateTradeTagsSchema>;
 
 
@@ -238,16 +208,10 @@ export const TradeExtendedShema = TradeSchema.extend({
 
 export type TradeExtendedType = z.infer<typeof TradeExtendedShema>
 
-/**
- * Schéma pour l'association entre un trade et un tag
- */
 export const TradeTagAssociationSchema = z.object({
     tradeId: z.number(),
     tagId: z.number(),
     tag: TagSchema
 })
 
-/**
- * Type pour les associations entre trades et tags
- */
 export type TradeTagAssociationType = z.infer<typeof TradeTagAssociationSchema>

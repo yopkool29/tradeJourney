@@ -10,14 +10,9 @@ export interface TagStyle {
     color?: string;
 }
 
-export function useTags() {
+export const useTags = () => {
     const tagGroups = ref<TagGroupType[]>([])
     
-    /**
-     * Retourne le style CSS pour un tag en fonction de ses propriétés
-     * @param tag Le tag contenant les propriétés color et dark_fg_reverse
-     * @returns Un objet de style CSS
-     */
     const getTagStyle = (tag: { color?: string | null; dark_fg_reverse?: boolean }): TagStyle => ({
         backgroundColor: tag.color || '#333',
         ...(tag.dark_fg_reverse ? { color: '#fff' } : {})

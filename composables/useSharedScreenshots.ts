@@ -9,7 +9,7 @@ export interface ScreenshotItem {
 }
 
 // Créer un état partagé pour les screenshots
-export function useSharedScreenshots(maxScreenshots = 3) {
+export const useSharedScreenshots = (maxScreenshots = 3) => {
     // Utiliser useState pour créer un état partagé
     const screenshots = useState<ScreenshotItem[]>('screenshots', () => [])
     const initialScreenshotIds = useState<number[]>('initialScreenshotIds', () => [])

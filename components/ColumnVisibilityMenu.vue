@@ -42,10 +42,10 @@ const menuItems = computed(() => {
             label: props.labelColumnsHeader[column.id] as string,
             type: 'checkbox' as const,
             checked: column.getIsVisible(),
-            onUpdateChecked(checked: boolean) {
+            onUpdateChecked: (checked: boolean) => {
                 props.table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
             },
-            onSelect(e?: Event) {
+            onSelect: (e?: Event) => {
                 e?.preventDefault()
             },
         })) || []

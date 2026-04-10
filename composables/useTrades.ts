@@ -9,8 +9,8 @@ export const useTrades = () => {
     const fetchTrades = async (params = {}, limit = 1000, showInactive = false): Promise<TradeExtendedType[]> => {
         loading.value = true
         try {
-            const query: any = { 
-                filters: JSON.stringify(params), 
+            const query: Record<string, string> = {
+                filters: JSON.stringify(params),
                 showInactive: showInactive.toString(),
                 limit: limit.toString()
             }

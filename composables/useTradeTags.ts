@@ -2,7 +2,7 @@ import z from 'zod'
 import { TradeTagAssociationSchema } from '~/schema/trade'
 import type { TradeTagAssociationType, UpdateTradeExtendedType } from '~/schema/trade'
 
-export function useTradeTags() {
+export const useTradeTags = () => {
     // Récupérer les tags d'un trade spécifique
     const getTradeTagsByTradeId = async (tradeId: number) => {
         const result = await $fetch<TradeTagAssociationType[]>(`/api/trades/${tradeId}/tags`)

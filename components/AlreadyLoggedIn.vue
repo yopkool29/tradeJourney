@@ -56,7 +56,7 @@ const hideHeader = useState<boolean>('hideHeader', () => false)
 hideHeader.value = true
 onUnmounted(() => { hideHeader.value = false })
 
-function onContinue() {
+const onContinue = () => {
     const route = useRoute()
     const { currentDatabase } = useDatabase()
     hideHeader.value = false
@@ -79,7 +79,7 @@ function onContinue() {
     user.triggerDataRefresh()
 }
 
-async function onLogout() {
+const onLogout = async () => {
     isLoading.value = true
     hideHeader.value = false
     try {

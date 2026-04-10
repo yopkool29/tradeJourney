@@ -1,6 +1,7 @@
 import type { NoteType, CreateNoteType, UpdateNoteType } from '~/schema/note'
-import type { InternalApi } from 'nitropack'
 import { toISODate } from '~/utils/date-utils'
+
+type SaveNoteResponse = { success: boolean; note: NoteType; message: string }
 
 export const useNotes = () => {
     // Fetch all note dates
@@ -19,7 +20,7 @@ export const useNotes = () => {
         const response = await $fetch('/api/notes', {
             method: 'POST',
             body: note
-        }) as { success: boolean; note: NoteType; message: string }
+        }) as SaveNoteResponse
         return response.note
     }
 

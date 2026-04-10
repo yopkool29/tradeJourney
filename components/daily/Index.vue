@@ -171,7 +171,7 @@ const filteredGroups = computed(() => {
     return Object.values(dayStats.value).filter((g) => g.trades.length > 0)
 })
 
-async function onExpand() {
+const onExpand = async () => {
     filterLoading.value = true
     setTimeout(async () => {
         isExpanded.value = !isExpanded.value
@@ -184,12 +184,12 @@ async function onExpand() {
     }, 100)
 }
 
-async function onFilter() {
+const onFilter = async () => {
     await forceReactivity()
 }
 
 // Fonction unique pour charger les données du mois
-async function loadMonthData() {
+const loadMonthData = async () => {
     filterLoading.value = true
     expandedGroups.value = {}
     await applyDaysTags()
@@ -200,13 +200,13 @@ async function loadMonthData() {
 // Debounce pour éviter les appels multiples
 const loadMonthDataDebounced = useDebounceFn(loadMonthData, 200)
 
-function onCalendarMonthChange(...args: unknown[]) {
+const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
     userStore.dailyHistoryFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
     selectedMonth.value = userStore.dailyHistoryFilters.selectedMonth
 }
 
-function setDialogToFirstTradingDay() {
+const setDialogToFirstTradingDay = () => {
     // Cherche la première journée avec trade dans dayStats
     const groups = Object.values(getDaysStats()) as TradeGroup[]
     const first = groups.find((g) => g.count > 0)
@@ -235,7 +235,7 @@ async function applyDaysTags(forceFetch: boolean = true) {
     }
 }
 
-async function forceReactivity() {
+const forceReactivity = async () => {
     await loadMonthData()
 }
 

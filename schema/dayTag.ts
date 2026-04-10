@@ -1,9 +1,6 @@
 import { z } from 'zod'
 import { TagSchema } from './tag'
 
-/**
- * Schéma de validation pour les tags journaliers
- */
 export const DayTagSchema = z.object({
     id: z.number(),
     date: z.string().or(z.date()),
@@ -27,9 +24,6 @@ export const DayTagSchema = z.object({
     tags: z.array(TagSchema).default([]),
 })
 
-/**
- * Type pour les sorties (après validation/transformation)
- */
 export type DayTagType = z.output<typeof DayTagSchema>
 
 
@@ -38,9 +32,6 @@ const validateNoteOrTags = (data: { note?: string; tagIds?: number[] }) => {
     return (data.note && data.note.trim().length > 0) || (data.tagIds && data.tagIds.length > 0)
 }
 
-/**
- * Schéma pour la création d'un tag journalier (sans ID, createdAt, updatedAt)
- */
 export const CreateDayTagSchema = z.object({
     date: z.string().or(z.date()),
     note: z.string().optional(),
@@ -53,14 +44,8 @@ export const CreateDayTagSchema = z.object({
     }
 )
 
-/**
- * Type pour la création d'un tag journalier
- */
 export type CreateDayTagType = z.output<typeof CreateDayTagSchema>
 
-/**
- * Schéma pour la mise à jour d'un tag journalier
- */
 export const UpdateDayTagSchema = z.object({
     id: z.number(),
     note: z.string().optional(),
@@ -74,8 +59,5 @@ export const UpdateDayTagSchema = z.object({
     }
 )
 
-/**
- * Type pour la mise à jour d'un tag journalier
- */
 export type UpdateDayTagType = z.output<typeof UpdateDayTagSchema>
 

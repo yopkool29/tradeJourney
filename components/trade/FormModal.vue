@@ -115,6 +115,7 @@
 <script setup lang="ts">
 import { CreateTradeSchema } from '~/schema/trade'
 import type { CreateTradeType, UpdateTradeType, TradeType } from '~/schema/trade'
+import type { SymbolType } from '~/schema/symbol'
 import { INSTRUMENT_TYPES } from '~/schema/importProfile'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 
@@ -130,7 +131,7 @@ const { t } = useI18n()
 const { log_error } = useLogView()
 
 // Gérer la création d'un nouveau symbole
-async function onSymbolCreated(symbol: any) {
+const onSymbolCreated = async (symbol: SymbolType) => {
     displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
     // Rafraîchir la liste des symboles
     await fetchActiveSymbols()
@@ -139,7 +140,7 @@ async function onSymbolCreated(symbol: any) {
 }
 
 // Gérer les erreurs de création de symbole
-function onSymbolError(error: string | null) {
+const onSymbolError = (error: string | null) => {
     if (error) {
         displayMessage(null, error)
     }
@@ -191,7 +192,7 @@ const newState = ref<CreateTradeType>(getDefaultForm())
 
 const { screenshots, initializeScreenshots, prepareForUpdate, uploadNewScreenshots, cleanup } = useSharedScreenshots(3)
 
-function onError(event: FormErrorEvent) {
+const onError = (event: FormErrorEvent) => {
     const errorMessage = t('components.trade.formModal.errors.form')
     displayMessage(null, errorMessage)
     const val = event?.errors?.[0]

@@ -88,11 +88,11 @@ const sizeClass = computed(() => {
     return classes[props.size]
 })
 
-function handleRemove(item: string) {
+const handleRemove = (item: string) => {
     userStore.removeCustomItem(props.name, item)
 }
 
-function handleCreate(item: string) {
+const handleCreate = (item: string) => {
     userStore.addCustomItem(props.name, item)
     modelValue.value = item
 }
