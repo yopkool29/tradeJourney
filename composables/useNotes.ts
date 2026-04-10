@@ -16,10 +16,11 @@ export const useNotes = () => {
 
     // Save a note (create or update)
     const saveNote = async (note: CreateNoteType | UpdateNoteType) => {
-        return await $fetch<NoteType>('/api/notes', {
+        const response = await $fetch('/api/notes', {
             method: 'POST',
             body: note
-        })
+        }) as { success: boolean; note: NoteType; message: string }
+        return response.note
     }
 
     // Delete a note by ID

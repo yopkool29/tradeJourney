@@ -13,16 +13,18 @@ export default defineEventHandler(async (event) => {
         
         const body = await readBody(event)
 
+        const noteDate = new Date(body.date)
+
         // Create or update the note
         const note = await prisma.dailyNote.upsert({
             where: {
-                date: new Date(body.date)
+                date: noteDate
             },
             update: {
                 content: body.content
             },
             create: {
-                date: new Date(body.date),
+                date: noteDate,
                 content: body.content,
             }
         })

@@ -6,18 +6,20 @@ export default defineNuxtPlugin(() => {
         el.setAttribute('autocomplete', 'off')
     }
 
-    // Apply to all existing inputs/textareas
-    document.querySelectorAll('input, textarea').forEach(disableSpellcheck)
+    const selector = 'input, textarea, [contenteditable]'
 
-    // Watch for new inputs/textareas added to the DOM
+    // Apply to all existing inputs/textareas/contenteditable
+    document.querySelectorAll(selector).forEach(disableSpellcheck)
+
+    // Watch for new inputs/textareas/contenteditable added to the DOM
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (node instanceof HTMLElement) {
-                    if (node.matches('input, textarea')) {
+                    if (node.matches(selector)) {
                         disableSpellcheck(node)
                     }
-                    node.querySelectorAll('input, textarea').forEach(disableSpellcheck)
+                    node.querySelectorAll(selector).forEach(disableSpellcheck)
                 }
             }
         }

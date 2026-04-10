@@ -30,6 +30,7 @@ export const useUserStore = defineStore(
 
         const isLoading = ref(false)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
+        const lastViewedNoteIdPerDb = ref<Record<string, number | null>>({})
         const conversionType = ref<{ label: string; value: 'schwab-options' | 'tradingview' }>({ label: 'Schwab Options', value: 'schwab-options' })
         const displayModeNet = ref<boolean>(true)
         const auth = useAuth()
@@ -49,6 +50,17 @@ export const useUserStore = defineStore(
         const calendarFiltersPerDb = ref<Record<string, CalendarFilters>>({})
         const dashBoardResultPerDb = ref<Record<string, DashBoardResult>>({})
         const columnVisibilityPerDb = ref<Record<string, Record<string, boolean>>>({})
+
+        const lastViewedNoteId = computed({
+            get: () => {
+                const dbName = getCurrentDbName()
+                return lastViewedNoteIdPerDb.value[dbName] ?? null
+            },
+            set: (val) => {
+                const dbName = getCurrentDbName()
+                lastViewedNoteIdPerDb.value[dbName] = val
+            }
+        })
 
         // --- Computed wrappers for DB-specific data ---
         const customInputs = computed({
@@ -326,6 +338,10 @@ export const useUserStore = defineStore(
             logMessage.value = message
         }
 
+        const setLastViewedNoteId = (id: number | null) => {
+            lastViewedNoteId.value = id
+        }
+
         const setLogOpenFirstInit = (status: boolean) => {
             logOpenFirstInit.value = status
         }
@@ -416,6 +432,9 @@ export const useUserStore = defineStore(
             columnVisibilityPerDb.value = Object.fromEntries(
                 Object.entries(columnVisibilityPerDb.value).filter(([key]) => key !== dbName)
             )
+            lastViewedNoteIdPerDb.value = Object.fromEntries(
+                Object.entries(lastViewedNoteIdPerDb.value).filter(([key]) => key !== dbName)
+            )
         }
 
         return {
@@ -427,6 +446,8 @@ export const useUserStore = defineStore(
             logFix,
             isLoading,
             quickNavHistory,
+            lastViewedNoteId,
+            lastViewedNoteIdPerDb,
             conversionType,
             displayModeNet,
             recentColors,
@@ -463,6 +484,7 @@ export const useUserStore = defineStore(
             setLogOpen,
             setLogMessage,
             setLogOpenFirstInit,
+            setLastViewedNoteId,
             addDebug1,
             addDebug2,
             addFix,
@@ -491,6 +513,7 @@ export const useUserStore = defineStore(
                 'quickNavHistory',
                 'conversionType',
                 'displayModeNet',
+                'lastViewedNoteIdPerDb',
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
                 'dayTagsPerDb',

@@ -186,6 +186,7 @@ export default {
         actions: {
             convert: 'Convertir',
             save: 'Enregistrer',
+            save_and_close: 'Enregistrer & Quitter',
             cancel: 'Annuler',
             delete: 'Supprimer',
             confirm: 'Confirmer',
@@ -323,6 +324,12 @@ export default {
             sidebar: {
                 title: 'MES NOTES',
                 delete_note: 'Supprimer cette note',
+                add_note: 'Ajouter une note',
+            },
+            unsaved_modal: {
+                title: 'Modifications non sauvegardées',
+                content: 'Vous avez des modifications non sauvegardées. Voulez-vous sauvegarder avant de continuer ?',
+                discard: 'Ignorer',
             },
             delete_modal: {
                 title: 'Supprimer la note',
@@ -333,31 +340,30 @@ export default {
                 notes_of: 'Notes du {date}',
             },
             editor: {
+                placeholder: 'Commencez à écrire votre note...',
+                insert_image: 'Insérer une image',
                 toolbar: {
-                    bold: 'Gras (Ctrl+B)',
-                    italic: 'Italique (Ctrl+I)',
-                    underline: 'Souligné (Ctrl+U)',
-                    strikethrough: 'Barré (Ctrl+Shift+S)',
+                    bold: 'Gras',
+                    italic: 'Italique',
+                    code: 'Code inline',
+                    code_block: 'Bloc de code',
+                    heading1: 'Titre 1',
+                    heading2: 'Titre 2',
+                    heading3: 'Titre 3',
                     bullet_list: 'Liste à puces',
                     ordered_list: 'Liste numérotée',
-                    code_block: 'Bloc de code (Ctrl+Alt+C)',
-                    heading1: 'Titre 1 (Ctrl+Alt+1)',
-                    heading2: 'Titre 2 (Ctrl+Alt+2)',
-                    heading3: 'Titre 3 (Ctrl+Alt+3)',
+                    quote: 'Citation',
+                    link: 'Lien',
                     horizontal_rule: 'Ligne horizontale',
-                    undo: 'Annuler (Ctrl+Z)',
-                    redo: 'Rétablir (Ctrl+Shift+Z)',
-                    color: 'Couleur du texte',
-                    unset_color: 'Supprimer la couleur',
                 },
-                placeholder: 'Écrivez vos notes ici...',
             },
-            footer: {},
             toast: {
-                save_success_title: 'Note enregistrée',
-                save_success_desc: 'Votre note a été enregistrée avec succès',
+                save_success_title: 'Note sauvegardée',
+                save_success_desc:
+                    'Votre note a été sauvegardée avec succès',
                 delete_success_title: 'Note supprimée',
-                delete_success_desc: 'La note a été supprimée avec succès',
+                delete_success_desc:
+                    'Votre note a été supprimée avec succès',
             },
             errors: {
                 load_failed: 'Impossible de charger les notes',
