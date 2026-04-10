@@ -1,22 +1,14 @@
-/**
- * API endpoint pour proxy les requêtes IBKR Flex Query
- * Contourne les problèmes CORS en passant par le serveur
- * 
- * IMPORTANT: IBKR Flex Web Service API limitation with date periods:
- * 
- * ✗ "Last N Days" (custom N): Does NOT work correctly with API
- *   - Returns inconsistent results (sometimes 1 day, sometimes partial data)
- *   - Manual download works, but API ignores the configuration
- * 
- * ✓ "Last 30 Calendar Days" (predefined): Works perfectly with API
- *   - Returns all trades for the last 30 days as expected
- *   - Recommended for API usage
- * 
- * Other working options: "Last Month", "Last Quarter", "Year To Date"
- * 
- * SOLUTION: In IBKR Client Portal, configure Flex Query with predefined periods
- * like "Last 30 Calendar Days" instead of "Last N Days" for API compatibility.
- */
+// IMPORTANT: IBKR Flex Web Service API limitation with date periods:
+// ✗ "Last N Days" (custom N): Does NOT work correctly with API
+//   - Returns inconsistent results (sometimes 1 day, sometimes partial data)
+//   - Manual download works, but API ignores the configuration
+
+// ✓ "Last 30 Calendar Days" (predefined): Works perfectly with API
+//   - Returns all trades for the last 30 days as expected
+//   - Recommended for API usage
+// Other working options: "Last Month", "Last Quarter", "Year To Date"
+// SOLUTION: In IBKR Client Portal, configure Flex Query with predefined periods
+// like "Last 30 Calendar Days" instead of "Last N Days" for API compatibility.
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)

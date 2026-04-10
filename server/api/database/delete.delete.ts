@@ -102,7 +102,6 @@ export default defineEventHandler(async (event) => {
         if (existsSync(uploadPath)) {
             try {
                 await rm(uploadPath, { recursive: true, force: true })
-                console.log(`Deleted upload directory: ${uploadPath}`)
             } catch (error) {
                 console.error('Failed to delete upload directory:', error)
                 // Don't throw error - database is already deleted
@@ -115,7 +114,6 @@ export default defineEventHandler(async (event) => {
         if (existsSync(exportPath)) {
             try {
                 await rm(exportPath, { recursive: true, force: true })
-                console.log(`Deleted export directory: ${exportPath}`)
             } catch (error) {
                 console.error('Failed to delete export directory:', error)
                 // Don't throw error - database is already deleted

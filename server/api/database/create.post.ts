@@ -1,6 +1,3 @@
-/**
- * Create a new database for the authenticated user
- */
 import { createUserDatabase } from '../../utils/db'
 import { createAppError } from '../../utils/errors'
 import auth from '../../utils/auth'

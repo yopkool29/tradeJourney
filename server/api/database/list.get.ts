@@ -1,6 +1,3 @@
-/**
- * Get list of databases for the authenticated user
- */
 import { getAuthDb } from '../../utils/db'
 import { createAppError } from '../../utils/errors'
 import auth from '../../utils/auth'

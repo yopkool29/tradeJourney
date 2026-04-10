@@ -26,20 +26,13 @@ export const config = {
     },
 }
 
-/**
- * Crée ou met à jour les DayTags pour les journées importées
- * @param dataDb - Instance Prisma
- * @param tradingDays - Liste des journées de trading (format ISO)
- * @param tagIds - IDs des tags à appliquer
- */
-async function upsertDayTagsForImport(
+const upsertDayTagsForImport = async (
     dataDb: DataPrismaClient,
     tradingDays: string[],
     tagIds: number[]
-) {
+) => {
 
     if (tagIds.length === 0) {
-        console.log('upsertDayTagsForImport: No day tags to apply')
         return
     }
 
@@ -65,15 +58,12 @@ async function upsertDayTagsForImport(
             const newTagIds = tagIds.filter(id => !existingTagIds.includes(id))
 
             if (newTagIds.length > 0) {
-                console.log(`upsertDayTagsForImport: Adding new tags: ${JSON.stringify(newTagIds)}`)
                 await dataDb.dayTagAssociation.createMany({
                     data: newTagIds.map(tagId => ({
                         dayTagId: existingDayTag.id,
                         tagId
                     }))
                 })
-            } else {
-                console.log(`upsertDayTagsForImport: No new tags to add (all already present)`)
             }
         } else {
             // Créer un nouveau DayTag avec les tags
@@ -89,11 +79,8 @@ async function upsertDayTagsForImport(
                 }
             })
 
-            console.log(`upsertDayTagsForImport: Created DayTag with id ${createdDayTag.id}`)
         }
     }
-
-    console.log(`upsertDayTagsForImport: Finished processing ${tradingDays.length} trading days`)
 }
 
 // Fonction utilitaire pour trouver un symbole par nom ou alias (avec wildcard)
@@ -176,16 +163,12 @@ const processTrades = async (
         })
     }
 
-    console.log("keepExistingTrades:", keepExistingTrades)
-
     if (!keepExistingTrades) {
         // Supprimer les trades existants pour les jours qui vont être réimportés
         for (const day of parsedTrades.accountInfo.tradingDays) {
             const startOfDay = new Date(day);
             const endOfDay = new Date(day);
             endOfDay.setDate(endOfDay.getDate() + 1);
-
-            console.log(`processTrades: Deleting trades from ${day} for account ${account.name} (importName: ${importName})`)
 
             // Supprimer directement les trades de la bonne base de données
             const result = await dataDb.trade.deleteMany({
@@ -198,10 +181,7 @@ const processTrades = async (
                     importName: importName
                 }
             })
-            console.log(`Deleted ${result.count} trades for day ${day} importName ${importName} account id: ${account.id}`)
         }
-    } else {
-        console.log(`processTrades: Keeping existing trades for account ${account.name} (importName: ${importName})`)
     }
 
     const accountId = account.id

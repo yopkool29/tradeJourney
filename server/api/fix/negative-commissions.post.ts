@@ -61,11 +61,12 @@ export default defineEventHandler(async (event) => {
             updated: updatedCount,
             message: `${updatedCount} trade(s) corrigé(s)`
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erreur lors de la correction des commissions:', error)
+        const err = error as { message?: string }
         throw createAppError({
             statusCode: 500,
-            message: error.message || 'Erreur lors de la correction des commissions',
+            message: err.message || 'Erreur lors de la correction des commissions',
             error
         })
     }

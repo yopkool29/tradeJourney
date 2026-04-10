@@ -62,7 +62,6 @@ export default defineEventHandler(async (event) => {
 
                 // Supprimer le fichier
                 await unlink(filePath)
-                console.log(`Backup file deleted: ${filePath}`)
 
                 return {
                     success: true,

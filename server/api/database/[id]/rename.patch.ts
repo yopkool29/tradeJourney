@@ -61,11 +61,12 @@ export default defineEventHandler(async (event) => {
                 displayName: updatedDatabase.displayName,
             },
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Database rename error:', error)
+        const err = error as { statusCode?: number; message?: string }
         throw createError({
-            statusCode: error.statusCode || 500,
-            message: error.message || 'Failed to rename database',
+            statusCode: err.statusCode || 500,
+            message: err.message || 'Failed to rename database',
         })
     }
 })

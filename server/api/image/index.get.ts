@@ -23,8 +23,6 @@ export default defineEventHandler(async (event) => {
         const filePath = resolve(uploadDir, imagePath.startsWith('/') ? imagePath.slice(1) :
             imagePath)
 
-        console.log(filePath)
-
         const stats = await stat(filePath)
         if (!stats.isFile()) {
             throw createAppError({
@@ -52,8 +50,7 @@ export default defineEventHandler(async (event) => {
 })
 
 
-// Fonction utilitaire pour déterminer le type MIME
-function getMimeType(filePath: string): string {
+const getMimeType = (filePath: string): string => {
     const extension = filePath.split('.').pop()?.toLowerCase()
     const mimeTypes: Record<string, string> = {
         'jpg': 'image/jpeg',

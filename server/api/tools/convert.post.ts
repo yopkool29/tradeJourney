@@ -112,11 +112,12 @@ export default defineEventHandler(async (event) => {
                     await execa('uv', ['run', 'python', scriptPath, ...scriptArgs], {
                         cwd: join(process.cwd(), 'tradeJourney-tools/python'),
                     })
-                } catch (execError: any) {
+                } catch (execError: unknown) {
                     console.error('Python script execution error:', execError)
+                    const execErr = execError as { stderr?: string; message?: string }
                     throw createError({
                         statusCode: 500,
-                        message: `Conversion failed: ${execError.stderr || execError.message}`,
+                        message: `Conversion failed: ${execErr.stderr || execErr.message}`,
                     })
                 }
 
@@ -136,7 +137,7 @@ export default defineEventHandler(async (event) => {
                 setResponseHeader(event, 'Content-Disposition', `attachment; filename="${file.originalFilename?.replace(/\.[^/.]+$/, '')}_converted.csv"`)
                 
                 resolve(convertedData)
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Clean up uploaded file on error
                 if (files) {
                     const fileList = Object.values(files)[0]

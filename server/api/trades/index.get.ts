@@ -1,4 +1,5 @@
 import { getPrisma } from '../../utils/db'
+import type { Prisma } from '@prisma/data-client'
 import auth from '../../utils/auth'
 import { getColumnType } from '~/schema/trade'
 import { isValid, addDays, startOfDay, endOfDay } from 'date-fns'
@@ -141,7 +142,7 @@ export default defineEventHandler(async (event) => {
             where.active = true
 
         // Récupérer les trades avec leurs associations de tags
-        const queryOptions: any = {
+        const queryOptions: Prisma.TradeFindManyArgs = {
             where,
             orderBy: { openDate: 'desc' },
             include: {

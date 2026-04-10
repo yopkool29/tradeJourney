@@ -1,6 +1,3 @@
-/**
- * Select a database for the current session
- */
 import { getAuthDb } from '../../utils/db'
 import { createAppError } from '../../utils/errors'
 import jwt from 'jsonwebtoken'
