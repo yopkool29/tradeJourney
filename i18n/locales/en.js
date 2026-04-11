@@ -1054,11 +1054,6 @@ export default {
                 move_hint: 'The note will be moved — the original will be deleted from the Notes panel.',
                 associate: 'Associate',
             },
-            journal: {
-                title: 'Trade Journal — {month}',
-                open: 'Open journal',
-                empty: 'No trades for this month.',
-            },
             table: {
                 accounts: {
                     title: 'Accounts',
@@ -1067,6 +1062,8 @@ export default {
                     selected: '{count} account(s) selected',
                 },
                 show_inactive: 'Show inactive trades',
+                detailed_note: 'Detailed note',
+                show_detailed_note: 'Show detailed notes',
                 advanced_filters: {
                     title: 'Advanced filters',
                     add: 'Add filter',

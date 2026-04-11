@@ -10,11 +10,7 @@
                         v-model="newState.note"
                         name="note"
                         :placeholder="$t('components.daily.day_tag_modal.note_placeholder')"
-                        :position="'top'"
-                        :when="'always'"
                         width="full"
-                        size="md"
-                        autofocus
                     />
                 </UFormField>
 

@@ -23,7 +23,7 @@
                 <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{
                     $t('components.calendar.index.filter')
                 }}</UButton>
-                <UButton icon="i-heroicons-book-open" color="neutral" variant="outline" size="sm" :title="$t('components.trade.journal.open')" @click="showJournal = true" />
+                <UCheckbox v-model="userStore.showDetailedNote" :label="$t('components.trade.table.show_detailed_note')" />
             </div>
         </UCard>
 
@@ -114,8 +114,6 @@
             </template>
         </CommonModalDefault>
 
-        <TradeJournalModal v-model:open="showJournal" :selected-month="userStore.calendarFilters.selectedMonth" />
-
         <!-- Modal pour afficher les trades d'une semaine -->
         <CommonModalDefault v-model:open="showWeekModal" :title="weekModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
@@ -150,7 +148,6 @@ const { startLoading, stopLoading } = useGlobalLoading()
 const { displayModeNet } = useNetGrossDisplay()
 const settings = userStore.user?.settings_object as SettingsContentType
 const filterLoading = ref(false)
-const showJournal = ref(false)
 const { t } = useI18n()
 
 type DayData = {

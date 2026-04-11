@@ -329,6 +329,7 @@ const openTradeTagModal = (trade: TradeExtendedType) => {
         trade.tags = result.tags
         trade.screenshots = result.screenshots
         trade.screenshotUrl = result.screenshotUrl
+        trade.metadata = result.metadata
     })
 }
 

@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" :class="{ 'opacity-50': isFullscreen, 'h-full': fillHeight }">
-        <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+    <div class="flex flex-col rounded-lg overflow-hidden" :class="{ 'border border-gray-200 dark:border-gray-700': !readonly, 'opacity-50': isFullscreen, 'h-full': fillHeight }">
+        <div v-if="!readonly" class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {{ $t('components.trade.noteEditor.label') }}
             </span>
@@ -28,7 +28,8 @@
         </div>
         <div
             ref="editorContainer"
-            class="flex-1 overflow-auto milkdown-editor"
+            class="flex-1 milkdown-editor"
+            :class="readonly ? 'overflow-hidden' : 'overflow-auto'"
             :style="editorStyle"
         >
             <div v-if="editorLoading" class="flex items-center justify-center h-full text-gray-400 text-sm">

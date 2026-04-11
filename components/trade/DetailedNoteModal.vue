@@ -3,7 +3,7 @@
         v-model:open="open"
         :dismissible="false"
         :title="$t('components.trade.noteEditor.label')"
-        :ui="{ body: 'flex-1 min-h-0 p-0 sm:p-0', content: 'focus:outline-none flex flex-col h-screen' }"
+        :ui="{ body: 'flex-1 min-h-0 p-0 sm:p-0', overlay: 'z-[200]', content: 'z-[201] focus:outline-none flex flex-col h-screen max-w-4/5' }"
         @closed="emit('close')"
     >
         <template #content>
@@ -86,7 +86,6 @@ const onNoteAssociated = async (note: NoteType, mode: 'copy' | 'move') => {
 
 const onSave = () => {
     modelValue.value = localNote.value
-    console.log('Saving detailed note:', localNote.value)
     open.value = false
 }
 
@@ -98,6 +97,11 @@ const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && open.value) {
         e.stopPropagation()
         onCancel()
+    }
+    if (e.key === 's' && (e.ctrlKey || e.metaKey) && open.value) {
+        e.preventDefault()
+        e.stopPropagation()
+        onSave()
     }
 }
 

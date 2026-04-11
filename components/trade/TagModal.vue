@@ -16,11 +16,8 @@
                         v-model="newState.note"
                         name="note2"
                         :placeholder="$t('components.trade.tagModal.note.placeholder')"
-                        :position="'top'"
-                        :when="'always'"
                         width="full"
                         size="md"
-                        autofocus
                     />
                 </UFormField>
 
@@ -203,8 +200,6 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         update.screenshots = prepareForUpdate()
 
         update.detailedNote = detailedNote.value
-        
-        console.log('update.detailedNote', update.detailedNote)
 
         const saved = await updateTrade(update)
 
@@ -230,6 +225,17 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         isLoading.value = false
     }
 }
+
+const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 's' && (e.ctrlKey || e.metaKey) && !!trade.value) {
+        e.preventDefault()
+        e.stopPropagation()
+        document.getElementById('form1')?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    }
+}
+
+onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
+onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
 
 // Initialiser les données quand le trade change
 watch(

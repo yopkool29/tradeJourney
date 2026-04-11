@@ -52,6 +52,7 @@ export const useUserStore = defineStore(
         const calendarFiltersPerDb = ref<Record<string, CalendarFilters>>({})
         const dashBoardResultPerDb = ref<Record<string, DashBoardResult>>({})
         const columnVisibilityPerDb = ref<Record<string, Record<string, boolean>>>({})
+        const showDetailedNotePerDb = ref<Record<string, boolean>>({})
 
         const lastViewedNoteId = computed({
             get: () => {
@@ -87,10 +88,9 @@ export const useUserStore = defineStore(
 
         const addCustomItem = (name: string, item: string) => {
             const current = getCustomInput(name)
-            if (!current.items.includes(item)) {
-                current.items.push(item)
-                updateCustomInput(name, current.items, item)
-            }
+            const filtered = current.items.filter((i) => i !== item)
+            const newItems = [item, ...filtered].slice(0, 20)
+            updateCustomInput(name, newItems, item)
         }
 
         const removeCustomItem = (name: string, item: string) => {
@@ -320,6 +320,17 @@ export const useUserStore = defineStore(
             }
         })
 
+        const showDetailedNote = computed({
+            get: () => {
+                const dbName = getCurrentDbName()
+                return showDetailedNotePerDb.value[dbName] ?? false
+            },
+            set: (val) => {
+                const dbName = getCurrentDbName()
+                showDetailedNotePerDb.value[dbName] = val
+            }
+        })
+
         const getIsLogOpen = () => isLogOpen.value
         const getIsLogOpenFirstInit = () => logOpenFirstInit.value
         const getLogMessage = () => logMessage.value
@@ -434,6 +445,9 @@ export const useUserStore = defineStore(
             columnVisibilityPerDb.value = Object.fromEntries(
                 Object.entries(columnVisibilityPerDb.value).filter(([key]) => key !== dbName)
             )
+            showDetailedNotePerDb.value = Object.fromEntries(
+                Object.entries(showDetailedNotePerDb.value).filter(([key]) => key !== dbName)
+            )
             lastViewedNoteIdPerDb.value = Object.fromEntries(
                 Object.entries(lastViewedNoteIdPerDb.value).filter(([key]) => key !== dbName)
             )
@@ -462,6 +476,7 @@ export const useUserStore = defineStore(
             calendarFilters,
             dashBoardResult,
             columnVisibility,
+            showDetailedNote,
             user,
             customInputs,
             // Expose internal refs for persistence
@@ -475,6 +490,7 @@ export const useUserStore = defineStore(
             calendarFiltersPerDb,
             dashBoardResultPerDb,
             columnVisibilityPerDb,
+            showDetailedNotePerDb,
             // Methods
             getCustomInput,
             updateCustomInput,
@@ -529,6 +545,7 @@ export const useUserStore = defineStore(
                 'calendarFiltersPerDb',
                 'dashBoardResultPerDb',
                 'columnVisibilityPerDb',
+                'showDetailedNotePerDb',
             ],
         },
     }

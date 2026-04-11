@@ -181,6 +181,9 @@
             height: auto;
             border-radius: 0.5rem;
             margin: 1em 0;
+            user-select: none;
+            pointer-events: none;
+            -webkit-user-drag: none;
         }
         
         table {

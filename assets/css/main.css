@@ -34,9 +34,7 @@ input[type='date'] {
     user-select: none;
 }
 
-div[role='dialog'] {
-    user-select: none;
-}
+
 
 select {
     user-select: all;

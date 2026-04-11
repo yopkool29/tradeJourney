@@ -220,6 +220,13 @@
                             </UBadge>
                         </UTooltip>
                     </div>
+
+                </div>
+
+                <!-- Detailed Note — full width row -->
+                <div v-if="userStore.showDetailedNote && (row.original.metadata as Record<string, unknown>)?.detailedNote" class="mt-3 select-none" :class="{ 'opacity-50': !row.original.active }">
+                    <hr class="border-dashed border-gray-300 dark:border-gray-600 mb-2">
+                    <CommonNoteEditor :model-value="(row.original.metadata as Record<string, unknown>).detailedNote as string" :readonly="true" :hide-fullscreen="true" />
                 </div>
             </template>
         </UTable>
