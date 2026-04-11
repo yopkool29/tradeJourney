@@ -98,18 +98,15 @@
 
                 <!-- Éditeur Markdown -->
                 <div class="flex-1 overflow-hidden flex flex-col w-full">
-                    <!-- Zone d'édition Milkdown -->
-                    <div class="flex-1 overflow-auto p-0">
-                        <div
-                            ref="editorContainer"
-                            class="milkdown-editor h-full w-full relative"
-                            style="min-height: 400px;"
-                        >
-                            <div v-if="editorLoading" class="absolute inset-0 flex items-center justify-center">
-                                <div class="text-gray-500 dark:text-gray-400">Chargement...</div>
-                            </div>
-                        </div>
-                    </div>
+                    <CommonNoteEditor
+                        ref="noteEditor"
+                        :model-value="editorContent"
+                        :readonly="false"
+                        :hide-fullscreen="false"
+                        :fill-height="true"
+                        @update:model-value="editorContent = $event"
+                        @clear="editorContent = ''"
+                    />
                 </div>
 
                 <!-- Pied de page -->
@@ -153,9 +150,6 @@
 </template>
 
 <script setup lang="ts">
-import '@milkdown/crepe/theme/common/style.css'
-import '@milkdown/crepe/theme/frame.css'
-
 import { formatDateLongString, formatDateToYYYYMMDD } from '~/utils/date-utils'
 
 import type { NoteType } from '~/schema/note'
@@ -185,18 +179,15 @@ const showUnsavedModal = ref(false)
 const savedContent = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
-// État pour l'éditeur Milkdown
-const { 
-    loading: editorLoading, 
-    containerRef: editorContainer,
-    getContent, 
-    setContent 
-} = useMilkdownEditor('')
+const editorContent = ref('')
+const noteEditor = ref<{ getContent: () => string, setContent: (v: string) => Promise<void> } | null>(null)
+const getContent = () => editorContent.value
+const setContent = async (v: string) => { editorContent.value = v }
 
 const noteSubtitle = ref('')
 const savedSubtitle = ref('')
 const isDirty = computed(() =>
-    getContent().trim() !== savedContent.value.trim() ||
+    editorContent.value.trim() !== savedContent.value.trim() ||
     noteSubtitle.value !== savedSubtitle.value
 )
 
@@ -298,37 +289,12 @@ const loadNotes = async () => {
     }
 }
 
-const convertBlobsToBase64 = async (markdown: string): Promise<string> => {
-    const blobRegex = /!\[([^\]]*)\]\((blob:[^)]+)\)/g
-    const matches = [...markdown.matchAll(blobRegex)]
-    if (matches.length === 0) return markdown
-
-    let result = markdown
-    for (const match of matches) {
-        const [full, alt, blobUrl] = match
-        try {
-            const response = await fetch(blobUrl)
-            const blob = await response.blob()
-            const base64 = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result as string)
-                reader.onerror = reject
-                reader.readAsDataURL(blob)
-            })
-            result = result.replace(full, `![${alt}](${base64})`)
-        } catch {
-            // blob URL expired or invalid - leave as-is
-        }
-    }
-    return result
-}
-
 // Sauvegarder la note
 const saveNote = async () => {
     if (!selectedNote.value) return
 
     try {
-        const noteContent = await convertBlobsToBase64(getContent().trim())
+        const noteContent = getContent().trim()
         const noteData = {
             date: selectedNote.value.date,
             content: noteContent,

@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
 
         const updateData: PrismaUpdateInput = {
             ...restData,
-            ...(incomingMetadata !== undefined && { metadata: mergedMetadata }),
+            ...(mergedMetadata !== null && { metadata: mergedMetadata }),
         }
 
         // Gérer correctement les screenshots pour Prisma

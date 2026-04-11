@@ -82,7 +82,7 @@
 
                                     <!-- Detailed note (Milkdown readonly) -->
                                     <div v-if="getDetailedNote(trade)" class="mt-2">
-                                        <TradeNoteEditor
+                                        <CommonNoteEditor
                                             :model-value="getDetailedNote(trade)"
                                             :readonly="true"
                                         />

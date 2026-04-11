@@ -190,7 +190,7 @@
                     <div v-if="row.original.screenshots?.length > 0 || row.original.screenshotUrl" class="flex gap-2 items-center">
                         <span class="text-xs font-semibold text-gray-600 dark:text-gray-300 mr-2">Screenshots:</span>
                         <UButton icon="i-heroicons-photo" size="xs" color="neutral" variant="ghost"
-                            @click="emit('open-detail-modal', row.original)">
+                            @click="emit('open-screenshots', row.original)">
                             {{ row.original.screenshots?.length || 1 }}
                         </UButton>
                     </div>
@@ -252,6 +252,7 @@ const emit = defineEmits<{
     deactivate: [id: number]
     'open-tag-modal': [trade: TradeExtendedType]
     'open-detail-modal': [trade: TradeExtendedType]
+    'open-screenshots': [trade: TradeExtendedType]
     'clear-tags': [trade: TradeExtendedType]
 }>()
 

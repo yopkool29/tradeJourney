@@ -91,7 +91,7 @@ const modalTitle = computed(() =>
 )
 
 const isLoading = ref(false)
-const detailedNote = ref('')
+const detailedNote = useState<string>(`detailedNote-${props.trade.id}`, () => '')
 const showDetailedNote = ref(false)
 const swappingForDetailedNote = ref(false)
 const emit = defineEmits<{
@@ -106,8 +106,8 @@ const openDetailedNote = () => {
 }
 
 const onDetailedNoteClose = () => {
-    swappingForDetailedNote.value = false
     emit('update:open', true)
+    nextTick(() => { swappingForDetailedNote.value = false })
 }
 
 const displayMessage = (success: string | null, error: string | null) => {
@@ -219,7 +219,10 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         }
 
         update.screenshots = prepareForUpdate()
+
         update.detailedNote = detailedNote.value
+        
+        console.log('update.detailedNote', update.detailedNote)
 
         const saved = await updateTrade(update)
 
@@ -235,6 +238,7 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         // Fermer la modal et émettre l'événement updated
         const msg = t('components.trade.tagModal.success.saved')
         displayMessage(msg, null)
+        detailedNote.value = ''
         emit('saved', event.data.note, event.data.tagIds)
         emit('update:open', false)
     } catch (error) {

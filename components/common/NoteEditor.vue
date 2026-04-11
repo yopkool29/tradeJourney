@@ -94,6 +94,30 @@ const editorStyle = computed(() => ({
     flex: props.fillHeight ? '1' : undefined,
 }))
 
+const convertBlobsToBase64 = async (markdown: string): Promise<string> => {
+    const blobRegex = /!\[([^\]]*)\]\((blob:[^)]+)\)/g
+    const matches = [...markdown.matchAll(blobRegex)]
+    if (matches.length === 0) return markdown
+    let result = markdown
+    for (const match of matches) {
+        const [full, alt, blobUrl] = match
+        try {
+            const response = await fetch(blobUrl)
+            const blob = await response.blob()
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result as string)
+                reader.onerror = reject
+                reader.readAsDataURL(blob)
+            })
+            result = result.replace(full, `![${alt}](${base64})`)
+        } catch {
+            // blob URL expired or invalid - leave as-is
+        }
+    }
+    return result
+}
+
 const createEditor = async (container: HTMLElement, content: string, editable: boolean) => {
     const instance = new Crepe({
         root: container,
@@ -110,8 +134,10 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
         instance.on((api) => {
             api.markdownUpdated((_ctx, markdown) => {
                 internalUpdate = true
-                emit('update:modelValue', markdown)
-                nextTick(() => { internalUpdate = false })
+                convertBlobsToBase64(markdown).then((converted) => {
+                    emit('update:modelValue', converted)
+                    nextTick(() => { internalUpdate = false })
+                })
             })
         })
     }
@@ -123,16 +149,6 @@ const initEditor = async () => {
     editorLoading.value = true
     try {
         editor.value = await createEditor(editorContainer.value, props.modelValue, !props.readonly)
-        if (!props.readonly && props.fillHeight) {
-            editorContainer.value.addEventListener('focusout', (e: FocusEvent) => {
-                const relatedTarget = e.relatedTarget as Node | null
-                if (relatedTarget && editorContainer.value?.contains(relatedTarget)) return
-                const prosemirror = editorContainer.value?.querySelector('.ProseMirror') as HTMLElement | null
-                if (prosemirror && document.activeElement !== prosemirror) {
-                    requestAnimationFrame(() => prosemirror.focus({ preventScroll: true }))
-                }
-            })
-        }
     } finally {
         editorLoading.value = false
     }
@@ -168,4 +184,12 @@ watch(() => props.modelValue, async (newVal) => {
 onBeforeUnmount(() => {
     editor.value?.destroy()
 })
+
+// Exposed for imperative usage (e.g. NotesPanel)
+const getContent = () => props.modelValue
+const setContent = async (newVal: string) => {
+    emit('update:modelValue', newVal)
+}
+
+defineExpose({ getContent, setContent })
 </script>

@@ -112,7 +112,7 @@
                 </div>
                 <div v-if="detailedNote">
                     <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
-                    <TradeNoteEditor
+                    <CommonNoteEditor
                         :model-value="detailedNote"
                         :readonly="true"
                     />

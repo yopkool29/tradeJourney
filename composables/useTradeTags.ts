@@ -5,18 +5,18 @@ import type { TradeTagAssociationType, UpdateTradeExtendedType } from '~/schema/
 export const useTradeTags = () => {
     // Récupérer les tags d'un trade spécifique
     const getTradeTagsByTradeId = async (tradeId: number) => {
-        const result = await $fetch<TradeTagAssociationType[]>(`/api/trades/${tradeId}/tags`)
+        const result = await $fetch(`/api/trades/${tradeId}/tags`)
         return z.array(TradeTagAssociationSchema).parse(result)
     }
 
     // Mettre à jour les tags d'un trade
     const updateTradeTags = async (tradeId: number, data: UpdateTradeExtendedType) => {
-        const result = await $fetch<UpdateTradeExtendedType>(`/api/trades/${tradeId}/tags`, {
+        const result = await $fetch(`/api/trades/${tradeId}/tags`, {
             method: 'PATCH',
             body: data
         })
         
-        return result
+        return result as TradeTagAssociationType[]
     }
 
     const deleteTradeTags = async (tradeId: number) => {

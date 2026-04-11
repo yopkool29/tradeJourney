@@ -1,6 +1,7 @@
 <template>
     <CommonModalDefault
         v-model:open="open"
+        :dismissible="false"
         :title="$t('components.trade.noteEditor.label')"
         :ui="{ body: 'flex-1 min-h-0 p-0 sm:p-0', content: 'focus:outline-none flex flex-col h-screen' }"
         @closed="emit('close')"
@@ -18,7 +19,7 @@
                     />
                 </div>
                 <div ref="editorContainer" class="flex-1 overflow-auto">
-                    <TradeNoteEditor
+                    <CommonNoteEditor
                         v-model="localNote"
                         :readonly="false"
                         :hide-fullscreen="true"
@@ -85,10 +86,21 @@ const onNoteAssociated = async (note: NoteType, mode: 'copy' | 'move') => {
 
 const onSave = () => {
     modelValue.value = localNote.value
+    console.log('Saving detailed note:', localNote.value)
     open.value = false
 }
 
 const onCancel = () => {
     open.value = false
 }
+
+const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && open.value) {
+        e.stopPropagation()
+        onCancel()
+    }
+}
+
+onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
+onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
 </script>

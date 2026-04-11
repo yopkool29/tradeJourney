@@ -129,6 +129,7 @@
                         @deactivate="onDeactivate"
                         @open-tag-modal="openTradeTagModal"
                         @open-detail-modal="openTradeDetailModal"
+                        @open-screenshots="openScreenshotsModal"
                         @clear-tags="confirmClearTradeTags"
                     />
                 </template>
@@ -228,7 +229,13 @@ const tableData = computed<TradeExtendedType[]>(() => {
 })
 
 // Fonction pour ouvrir la modal des captures d'écran
-const openScreenshotsModal = (screenshots: Array<{ id?: number; url: string }>) => {
+const openScreenshotsModal = (trade: TradeExtendedType) => {
+    const screenshots = [
+        ...(trade.screenshots || []),
+        ...(trade.screenshotUrl && !(trade.screenshots || []).some(s => s.url === trade.screenshotUrl)
+            ? [{ url: trade.screenshotUrl }]
+            : []),
+    ]
     currentScreenshots.value = screenshots
     showScreenshots.value = true
 }
