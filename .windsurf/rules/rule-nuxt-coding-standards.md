@@ -88,6 +88,12 @@ General preferences:
 - Place static assets in the `public/` directory for direct serving.
 - Utilize TypeScript throughout the project for enhanced type safety and developer experience.
 
+# Auto-imports
+- Do NOT manually import composables from `composables/` — Nuxt auto-imports them.
+- Do NOT manually import components from `components/` — Nuxt auto-imports them.
+- Do NOT manually import Nuxt 3 built-in composables (`useRoute`, `useRouter`, `useFetch`, `useAsyncData`, `useState`, `useHead`, `useI18n`, `useColorMode`, `useRuntimeConfig`, etc.) — they are globally available.
+- Only use explicit imports for third-party packages and non-auto-imported modules (e.g. CSS files, external libraries).
+
 # Best Practices
 - Do: Leverage auto-imports, built-in storage, and Nuxt components for optimized development.
 - Do: Implement ESLint and Prettier for code quality and consistency.
