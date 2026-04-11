@@ -123,8 +123,7 @@ import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 const { symbols: availableSymbols, fetchActiveSymbols } = useSymbols()
 const { createTrade, updateTrade } = useTrades()
 const { accounts, fetchAccounts } = useAccount()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { errorStr, successStr, displayMessage } = useAlert()
 const isLoading = ref(false)
 
 const { t } = useI18n()
@@ -154,17 +153,6 @@ const props = defineProps({
         default: () => null,
     },
 })
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 const selectedSymbol = ref<{ id: number; symbol: string; digit: number }>()
 

@@ -27,6 +27,9 @@
 
         </div>
 
+        <!-- Modal de tags (montée une fois, pilotée par useTradeTagModal) -->
+        <TradeTagModal />
+
         <!-- Panneau de notes -->
         <div class="relative z-50">
             <NotesPanel ref="notesPanelRef" :is-open="isNotesPanelOpen" :selected-date="selectedDate"

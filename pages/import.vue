@@ -52,9 +52,7 @@ import type { TagGroupType } from '~/schema/tagGroup'
 
 const { profiles, fetchProfiles, createProfile, updateProfile, deleteProfile } = useImportProfiles()
 const { fetchGroups } = useTags()
-const { log_error } = useLogView()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { errorStr, successStr, displayMessage } = useAlert()
 const { t } = useI18n()
 const userStore = useUserStore()
 
@@ -64,17 +62,6 @@ type ViewMode = 'list' | 'form' | 'execute'
 const currentView = ref<ViewMode>('list')
 const editingProfile = ref<ImportProfileType | null>(null)
 const activeProfile = ref<ImportProfileType | null>(null)
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 onMounted(async () => {
     await Promise.all([

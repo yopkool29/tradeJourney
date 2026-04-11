@@ -40,7 +40,6 @@ import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import { normalizeDateToLocalString } from '~/utils/date-utils'
 
 const { t } = useI18n()
-const { success: toastSuccess, error: toastError } = useAppToast()
 const { errorStr, successStr, displayMessage } = useAlert()
 
 const { fetchGroups } = useTags()

@@ -138,8 +138,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const { fetchDatabases, selectDatabase, currentDatabase, deleteDatabase } = useDatabase()
 const { updateUserSettings, getUserSetting } = useAuth()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
-const { success: toastSuccess, error: toastError } = useAppToast()
+const { errorStr, successStr, displayMessage } = useAlert()
 const { log_error } = useLogView()
 
 interface Database {
@@ -160,17 +159,6 @@ const deleteState = ref({ password: '' })
 const databaseToRename = ref<Database | null>(null)
 
 const selectedDatabase = computed(() => databases.value.find((db) => db.id === selectedDatabaseId.value))
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 onMounted(async () => {
     await loadDatabases()

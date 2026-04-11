@@ -106,8 +106,7 @@ const userStore = useUserStore()
 const { log_error, log_info } = useLogView()
 const { importTrades } = useTrades()
 const { listFiles, retrieveFile, deleteFile } = useStorageServer()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { errorStr, successStr, displayMessage } = useAlert()
 
 const props = defineProps<{
     profile: ImportProfileType
@@ -121,16 +120,6 @@ const emit = defineEmits<{
 const file = ref<File | null>(null)
 const fileInputKey = ref(0)
 
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 const isLoading = ref(false)
 const isLoadingFiles = ref(false)
 const storageFiles = ref<any[]>([])

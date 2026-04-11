@@ -127,8 +127,7 @@ import { metadataHelpers } from '~/utils'
 const { t } = useI18n()
 const userStore = useUserStore()
 const { log_error } = useLogView()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { errorStr, successStr, displayMessage } = useAlert()
 const { accounts, fetchAccounts, createAccount, updateAccount, deleteAccount } = useAccount()
 const { deleteAccountTrades } = useTrades()
 const { formatCurrency } = useUtils()
@@ -205,17 +204,6 @@ const filteredAccounts = computed(() => {
         })
     })
 })
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 const getDefaultCreateAccount = () => ({
     name: '',

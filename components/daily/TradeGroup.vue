@@ -67,9 +67,6 @@
             <DailyDayTagModal :is-open="showDayTagModal" :date="groupDate" :day-tag="dayTag"
                 @update:open="showDayTagModal = $event" @saved="onDayTagSaved" />
 
-            <TradeTagModal :is-open="showTradeTagModal" :trade="selectedTrade!"
-                @update:open="showTradeTagModal = $event" @saved="onTradeTagsUpdated" />
-
             <CommonModalDelete v-model:open="showClearDayTagsModal" :from="'note_tags'"
                 :title="$t('components.daily.trade_group.delete_day_note_title')" @confirm="onClearDayNoteTags">
                 <template #content>
@@ -191,11 +188,10 @@ const showDayTagModal = ref(false)
 const showScreenshots = ref(false)
 const currentScreenshots = ref<Array<{ id?: number; url: string }>>([])
 
-const showTradeTagModal = ref(false)
 const showClearTagsModal = ref(false)
 const showClearDayTagsModal = ref(false)
-const dayTag = ref<DayTagType | null>(null)
 const selectedTrade = ref<TradeExtendedType | null>(null)
+const dayTag = ref<DayTagType | null>(null)
 
 // Composable pour gérer les trades
 const { getTagStyle } = useTags()
@@ -322,22 +318,18 @@ const onDayTagSaved = (savedDayTag: DayTagType) => {
     dayTag.value = savedDayTag
 }
 
+const { open: openTagModal } = useTradeTagModal()
+
 // Ouvrir la modal pour modifier un trade et ses tags
 const openTradeTagModal = (trade: TradeExtendedType) => {
-    selectedTrade.value = trade
-    showTradeTagModal.value = true
-}
-
-// Gérer la mise à jour des tags d'un trade
-const onTradeTagsUpdated = async () => {
-    const result = await fetchTrade(selectedTrade.value!.id)
-    if (!result) return
-    if (selectedTrade.value) {
-        selectedTrade.value.note = result.note
-        selectedTrade.value.tags = result.tags
-        selectedTrade.value.screenshots = result.screenshots
-        selectedTrade.value.screenshotUrl = result.screenshotUrl
-    }
+    openTagModal(trade, async () => {
+        const result = await fetchTrade(trade.id)
+        if (!result) return
+        trade.note = result.note
+        trade.tags = result.tags
+        trade.screenshots = result.screenshots
+        trade.screenshotUrl = result.screenshotUrl
+    })
 }
 
 // Ouvrir la modal de confirmation pour effacer les notes et tags

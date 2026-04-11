@@ -54,25 +54,12 @@ const router = useRouter()
 const route = useRoute()
 const { login } = useAuth()
 const userStore = useUserStore()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { log_error } = useLogView()
+const { errorStr, successStr, displayMessage } = useAlert()
 
 const mounted = ref(false)
 
 const isLoading = ref(false)
 const auth_display = ref(true)
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 // Utilisation des tokens de traduction pour les messages de validation
 const UserSchema = z.object({

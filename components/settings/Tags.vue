@@ -303,21 +303,9 @@ const isDark = computed(() => colorMode.value === 'dark')
 const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, tagGroups } = useTags()
 
 const { log_error } = useLogView()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { errorStr, successStr, displayMessage } = useAlert()
 
 const deleteAssoc = ref<boolean>(false)
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
 
 const getDefaultTagGroup = () => ({ name: '' })
 const getDefaultTag = () => ({ name: '', color: undefined, dark_fg_reverse: false, description: '' })

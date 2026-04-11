@@ -131,19 +131,7 @@ const settings = userStore.user?.settings_object as SettingsContentType
 const { t, locale } = useI18n()
 
 const { log_error } = useLogView()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
-}
+const { errorStr, successStr, displayMessage } = useAlert()
 
 const addMeta = (defaultClass: string = 'w-[80px]') => {
     return {

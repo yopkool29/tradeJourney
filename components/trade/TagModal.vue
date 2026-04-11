@@ -1,11 +1,10 @@
 <template>
     <UModal
-        v-if="!isLoading"
-        :open="isOpen"
+        :open="!!trade"
         :title="modalTitle"
         :description="$t('components.trade.tagModal.description')"
-        :ui="{ content: 'sm:max-w-2xl' }"
-        @update:open="(open: boolean) => $emit('update:open', open)"
+        :ui="{ overlay: 'z-[100]', content: 'z-[101] sm:max-w-2xl' }"
+        @update:open="(open: boolean) => { if (!open) close() }"
     >
         <template #body>
             <UForm id="form1" :state="newState" :schema="formSchema" :validate-on="['change', 'input']" @submit="onSubmit" @error="onError">
@@ -50,9 +49,9 @@
         <template #footer>
             <div class="action-buttons-end">
                 <UButton form="form1" type="submit" :loading="isLoading">{{
-                    trade ? $t('components.trade.tagModal.buttons.update') : $t('common.actions.save')
+                    currentTrade ? $t('components.trade.tagModal.buttons.update') : $t('common.actions.save')
                 }}</UButton>
-                <UButton type="button" variant="soft" @click="$emit('update:open', false)">{{
+                <UButton type="button" variant="soft" @click="close()">{{
                     $t('common.actions.cancel')
                 }}</UButton>
             </div>
@@ -68,7 +67,7 @@
 
 <script setup lang="ts">
 import type { TagGroupType } from '~/schema/tagGroup'
-import type { TradeType, NoteTagIdsType, UpdateTradeType } from '~/schema/trade'
+import type { TradeType, TradeExtendedType, NoteTagIdsType, UpdateTradeType } from '~/schema/trade'
 import { NoteTagIdsSchema, NoteTagIdsBaseSchema } from '~/schema/trade'
 import type { FormErrorEvent, FormSubmitEvent } from '@nuxt/ui'
 
@@ -78,47 +77,30 @@ const { updateTradeTags } = useTradeTags()
 const { fetchTrade } = useTrades()
 const { log_error } = useLogView()
 const { t } = useI18n()
-const { success: toastSuccess, error: toastError } = useAppToast()
-const { errorStr, successStr, displayMessage: displayAlertMessage } = useAlert()
+const { success: toastSuccess } = useAppToast()
+const { errorStr, successStr, displayMessage, clearMessages: clearAlertMessages } = useAlert()
 
-const props = defineProps<{
-    isOpen: boolean
-    trade: TradeType
-}>()
+const { trade, close, notifySaved } = useTradeTagModal()
+const currentTrade = ref<TradeExtendedType | null>(null)
 
 const modalTitle = computed(() =>
-    props.trade ? t('components.trade.tagModal.titleWithSymbol', { symbol: props.trade.symbol }) : t('components.trade.tagModal.title')
+    currentTrade.value ? t('components.trade.tagModal.titleWithSymbol', { symbol: currentTrade.value.symbol }) : t('components.trade.tagModal.title')
 )
 
 const isLoading = ref(false)
-const detailedNote = useState<string>(`detailedNote-${props.trade.id}`, () => '')
+const detailedNote = ref('')
 const showDetailedNote = ref(false)
 const swappingForDetailedNote = ref(false)
-const emit = defineEmits<{
-    'update:open': [value: boolean]
-    saved: [note: string, idTags: number[]]
-}>()
 
 const openDetailedNote = () => {
     swappingForDetailedNote.value = true
-    emit('update:open', false)
+    close()
     nextTick(() => { showDetailedNote.value = true })
 }
 
 const onDetailedNoteClose = () => {
-    emit('update:open', true)
+    trade.value = currentTrade.value
     nextTick(() => { swappingForDetailedNote.value = false })
-}
-
-const displayMessage = (success: string | null, error: string | null) => {
-    displayAlertMessage(success, error)
-    if (success) {
-        toastSuccess(success)
-    }
-    if (error) {
-        toastError(error)
-        log_error(error)
-    }
 }
 
 const getDefault = (): NoteTagIdsType => ({ idTrade: -1, note: '', tagIds: [] })
@@ -169,24 +151,24 @@ const initializeData = async () => {
     initializeScreenshots([])
 
     tagGroups.value = await fetchGroups()
-    displayMessage(null, null)
+    clearAlertMessages()
 
-    const trade = await fetchTrade(props.trade.id)
-    if (!trade) {
-        log_error(t('components.trade.tagModal.errors.tradeNotFound', { id: props.trade.id }))
+    const fetched = await fetchTrade(currentTrade.value!.id)
+    if (!fetched) {
+        log_error(t('components.trade.tagModal.errors.tradeNotFound', { id: currentTrade.value!.id }))
         return
     }
 
     newState.value = {
         ...getDefault(),
-        idTrade: trade.id,
-        note: trade.note || '',
-        tagIds: trade.tags.map((t) => t.id),
+        idTrade: fetched.id,
+        note: fetched.note || '',
+        tagIds: fetched.tags.map((t) => t.id),
     }
 
-    detailedNote.value = (trade.metadata as Record<string, unknown>)?.detailedNote as string || ''
+    detailedNote.value = (fetched.metadata as Record<string, unknown>)?.detailedNote as string || ''
 
-    initializeScreenshotsFrom(trade!)
+    initializeScreenshotsFrom(fetched)
 }
 
 function onError(event: FormErrorEvent) {
@@ -214,7 +196,7 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         // Mettre à jour la note du trade si elle a changé
         const update: UpdateTradeType = { id: event.data.idTrade }
 
-        if (props.trade.note !== event.data.note) {
+        if (currentTrade.value?.note !== event.data.note) {
             update.note = event.data.note
         }
 
@@ -237,10 +219,10 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
 
         // Fermer la modal et émettre l'événement updated
         const msg = t('components.trade.tagModal.success.saved')
-        displayMessage(msg, null)
+        
+        toastSuccess('', msg)
         detailedNote.value = ''
-        emit('saved', event.data.note, event.data.tagIds)
-        emit('update:open', false)
+        notifySaved(event.data.note, event.data.tagIds)
     } catch (error) {
         const msg = error instanceof Error ? error.message : t('components.trade.tagModal.errors.generic')
         displayMessage(null, msg)
@@ -249,13 +231,14 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
     }
 }
 
-// Initialiser les données quand la modal s'ouvre
+// Initialiser les données quand le trade change
 watch(
-    () => props.isOpen,
-    async (isOpen: boolean) => {
+    trade,
+    async (newTrade) => {
         if (swappingForDetailedNote.value) return
-        isLoading.value = true
-        if (isOpen) {
+        if (newTrade) {
+            currentTrade.value = newTrade
+            isLoading.value = true
             await initializeData()
             isLoading.value = false
         }
