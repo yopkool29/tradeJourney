@@ -110,6 +110,7 @@
             </div>
         </template>
     </UModal>
+
 </template>
 
 <script setup lang="ts">
@@ -129,7 +130,6 @@ const isLoading = ref(false)
 const { t } = useI18n()
 
 const { log_error } = useLogView()
-
 // Gérer la création d'un nouveau symbole
 const onSymbolCreated = async (symbol: SymbolType) => {
     displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
@@ -249,7 +249,6 @@ function initializeScreenshotsFrom(trade: TradeType) {
 function newForm() {
     errorStr.value = null
     newState.value = getDefaultForm()
-    // Réinitialiser les screenshots avec le composable
     initializeScreenshots([])
 }
 
@@ -266,18 +265,11 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
         let saved: TradeType
 
         if ('id' in event.data && event.data.id) {
-            // Pour une mise à jour, nous incluons les screenshots existants à conserver
-            // dans les données envoyées à updateTrade
-
-            // Préparer les screenshots existants à conserver
             const existingScreenshotsToKeep = prepareForUpdate()
-
-            // Mettre à jour les données avec les screenshots existants à conserver
             const updateData = {
                 ...event.data,
                 screenshots: existingScreenshotsToKeep,
             }
-
             saved = await updateTrade(updateData as UpdateTradeType)
             const msg = t('components.trade.formModal.success.updated_title')
             displayMessage(msg, null)

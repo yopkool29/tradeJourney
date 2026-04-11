@@ -38,16 +38,40 @@ export default defineEventHandler(async (event) => {
         const parsed = UpdateTradeSchema.parse(body)
 
         // Extraire l'ID et isoler les données à mettre à jour
-        const { id: _, screenshots, ...restData } = parsed
+        const { id: _, screenshots, metadata: incomingMetadata, detailedNote, ...restData } = parsed
+
+        // Merge metadata with existing values to avoid overwriting option fields
+        const existingMetadata: Record<string, unknown> = existing.metadata
+            ? (typeof existing.metadata === 'string' ? JSON.parse(existing.metadata) : existing.metadata as Record<string, unknown>)
+            : {}
+
+        let mergedMetadata: Record<string, unknown> | null = null
+        if (incomingMetadata !== undefined || detailedNote !== undefined) {
+            mergedMetadata = { ...existingMetadata }
+            if (incomingMetadata !== undefined) {
+                Object.assign(mergedMetadata, incomingMetadata as Record<string, unknown>)
+            }
+            if (detailedNote !== undefined) {
+                if (detailedNote.trim()) {
+                    mergedMetadata.detailedNote = detailedNote
+                } else {
+                    delete mergedMetadata.detailedNote
+                }
+            }
+        }
 
         type PrismaUpdateInput = typeof restData & {
+            metadata?: Record<string, unknown> | null;
             screenshots?: {
                 deleteMany: Record<string, unknown>;
                 create?: Array<{ url: string }>;
             };
         }
 
-        const updateData: PrismaUpdateInput = { ...restData }
+        const updateData: PrismaUpdateInput = {
+            ...restData,
+            ...(incomingMetadata !== undefined && { metadata: mergedMetadata }),
+        }
 
         // Gérer correctement les screenshots pour Prisma
         // Seulement si screenshots est défini dans les données envoyées

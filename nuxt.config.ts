@@ -129,7 +129,7 @@ export default defineNuxtConfig({
         locales: ['fr']
     },
 
-    css: ['~/assets/css/main.css'],
+    css: ['~/assets/css/main.css', '~/assets/css/milkdown-global.scss'],
 
     colorMode: {
         classSuffix: '',

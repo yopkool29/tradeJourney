@@ -108,7 +108,14 @@
                 </div>
                 <div v-if="trade.note">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.note') }}</span>
-                    <p class="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded">{{ trade.note }}</p>
+                    <p class="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm">{{ trade.note }}</p>
+                </div>
+                <div v-if="detailedNote">
+                    <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
+                    <TradeNoteEditor
+                        :model-value="detailedNote"
+                        :readonly="true"
+                    />
                 </div>
                 <div v-if="trade.tags && trade.tags.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.tags') }}</span>
@@ -180,6 +187,10 @@ const allScreenshots = computed(() => {
             ? [{ url: props.trade.screenshotUrl }]
             : []),
     ]
+})
+
+const detailedNote = computed((): string => {
+    return (props.trade?.metadata as Record<string, unknown>)?.detailedNote as string || ''
 })
 
 const isOption = computed(() => {

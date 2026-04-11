@@ -164,7 +164,9 @@ export const CreateTradeSchema = TradeSchema.omit({ id: true });
 
 export type CreateTradeType = z.output<typeof CreateTradeSchema>;
 
-export const UpdateTradeSchema = TradeSchema.partial().required({ id: true });
+export const UpdateTradeSchema = TradeSchema.partial().required({ id: true }).extend({
+    detailedNote: z.string().optional(),
+});
 
 export type UpdateTradeType = z.output<typeof UpdateTradeSchema>;
 

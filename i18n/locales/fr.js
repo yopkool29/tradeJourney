@@ -183,6 +183,7 @@ export default {
         yes: 'Oui',
         no: 'Non',
         cancel: 'Annuler',
+        loading: 'Chargement...',
         actions: {
             convert: 'Convertir',
             save: 'Enregistrer',
@@ -1050,6 +1051,33 @@ export default {
                         'Le trade a été mis à jour avec succès.',
                 },
                 loading_error: 'Erreur lors du chargement des symboles :',
+                detailedNote: {
+                    label: 'Note détaillée',
+                    from_notes: 'Lier depuis les Notes',
+                },
+            },
+            noteEditor: {
+                label: 'Note détaillée',
+                clear: 'Effacer la note',
+                fullscreen: 'Plein écran',
+                exit_fullscreen: 'Quitter le plein écran',
+            },
+            notePicker: {
+                title: 'Sélectionner une note à associer',
+                search_placeholder: 'Rechercher par sous-titre ou contenu...',
+                filter_date: 'Filtrer par date',
+                empty: 'Aucune note trouvée',
+                assoc_mode_label: 'Que souhaitez-vous faire avec la note originale ?',
+                copy: 'Copier',
+                move: 'Déplacer',
+                copy_hint: 'La note sera copiée — l\'originale reste dans le panneau Notes.',
+                move_hint: 'La note sera déplacée — l\'originale sera supprimée du panneau Notes.',
+                associate: 'Associer',
+            },
+            journal: {
+                title: 'Journal de trading — {month}',
+                open: 'Ouvrir le journal',
+                empty: 'Aucun trade pour ce mois.',
             },
             table: {
                 accounts: {

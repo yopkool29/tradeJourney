@@ -25,6 +25,18 @@
                     />
                 </UFormField>
 
+                <!-- Note détaillée -->
+                <div class="flex gap-2 mb-4">
+                    <UButton
+                        icon="i-heroicons-document-text"
+                        color="neutral"
+                        variant="outline"
+                        size="sm"
+                        :label="$t('components.trade.noteEditor.label')"
+                        @click="openDetailedNote"
+                    />
+                </div>
+
                 <!-- Sélection de tags avec le composant réutilisable -->
                 <CommonTagSelector v-model="newState.tagIds" :tag-groups="tagGroups" field-name="tagIds" />
 
@@ -46,6 +58,12 @@
             </div>
         </template>
     </UModal>
+
+    <TradeDetailedNoteModal
+        v-model:open="showDetailedNote"
+        v-model:model-value="detailedNote"
+        @close="onDetailedNoteClose"
+    />
 </template>
 
 <script setup lang="ts">
@@ -73,6 +91,24 @@ const modalTitle = computed(() =>
 )
 
 const isLoading = ref(false)
+const detailedNote = ref('')
+const showDetailedNote = ref(false)
+const swappingForDetailedNote = ref(false)
+const emit = defineEmits<{
+    'update:open': [value: boolean]
+    saved: [note: string, idTags: number[]]
+}>()
+
+const openDetailedNote = () => {
+    swappingForDetailedNote.value = true
+    emit('update:open', false)
+    nextTick(() => { showDetailedNote.value = true })
+}
+
+const onDetailedNoteClose = () => {
+    swappingForDetailedNote.value = false
+    emit('update:open', true)
+}
 
 const displayMessage = (success: string | null, error: string | null) => {
     displayAlertMessage(success, error)
@@ -148,6 +184,8 @@ const initializeData = async () => {
         tagIds: trade.tags.map((t) => t.id),
     }
 
+    detailedNote.value = (trade.metadata as Record<string, unknown>)?.detailedNote as string || ''
+
     initializeScreenshotsFrom(trade!)
 }
 
@@ -181,6 +219,7 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
         }
 
         update.screenshots = prepareForUpdate()
+        update.detailedNote = detailedNote.value
 
         const saved = await updateTrade(update)
 
@@ -210,6 +249,7 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
 watch(
     () => props.isOpen,
     async (isOpen: boolean) => {
+        if (swappingForDetailedNote.value) return
         isLoading.value = true
         if (isOpen) {
             await initializeData()
@@ -218,8 +258,5 @@ watch(
     }
 )
 
-const emit = defineEmits<{
-    'update:open': [value: boolean]
-    saved: [note: string, idTags: number[]]
-}>()
 </script>
+

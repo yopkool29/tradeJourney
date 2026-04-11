@@ -21,6 +21,8 @@ export const useUserStore = defineStore(
         const getCurrentDbName = () => currentDatabase.value?.name || 'default'
 
         // --- Global state (not DB-specific) ---
+        const noteAssocMode = ref<'copy' | 'move'>('copy')
+
         const isLogOpen = ref(false)
         const logOpenFirstInit = ref(true)
         const logMessage = ref('')
@@ -438,6 +440,7 @@ export const useUserStore = defineStore(
         }
 
         return {
+            noteAssocMode,
             isLogOpen,
             logOpenFirstInit,
             logMessage,
@@ -513,6 +516,7 @@ export const useUserStore = defineStore(
                 'quickNavHistory',
                 'conversionType',
                 'displayModeNet',
+                'noteAssocMode',
                 'lastViewedNoteIdPerDb',
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',

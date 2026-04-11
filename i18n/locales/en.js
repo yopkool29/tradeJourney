@@ -177,6 +177,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         cancel: 'Cancel',
+        loading: 'Loading...',
         actions: {
             convert: 'Convert',
             save: 'Save',
@@ -1030,6 +1031,33 @@ export default {
                     updated_description: 'The trade was successfully updated.',
                 },
                 loading_error: 'Error loading symbols:',
+                detailedNote: {
+                    label: 'Detailed Note',
+                    from_notes: 'Link from Notes',
+                },
+            },
+            noteEditor: {
+                label: 'Detailed Note',
+                clear: 'Clear note',
+                fullscreen: 'Fullscreen',
+                exit_fullscreen: 'Exit fullscreen',
+            },
+            notePicker: {
+                title: 'Select a note to associate',
+                search_placeholder: 'Search by subtitle or content...',
+                filter_date: 'Filter by date',
+                empty: 'No notes found',
+                assoc_mode_label: 'What do you want to do with the original note?',
+                copy: 'Copy',
+                move: 'Move',
+                copy_hint: 'The note will be copied — the original stays in the Notes panel.',
+                move_hint: 'The note will be moved — the original will be deleted from the Notes panel.',
+                associate: 'Associate',
+            },
+            journal: {
+                title: 'Trade Journal — {month}',
+                open: 'Open journal',
+                empty: 'No trades for this month.',
             },
             table: {
                 accounts: {

@@ -32,6 +32,7 @@
                     </UButton>
                     <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
                         :label="$t('components.trade.table.show_inactive')" />
+                    <UButton icon="i-heroicons-book-open" color="neutral" variant="outline" size="sm" :title="$t('components.trade.journal.open')" @click="showJournal = true" />
                 </div>
             </div>
         </UCard>
@@ -67,6 +68,7 @@
                 </UCalendar>
             </div>
         </div>
+    <TradeJournalModal v-model:open="showJournal" :selected-month="userStore.dailyHistoryFilters.selectedMonth" />
     </div>
 </template>
 
@@ -85,6 +87,7 @@ const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
 const filterLoading = ref(false)
+const showJournal = ref(false)
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 
