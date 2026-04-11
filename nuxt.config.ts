@@ -2,6 +2,20 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
 
+    modules: [
+        '@nuxt/ui',
+        '@nuxt/eslint',
+        '@nuxt/fonts',
+        '@nuxt/icon',
+        '@nuxt/image',
+        '@nuxt/scripts',
+        '@pinia/nuxt',
+        'pinia-plugin-persistedstate/nuxt',
+        '@nuxtjs/color-mode',
+        'nuxt-zod-i18n',
+        '@nuxtjs/i18n'
+    ],
+
     devtools: { 
         enabled: true,
         // timeline: {
@@ -48,20 +62,6 @@ export default defineNuxtConfig({
         }
     },
 
-    modules: [
-        '@nuxt/ui',
-        '@nuxt/eslint',
-        '@nuxt/fonts',
-        '@nuxt/icon',
-        '@nuxt/image',
-        '@nuxt/scripts',
-        '@pinia/nuxt',
-        'pinia-plugin-persistedstate/nuxt',
-        '@nuxtjs/color-mode',
-        'nuxt-tiptap-editor',
-        'nuxt-zod-i18n',
-        '@nuxtjs/i18n'
-    ],
     i18n: {
         locales: [
             { code: 'en', iso: 'en-US', file: 'en.js' },
@@ -74,9 +74,6 @@ export default defineNuxtConfig({
         bundle: {
             optimizeTranslationDirective: false,
         }
-    },
-    tiptap: {
-        prefix: 'Tiptap', //prefix for Tiptap imports, composables not included
     },
     icon: {
         clientBundle: {
