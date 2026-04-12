@@ -280,6 +280,10 @@ export default {
                 enabled: 'Plugin enabled',
                 disabled: 'Plugin disabled',
                 toggle_error: 'Error toggling plugin state',
+                import: 'Import',
+                import_success: 'Plugin imported successfully',
+                import_error: 'Error importing plugin',
+                import_error_invalid_type: 'File must be .zip',
             },
         },
         login: {

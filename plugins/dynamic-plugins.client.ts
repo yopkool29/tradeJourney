@@ -1,4 +1,4 @@
-import type { TJPlugin, TJPluginSdk, TJPluginRegistered, TJPluginModalRegistered } from '~/type/plugin'
+import type { TJPlugin, TJPluginSdk, TJPluginRegistered, TJPluginModalRegistered, TJPluginPageSlotRegistered } from '~/type/plugin'
 
 declare global {
 	interface Window {
@@ -6,12 +6,14 @@ declare global {
 		__TJ_PLUGINS__: TJPlugin[]
 		__TJ_PLUGIN_ACTIONS__: TJPluginRegistered[]
 		__TJ_PLUGIN_MODALS__: TJPluginModalRegistered[]
+		__TJ_PLUGIN_PAGE_SLOTS__: TJPluginPageSlotRegistered[]
 	}
 }
 
 export default defineNuxtPlugin(async () => {
 	window.__TJ_PLUGIN_ACTIONS__ = []
 	window.__TJ_PLUGIN_MODALS__ = []
+	window.__TJ_PLUGIN_PAGE_SLOTS__ = []
 
 	const toast = useAppToast()
 
@@ -39,6 +41,18 @@ export default defineNuxtPlugin(async () => {
 					window.dispatchEvent(new CustomEvent('tj-plugin-open-modal', { detail: { id } }))
 				}
 			},
+			registerPageSlot: (slotId: string, config: { id: string; label: string; icon?: string; onClick: () => void }) => {
+				// Get plugin id from stack trace (approximate)
+				const pluginId = config.id.split('-')[0] || 'unknown'
+				window.__TJ_PLUGIN_PAGE_SLOTS__.push({
+					id: config.id,
+					slotId,
+					pluginId,
+					label: config.label,
+					icon: config.icon,
+					onClick: config.onClick,
+				})
+			},
 		},
 	}
 
@@ -50,6 +64,7 @@ export default defineNuxtPlugin(async () => {
 		if (forceReload) {
 			window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(pluginId))
 			window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(pluginId))
+			window.__TJ_PLUGIN_PAGE_SLOTS__ = window.__TJ_PLUGIN_PAGE_SLOTS__.filter(s => s.pluginId !== pluginId)
 			delete (window as unknown as { [key: string]: unknown })[pluginId]
 		}
 

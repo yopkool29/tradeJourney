@@ -22,6 +22,7 @@ type TJPluginUi = {
 	registerAction: (action: TJPluginAction) => void
 	registerModal: (modal: TJPluginModal) => void
 	openModal: (id: string) => void
+	registerPageSlot: (slotId: string, config: { id: string; label: string; icon?: string; onClick: () => void }) => void
 }
 
 type TJPluginApi = {
@@ -46,8 +47,20 @@ export type TJPluginManifest = {
 	name: string
 	version: string
 	description: string
+	isUploaded?: boolean
 }
 
 export type TJPluginRegistered = TJPluginAction
 
 export type TJPluginModalRegistered = TJPluginModal
+
+type TJPluginPageSlot = {
+	id: string
+	slotId: string
+	pluginId: string
+	label: string
+	icon?: string
+	onClick: () => void
+}
+
+export type TJPluginPageSlotRegistered = TJPluginPageSlot

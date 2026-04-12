@@ -3,7 +3,10 @@
         <!-- Filtres simplifiés : compte + mois -->
         <UCard class="mb-4 md:max-w-4xl min-w-md">
             <div class="flex flex-col mb-4 gap-4">
-                <div class="font-semibold">{{ $t('components.daily.index.accounts') }}</div>
+                <div class="flex items-center justify-between">
+                    <div class="font-semibold">{{ $t('components.daily.index.accounts') }}</div>
+                    <PluginPageSlot slot-id="page-daily" />
+                </div>
                 <USelect v-model="userStore.dailyHistoryFilters.accountIds" :items="accountOptions"
                     :placeholder="$t('components.daily.index.select_accounts')" multiple
                     class="min-w-[200px] max-w-[300px] w-full">

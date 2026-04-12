@@ -286,6 +286,10 @@ export default {
                 enabled: 'Plugin activé',
                 disabled: 'Plugin désactivé',
                 toggle_error: 'Erreur lors du changement détat du plugin',
+                import: 'Importer',
+                import_success: 'Plugin importé avec succès',
+                import_error: 'Erreur lors de l\'import du plugin',
+                import_error_invalid_type: 'Le fichier doit être au format .zip',
             },
         },
         login: {

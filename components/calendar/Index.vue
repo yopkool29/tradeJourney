@@ -3,7 +3,10 @@
         <!-- Filtres simplifiés : compte + mois -->
         <UCard class="card-container">
             <div class="filter-container">
-                <div class="section-label">{{ $t('components.calendar.index.accounts') }}</div>
+                <div class="flex items-center justify-between">
+                    <div class="section-label">{{ $t('components.calendar.index.accounts') }}</div>
+                    <PluginPageSlot slot-id="page-calendar" />
+                </div>
                 <USelect v-model="userStore.calendarFilters.accountIds" :items="accountOptions"
                     :placeholder="$t('components.calendar.index.select_accounts')" multiple class="select-standard">
                     <div>

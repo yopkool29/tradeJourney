@@ -2,7 +2,10 @@
     <div>
         <UCard class="card-container">
             <div class="filter-container">
-                <div class="section-label">{{ $t('components.dashboard.index.accounts') }}</div>
+                <div class="flex items-center justify-between">
+                    <div class="section-label">{{ $t('components.dashboard.index.accounts') }}</div>
+                    <PluginPageSlot slot-id="page-dashboard" />
+                </div>
                 <USelect v-model="userStore.dashBoardFilters.accountIds" :items="accountOptions"
                     :placeholder="$t('components.dashboard.index.select_accounts')" multiple class="select-standard">
                     <div>

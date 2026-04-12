@@ -4,7 +4,10 @@
         <UCard class="card-container-xl">
             <template #default>
                 <div class="filter-container">
-                    <div class="section-label">{{ $t('components.trade.table.accounts.title') }}</div>
+                    <div class="flex items-center justify-between">
+                        <div class="section-label">{{ $t('components.trade.table.accounts.title') }}</div>
+                        <PluginPageSlot slot-id="page-trade" />
+                    </div>
                     <div class="action-buttons">
                         <USelect
                             v-model="userStore.tradeOptions.accountIds"
