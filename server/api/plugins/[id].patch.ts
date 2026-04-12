@@ -1,11 +1,10 @@
-import { getAuthDb } from '~/server/utils/db'
+import { getDataDb } from '~/server/utils/db'
 import { createAppError } from '~/server/utils/errors'
 import auth from '~/server/utils/auth'
-import type { Prisma } from '~/generated/prisma-auth'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
-	const userId = event.context.userId
+	const userId = event.context.userId as number
 	const dbName = event.context.dbName as string | undefined
 	if (!userId) {
 		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
@@ -15,7 +14,6 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		const prisma = getAuthDb()
 		const pluginId = getRouterParam(event, 'id')
 		const body = await readBody<{ enabled: boolean }>(event)
 
@@ -23,30 +21,14 @@ export default defineEventHandler(async (event) => {
 			throw createAppError({ statusCode: 400, message: 'Plugin ID is required', tag: 'api.plugins.toggle.missing_id' })
 		}
 
-		const database = await prisma.database.findFirst({
-			where: { userId: Number(userId), name: dbName },
-			select: { id: true, metadata: true },
+		const prisma = await getDataDb(userId, dbName)
+		await prisma.plugin.update({
+			where: { id: pluginId },
+			data: { enabled: body.enabled },
 		})
 
-		if (!database) {
-			throw createAppError({ statusCode: 404, message: 'Database not found', tag: 'api.plugins.toggle.no_database' })
-		}
-
-		const metadata = (database.metadata ?? {}) as Record<string, unknown>
-		const enabledPlugins: string[] = (metadata.enabledPlugins as string[] | undefined) ?? []
-
-		const updated = body.enabled
-			? [...new Set([...enabledPlugins, pluginId])]
-			: enabledPlugins.filter((id: string) => id !== pluginId)
-
-		metadata.enabledPlugins = updated
-
-		await prisma.database.update({
-			where: { id: database.id },
-			data: { metadata: metadata as Prisma.InputJsonValue },
-		})
-
-		return { enabledPlugins: updated }
+		const enabledPlugins = await prisma.plugin.findMany({ where: { enabled: true }, select: { id: true } })
+		return { enabledPlugins: enabledPlugins.map(p => p.id) }
 
 	} catch (error) {
 		const err = error as { statusCode?: number; data?: { tag?: string } }

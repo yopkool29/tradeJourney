@@ -3,6 +3,7 @@ import { join, resolve } from 'path'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'
 import { getPluginUploadPath } from '~/server/utils/index'
+import { getDataDb } from '~/server/utils/db'
 import AdmZip from 'adm-zip'
 
 export default defineEventHandler(async (event) => {
@@ -66,6 +67,26 @@ export default defineEventHandler(async (event) => {
 
 		// Clean up temp file
 		await unlink(tempPath).catch(() => {})
+
+		// Upsert plugin metadata in DB
+		const manifestContent = await readFile(join(pluginPath, 'manifest.json'), 'utf-8')
+		const manifest = JSON.parse(manifestContent)
+		const prisma = await getDataDb(userId, dbName)
+		await prisma.plugin.upsert({
+			where: { id: pluginId },
+			create: {
+				id: pluginId,
+				name: manifest.name,
+				version: manifest.version,
+				description: manifest.description,
+				enabled: false,
+			},
+			update: {
+				name: manifest.name,
+				version: manifest.version,
+				description: manifest.description,
+			},
+		})
 
 		return {
 			success: true,

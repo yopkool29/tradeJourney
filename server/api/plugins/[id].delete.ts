@@ -1,11 +1,10 @@
 import { rm } from 'fs/promises'
 import { existsSync } from 'fs'
 import { resolve } from 'path'
-import { getAuthDb } from '~/server/utils/db'
+import { getDataDb } from '~/server/utils/db'
 import { createAppError } from '~/server/utils/errors'
 import { getPluginUploadPath } from '~/server/utils/index'
 import auth from '~/server/utils/auth'
-import type { Prisma } from '~/generated/prisma-auth'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
@@ -28,31 +27,20 @@ export default defineEventHandler(async (event) => {
 			throw createAppError({ statusCode: 400, message: 'Invalid plugin ID', tag: 'api.plugins.delete.invalid_id' })
 		}
 
-		// Only uploaded plugins can be deleted
-		const pluginDir = resolve(process.cwd(), getPluginUploadPath(userId, dbName), pluginId)
-		if (!existsSync(pluginDir)) {
+		const prisma = await getDataDb(userId, dbName)
+		const plugin = await prisma.plugin.findUnique({ where: { id: pluginId } })
+		if (!plugin) {
 			throw createAppError({ statusCode: 404, message: 'Plugin not found or is a system plugin', tag: 'api.plugins.delete.not_found' })
 		}
 
-		// Remove from enabledPlugins in Database.metadata
-		const prisma = getAuthDb()
-		const database = await prisma.database.findFirst({
-			where: { userId: Number(userId), name: dbName },
-			select: { id: true, metadata: true },
-		})
+		// Delete from DB
+		await prisma.plugin.delete({ where: { id: pluginId } })
 
-		if (database) {
-			const metadata = (database.metadata ?? {}) as Record<string, unknown>
-			const enabledPlugins: string[] = (metadata.enabledPlugins as string[] | undefined) ?? []
-			metadata.enabledPlugins = enabledPlugins.filter(id => id !== pluginId)
-			await prisma.database.update({
-				where: { id: database.id },
-				data: { metadata: metadata as Prisma.InputJsonValue },
-			})
+		// Delete plugin folder from filesystem if exists
+		const pluginDir = resolve(process.cwd(), getPluginUploadPath(userId, dbName), pluginId)
+		if (existsSync(pluginDir)) {
+			await rm(pluginDir, { recursive: true, force: true })
 		}
-
-		// Delete plugin folder
-		await rm(pluginDir, { recursive: true, force: true })
 
 		return { success: true, pluginId }
 

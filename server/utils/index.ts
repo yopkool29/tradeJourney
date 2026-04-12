@@ -9,6 +9,10 @@ export interface AccountInfoImport {
 }
 
 export const getUploadPath = (userId: number, dbName: string): string => {
+    return `./upload/user_${userId}_data/${dbName}`
+}
+
+export const getScreenshotUploadPath = (userId: number, dbName: string): string => {
     return `./upload/user_${userId}_data/${dbName}/screenshots`
 }
 

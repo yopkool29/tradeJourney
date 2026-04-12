@@ -2,7 +2,7 @@ import { IncomingForm } from 'formidable'
 import fs from 'fs'
 import path from 'path'
 import { getDataDb, validateSchemaExists } from '../../utils/db'
-import { getUploadPath } from '../../utils/index'
+import { getScreenshotUploadPath } from '../../utils/index'
 import auth from '../../utils/auth'
 
 export const config = {
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     await validateSchemaExists(userId, dbName)
 
     // Get dynamic upload path based on user and database
-    const UPLOAD_DIR = path.resolve(process.cwd(), getUploadPath(userId, dbName))
+    const UPLOAD_DIR = path.resolve(process.cwd(), getScreenshotUploadPath(userId, dbName))
     if (!fs.existsSync(UPLOAD_DIR))
         fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 

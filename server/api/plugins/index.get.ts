@@ -1,12 +1,11 @@
 import { readdir, readFile } from 'fs/promises'
-import { join, resolve } from 'path'
+import { join } from 'path'
 import type { TJPluginManifest } from '~/type/plugin'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'
-import { getPluginUploadPath } from '~/server/utils/index'
+import { getDataDb } from '~/server/utils/db'
 
-// Helper to scan a directory for plugin manifests
-async function scanPluginsDir(dirPath: string): Promise<TJPluginManifest[]> {
+async function scanSystemPlugins(dirPath: string): Promise<TJPluginManifest[]> {
 	let dirs: string[] = []
 	try {
 		dirs = await readdir(dirPath)
@@ -17,8 +16,7 @@ async function scanPluginsDir(dirPath: string): Promise<TJPluginManifest[]> {
 	const manifests: TJPluginManifest[] = []
 	for (const dir of dirs) {
 		try {
-			const manifestPath = join(dirPath, dir, 'manifest.json')
-			const content = await readFile(manifestPath, 'utf-8')
+			const content = await readFile(join(dirPath, dir, 'manifest.json'), 'utf-8')
 			manifests.push(JSON.parse(content) as TJPluginManifest)
 		} catch {
 			// Ignore directories without valid manifest
@@ -33,23 +31,27 @@ export default defineEventHandler(async (event) => {
 	const dbName = event.context.dbName as string | undefined
 
 	try {
-		const uploadedPluginsDir = dbName
-			? resolve(process.cwd(), getPluginUploadPath(userId, dbName))
-			: null
-
-		// Scan system plugins and per-DB uploaded plugins
-		const [systemPlugins, uploadedPlugins] = await Promise.all([
-			scanPluginsDir(join(process.cwd(), 'plugins-prod')),
-			uploadedPluginsDir ? scanPluginsDir(uploadedPluginsDir) : Promise.resolve([]),
-		])
-
-		// Merge and deduplicate by plugin id (uploaded plugins take precedence)
 		const pluginMap = new Map<string, TJPluginManifest>()
+
+		// System plugins (plugins-prod/) — not isUploaded
+		const systemPlugins = await scanSystemPlugins(join(process.cwd(), 'plugins-prod'))
 		for (const plugin of systemPlugins) {
 			pluginMap.set(plugin.id, plugin)
 		}
-		for (const plugin of uploadedPlugins) {
-			pluginMap.set(plugin.id, { ...plugin, isUploaded: true } as TJPluginManifest)
+
+		// DB plugins — take precedence, marked as isUploaded
+		if (dbName) {
+			const prisma = await getDataDb(userId, dbName)
+			const dbPlugins = await prisma.plugin.findMany()
+			for (const plugin of dbPlugins) {
+				pluginMap.set(plugin.id, {
+					id: plugin.id,
+					name: plugin.name,
+					version: plugin.version,
+					description: plugin.description,
+					isUploaded: true,
+				})
+			}
 		}
 
 		return Array.from(pluginMap.values())

@@ -1,7 +1,7 @@
 import type { H3Event, EventHandlerRequest } from 'h3'
 import { PrismaClient as AuthPrismaClient } from '~/generated/prisma-auth'
 import { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
-import { getUploadPath } from "./index"
+import { getScreenshotUploadPath } from "./index"
 import { mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 
@@ -132,7 +132,7 @@ export const createUserDatabase = async (
     const schemaName = buildShemaName(userId, dbName)
 
     // Create upload folder structure
-    const screenshotsFolder = getUploadPath(userId, dbName)
+    const screenshotsFolder = getScreenshotUploadPath(userId, dbName)
 
     if (!existsSync(screenshotsFolder)) {
         await mkdir(screenshotsFolder, { recursive: true })

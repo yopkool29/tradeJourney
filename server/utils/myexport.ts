@@ -11,7 +11,7 @@ import { createAppError } from './errors'
 import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
-const VERSION_MANIFEST = '1.1.6'
+const VERSION_MANIFEST = '1.1.7'
 const versionToInt = (version: string): number => {
     const parts = version.split('.').map(p => parseInt(p, 10))
     return (parts[0] || 0) * 100 + (parts[1] || 0) * 10 + (parts[2] || 0)
@@ -34,6 +34,7 @@ interface ExportManifest {
             dayTags: number
             configSymbols: number
             dailyNotes: number
+            plugins: number
         }
     }
 }
@@ -63,6 +64,7 @@ interface ImportData {
     }>>>
     configSymbols: Awaited<ReturnType<typeof prisma.configSymbol.findMany>>
     dailyNotes: Awaited<ReturnType<typeof prisma.dailyNote.findMany>>
+    plugins?: Awaited<ReturnType<typeof prisma.plugin.findMany>>
     importProfiles?: Array<{
         id: number
         name: string
@@ -90,6 +92,7 @@ interface ExportData {
     configSymbols: Awaited<ReturnType<typeof prisma.configSymbol.findMany>>
     dailyNotes: Awaited<ReturnType<typeof prisma.dailyNote.findMany>>
     importProfiles: Awaited<ReturnType<typeof prisma.importProfile.findMany>>
+    plugins: Awaited<ReturnType<typeof prisma.plugin.findMany>>
 }
 
 /**
@@ -138,7 +141,8 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
                     trades: 0,
                     dayTags: 0,
                     configSymbols: 0,
-                    dailyNotes: 0
+                    dailyNotes: 0,
+                    plugins: 0
                 }
             }
         }
@@ -176,6 +180,7 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
             }),
             configSymbols: await prisma.configSymbol.findMany(),
             dailyNotes: await prisma.dailyNote.findMany(),
+            plugins: await prisma.plugin.findMany(),
             importProfiles: await prisma.importProfile.findMany({
                 include: {
                     dayTags: { select: { tagId: true } },
@@ -196,7 +201,8 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
             trades: exportData.trades.length,
             dayTags: exportData.dayTags.length,
             configSymbols: exportData.configSymbols.length,
-            dailyNotes: exportData.dailyNotes.length
+            dailyNotes: exportData.dailyNotes.length,
+            plugins: exportData.plugins.length
         }
 
         // Update manifest with the data file
@@ -205,7 +211,6 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
         manifest.metadata.totalSize = stats.size
         manifest.metadata.totalFiles = 1 // data.json
 
-        // Get dynamic upload path for this user and database
         const uploadDir = join(process.cwd(), getUploadPath(userId, dbName))
 
         // Copy uploads if they exist
@@ -369,7 +374,8 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             dataDb.account.deleteMany({}),
             dataDb.configSymbol.deleteMany({}),
             dataDb.dailyNote.deleteMany({}),
-            dataDb.importProfile.deleteMany({})
+            dataDb.importProfile.deleteMany({}),
+            dataDb.plugin.deleteMany({})
         ])
 
         // console.log(backupVersionInt)
@@ -529,6 +535,30 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
 
         ])
 
+        // Restore plugins (version >= 1.1.7)
+        if (backupVersionInt >= 117 && data.plugins?.length) {
+            for (const plugin of data.plugins) {
+                await dataDb.plugin.upsert({
+                    where: { id: plugin.id },
+                    create: {
+                        id: plugin.id,
+                        name: plugin.name,
+                        version: plugin.version,
+                        description: plugin.description,
+                        enabled: plugin.enabled,
+                        createdAt: new Date(plugin.createdAt),
+                        updatedAt: new Date(plugin.updatedAt),
+                    },
+                    update: {
+                        name: plugin.name,
+                        version: plugin.version,
+                        description: plugin.description,
+                        enabled: plugin.enabled,
+                    },
+                })
+            }
+        }
+
         // Reset all auto-increment sequences to avoid unique constraint errors
         // after inserting records with explicit IDs
         const tables = ['TagGroup', 'Tag', 'Account', 'Trade', 'Screenshot', 'DayTag', 'DailyNote', 'ConfigSymbol', 'ImportProfile']
@@ -542,7 +572,6 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             }
         }
 
-        // Get dynamic upload path for this user and database
         const uploadDir = join(process.cwd(), getUploadPath(userId, dbName))
 
         // Restore uploads

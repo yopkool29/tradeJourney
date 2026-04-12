@@ -323,7 +323,7 @@ export const useUserStore = defineStore(
         const showDetailedNote = computed({
             get: () => {
                 const dbName = getCurrentDbName()
-                return showDetailedNotePerDb.value[dbName] ?? false
+                return showDetailedNotePerDb.value[dbName] ?? true
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
