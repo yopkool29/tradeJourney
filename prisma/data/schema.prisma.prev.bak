@@ -192,3 +192,13 @@ model DailyNote {
 
     @@index([date])
 }
+
+model Plugin {
+    id          String   @id // ex: "trade-stats-plugin"
+    name        String
+    version     String
+    description String
+    enabled     Boolean  @default(false)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}

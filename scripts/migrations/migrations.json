@@ -34,6 +34,13 @@
       "description": "Add Plugin table to store uploaded plugins with their file content in the database",
       "file": "005-add-plugin-table.sql",
       "date": "2026-04-12"
+    },
+    {
+      "version": 6,
+      "name": "add-plugin-metadata",
+      "description": "Add metadata JSONB column to Plugin table for storing plugin versions and system compatibility",
+      "file": "006-add-plugin-metadata.sql",
+      "date": "2026-04-13"
     }
   ]
 }

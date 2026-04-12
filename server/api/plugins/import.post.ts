@@ -78,6 +78,14 @@ export default defineEventHandler(async (event) => {
         // Upsert plugin metadata in DB
         const manifestContent = await readFile(join(pluginPath, 'manifest.json'), 'utf-8')
         const manifest = JSON.parse(manifestContent)
+        
+        // Prepare metadata with plugin and system versions (as object, not string)
+        const metadata = {
+            pluginVersion: manifest.version,
+            pluginSystemVersion: manifest.pluginSystemVersion || 'unknown',
+            importedAt: new Date().toISOString(),
+        }
+        
         const prisma = await getDataDb(userId, dbName)
         await prisma.plugin.upsert({
             where: { id: pluginId },
@@ -86,12 +94,14 @@ export default defineEventHandler(async (event) => {
                 name: manifest.name,
                 version: manifest.version,
                 description: manifest.description,
+                metadata,
                 enabled: false,
             },
             update: {
                 name: manifest.name,
                 version: manifest.version,
                 description: manifest.description,
+                metadata,
             },
         })
 
