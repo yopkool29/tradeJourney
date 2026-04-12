@@ -23,7 +23,6 @@
                 <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{
                     $t('components.calendar.index.filter')
                 }}</UButton>
-                <UCheckbox v-model="userStore.showDetailedNote" :label="$t('components.trade.table.show_detailed_note')" />
             </div>
         </UCard>
 

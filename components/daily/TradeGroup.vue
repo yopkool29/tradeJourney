@@ -127,6 +127,7 @@
                         @open-tag-modal="openTradeTagModal"
                         @open-detail-modal="openTradeDetailModal"
                         @open-screenshots="openScreenshotsModal"
+                        @open-detailed-note="openDirectDetailedNote"
                         @clear-tags="confirmClearTradeTags"
                     />
                 </template>
@@ -135,6 +136,12 @@
 
         <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="currentScreenshots"
             @closed="showScreenshots = false" />
+
+        <TradeDetailedNoteModal
+            v-model:open="showDirectDetailedNote"
+            v-model:model-value="directDetailedNote"
+            @close="onDirectDetailedNoteClose"
+        />
     </UCard>
 </template>
 
@@ -429,6 +436,26 @@ const showTable = defineModel('showTable', { type: Boolean, default: false })
 const openTradeDetailModal = (trade: TradeExtendedType) => {
     selectedTradeDetail.value = trade
     showTradeDetailModal.value = true
+}
+
+const showDirectDetailedNote = ref(false)
+const directDetailedNote = ref('')
+const selectedTradeForNote = ref<TradeExtendedType | null>(null)
+
+const openDirectDetailedNote = async (trade: TradeExtendedType) => {
+    const { fetchTrade } = useTrades()
+    selectedTradeForNote.value = trade
+    const fetched = await fetchTrade(trade.id)
+    directDetailedNote.value = (fetched?.metadata as Record<string, unknown>)?.detailedNote as string || ''
+    showDirectDetailedNote.value = true
+}
+
+const onDirectDetailedNoteClose = async () => {
+    if (!selectedTradeForNote.value) return
+    const { updateTrade, fetchTrade } = useTrades()
+    await updateTrade({ id: selectedTradeForNote.value.id, detailedNote: directDetailedNote.value })
+    const result = await fetchTrade(selectedTradeForNote.value.id)
+    if (result) selectedTradeForNote.value.metadata = result.metadata
 }
 </script>
 

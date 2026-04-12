@@ -195,6 +195,7 @@
                 class="w-full flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                 <div class="container mx-auto py-4 px-4 lg:flex flex-row">
                     <NetGrossToggle v-model="userStore.displayModeNet" />
+                    <DetailedNoteToggle class="ml-4" />
                     <QuickNav class="hidden sm:block" v-if="userStore.user.settings_object?.showQuickNav" />
                 </div>
             </div>

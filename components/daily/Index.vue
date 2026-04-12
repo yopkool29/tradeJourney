@@ -32,7 +32,6 @@
                     </UButton>
                     <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
                         :label="$t('components.trade.table.show_inactive')" />
-                    <UCheckbox v-model="userStore.showDetailedNote" class="mt-2" :label="$t('components.trade.table.show_detailed_note')" />
                 </div>
             </div>
         </UCard>

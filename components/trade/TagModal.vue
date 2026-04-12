@@ -21,18 +21,6 @@
                     />
                 </UFormField>
 
-                <!-- Note détaillée -->
-                <div class="flex gap-2 mb-4">
-                    <UButton
-                        icon="i-heroicons-document-text"
-                        color="neutral"
-                        variant="outline"
-                        size="sm"
-                        :label="$t('components.trade.noteEditor.label')"
-                        @click="openDetailedNote"
-                    />
-                </div>
-
                 <!-- Sélection de tags avec le composant réutilisable -->
                 <CommonTagSelector v-model="newState.tagIds" :tag-groups="tagGroups" field-name="tagIds" />
 
@@ -55,11 +43,6 @@
         </template>
     </UModal>
 
-    <TradeDetailedNoteModal
-        v-model:open="showDetailedNote"
-        v-model:model-value="detailedNote"
-        @close="onDetailedNoteClose"
-    />
 </template>
 
 <script setup lang="ts">
@@ -86,19 +69,6 @@ const modalTitle = computed(() =>
 
 const isLoading = ref(false)
 const detailedNote = ref('')
-const showDetailedNote = ref(false)
-const swappingForDetailedNote = ref(false)
-
-const openDetailedNote = () => {
-    swappingForDetailedNote.value = true
-    close()
-    nextTick(() => { showDetailedNote.value = true })
-}
-
-const onDetailedNoteClose = () => {
-    trade.value = currentTrade.value
-    nextTick(() => { swappingForDetailedNote.value = false })
-}
 
 const getDefault = (): NoteTagIdsType => ({ idTrade: -1, note: '', tagIds: [] })
 const newState = ref(getDefault())
@@ -232,7 +202,6 @@ useFormCtrlS('form1', () => !!trade.value)
 watch(
     trade,
     async (newTrade) => {
-        if (swappingForDetailedNote.value) return
         if (newTrade) {
             currentTrade.value = newTrade
             isLoading.value = true

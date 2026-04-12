@@ -1083,7 +1083,7 @@ export default {
                 },
                 show_inactive: 'Montrer les trades inactifs',
                 detailed_note: 'Note détaillée',
-                show_detailed_note: 'Afficher les notes détaillées',
+                show_detailed_note: 'Notes détaillées',
                 advanced_filters: {
                     title: 'Filtres avancés',
                     add: 'Ajouter un filtre',

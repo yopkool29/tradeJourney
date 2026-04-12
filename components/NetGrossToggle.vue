@@ -1,6 +1,6 @@
 <template>
     <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600 dark:text-gray-400">{{ $t('components.dashboard.net_gross_toggle.label') }}:</span>
+        <span class="text-sm text-gray-600 dark:text-gray-400">{{ $t('components.dashboard.net_gross_toggle.label') }}</span>
         <UButtonGroup size="sm" orientation="horizontal">
             <UButton
                 :color="modelValue ? 'primary' : 'neutral'"

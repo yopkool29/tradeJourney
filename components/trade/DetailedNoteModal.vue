@@ -8,7 +8,7 @@
     >
         <template #content>
             <div class="flex flex-col h-full">
-                <div class="flex justify-end p-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-start p-3 border-b border-gray-200 dark:border-gray-700">
                     <UButton
                         :label="$t('components.trade.formModal.detailedNote.from_notes')"
                         icon="i-heroicons-link"
@@ -93,12 +93,18 @@ const onCancel = () => {
     open.value = false
 }
 
+const { isTop, push, pop } = useModalStack('detailedNote')
+
+watch(open, (val) => { val ? push() : pop() })
+
 const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && open.value) {
+    if (!open.value || !isTop.value) return
+    if (e.key === 'Escape') {
+        e.preventDefault()
         e.stopPropagation()
         onCancel()
     }
-    if (e.key === 's' && (e.ctrlKey || e.metaKey) && open.value) {
+    if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         e.stopPropagation()
         onSave()

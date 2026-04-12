@@ -1,21 +1,14 @@
 <template>
-    <UModal v-model:open="open" :title="$t('components.trade.notePicker.title')" :ui="{ overlay: 'z-[300]', content: 'z-[301] sm:max-w-xl' }">
+    <UModal v-model:open="open" :title="$t('components.trade.notePicker.title')" :dismissible="false"
+        :ui="{ overlay: 'z-[300]', content: 'z-[301] sm:max-w-xl' }">
         <template #body>
             <div class="p-4 space-y-4">
                 <!-- Filtres -->
                 <div class="flex gap-2">
-                    <UInput
-                        v-model="searchQuery"
-                        :placeholder="$t('components.trade.notePicker.search_placeholder')"
-                        icon="i-heroicons-magnifying-glass"
-                        class="flex-1"
-                    />
-                    <UInput
-                        v-model="filterDate"
-                        type="date"
-                        class="w-40"
-                        :placeholder="$t('components.trade.notePicker.filter_date')"
-                    />
+                    <UInput v-model="searchQuery" :placeholder="$t('components.trade.notePicker.search_placeholder')"
+                        icon="i-heroicons-magnifying-glass" class="flex-1" />
+                    <UInput v-model="filterDate" type="date" class="w-40"
+                        :placeholder="$t('components.trade.notePicker.filter_date')" />
                 </div>
 
                 <!-- Loading -->
@@ -30,62 +23,53 @@
 
                 <!-- Liste notes -->
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto">
-                    <div
-                        v-for="note in filteredNotes"
-                        :key="note.id"
-                        class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
-                        :class="selectedNote?.id === note.id
+                    <div v-for="note in filteredNotes" :key="note.id"
+                        class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors" :class="selectedNote?.id === note.id
                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                             : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'"
-                        @click="selectedNote = note"
-                    >
+                        @click="selectedNote = note">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            <div class="flex flex-row gap-x-4 items-baseline">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 shrink-0">
                                     {{ formatDateLongString(note.date, locale as 'fr' | 'en' | 'us') }}
                                 </span>
-                            </div>
-                            <div v-if="getNoteSubtitle(note)" class="text-sm font-medium text-gray-700 dark:text-gray-200 truncate mt-0.5">
-                                {{ getNoteSubtitle(note) }}
+                                <div v-if="getNoteSubtitle(note)"
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                                    {{ getNoteSubtitle(note) }}
+                                </div>
                             </div>
                             <div class="text-xs text-gray-400 line-clamp-2 mt-0.5">
                                 {{ getPreview(note) }}
                             </div>
                         </div>
-                        <UIcon
-                            v-if="selectedNote?.id === note.id"
-                            name="i-heroicons-check-circle"
-                            class="text-primary-500 shrink-0 mt-0.5"
-                        />
+                        <UIcon v-if="selectedNote?.id === note.id" name="i-heroicons-check-circle"
+                            class="text-primary-500 shrink-0 mt-0.5" />
                     </div>
                 </div>
 
                 <!-- Aperçu Milkdown de la note sélectionnée -->
                 <div v-if="selectedNote" class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <CommonNoteEditor :model-value="selectedNote.content || ''" :readonly="true" :hide-fullscreen="true" />
+                    <CommonNoteEditor :model-value="selectedNote.content || ''" :readonly="true"
+                        :hide-fullscreen="true" />
                 </div>
 
                 <!-- Mode copier/déplacer -->
                 <div v-if="selectedNote" class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ $t('components.trade.notePicker.assoc_mode_label') }}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{
+                        $t('components.trade.notePicker.assoc_mode_label') }}</p>
                     <div class="flex gap-3">
-                        <UButton
-                            :label="$t('components.trade.notePicker.copy')"
+                        <UButton :label="$t('components.trade.notePicker.copy')"
                             :color="assocMode === 'copy' ? 'primary' : 'neutral'"
-                            :variant="assocMode === 'copy' ? 'solid' : 'outline'"
-                            icon="i-heroicons-document-duplicate"
-                            @click="assocMode = 'copy'"
-                        />
-                        <UButton
-                            :label="$t('components.trade.notePicker.move')"
+                            :variant="assocMode === 'copy' ? 'solid' : 'outline'" icon="i-heroicons-document-duplicate"
+                            @click="assocMode = 'copy'" />
+                        <UButton :label="$t('components.trade.notePicker.move')"
                             :color="assocMode === 'move' ? 'primary' : 'neutral'"
-                            :variant="assocMode === 'move' ? 'solid' : 'outline'"
-                            icon="i-heroicons-arrow-right-circle"
-                            @click="assocMode = 'move'"
-                        />
+                            :variant="assocMode === 'move' ? 'solid' : 'outline'" icon="i-heroicons-arrow-right-circle"
+                            @click="assocMode = 'move'" />
                     </div>
                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                        {{ assocMode === 'copy' ? $t('components.trade.notePicker.copy_hint') : $t('components.trade.notePicker.move_hint') }}
+                        {{ assocMode === 'copy' ? $t('components.trade.notePicker.copy_hint') :
+                            $t('components.trade.notePicker.move_hint') }}
                     </p>
                 </div>
             </div>
@@ -93,12 +77,8 @@
         <template #footer>
             <div class="flex gap-2 justify-end px-4 py-3">
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="open = false" />
-                <UButton
-                    :label="$t('components.trade.notePicker.associate')"
-                    color="primary"
-                    :disabled="!selectedNote"
-                    @click="onAssociate"
-                />
+                <UButton :label="$t('components.trade.notePicker.associate')" color="primary" :disabled="!selectedNote"
+                    @click="onAssociate" />
             </div>
         </template>
     </UModal>
@@ -169,8 +149,10 @@ const onAssociate = () => {
     open.value = false
 }
 
+const { isTop, push, pop } = useModalStack('notePicker')
+
 const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && open.value) {
+    if (e.key === 'Escape' && open.value && isTop.value) {
         e.preventDefault()
         e.stopPropagation()
         open.value = false
@@ -181,6 +163,7 @@ onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
 onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
 
 watch(open, async (val) => {
+    val ? push() : pop()
     if (!val) return
     loading.value = true
     selectedNote.value = null
