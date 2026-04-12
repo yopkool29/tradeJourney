@@ -19,6 +19,7 @@ data
 .docker-compose.yml
 Dockerfile
 Dockerfile-pnpm
+plugins-dev
 
 # Ne pas ignorer tradeJourney-tools mais ignorer son .venv
 !tradeJourney-tools
