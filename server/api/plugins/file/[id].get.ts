@@ -4,6 +4,7 @@ import { existsSync } from 'fs'
 import { createAppError } from '~/server/utils/errors'
 import auth from '~/server/utils/auth'
 import { getPluginUploadPath } from '~/server/utils/index'
+import { validatePluginId } from '~/server/utils/pluginHelpers'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
@@ -12,25 +13,22 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		const id = getRouterParam(event, 'id')
-		if (!id) {
-			throw createAppError({ statusCode: 400, message: 'Plugin ID required', tag: 'api.plugins.file.missing_id' })
-		}
-
-		// Security: prevent directory traversal
-		if (id.includes('..') || id.includes('/')) {
-			throw createAppError({ statusCode: 400, message: 'Invalid plugin ID', tag: 'api.plugins.file.invalid_id' })
-		}
+		const pluginId = getRouterParam(event, 'id')
+		validatePluginId(pluginId)
 
 		const userId = event.context.userId as number
 		const dbName = event.context.dbName as string | undefined
 
-		// Check per-DB uploaded plugin first, fallback to system plugins-prod/
-		const uploadedPath = dbName
-			? join(resolve(process.cwd(), getPluginUploadPath(userId, dbName)), id, 'plugin.umd.cjs')
-			: null
-		const systemPath = join(process.cwd(), 'plugins-prod', id, 'plugin.umd.cjs')
-		const filePath = (uploadedPath && existsSync(uploadedPath)) ? uploadedPath : systemPath
+		// Only database plugins are supported - plugins-prod directory no longer exists
+		if (!dbName) {
+			throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.file.no_database' })
+		}
+        
+		const filePath = join(resolve(process.cwd(), getPluginUploadPath(userId, dbName)), pluginId as string, 'plugin.umd.cjs')
+		
+		if (!existsSync(filePath)) {
+			throw createAppError({ statusCode: 404, message: 'Plugin file not found', tag: 'api.plugins.file.not_found' })
+		}
 		const content = await readFile(filePath, 'utf-8')
 		setResponseHeader(event, 'Content-Type', 'application/javascript')
 		setResponseHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')

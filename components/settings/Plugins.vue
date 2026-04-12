@@ -102,6 +102,8 @@
 </template>
 
 <script setup lang="ts">
+defineEmits(['imported'])
+
 const { t } = useI18n()
 const { success: toastSuccess, error: toastError } = useAppToast()
 

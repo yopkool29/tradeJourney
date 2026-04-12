@@ -1,5 +1,5 @@
 <template>
-	<CommonModalDefault v-if="activeModal" v-model:open="isOpen" :title="activeModal.title" @update:open="onClose">
+	<CommonModalDefault v-if="activeModal" v-model:open="isOpen" :title="activeModal.title" :description="activeModal.description || `Modal: ${activeModal.title}`" @update:open="onClose">
 		<template #content>
 			<component :is="activeModal.component" v-if="activeModal.component" :sdk="sdk" />
 			<p v-else>{{ activeModal.message }}</p>

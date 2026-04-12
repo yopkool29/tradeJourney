@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TJPluginManifestSchema } from '~/schema/plugin'
-import type { TJPluginManifest } from '~/type/plugin'
+import type { TJPluginManifest, TJPluginPageSlot } from '~/type/plugin'
 
 export const usePlugins = () => {
 	const plugins = ref<TJPluginManifest[]>([])
@@ -47,6 +47,18 @@ export const usePlugins = () => {
 		await $fetch(`/api/plugins/${id}`, { method: 'DELETE' })
 		plugins.value = plugins.value.filter(p => p.id !== id)
 		activePluginIds.value = activePluginIds.value.filter(pid => pid !== id)
+		
+		// Clean up page slots for this plugin
+		const pluginPageSlots = useState('pluginPageSlots', () => [] as TJPluginPageSlot[])
+		pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== id)
+		window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
+		
+		// Clean up plugin actions and modals
+		window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(id))
+		window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(id))
+		
+		// Remove plugin reference
+		;(window as unknown as { [key: string]: unknown })[id] = undefined
 	}
 
 	return {

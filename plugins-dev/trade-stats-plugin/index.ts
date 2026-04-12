@@ -1,5 +1,6 @@
 import type { TJPluginSdk } from '../type/plugin'
 import TradeStatsView from './TradeStatsView.vue'
+import { markRaw } from 'vue'
 
 const plugin = {
 	id: 'trade-stats-plugin',
@@ -16,7 +17,7 @@ const plugin = {
 		sdk.ui.registerModal({
 			id: 'trade-stats-plugin-modal',
 			title: 'Statistiques de trading',
-			component: TradeStatsView,
+			component: markRaw(TradeStatsView),
 		})
 
 		sdk.ui.registerPageSlot('page-dashboard', {

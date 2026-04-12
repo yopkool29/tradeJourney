@@ -1,25 +1,25 @@
 import { getDataDb } from '~/server/utils/db'
 import { createAppError } from '~/server/utils/errors'
+import { validatePluginId } from '~/server/utils/pluginHelpers'
 import auth from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
 	const userId = event.context.userId as number
 	const dbName = event.context.dbName as string | undefined
-	if (!userId) {
+	
+    if (!userId) {
 		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
 	}
+
 	if (!dbName) {
 		throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.toggle.no_database' })
 	}
 
 	try {
 		const pluginId = getRouterParam(event, 'id')
+		validatePluginId(pluginId)
 		const body = await readBody<{ enabled: boolean }>(event)
-
-		if (!pluginId) {
-			throw createAppError({ statusCode: 400, message: 'Plugin ID is required', tag: 'api.plugins.toggle.missing_id' })
-		}
 
 		const prisma = await getDataDb(userId, dbName)
 		await prisma.plugin.update({

@@ -6,10 +6,12 @@ export default defineEventHandler(async (event) => {
 	await auth(event)
 	const userId = event.context.userId as number
 	const dbName = event.context.dbName as string | undefined
-	if (!userId) {
+	
+    if (!userId) {
 		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
 	}
-	if (!dbName) {
+	
+    if (!dbName) {
 		throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.active.no_database' })
 	}
 
