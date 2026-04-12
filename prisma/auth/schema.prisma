@@ -19,6 +19,7 @@ model User {
     password  String
     token     String    @unique // Token pour l'authentification API
     settings  String     @default("{}")
+    metadata  Json?    @db.JsonB
     databases Database[]
     createdAt DateTime   @default(now())
     updatedAt DateTime   @updatedAt
@@ -33,6 +34,7 @@ model Database {
     schemaName       String   @unique // PostgreSQL schema name (ex: "user_1_db_trading_2024")
     isDefault        Boolean  @default(false)
     migrationVersion Int      @default(0) // Current migration version applied to this schema
+    metadata         Json?    @db.JsonB
     createdAt        DateTime @default(now())
     updatedAt        DateTime @updatedAt
 

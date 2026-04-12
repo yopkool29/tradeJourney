@@ -12,6 +12,10 @@ export const getUploadPath = (userId: number, dbName: string): string => {
     return `./upload/user_${userId}_data/${dbName}/screenshots`
 }
 
+export const getPluginUploadPath = (userId: number, dbName: string): string => {
+    return `./upload/user_${userId}_data/${dbName}/plugins`
+}
+
 export interface AccountTrades<T = TradesImport> {
     accountInfo: AccountInfoImport;
     trades: T[];

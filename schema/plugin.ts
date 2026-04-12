@@ -5,6 +5,7 @@ export const TJPluginManifestSchema = z.object({
 	name: z.string(),
 	version: z.string(),
 	description: z.string(),
+	isUploaded: z.boolean().optional(),
 })
 
 export type TJPluginManifestType = z.output<typeof TJPluginManifestSchema>

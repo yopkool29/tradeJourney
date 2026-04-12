@@ -18,7 +18,11 @@ export default defineNuxtPlugin(async () => {
 	window.__TJ_PLUGIN_MODALS__ = []
 	window.__TJ_PLUGIN_PAGE_SLOTS__ = []
 
+	const pluginPageSlots = useState<TJPluginPageSlotRegistered[]>('pluginPageSlots', () => [])
+	pluginPageSlots.value = []
+
 	const toast = useAppToast()
+	let currentInstallingPluginId = ''
 
 	const sdk: TJPluginSdk = {
 		api: {
@@ -33,10 +37,14 @@ export default defineNuxtPlugin(async () => {
 				error: (message: string) => toast.error(message),
 			},
 			registerAction: (action) => {
-				window.__TJ_PLUGIN_ACTIONS__.push(action)
+				const idx = window.__TJ_PLUGIN_ACTIONS__.findIndex(a => a.id === action.id)
+				if (idx >= 0) window.__TJ_PLUGIN_ACTIONS__.splice(idx, 1, action)
+				else window.__TJ_PLUGIN_ACTIONS__.push(action)
 			},
 			registerModal: (modal) => {
-				window.__TJ_PLUGIN_MODALS__.push(modal)
+				const idx = window.__TJ_PLUGIN_MODALS__.findIndex(m => m.id === modal.id)
+				if (idx >= 0) window.__TJ_PLUGIN_MODALS__.splice(idx, 1, modal)
+				else window.__TJ_PLUGIN_MODALS__.push(modal)
 			},
 			openModal: (id: string) => {
 				const modal = window.__TJ_PLUGIN_MODALS__.find(m => m.id === id)
@@ -45,16 +53,12 @@ export default defineNuxtPlugin(async () => {
 				}
 			},
 			registerPageSlot: (slotId: string, config: { id: string; label: string; icon?: string; onClick: () => void }) => {
-				// Get plugin id from stack trace (approximate)
-				const pluginId = config.id.split('-')[0] || 'unknown'
-				window.__TJ_PLUGIN_PAGE_SLOTS__.push({
-					id: config.id,
-					slotId,
-					pluginId,
-					label: config.label,
-					icon: config.icon,
-					onClick: config.onClick,
-				})
+				const pluginId = currentInstallingPluginId
+				const slot = { id: config.id, slotId, pluginId, label: config.label, icon: config.icon, onClick: config.onClick }
+				const idx = pluginPageSlots.value.findIndex(s => s.id === config.id)
+				if (idx >= 0) pluginPageSlots.value.splice(idx, 1, slot)
+				else pluginPageSlots.value.push(slot)
+				window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
 			},
 		},
 	}
@@ -67,7 +71,8 @@ export default defineNuxtPlugin(async () => {
 		if (forceReload) {
 			window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(pluginId))
 			window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(pluginId))
-			window.__TJ_PLUGIN_PAGE_SLOTS__ = window.__TJ_PLUGIN_PAGE_SLOTS__.filter(s => s.pluginId !== pluginId)
+			pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== pluginId)
+			window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
 			delete (window as unknown as { [key: string]: unknown })[pluginId]
 		}
 
@@ -83,7 +88,9 @@ export default defineNuxtPlugin(async () => {
 			await import(/* @vite-ignore */ scriptUrl)
 			const plugin = (window as unknown as { [key: string]: TJPlugin })[pluginId]
 			if (plugin && plugin.install) {
+				currentInstallingPluginId = pluginId
 				plugin.install(sdk)
+				currentInstallingPluginId = ''
 				console.log(`[TJ Plugins] Loaded "${pluginId}"`)
 				return true
 			} else {

@@ -41,3 +41,6 @@ tradeJourney-tools/python/*.csv
 
 # Website (separate Git repo)
 website/
+
+# plugins
+plugins-dev/_release/

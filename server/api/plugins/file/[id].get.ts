@@ -1,12 +1,13 @@
 import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve } from 'path'
+import { existsSync } from 'fs'
 import { createAppError } from '~/server/utils/errors'
 import auth from '~/server/utils/auth'
+import { getPluginUploadPath } from '~/server/utils/index'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
-	const userId = event.context.userId
-	if (!userId) {
+	if (!event.context.userId) {
 		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.file.unauthorized' })
 	}
 
@@ -21,7 +22,15 @@ export default defineEventHandler(async (event) => {
 			throw createAppError({ statusCode: 400, message: 'Invalid plugin ID', tag: 'api.plugins.file.invalid_id' })
 		}
 
-		const filePath = join(process.cwd(), 'plugins-prod', id, 'plugin.umd.cjs')
+		const userId = event.context.userId as number
+		const dbName = event.context.dbName as string | undefined
+
+		// Check per-DB uploaded plugin first, fallback to system plugins-prod/
+		const uploadedPath = dbName
+			? join(resolve(process.cwd(), getPluginUploadPath(userId, dbName)), id, 'plugin.umd.cjs')
+			: null
+		const systemPath = join(process.cwd(), 'plugins-prod', id, 'plugin.umd.cjs')
+		const filePath = (uploadedPath && existsSync(uploadedPath)) ? uploadedPath : systemPath
 		const content = await readFile(filePath, 'utf-8')
 		setResponseHeader(event, 'Content-Type', 'application/javascript')
 		setResponseHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')

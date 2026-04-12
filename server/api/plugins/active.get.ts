@@ -5,19 +5,23 @@ import auth from '~/server/utils/auth'
 export default defineEventHandler(async (event) => {
 	await auth(event)
 	const userId = event.context.userId
+	const dbName = event.context.dbName as string | undefined
 	if (!userId) {
 		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
+	}
+	if (!dbName) {
+		throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.active.no_database' })
 	}
 
 	try {
 		const prisma = getAuthDb()
-		const user = await prisma.user.findUnique({
-			where: { id: Number(userId) },
-			select: { settings: true },
+		const database = await prisma.database.findFirst({
+			where: { userId: Number(userId), name: dbName },
+			select: { metadata: true },
 		})
 
-		const settings = JSON.parse(user?.settings || '{}')
-		return (settings.enabledPlugins as string[] | undefined) ?? []
+		const metadata = (database?.metadata ?? {}) as Record<string, unknown>
+		return (metadata.enabledPlugins as string[] | undefined) ?? []
 
 	} catch (error) {
 		const err = error as { statusCode?: number; data?: { tag?: string } }

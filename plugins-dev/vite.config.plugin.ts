@@ -11,9 +11,10 @@ if (!pluginId) {
 	throw new Error('PLUGIN env variable is required. Usage: PLUGIN=my-plugin npx vite build --config plugins-dev/vite.config.plugin.ts')
 }
 
-const outDir = resolve(__dirname, `../plugins-prod/${pluginId}`)
+const outDir = resolve(__dirname, `_release/${pluginId}`)
 
 export default defineConfig({
+	publicDir: false,
 	build: {
 		lib: {
 			entry: resolve(__dirname, `${pluginId}/index.ts`),
@@ -22,7 +23,8 @@ export default defineConfig({
 			formats: ['umd'],
 		},
 		outDir,
-		emptyOutDir: false,
+		emptyOutDir: true,
+		minify: process.env.RELEASE === 'true',
 		rollupOptions: {
 			external: ['vue'],
 			output: {
@@ -45,7 +47,7 @@ export default defineConfig({
 				// Create ZIP archive
 				const zip = new AdmZip()
 				zip.addLocalFolder(outDir, pluginId)
-				const zipPath = resolve(__dirname, `../plugins-prod/${pluginId}.zip`)
+				const zipPath = resolve(__dirname, `_release/${pluginId}.zip`)
 				zip.writeZip(zipPath)
 				console.log(`✓ Created ${pluginId}.zip`)
 			},

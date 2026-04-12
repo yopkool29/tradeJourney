@@ -1,8 +1,9 @@
 import { readdir, readFile } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import type { TJPluginManifest } from '~/type/plugin'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'
+import { getPluginUploadPath } from '~/server/utils/index'
 
 // Helper to scan a directory for plugin manifests
 async function scanPluginsDir(dirPath: string): Promise<TJPluginManifest[]> {
@@ -28,12 +29,18 @@ async function scanPluginsDir(dirPath: string): Promise<TJPluginManifest[]> {
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
+	const userId = event.context.userId as number
+	const dbName = event.context.dbName as string | undefined
 
 	try {
-		// Scan both system plugins and user-uploaded plugins
+		const uploadedPluginsDir = dbName
+			? resolve(process.cwd(), getPluginUploadPath(userId, dbName))
+			: null
+
+		// Scan system plugins and per-DB uploaded plugins
 		const [systemPlugins, uploadedPlugins] = await Promise.all([
 			scanPluginsDir(join(process.cwd(), 'plugins-prod')),
-			scanPluginsDir(join(process.cwd(), 'plugins-upload')),
+			uploadedPluginsDir ? scanPluginsDir(uploadedPluginsDir) : Promise.resolve([]),
 		])
 
 		// Merge and deduplicate by plugin id (uploaded plugins take precedence)

@@ -75,11 +75,30 @@
 							:loading="toggling === plugin.id"
 							@update:model-value="toggle(plugin.id, $event)"
 						/>
+						<UButton
+							v-if="plugin.isUploaded"
+							icon="i-heroicons-trash"
+							color="error"
+							variant="ghost"
+							size="sm"
+							:loading="deleting === plugin.id"
+							@click="handleDelete(plugin.id)"
+						/>
 					</div>
 				</div>
 			</UCard>
 		</div>
 	</div>
+
+	<CommonModalDelete
+		v-model:open="showDeleteModal"
+		@confirm="confirmDelete"
+		@cancel="pluginToDelete = null"
+	>
+		<template #content>
+			<p>{{ $t('pages.settings.plugins.delete_confirm') }}</p>
+		</template>
+	</CommonModalDelete>
 </template>
 
 <script setup lang="ts">
@@ -97,7 +116,12 @@ const {
 	isEnabled,
 	fetchPlugins,
 	togglePlugin,
+	deletePlugin,
 } = usePlugins()
+
+const deleting = ref<string | null>(null)
+const showDeleteModal = ref(false)
+const pluginToDelete = ref<string | null>(null)
 
 const importing = ref(false)
 const refresh = () => fetchPlugins()
@@ -140,9 +164,14 @@ const toggle = async (id: string, enabled: boolean) => {
 	try {
 		await togglePlugin(id, enabled)
 		toastSuccess(enabled ? t('pages.settings.plugins.enabled') : t('pages.settings.plugins.disabled'))
-		// Load plugin dynamically without reload
 		if (enabled) {
 			window.dispatchEvent(new CustomEvent('tj-plugin-load', { detail: { pluginId: id } }))
+		} else {
+			window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(id))
+			window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(id))
+			const pluginPageSlots = useState<{ pluginId: string }[]>('pluginPageSlots', () => [])
+			pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== id)
+			window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value as typeof window.__TJ_PLUGIN_PAGE_SLOTS__
 		}
 	} catch {
 		toastError(t('pages.settings.plugins.toggle_error'))
@@ -162,6 +191,26 @@ const runPlugin = (id: string) => {
 const reloadPlugin = (id: string) => {
 	window.dispatchEvent(new CustomEvent('tj-plugin-load', { detail: { pluginId: id } }))
 	toastSuccess('Plugin reloaded')
+}
+
+const handleDelete = (id: string) => {
+	pluginToDelete.value = id
+	showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+	const id = pluginToDelete.value
+	if (!id) return
+	deleting.value = id
+	try {
+		await deletePlugin(id)
+		toastSuccess(t('pages.settings.plugins.delete_success'))
+	} catch {
+		toastError(t('pages.settings.plugins.delete_error'))
+	} finally {
+		deleting.value = null
+		pluginToDelete.value = null
+	}
 }
 
 onMounted(fetchPlugins)

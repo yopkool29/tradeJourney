@@ -279,9 +279,9 @@ export default {
             },
             plugins: {
                 title: 'Plugins',
-                description: 'Gérez les plugins installés dans plugins-prod/',
+                description: 'Gérez les plugins installés',
                 empty: 'Aucun plugin trouvé',
-                empty_hint: 'Déposez un plugin dans le dossier plugins-prod/',
+                empty_hint: 'Importez un plugin via le bouton Importer',
                 load_error: 'Erreur lors du chargement des plugins',
                 enabled: 'Plugin activé',
                 disabled: 'Plugin désactivé',
@@ -290,6 +290,9 @@ export default {
                 import_success: 'Plugin importé avec succès',
                 import_error: 'Erreur lors de l\'import du plugin',
                 import_error_invalid_type: 'Le fichier doit être au format .zip',
+                delete_confirm: 'Êtes-vous sûr de vouloir supprimer ce plugin ?',
+                delete_success: 'Plugin supprimé avec succès',
+                delete_error: 'Erreur lors de la suppression du plugin',
             },
         },
         login: {

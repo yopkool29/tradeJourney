@@ -1,12 +1,18 @@
-import { readdir, readFile, unlink, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises'
+import { join, resolve } from 'path'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'
+import { getPluginUploadPath } from '~/server/utils/index'
 import AdmZip from 'adm-zip'
 
 export default defineEventHandler(async (event) => {
 	try {
 		await auth(event)
+		const userId = event.context.userId as number
+		const dbName = event.context.dbName as string | undefined
+		if (!dbName) {
+			throw createAppError({ message: 'No database selected', statusCode: 400, tag: 'PLUGIN_IMPORT_NO_DATABASE' })
+		}
 
 		const form = await readMultipartFormData(event)
 		if (!form) {
@@ -25,16 +31,17 @@ export default defineEventHandler(async (event) => {
 		}
 
 		// Save temp file
-		const tempPath = join(process.cwd(), 'plugins-upload', `.tmp-${Date.now()}.zip`)
+		const uploadDir = resolve(process.cwd(), getPluginUploadPath(userId, dbName))
+		await mkdir(uploadDir, { recursive: true })
+		const tempPath = join(uploadDir, `.tmp-${Date.now()}.zip`)
 		await writeFile(tempPath, file.data)
 
 		// Extract ZIP
-		const extractDir = join(process.cwd(), 'plugins-upload')
 		const zip = new AdmZip(tempPath)
-		zip.extractAllTo(extractDir, true)
+		zip.extractAllTo(uploadDir, true)
 
 		// Find extracted folder (should be pluginId/)
-		const entries = await readdir(extractDir, { withFileTypes: true })
+		const entries = await readdir(uploadDir, { withFileTypes: true })
 		const pluginDir = entries.find(e => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('tmp-'))
 		if (!pluginDir) {
 			await unlink(tempPath).catch(() => {})
@@ -42,7 +49,7 @@ export default defineEventHandler(async (event) => {
 		}
 
 		const pluginId = pluginDir.name
-		const pluginPath = join(extractDir, pluginId)
+		const pluginPath = join(uploadDir, pluginId)
 
 		// Validate manifest
 		try {

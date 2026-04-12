@@ -20,8 +20,7 @@ const props = defineProps<{
 	slotId: string
 }>()
 
-const slots = computed(() => {
-	const allSlots = (window as { __TJ_PLUGIN_PAGE_SLOTS__?: TJPluginPageSlotRegistered[] }).__TJ_PLUGIN_PAGE_SLOTS__
-	return allSlots?.filter(s => s.slotId === props.slotId) ?? []
-})
+const pluginPageSlots = useState<TJPluginPageSlotRegistered[]>('pluginPageSlots', () => [])
+
+const slots = computed(() => pluginPageSlots.value.filter(s => s.slotId === props.slotId))
 </script>

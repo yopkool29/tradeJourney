@@ -273,9 +273,9 @@ export default {
             },
             plugins: {
                 title: 'Plugins',
-                description: 'Manage plugins installed in plugins-prod/',
+                description: 'Manage plugins installed',
                 empty: 'No plugins found',
-                empty_hint: 'Drop a plugin into the plugins-prod/ folder',
+                empty_hint: 'Import a plugin using the Import button',
                 load_error: 'Error loading plugins',
                 enabled: 'Plugin enabled',
                 disabled: 'Plugin disabled',
@@ -284,6 +284,9 @@ export default {
                 import_success: 'Plugin imported successfully',
                 import_error: 'Error importing plugin',
                 import_error_invalid_type: 'File must be .zip',
+                delete_confirm: 'Are you sure you want to delete this plugin?',
+                delete_success: 'Plugin deleted successfully',
+                delete_error: 'Error deleting plugin',
             },
         },
         login: {

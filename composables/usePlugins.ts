@@ -43,6 +43,12 @@ export const usePlugins = () => {
 		}
 	}
 
+	const deletePlugin = async (id: string) => {
+		await $fetch(`/api/plugins/${id}`, { method: 'DELETE' })
+		plugins.value = plugins.value.filter(p => p.id !== id)
+		activePluginIds.value = activePluginIds.value.filter(pid => pid !== id)
+	}
+
 	return {
 		plugins,
 		activePluginIds,
@@ -52,5 +58,6 @@ export const usePlugins = () => {
 		isEnabled,
 		fetchPlugins,
 		togglePlugin,
+		deletePlugin,
 	}
 }
