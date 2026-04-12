@@ -226,16 +226,7 @@ async function onSubmit(event: FormSubmitEvent<NoteTagIdsType>) {
     }
 }
 
-const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 's' && (e.ctrlKey || e.metaKey) && !!trade.value) {
-        e.preventDefault()
-        e.stopPropagation()
-        document.getElementById('form1')?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-    }
-}
-
-onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
-onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
+useFormCtrlS('form1', () => !!trade.value)
 
 // Initialiser les données quand le trade change
 watch(

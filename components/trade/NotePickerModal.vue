@@ -1,5 +1,5 @@
 <template>
-    <UModal v-model:open="open" :title="$t('components.trade.notePicker.title')" :ui="{ content: 'sm:max-w-xl' }">
+    <UModal v-model:open="open" :title="$t('components.trade.notePicker.title')" :ui="{ overlay: 'z-[300]', content: 'z-[301] sm:max-w-xl' }">
         <template #body>
             <div class="p-4 space-y-4">
                 <!-- Filtres -->
@@ -58,6 +58,11 @@
                             class="text-primary-500 shrink-0 mt-0.5"
                         />
                     </div>
+                </div>
+
+                <!-- Aperçu Milkdown de la note sélectionnée -->
+                <div v-if="selectedNote" class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <CommonNoteEditor :model-value="selectedNote.content || ''" :readonly="true" :hide-fullscreen="true" />
                 </div>
 
                 <!-- Mode copier/déplacer -->
@@ -147,7 +152,14 @@ const getNoteSubtitle = (note: NoteType): string => {
 
 const getPreview = (note: NoteType): string => {
     if (!note.content) return ''
-    return note.content.replace(/[#*`>\-_]/g, '').trim().slice(0, 100)
+    return note.content
+        .replace(/!\[.*?\]\(data:[^)]+\)/g, '')
+        .replace(/!\[.*?\]\([^)]+\)/g, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/[#*`>\-_[\]]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 120)
 }
 
 const onAssociate = () => {

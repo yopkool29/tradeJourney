@@ -58,7 +58,7 @@
         </template>
         <template #footer>
             <div class="action-buttons-end">
-                <UButton type="button" color="primary" @click="handleSubmit">
+                <UButton type="submit" form="createSymbolFormQuick" color="primary">
                     {{ $t('common.actions.save') }}
                 </UButton>
                 <UButton type="button" color="neutral" variant="soft" @click.prevent="isOpen = false">
