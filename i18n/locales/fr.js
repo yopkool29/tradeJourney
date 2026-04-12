@@ -275,6 +275,17 @@ export default {
                 backup: 'Sauvegarde',
                 tools: 'Outils',
                 options: 'Options',
+                plugins: 'Plugins',
+            },
+            plugins: {
+                title: 'Plugins',
+                description: 'Gérez les plugins installés dans plugins-prod/',
+                empty: 'Aucun plugin trouvé',
+                empty_hint: 'Déposez un plugin dans le dossier plugins-prod/',
+                load_error: 'Erreur lors du chargement des plugins',
+                enabled: 'Plugin activé',
+                disabled: 'Plugin désactivé',
+                toggle_error: 'Erreur lors du changement détat du plugin',
             },
         },
         login: {

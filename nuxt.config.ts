@@ -90,8 +90,9 @@ export default defineNuxtConfig({
             ninjaTraderApiEnable: process.env.NINJATRADER_API_ENABLE === 'true',
             quantowerEnable: process.env.QUANTOWER_ENABLE === 'true',
             appTagVersion: process.env.APP_VERSION,
-            enableRouteLogger: false, // Activer le logging des routes dans logview
-            enableApiLogger: process.env.DEBUG_MODE === 'true' // Activer le logging des requêtes API dans logview
+            enableRouteLogger: false,
+            enableApiLogger: process.env.DEBUG_MODE === 'true',
+            pluginsEnabled: process.env.PLUGINS_ENABLED === 'true'
         }
     },
 
