@@ -187,7 +187,8 @@ export default {
             confirm: 'Confirm',
             close: 'Close',
             reset: 'Reset',
-            back: 'Back'
+            back: 'Back',
+            create: 'Create'
         },
         title: {
             success: 'Success',
@@ -349,7 +350,7 @@ export default {
             sidebar: {
                 title: 'MY NOTES',
                 delete_note: 'Delete this note',
-                add_note: 'Add note',
+                add_note: 'Add',
             },
             unsaved_modal: {
                 title: 'Unsaved changes',
@@ -361,11 +362,18 @@ export default {
                 content:
                     'Are you sure you want to delete the note from {date}?',
             },
+            create_modal: {
+                title: 'New note',
+                date_label: 'Date',
+                time_label: 'Time',
+                subtitle_label: 'Subtitle',
+            },
             header: {
                 notes_of: 'Notes of {date}',
                 subtitle_placeholder: 'Add a subtitle...',
             },
             editor: {
+                no_note_selected: 'Select or create a note',
                 placeholder: 'Start writing your note...',
                 insert_image: 'Insert image',
                 toolbar: {

@@ -193,7 +193,8 @@ export default {
             confirm: 'Confirmer',
             close: 'Fermer',
             reset: 'Réinitialiser',
-            back: 'Retour'
+            back: 'Retour',
+            create: 'Créer'
         },
         title: {
             success: 'Success',
@@ -325,7 +326,7 @@ export default {
             sidebar: {
                 title: 'MES NOTES',
                 delete_note: 'Supprimer cette note',
-                add_note: 'Ajouter une note',
+                add_note: 'Ajouter',
             },
             unsaved_modal: {
                 title: 'Modifications non sauvegardées',
@@ -337,11 +338,18 @@ export default {
                 content:
                     'Êtes-vous sûr de vouloir supprimer la note du {date} ?',
             },
+            create_modal: {
+                title: 'Nouvelle note',
+                date_label: 'Date',
+                time_label: 'Heure',
+                subtitle_label: 'Sous-titre',
+            },
             header: {
                 notes_of: 'Notes du {date}',
                 subtitle_placeholder: 'Ajouter un sous-titre...',
             },
             editor: {
+                no_note_selected: 'Sélectionnez ou créez une note',
                 placeholder: 'Commencez à écrire votre note...',
                 insert_image: 'Insérer une image',
                 toolbar: {

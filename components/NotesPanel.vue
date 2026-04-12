@@ -15,11 +15,11 @@
                         <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-300">{{ $t('components.notes_panel.sidebar.title') }}</h3>
                         <UButton
                             icon="i-heroicons-plus"
-                            color="neutral"
+                            :label="$t('components.notes_panel.sidebar.add_note')"
+                            color="primary"
                             variant="ghost"
                             size="xs"
-                            :title="$t('components.notes_panel.sidebar.add_note')"
-                            @click="createNewNote(formatDateToYYYYMMDD(selectedDate))"
+                            @click="openCreateModal"
                         />
                     </div>
                     <div class="space-y-1">
@@ -57,17 +57,6 @@
                                     @click.stop="confirmDeleteNote(note)"
                                 />
                             </div>
-                            <!-- Bouton pour ajouter une nouvelle note -->
-                            <div class="ml-2">
-                                <UButton
-                                    icon="i-heroicons-plus"
-                                    color="neutral"
-                                    variant="ghost"
-                                    size="xs"
-                                    :title="$t('components.notes_panel.sidebar.add_note')"
-                                    @click="createNewNote(dateGroup.date)"
-                                />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,11 +87,15 @@
 
                 <!-- Éditeur Markdown -->
                 <div class="flex-1 overflow-hidden flex flex-col w-full">
+                    <div v-if="!selectedNote" class="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                        {{ $t('components.notes_panel.editor.no_note_selected') }}
+                    </div>
                     <CommonNoteEditor
+                        v-else
                         ref="noteEditor"
                         :model-value="editorContent"
                         :readonly="false"
-                        :hide-fullscreen="false"
+                        :hide-fullscreen="true"
                         :fill-height="true"
                         @update:model-value="editorContent = $event"
                         @clear="editorContent = ''"
@@ -110,7 +103,7 @@
                 </div>
 
                 <!-- Pied de page -->
-                <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
+                <div v-if="selectedNote" class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                     <div class="flex gap-2">
                         <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" :disabled="loading" @click="saveNote" />
                         <UButton :label="$t('common.actions.save_and_close')" color="primary" variant="soft" :loading="loading" :disabled="loading" @click="saveAndClose" />
@@ -131,6 +124,29 @@
                 <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" @click="onUnsavedSaveAndContinue" />
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="() => { showUnsavedModal = false; pendingAction = null }" />
                 <UButton :label="$t('components.notes_panel.unsaved_modal.discard')" color="error" variant="ghost" @click="onUnsavedDiscard" />
+            </div>
+        </template>
+    </CommonModalDefault>
+
+    <!-- Modal de création d'une nouvelle note -->
+    <CommonModalDefault v-model:open="showCreateModal" :title="$t('components.notes_panel.create_modal.title')">
+        <template #content>
+            <div class="space-y-4">
+                <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
+                    <UInput v-model="createNoteDate" type="date" class="w-full" />
+                </UFormField>
+                <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
+                    <UInput v-model="createNoteTime" type="time" class="w-full" />
+                </UFormField>
+                <UFormField :label="$t('components.notes_panel.create_modal.subtitle_label')">
+                    <UInput v-model="createNoteSubtitle" :placeholder="$t('components.notes_panel.header.subtitle_placeholder')" class="w-full" />
+                </UFormField>
+            </div>
+        </template>
+        <template #footer>
+            <div class="flex gap-2 justify-end">
+                <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showCreateModal = false" />
+                <UButton :label="$t('common.actions.create')" color="primary" @click="confirmCreateNote" />
             </div>
         </template>
     </CommonModalDefault>
@@ -179,6 +195,11 @@ const showUnsavedModal = ref(false)
 const savedContent = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
+const showCreateModal = ref(false)
+const createNoteDate = ref('')
+const createNoteTime = ref('')
+const createNoteSubtitle = ref('')
+
 const editorContent = ref('')
 const noteEditor = ref<{ getContent: () => string, setContent: (v: string) => Promise<void> } | null>(null)
 const getContent = () => editorContent.value
@@ -205,9 +226,9 @@ const noteDatesGrouped = computed(() => {
         grouped.get(dateKey)!.push(note)
     })
     
-    // Trier les notes par heure (plus récent en premier)
+    // Trier les notes par heure (plus ancien en premier)
     grouped.forEach(notes => {
-        notes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        notes.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     })
     
     // Convertir en tableau et trier par date
@@ -248,6 +269,30 @@ const selectNote = (note: NoteType) => {
         return
     }
     doSelectNote(note)
+}
+
+const openCreateModal = () => {
+    const now = new Date()
+    createNoteDate.value = formatDateToYYYYMMDD(now)
+    createNoteTime.value = now.toTimeString().slice(0, 5)
+    createNoteSubtitle.value = ''
+    showCreateModal.value = true
+}
+
+const confirmCreateNote = () => {
+    const [hours, minutes] = createNoteTime.value.split(':').map(Number)
+    const parsed = new Date(createNoteDate.value)
+    parsed.setHours(hours, minutes, 0, 0)
+    const newNote: Partial<NoteType> = {
+        date: parsed.toISOString(),
+        content: '',
+        metadata: { subtitle: createNoteSubtitle.value }
+    }
+    noteSubtitle.value = createNoteSubtitle.value
+    savedSubtitle.value = ''
+    selectedNote.value = newNote as NoteType
+    setContent('')
+    showCreateModal.value = false
 }
 
 // Créer une nouvelle note pour une date donnée
@@ -402,6 +447,15 @@ const deleteNoteConfirmed = async () => {
         noteToDelete.value = null
     }
 }
+
+watch(selectedNote, (note) => {
+    if (!note) {
+        editorContent.value = ''
+        noteSubtitle.value = ''
+        savedContent.value = ''
+        savedSubtitle.value = ''
+    }
+})
 
 // Surveiller l'ouverture/fermeture du panneau
 watch(
