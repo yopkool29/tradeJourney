@@ -7,5 +7,6 @@
 		"paths": {
 			"~/type/plugin": ["../type/plugin"]
 		}
-	}
+	},
+	"include": ["**/*.ts", "**/*.vue", "../type/plugin.ts"]
 }

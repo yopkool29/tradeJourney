@@ -1,7 +1,8 @@
 <template>
 	<CommonModalDefault v-if="activeModal" v-model:open="isOpen" :title="activeModal.title" @update:open="onClose">
 		<template #content>
-			<p>{{ activeModal.message }}</p>
+			<component :is="activeModal.component" v-if="activeModal.component" :sdk="sdk" />
+			<p v-else>{{ activeModal.message }}</p>
 		</template>
 		<template #footer>
 			<div class="flex justify-end">
@@ -12,12 +13,16 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from 'vue'
 import type { TJPluginModalRegistered } from '~/type/plugin'
 
-const isOpen = ref(false)
-const activeModal = ref<TJPluginModalRegistered | null>(null)
+type PluginModal = Omit<TJPluginModalRegistered, 'component'> & { component?: Component }
 
-const onClose = (val: boolean) => {
+const isOpen = ref(false)
+const activeModal = ref<PluginModal | null>(null)
+const sdk = window.__TJ_SDK__
+
+const onClose = (val: boolean | undefined) => {
 	if (!val && activeModal.value?.onClose) {
 		activeModal.value.onClose()
 	}
@@ -30,7 +35,7 @@ onMounted(() => {
 		const { id } = (e as CustomEvent<{ id: string }>).detail
 		const modal = window.__TJ_PLUGIN_MODALS__?.find(m => m.id === id)
 		if (modal) {
-			activeModal.value = modal
+			activeModal.value = { ...modal, component: modal.component as Component | undefined }
 			isOpen.value = true
 		}
 	})

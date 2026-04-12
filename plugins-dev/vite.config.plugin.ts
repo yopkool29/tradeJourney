@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { copyFile } from 'fs/promises'
 import AdmZip from 'adm-zip'
+import vue from '@vitejs/plugin-vue'
 
 // Usage: PLUGIN=hello-plugin npx vite build --config plugins-dev/vite.config.plugin.ts
 const pluginId = process.env.PLUGIN
@@ -23,10 +24,16 @@ export default defineConfig({
 		outDir,
 		emptyOutDir: false,
 		rollupOptions: {
-			external: [],
+			external: ['vue'],
+			output: {
+				globals: {
+					vue: 'Vue',
+				},
+			},
 		},
 	},
 	plugins: [
+		vue(),
 		{
 			name: 'zip-plugin',
 			closeBundle: async () => {

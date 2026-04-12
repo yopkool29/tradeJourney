@@ -1,7 +1,9 @@
+import * as Vue from 'vue'
 import type { TJPlugin, TJPluginSdk, TJPluginRegistered, TJPluginModalRegistered, TJPluginPageSlotRegistered } from '~/type/plugin'
 
 declare global {
 	interface Window {
+		Vue: typeof Vue
 		__TJ_SDK__: TJPluginSdk
 		__TJ_PLUGINS__: TJPlugin[]
 		__TJ_PLUGIN_ACTIONS__: TJPluginRegistered[]
@@ -11,6 +13,7 @@ declare global {
 }
 
 export default defineNuxtPlugin(async () => {
+	window.Vue = Vue
 	window.__TJ_PLUGIN_ACTIONS__ = []
 	window.__TJ_PLUGIN_MODALS__ = []
 	window.__TJ_PLUGIN_PAGE_SLOTS__ = []

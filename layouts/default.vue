@@ -31,7 +31,7 @@
         <TradeTagModal />
 
         <!-- Runner de modals plugins -->
-        <PluginModalRunner />
+        <PluginsModalRunner />
 
         <!-- Panneau de notes -->
         <div class="relative z-50">

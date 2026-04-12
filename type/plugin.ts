@@ -10,7 +10,8 @@ type TJPluginAction = {
 type TJPluginModal = {
 	id: string
 	title: string
-	message: string
+	message?: string
+	component?: unknown
 	onClose?: () => void
 }
 
