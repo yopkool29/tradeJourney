@@ -169,6 +169,17 @@ const onAssociate = () => {
     open.value = false
 }
 
+const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && open.value) {
+        e.preventDefault()
+        e.stopPropagation()
+        open.value = false
+    }
+}
+
+onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
+onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
+
 watch(open, async (val) => {
     if (!val) return
     loading.value = true
