@@ -18,6 +18,7 @@ type TJPluginModal = {
 
 type TJPluginUi = {
 	components: {
+		// Basic components
 		UIcon: Component
 		UCard: Component
 		UDivider: Component
@@ -27,6 +28,35 @@ type TJPluginUi = {
 		USwitch: Component
 		UBadge: Component
 		UProgress: Component
+		// Form components
+		UForm: Component
+		UInput: Component
+		UFormField: Component
+		USelect: Component
+		UCheckbox: Component
+		URadioGroup: Component
+		UTextarea: Component
+		// Layout components
+		UAvatar: Component
+		UDropdown: Component
+		UTabs: Component
+		UTab: Component
+		// Data display
+		UTable: Component
+		UPagination: Component
+		UTooltip: Component
+		// Feedback
+		UToast: Component
+		UNotification: Component
+		// Navigation
+		UMenu: Component
+		UBreadcrumb: Component
+		// Advanced
+		UAccordion: Component
+		UModal: Component
+		USlider: Component
+		UDatePicker: Component
+		UTimePicker: Component
 	}
 	toast: {
 		success: ToastFn

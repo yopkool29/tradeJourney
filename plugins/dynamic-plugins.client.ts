@@ -59,6 +59,35 @@ const resolvedComponents = {
     USwitch: resolveComponent('USwitch'),
     UBadge: resolveComponent('UBadge'),
     UProgress: resolveComponent('UProgress'),
+    // Form components
+    UForm: resolveComponent('UForm'),
+    UInput: resolveComponent('UInput'),
+    UFormField: resolveComponent('UFormField'),
+    USelect: resolveComponent('USelect'),
+    UCheckbox: resolveComponent('UCheckbox'),
+    URadioGroup: resolveComponent('URadioGroup'),
+    UTextarea: resolveComponent('UTextarea'),
+    // Layout components
+    UAvatar: resolveComponent('UAvatar'),
+    UDropdown: resolveComponent('UDropdown'),
+    UTabs: resolveComponent('UTabs'),
+    UTab: resolveComponent('UTab'),
+    // Data display
+    UTable: resolveComponent('UTable'),
+    UPagination: resolveComponent('UPagination'),
+    UTooltip: resolveComponent('UTooltip'),
+    // Feedback
+    UToast: resolveComponent('UToast'),
+    UNotification: resolveComponent('UNotification'),
+    // Navigation
+    UMenu: resolveComponent('UMenu'),
+    UBreadcrumb: resolveComponent('UBreadcrumb'),
+    // Advanced
+    UAccordion: resolveComponent('UAccordion'),
+    UModal: resolveComponent('UModal'),
+    USlider: resolveComponent('USlider'),
+    UDatePicker: resolveComponent('UDatePicker'),
+    UTimePicker: resolveComponent('UTimePicker'),
 }
 
 const sdk: TJPluginSdk = {
