@@ -1,5 +1,39 @@
 <template>
-    <div class="flex flex-col rounded-lg overflow-hidden" :class="{ 'border border-gray-200 dark:border-gray-700': !readonly, 'opacity-50': isFullscreen, 'h-full': fillHeight }">
+    <div class="flex flex-col rounded-lg overflow-hidden relative" :class="{ 'border border-gray-200 dark:border-gray-700': !readonly, 'opacity-50': isFullscreen, 'h-full': fillHeight }">
+        <!-- Delete icon in top-right corner for readonly mode -->
+        <div v-if="readonly && props.showDeleteIcon" class="absolute top-2 right-2 z-10">
+            <CommonModalDelete
+                v-if="props.requireDeleteConfirmation"
+                :from="'note-editor'"
+                :title="$t('components.common.noteEditor.clear_note_title')"
+                :confirm-text="$t('common.actions.confirm')"
+                confirm-color="error"
+                @confirm="emit('delete')">
+                <template #trigger>
+                    <UTooltip :text="$t('components.common.noteEditor.clear_note_tooltip')">
+                        <UButton 
+                            icon="i-heroicons-trash" 
+                            size="xs" 
+                            color="error" 
+                            variant="ghost"
+                            class="opacity-70 hover:opacity-100"
+                            @click.stop />
+                    </UTooltip>
+                </template>
+                <template #content>{{ $t('components.common.noteEditor.clear_note_confirm') }}</template>
+            </CommonModalDelete>
+            <UTooltip v-else :text="$t('components.common.noteEditor.clear_note_tooltip')">
+                <UButton 
+                    icon="i-heroicons-trash" 
+                    size="xs" 
+                    color="error" 
+                    variant="ghost"
+                    class="opacity-70 hover:opacity-100"
+                    @click="emit('delete')"
+                    @click.stop />
+            </UTooltip>
+        </div>
+        
         <div v-if="!readonly" class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {{ $t('components.trade.noteEditor.label') }}
@@ -73,12 +107,15 @@ type Props = {
     readonly: boolean
     hideFullscreen?: boolean
     fillHeight?: boolean
+    showDeleteIcon?: boolean
+    requireDeleteConfirmation?: boolean
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
     'update:modelValue': [value: string]
     'clear': []
+    'delete': []
 }>()
 
 const isFullscreen = ref(false)

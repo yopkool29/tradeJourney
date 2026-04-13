@@ -1189,6 +1189,9 @@ export default {
                 delete_trade_note_title: 'Delete notes, tags and screenshots',
                 delete_trade_note_confirm:
                     'Are you sure you want to delete the note, all tags and screenshots associated with this trade?',
+                delete_detailed_note_title: 'Delete detailed note',
+                delete_detailed_note_confirm:
+                    'Are you sure you want to delete the detailed note associated with this trade?',
                 show_trades: 'Show trades',
                 hide_trades: 'Hide trades',
                 activate_button: 'Activate',

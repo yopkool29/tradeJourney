@@ -235,8 +235,18 @@
 
                 <!-- Detailed Note — full width row -->
                 <div v-if="userStore.showDetailedNote && (row.original.metadata as Record<string, unknown>)?.detailedNote" class="mt-3 select-none" :class="{ 'opacity-50': !row.original.active }">
-                    <hr class="border-dashed border-gray-300 dark:border-gray-600 mb-2">
-                    <CommonNoteEditor :model-value="(row.original.metadata as Record<string, unknown>).detailedNote as string" :readonly="true" :hide-fullscreen="true" />
+                    <hr class="border-dashed border-gray-300 dark:border-gray-700 mb-2">
+                    <div 
+                        class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors"
+                        @click="row.original.active !== false && emit('open-detailed-note', row.original)">
+                        <CommonNoteEditor 
+                            :model-value="(row.original.metadata as Record<string, unknown>).detailedNote as string" 
+                            :readonly="true" 
+                            :hide-fullscreen="true"
+                            :show-delete-icon="true"
+                            :require-delete-confirmation="props.requireDetailedNoteDeleteConfirmation"
+                            @delete="emit('clear-detailed-note', row.original)" />
+                    </div>
                 </div>
             </template>
         </UTable>
@@ -262,6 +272,7 @@ const props = defineProps<{
     showTable: boolean
     timezoneKey: string
     getTagStyle: (tag: any) => any
+    requireDetailedNoteDeleteConfirmation?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -272,6 +283,7 @@ const emit = defineEmits<{
     'open-screenshots': [trade: TradeExtendedType]
     'open-detailed-note': [trade: TradeExtendedType]
     'clear-tags': [trade: TradeExtendedType]
+    'clear-detailed-note': [trade: TradeExtendedType]
 }>()
 
 const table = useTemplateRef('table')

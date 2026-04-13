@@ -18,12 +18,12 @@ export default defineNuxtPlugin(() => {
             return Reflect.apply(target, thisArg, argumentsList)
                 .then((response: any) => {
                     const duration = Date.now() - startTime
-                    log_info(`✅ API ${method} ${url} - ${duration}ms`)
+                    // log_info(`✅ API ${method} ${url} - ${duration}ms`)
                     return response
                 })
                 .catch((error: any) => {
                     const duration = Date.now() - startTime
-                    log_error(`❌ API ${method} ${url} - ${duration}ms - ${error.message || error}`)
+                    // log_error(`❌ API ${method} ${url} - ${duration}ms - ${error.message || error}`)
                     throw error
                 })
         }

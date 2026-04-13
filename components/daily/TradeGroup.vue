@@ -82,6 +82,14 @@
                 </template>
             </CommonModalDelete>
 
+            <!-- Modal de confirmation pour effacer la detailedNote -->
+            <CommonModalDelete v-model:open="showClearDetailedNoteModal" :from="'detailed_note'"
+                :title="$t('components.daily.trade_group.delete_detailed_note_title')" @confirm="executeClearDetailedNote">
+                <template #content>
+                    <p class="mb-4">{{ $t('components.daily.trade_group.delete_detailed_note_confirm') }}</p>
+                </template>
+            </CommonModalDelete>
+
             <!-- Modal pour afficher les détails d'un trade -->
             <DailyTradeDetailModal :is-open="showTradeDetailModal" :trade="selectedTradeDetail"
                 @update:open="showTradeDetailModal = $event" />
@@ -129,6 +137,7 @@
                         @open-screenshots="openScreenshotsModal"
                         @open-detailed-note="openDirectDetailedNote"
                         @clear-tags="confirmClearTradeTags"
+                        @clear-detailed-note="onClearDetailedNote"
                     />
                 </template>
             </UCollapsible>
@@ -152,16 +161,13 @@ import type { DayTagType } from '~/schema/dayTag'
 import type { TradeExtendedType } from '~/schema/trade'
 import { DashboardWinratePie, UIcon } from '#components'
 
-import { formatDateLongString, formatHourString, formatDateWithUserTimezone } from '~/utils/date-utils'
+import { formatDateLongString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
 
-const UTooltipComp = resolveComponent('UTooltip')
-const UButtonComp = resolveComponent('UButton')
 const userStore = useUserStore()
-const { tradeTypeColors } = useTypeColors()
 const appConfig = useAppConfig()
 
 const { log_error } = useLogView()
@@ -182,8 +188,6 @@ const props = defineProps({
     },
 })
 
-const table = useTemplateRef('table')
-
 // Clé réactive pour forcer le re-rendu quand les settings de timezone changent
 const timezoneKey = computed(() => {
     const settings = userStore.user?.settings_object
@@ -197,13 +201,14 @@ const currentScreenshots = ref<Array<{ id?: number; url: string }>>([])
 
 const showClearTagsModal = ref(false)
 const showClearDayTagsModal = ref(false)
+const showClearDetailedNoteModal = ref(false)
 const selectedTrade = ref<TradeExtendedType | null>(null)
+const selectedTradeForDetailedNote = ref<TradeExtendedType | null>(null)
 const dayTag = ref<DayTagType | null>(null)
 
 // Composable pour gérer les trades
 const { getTagStyle } = useTags()
 const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
-const { getDigitFromSymbol } = useSymbols()
 const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
@@ -456,6 +461,30 @@ const onDirectDetailedNoteClose = async () => {
     await updateTrade({ id: selectedTradeForNote.value.id, detailedNote: directDetailedNote.value })
     const result = await fetchTrade(selectedTradeForNote.value.id)
     if (result) selectedTradeForNote.value.metadata = result.metadata
+}
+
+const onClearDetailedNote = async (trade: TradeExtendedType) => {
+    selectedTradeForDetailedNote.value = trade
+    if (userStore.user?.settings_object?.deleteConfirmationNoteTags === false) {
+        await executeClearDetailedNote()
+    } else {
+        showClearDetailedNoteModal.value = true
+    }
+}
+
+const executeClearDetailedNote = async () => {
+    if (!selectedTradeForDetailedNote.value) return
+    try {
+        const { updateTrade, fetchTrade } = useTrades()
+        await updateTrade({ id: selectedTradeForDetailedNote.value.id, detailedNote: '' })
+        const result = await fetchTrade(selectedTradeForDetailedNote.value.id)
+        if (result) {
+            selectedTradeForDetailedNote.value.metadata = result.metadata
+        }
+    } catch (err) {
+        const { message } = catchTagMessage(err, t)
+        log_error(message)
+    }
 }
 </script>
 

@@ -57,6 +57,7 @@ watch(editorContainer, (el) => { trapRef.value = el })
 
 const localNote = ref(modelValue.value)
 const showNotePicker = ref(false)
+const pendingNoteMove = ref<{ noteId: number } | null>(null)
 
 watch(modelValue, (val) => {
     localNote.value = val
@@ -76,20 +77,33 @@ watch(open, async (val) => {
 const onNoteAssociated = async (note: NoteType, mode: 'copy' | 'move') => {
     localNote.value = note.content || ''
     if (mode === 'move' && note.id) {
-        try {
-            await deleteNote(note.id)
-        } catch (error) {
-            console.error('Failed to delete note after move:', error)
-        }
+        // Store the pending move instead of executing it immediately
+        pendingNoteMove.value = { noteId: note.id }
+    } else {
+        // Clear any pending move if mode is copy
+        pendingNoteMove.value = null
     }
 }
 
-const onSave = () => {
+const onSave = async () => {
     modelValue.value = localNote.value
+    
+    // Execute pending note move if any
+    if (pendingNoteMove.value) {
+        try {
+            await deleteNote(pendingNoteMove.value.noteId)
+        } catch (error) {
+            console.error('Failed to delete note after move:', error)
+        }
+        pendingNoteMove.value = null
+    }
+    
     open.value = false
 }
 
 const onCancel = () => {
+    // Clear any pending move when cancelling
+    pendingNoteMove.value = null
     open.value = false
 }
 

@@ -53,6 +53,21 @@ export const useQuickNav = () => {
         router.push(item.path)
     }
 
+    // Go back to previous page
+    const goBack = () => {
+        // Get navigation history, exclude current page
+        const history = userStore.quickNavHistory.filter((item: { path: string; lastVisit: number }) => item.path !== route.path)
+        
+        if (history.length > 0) {
+            // Sort by most recent visit and take the first one
+            const previousPage = history.sort((a: { lastVisit: number }, b: { lastVisit: number }) => b.lastVisit - a.lastVisit)[0]
+            router.push(previousPage.path)
+        } else {
+            // If no history, go to dashboard by default
+            router.push('/dashboard')
+        }
+    }
+
     // Auto-record visits on route change
     if (import.meta.client) {
         watch(() => route.path, () => {
@@ -63,5 +78,6 @@ export const useQuickNav = () => {
     return {
         shortcuts,
         navigateToShortcut,
+        goBack,
     }
 }

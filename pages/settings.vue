@@ -1,5 +1,16 @@
 <template>
     <div class="container mx-auto px-4 py-8">
+        <!-- Bouton Retour -->
+        <div class="mb-4">
+            <UButton
+                :label="$t('common.actions.back')"
+                icon="i-heroicons-arrow-left"
+                color="neutral"
+                variant="ghost"
+                @click="goBack"
+            />
+        </div>
+        
         <UTabs :orientation="isMobile ? 'vertical' : 'horizontal'" v-model="active" :items="items" class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">
@@ -18,6 +29,7 @@ import { markRaw } from 'vue'
 
 const { t } = useI18n()
 const config = useRuntimeConfig()
+const { goBack } = useQuickNav()
 const active = useState<string>(() => 'accounts')
 
 const whitelistedViews = ref<string[]>()
