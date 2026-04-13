@@ -1091,6 +1091,9 @@ export default {
             noteEditor: {
                 label: 'Note détaillée',
                 clear: 'Effacer la note',
+                clear_note_title: 'Effacer la note',
+                clear_note_tooltip: 'Effacer la note',
+                clear_note_confirm: 'Êtes-vous sûr de vouloir effacer cette note ?',
                 fullscreen: 'Plein écran',
                 exit_fullscreen: 'Quitter le plein écran',
             },

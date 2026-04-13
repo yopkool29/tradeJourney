@@ -23,15 +23,9 @@
                         />
                     </div>
                     <div class="space-y-1">
-                        <div
-                            v-for="dateGroup in noteDatesGrouped"
-                            :key="dateGroup.date"
-                            class="mb-2"
-                        >
+                        <div v-for="dateGroup in noteDatesGrouped" :key="dateGroup.date" class="mb-2">
                             <!-- Date du jour -->
-                            <div
-                                class="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                            >
+                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 {{ formatDateLongString(dateGroup.date, locale) }}
                             </div>
                             <!-- Notes pour cette date -->
@@ -69,7 +63,9 @@
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <div class="flex-1">
                         <div class="flex items-center gap-3">
-                            <h2 class="text-lg font-semibold whitespace-nowrap">{{ showDirtyIndicator ? '* ' : '' }}{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}</h2>
+                            <h2 class="text-lg font-semibold whitespace-nowrap">
+                                {{ showDirtyIndicator ? '* ' : '' }}{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}
+                            </h2>
                             <UButton
                                 v-if="selectedNote"
                                 icon="i-heroicons-calendar"
@@ -116,7 +112,14 @@
                 <div v-if="selectedNote" class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                     <div class="flex gap-2">
                         <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" :disabled="loading" @click="saveNote" />
-                        <UButton :label="$t('common.actions.save_and_close')" color="primary" variant="soft" :loading="loading" :disabled="loading" @click="saveAndClose" />
+                        <UButton
+                            :label="$t('common.actions.save_and_close')"
+                            color="primary"
+                            variant="soft"
+                            :loading="loading"
+                            :disabled="loading"
+                            @click="saveAndClose"
+                        />
                         <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" :disabled="loading" @click="closePanel" />
                     </div>
                 </div>
@@ -127,12 +130,24 @@
     <!-- Modal modifications non sauvegardées -->
     <CommonModalDefault v-model:open="showUnsavedModal" :title="$t('components.notes_panel.unsaved_modal.title')">
         <template #content>
-            <p>{{ $t('components.notes_panel.unsaved_modal.content') }}</p>
+            <UForm id="unsavedModalForm" :state="{}" @submit="onUnsavedSaveAndContinue">
+                <p>{{ $t('components.notes_panel.unsaved_modal.content') }}</p>
+            </UForm>
         </template>
         <template #footer>
             <div class="flex gap-4 justify-end">
-                <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" @click="onUnsavedSaveAndContinue" />
-                <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="() => { showUnsavedModal = false; pendingAction = null }" />
+                <UButton type="submit" form="unsavedModalForm" :label="$t('common.actions.save')" color="primary" :loading="loading" />
+                <UButton
+                    :label="$t('common.actions.cancel')"
+                    color="neutral"
+                    variant="ghost"
+                    @click="
+                        () => {
+                            showUnsavedModal = false
+                            pendingAction = null
+                        }
+                    "
+                />
                 <UButton :label="$t('components.notes_panel.unsaved_modal.discard')" color="error" variant="ghost" @click="onUnsavedDiscard" />
             </div>
         </template>
@@ -141,22 +156,24 @@
     <!-- Modal de création d'une nouvelle note -->
     <CommonModalDefault v-model:open="showCreateModal" :title="$t('components.notes_panel.create_modal.title')">
         <template #content>
-            <div class="space-y-4">
-                <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
-                    <UInput v-model="createNoteDate" type="date" class="w-full" />
-                </UFormField>
-                <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
-                    <UInput v-model="createNoteTime" type="time" class="w-full" />
-                </UFormField>
-                <UFormField :label="$t('components.notes_panel.create_modal.subtitle_label')">
-                    <UInput v-model="createNoteSubtitle" :placeholder="$t('components.notes_panel.header.subtitle_placeholder')" class="w-full" />
-                </UFormField>
-            </div>
+            <UForm id="createNoteForm" :state="{}" @submit="confirmCreateNote">
+                <div class="space-y-4">
+                    <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
+                        <UInput v-model="createNoteDate" type="date" class="w-full" autofocus />
+                    </UFormField>
+                    <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
+                        <UInput v-model="createNoteTime" type="time" class="w-full" />
+                    </UFormField>
+                    <UFormField :label="$t('components.notes_panel.create_modal.subtitle_label')">
+                        <UInput v-model="createNoteSubtitle" :placeholder="$t('components.notes_panel.header.subtitle_placeholder')" class="w-full" @keydown.enter="confirmCreateNote" />
+                    </UFormField>
+                </div>
+            </UForm>
         </template>
         <template #footer>
             <div class="flex gap-2 justify-end">
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showCreateModal = false" />
-                <UButton :label="$t('common.actions.create')" color="primary" @click="confirmCreateNote" />
+                <UButton type="submit" form="createNoteForm" :label="$t('common.actions.create')" color="primary" />
             </div>
         </template>
     </CommonModalDefault>
@@ -164,19 +181,21 @@
     <!-- Modal de modification de date et heure -->
     <CommonModalDefault v-model:open="showChangeDateTimeModal" :title="$t('components.notes_panel.change_datetime_modal.title')">
         <template #content>
-            <div class="space-y-4">
-                <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
-                    <UInput v-model="changeNoteDate" type="date" class="w-full" />
-                </UFormField>
-                <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
-                    <UInput v-model="changeNoteTime" type="time" class="w-full" />
-                </UFormField>
-            </div>
+            <UForm id="changeDateTimeForm" :state="{}" @submit="confirmChangeDateTime">
+                <div class="space-y-4">
+                    <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
+                        <UInput v-model="changeNoteDate" type="date" class="w-full" autofocus />
+                    </UFormField>
+                    <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
+                        <UInput v-model="changeNoteTime" type="time" class="w-full" @keydown.enter="confirmChangeDateTime" />
+                    </UFormField>
+                </div>
+            </UForm>
         </template>
         <template #footer>
             <div class="flex gap-2 justify-end">
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showChangeDateTimeModal = false" />
-                <UButton :label="$t('common.actions.update')" color="primary" @click="confirmChangeDateTime" />
+                <UButton type="submit" form="changeDateTimeForm" :label="$t('common.actions.update')" color="primary" />
             </div>
         </template>
     </CommonModalDefault>
@@ -235,16 +254,15 @@ const changeNoteDate = ref('')
 const changeNoteTime = ref('')
 
 const editorContent = ref('')
-const noteEditor = ref<{ getContent: () => string, setContent: (v: string) => Promise<void> } | null>(null)
+const noteEditor = ref<{ getContent: () => string; setContent: (v: string) => Promise<void> } | null>(null)
 const getContent = () => editorContent.value
-const setContent = async (v: string) => { editorContent.value = v }
+const setContent = async (v: string) => {
+    editorContent.value = v
+}
 
 const noteSubtitle = ref('')
 const savedSubtitle = ref('')
-const isDirty = computed(() =>
-    editorContent.value.trim() !== savedContent.value.trim() ||
-    noteSubtitle.value !== savedSubtitle.value
-)
+const isDirty = computed(() => editorContent.value.trim() !== savedContent.value.trim() || noteSubtitle.value !== savedSubtitle.value)
 const isNewNote = computed(() => !!selectedNote.value && !selectedNote.value.id)
 const showDirtyIndicator = computed(() => isDirty.value || isNewNote.value)
 
@@ -253,7 +271,7 @@ const { t, locale } = useI18n()
 // Grouper les notes par date
 const noteDatesGrouped = computed(() => {
     const grouped = new Map<string, NoteType[]>()
-    
+
     noteDates.value.forEach((note: NoteType) => {
         const dateKey = formatDateToYYYYMMDD(note.date)
         if (!grouped.has(dateKey)) {
@@ -261,12 +279,12 @@ const noteDatesGrouped = computed(() => {
         }
         grouped.get(dateKey)!.push(note)
     })
-    
+
     // Trier les notes par heure (plus ancien en premier)
-    grouped.forEach(notes => {
+    grouped.forEach((notes) => {
         notes.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     })
-    
+
     // Convertir en tableau et trier par date
     return Array.from(grouped.entries())
         .map(([date, notes]) => ({ date, notes }))
@@ -280,9 +298,9 @@ const formattedDate = computed(() => formatDateLongString(props.selectedDate, lo
 // Formater l'heure d'une note
 const formatNoteTime = (date: string | Date) => {
     const d = new Date(date)
-    return d.toLocaleTimeString(locale.value, { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+    return d.toLocaleTimeString(locale.value, {
+        hour: '2-digit',
+        minute: '2-digit',
     })
 }
 
@@ -325,17 +343,17 @@ const openChangeDateTimeModal = () => {
 
 const confirmChangeDateTime = async () => {
     if (!selectedNote.value) return
-    
+
     const [hours, minutes] = changeNoteTime.value.split(':').map(Number)
     const parsed = new Date(changeNoteDate.value)
     parsed.setHours(hours, minutes, 0, 0)
-    
+
     try {
         loading.value = true
         await updateNote(selectedNote.value.id, {
-            date: parsed.toISOString()
+            date: parsed.toISOString(),
         })
-        
+
         showChangeDateTimeModal.value = false
         selectedNote.value.date = parsed.toISOString()
         await loadNotes()
@@ -354,7 +372,7 @@ const confirmCreateNote = () => {
     const newNote: Partial<NoteType> = {
         date: parsed.toISOString(),
         content: '',
-        metadata: { subtitle: createNoteSubtitle.value }
+        metadata: { subtitle: createNoteSubtitle.value },
     }
     noteSubtitle.value = createNoteSubtitle.value
     savedSubtitle.value = ''
@@ -371,7 +389,7 @@ const createNewNote = (date: string) => {
     const newNote: Partial<NoteType> = {
         date: parsed.toISOString(),
         content: '',
-        metadata: {}
+        metadata: {},
     }
 
     noteSubtitle.value = ''
@@ -380,20 +398,18 @@ const createNewNote = (date: string) => {
     setContent('')
 }
 
-
 // Charger les notes existantes
 const loadNotes = async () => {
     try {
         const dates = await fetchNoteDates()
         noteDates.value = dates as NoteType[]
-        
+
         // Restaurer la dernière note vue, sinon sélectionner la plus récente
         if (!selectedNote.value && noteDates.value.length > 0) {
             const lastId = userStore.lastViewedNoteId
             const lastNote = lastId ? noteDates.value.find((n: NoteType) => n.id === lastId) : null
-            const noteToSelect = lastNote ?? noteDates.value.sort((a: NoteType, b: NoteType) =>
-                new Date(b.date).getTime() - new Date(a.date).getTime()
-            )[0]
+            const noteToSelect =
+                lastNote ?? noteDates.value.sort((a: NoteType, b: NoteType) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
             selectNote(noteToSelect)
         }
     } catch (err) {
@@ -411,14 +427,12 @@ const saveNote = async () => {
         const noteData = {
             date: selectedNote.value.date,
             content: noteContent,
-            metadata: { ...(selectedNote.value.metadata || {}), subtitle: noteSubtitle.value }
+            metadata: { ...(selectedNote.value.metadata || {}), subtitle: noteSubtitle.value },
         }
 
         if (noteContent) {
             // Save or update the note
-            const savedNote = selectedNote.value.id
-                ? await updateNote(selectedNote.value.id, noteData)
-                : await saveNoteToApi(noteData)
+            const savedNote = selectedNote.value.id ? await updateNote(selectedNote.value.id, noteData) : await saveNoteToApi(noteData)
 
             if (savedNote) {
                 selectedNote.value = savedNote
@@ -566,6 +580,6 @@ onBeforeUnmount(() => {
 defineExpose({
     saveNote,
     createNewNote,
-    selectNote
+    selectNote,
 })
 </script>
