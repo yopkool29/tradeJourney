@@ -89,9 +89,8 @@ import type { NoteType } from '~/schema/note'
 import { formatDateLongString, formatDateToYYYYMMDD } from '~/utils/date-utils'
 
 const { locale } = useI18n()
-const { fetchNoteDates, deleteNote } = useNotes()
+const { fetchNoteDates } = useNotes()
 const userStore = useUserStore()
-const { success: toastSuccess } = useAppToast()
 
 const open = defineModel<boolean>('open', { required: true })
 
