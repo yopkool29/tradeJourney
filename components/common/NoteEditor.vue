@@ -72,8 +72,27 @@
         </div>
     </div>
 
-    <!-- Fullscreen overlay -->
-    <Teleport to="body">
+    <!-- Fullscreen image modal -->
+    <UModal
+        v-model:open="fullscreenOpen"
+        :close="false"
+        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen h-screen flex items-center justify-center rounded-none' }"
+        @keydown.esc.stop="fullscreenOpen = false"
+    >
+        <template #content>
+            <div class="note-image-fullscreen relative flex items-center justify-center w-full h-full" @click="fullscreenOpen = false">
+                <button class="absolute top-4 right-4 text-white opacity-70 hover:opacity-100 cursor-pointer z-10 outline-none" @click.stop="fullscreenOpen = false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <img :src="fullscreenImageUrl ?? ''" class="max-w-full max-h-full rounded-lg object-contain cursor-pointer" @click.stop="fullscreenOpen = false" />
+            </div>
+        </template>
+    </UModal>
+
+    <!-- Editor fullscreen overlay -->
+    <!-- <Teleport to="body">
         <div
             v-if="isFullscreen"
             class="fixed inset-0 z-[200] bg-white dark:bg-gray-900 flex flex-col"
@@ -94,13 +113,18 @@
                 class="flex-1 overflow-auto milkdown-editor"
             />
         </div>
-    </Teleport>
+    </Teleport> -->
 </template>
 
 <script setup lang="ts">
 import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/frame.css'
 import { Crepe } from '@milkdown/crepe'
+
+type UploadContext = {
+    userId: number
+    dbName: string
+}
 
 type Props = {
     modelValue: string
@@ -109,6 +133,7 @@ type Props = {
     fillHeight?: boolean
     showDeleteIcon?: boolean
     requireDeleteConfirmation?: boolean
+    uploadContext?: UploadContext
 }
 
 const props = defineProps<Props>()
@@ -123,6 +148,13 @@ const editorContainer = ref<HTMLElement | null>(null)
 const fullscreenContainer = ref<HTMLElement | null>(null)
 const editorLoading = ref(true)
 const editor = ref<Crepe | null>(null)
+const fullscreenImageUrl = ref<string | null>(null)
+const fullscreenOpen = ref(false)
+let imageObserver: MutationObserver | null = null
+
+watch(fullscreenOpen, (open) => {
+    if (!open) fullscreenImageUrl.value = null
+})
 
 const hasContent = computed(() => props.modelValue.trim().length > 0)
 
@@ -132,28 +164,54 @@ const editorStyle = computed(() => ({
     flex: props.fillHeight ? '1' : undefined,
 }))
 
-const convertBlobsToBase64 = async (markdown: string): Promise<string> => {
-    const blobRegex = /!\[([^\]]*)\]\((blob:[^)]+)\)/g
-    const matches = [...markdown.matchAll(blobRegex)]
-    if (matches.length === 0) return markdown
-    let result = markdown
-    for (const match of matches) {
-        const [full, alt, blobUrl] = match
-        try {
-            const response = await fetch(blobUrl)
-            const blob = await response.blob()
-            const base64 = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result as string)
-                reader.onerror = reject
-                reader.readAsDataURL(blob)
-            })
-            result = result.replace(full, `![${alt}](${base64})`)
-        } catch {
-            // blob URL expired or invalid - leave as-is
-        }
+const uploadImage = async (file: File): Promise<string> => {
+    if (!props.uploadContext) {
+        // Fallback: convert to base64
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+        })
     }
-    return result
+    const formData = new FormData()
+    formData.append('image', file)
+    const result = await $fetch<{ url: string }>('/api/notes/images/upload', {
+        method: 'POST',
+        body: formData,
+    })
+    return result.url
+}
+
+const injectFullscreenButton = (container: HTMLElement) => {
+    const wrappers = container.querySelectorAll<HTMLElement>('.milkdown-image-block > .image-wrapper')
+    wrappers.forEach((wrapper) => {
+        if (wrapper.dataset.fsInjected) return
+        wrapper.dataset.fsInjected = '1'
+        const btn = document.createElement('div')
+        btn.title = 'Fullscreen'
+        btn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;cursor:pointer;z-index:10;pointer-events:auto;'
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`
+        wrapper.addEventListener('mouseenter', () => { btn.style.opacity = '1' })
+        wrapper.addEventListener('mouseleave', () => { btn.style.opacity = '0' })
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const img = wrapper.querySelector<HTMLImageElement>('img')
+            if (img?.src) {
+                fullscreenImageUrl.value = img.src
+                fullscreenOpen.value = true
+            }
+        })
+        wrapper.appendChild(btn)
+    })
+}
+
+const startImageObserver = (container: HTMLElement) => {
+    imageObserver?.disconnect()
+    injectFullscreenButton(container)
+    imageObserver = new MutationObserver(() => injectFullscreenButton(container))
+    imageObserver.observe(container, { childList: true, subtree: true })
 }
 
 const createEditor = async (container: HTMLElement, content: string, editable: boolean) => {
@@ -162,6 +220,13 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
         defaultValue: content || '',
         features: {
             [Crepe.Feature.TopBar]: editable,
+        },
+        featureConfigs: {
+            [Crepe.Feature.ImageBlock]: {
+                onUpload: uploadImage,
+                inlineOnUpload: uploadImage,
+                blockOnUpload: uploadImage,
+            },
         },
     })
     if (!editable) {
@@ -172,13 +237,12 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
         instance.on((api) => {
             api.markdownUpdated((_ctx, markdown) => {
                 internalUpdate = true
-                convertBlobsToBase64(markdown).then((converted) => {
-                    emit('update:modelValue', converted)
-                    nextTick(() => { internalUpdate = false })
-                })
+                emit('update:modelValue', markdown)
+                nextTick(() => { internalUpdate = false })
             })
         })
     }
+    startImageObserver(container)
     return instance
 }
 
@@ -220,6 +284,7 @@ watch(() => props.modelValue, async (newVal) => {
 }, { flush: 'post' })
 
 onBeforeUnmount(() => {
+    imageObserver?.disconnect()
     editor.value?.destroy()
 })
 

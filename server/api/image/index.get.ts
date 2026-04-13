@@ -35,7 +35,10 @@ export default defineEventHandler(async (event) => {
         const mimeType = getMimeType(filePath)
         const stream = createReadStream(filePath)
         setResponseHeader(event, 'Content-Type', mimeType)
-        setResponseHeader(event, 'Cache-Control', 'public, max-age=31536000')
+        // const isNoteImage = imagePath.includes('/nt_') || imagePath.includes('/tmp_nt_')
+        // const cacheControl = isNoteImage ? 'no-store' : 'public, max-age=31536000'
+        const cacheControl = 'public, max-age=31536000'
+        setResponseHeader(event, 'Cache-Control', cacheControl)
 
         return sendStream(event, stream)
 

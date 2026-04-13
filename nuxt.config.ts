@@ -96,22 +96,22 @@ export default defineNuxtConfig({
         }
     },
 
-    image: {
-        providers: {
-            selfproxyhost: {
-                name: 'selfproxyhost',
-                provider: '~/providers/selfproxyhost.ts',
-                options: {
-                },
-            },
-            selfhost: {
-                name: 'selfhost',
-                provider: '~/providers/selfhost.ts',
-                options: {
-                },
-            },
-        },
-    },
+    // image: {
+    //     providers: {
+    //         selfproxyhost: {
+    //             name: 'selfproxyhost',
+    //             provider: '~/providers/selfproxyhost.ts',
+    //             options: {
+    //             },
+    //         },
+    //         selfhost: {
+    //             name: 'selfhost',
+    //             provider: '~/providers/selfhost.ts',
+    //             options: {
+    //             },
+    //         },
+    //     },
+    // },
 
     ui: {
         primary: 'blue',

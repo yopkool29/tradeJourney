@@ -103,6 +103,7 @@
                         :readonly="false"
                         :hide-fullscreen="true"
                         :fill-height="true"
+                        :upload-context="uploadContext"
                         @update:model-value="editorContent = $event"
                         @clear="editorContent = ''"
                     />
@@ -234,6 +235,7 @@ const { fetchNoteDates, saveNote: saveNoteToApi, updateNote, deleteNote } = useN
 const { log_error } = useLogView()
 const { success: toastSuccess } = useAppToast()
 const userStore = useUserStore()
+const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages } = useNoteImages()
 
 const loading = ref(false)
 const noteDates = ref<NoteType[]>([])
@@ -418,6 +420,7 @@ const loadNotes = async () => {
     }
 }
 
+
 // Sauvegarder la note
 const saveNote = async () => {
     if (!selectedNote.value) return
@@ -435,10 +438,19 @@ const saveNote = async () => {
             const savedNote = selectedNote.value.id ? await updateNote(selectedNote.value.id, noteData) : await saveNoteToApi(noteData)
 
             if (savedNote) {
+                // Finaliser les images tmp_nt_* et nettoyer les orphelins
+                const finalContent = await finalizeImages(savedNote.id!, noteContent)
+                await cleanupOrphanImages(savedContent.value, finalContent)
+
+                if (finalContent !== noteContent) {
+                    await updateNote(savedNote.id!, { content: finalContent })
+                    savedNote.content = finalContent
+                }
+
                 selectedNote.value = savedNote
-                savedContent.value = noteContent
+                savedContent.value = finalContent
                 savedSubtitle.value = noteSubtitle.value
-                await setContent(noteContent)
+                await setContent(finalContent)
                 await loadNotes() // Recharger la liste
 
                 toastSuccess(t('components.notes_panel.toast.save_success_title'), t('components.notes_panel.toast.save_success_desc'))
@@ -471,7 +483,11 @@ const saveAndClose = async () => {
 
 const onUnsavedDiscard = () => {
     showUnsavedModal.value = false
-    savedContent.value = getContent()
+    const currentContent = getContent()
+    if (currentContent.includes('tmp_nt_')) {
+        cleanupTmpImages()
+    }
+    savedContent.value = currentContent
     if (pendingAction.value) {
         pendingAction.value()
         pendingAction.value = null
@@ -548,6 +564,8 @@ watch(
         if (isOpen) {
             selectedNote.value = null
             await loadNotes() // Charger les notes à l'ouverture
+        } else {
+            cleanupTmpImages()
         }
     },
     { immediate: true }

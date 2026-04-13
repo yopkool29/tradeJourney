@@ -24,6 +24,7 @@
                         :readonly="false"
                         :hide-fullscreen="true"
                         :fill-height="true"
+                        :upload-context="uploadContext"
                         @clear="localNote = ''"
                     />
                 </div>
@@ -37,10 +38,7 @@
         </template>
     </CommonModalDefault>
 
-    <TradeNotePickerModal
-        v-model:open="showNotePicker"
-        @associate="onNoteAssociated"
-    />
+    <TradeNotePickerModal v-model:open="showNotePicker" @associate="onNoteAssociated" />
 </template>
 
 <script setup lang="ts">
@@ -50,10 +48,16 @@ const open = defineModel<boolean>('open', { required: true })
 const modelValue = defineModel<string>('modelValue', { required: true })
 const emit = defineEmits<{ close: [] }>()
 
+type Props = { tradeId?: number }
+const props = defineProps<Props>()
+
 const { deleteNote } = useNotes()
+const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages } = useNoteImages()
 const { trapRef, initFocusTrap, clearFocusTrap } = useFocusTrap()
 const editorContainer = ref<HTMLElement | null>(null)
-watch(editorContainer, (el) => { trapRef.value = el })
+watch(editorContainer, (el) => {
+    trapRef.value = el
+})
 
 const localNote = ref(modelValue.value)
 const showNotePicker = ref(false)
@@ -86,8 +90,13 @@ const onNoteAssociated = async (note: NoteType, mode: 'copy' | 'move') => {
 }
 
 const onSave = async () => {
-    modelValue.value = localNote.value
-    
+    const originalContent = modelValue.value
+    const finalContent = props.tradeId ? await finalizeImages(props.tradeId, localNote.value) : localNote.value
+    console.log('originalContent', originalContent)
+    console.log('finalContent', finalContent)
+    await cleanupOrphanImages(originalContent, finalContent)
+    modelValue.value = finalContent
+
     // Execute pending note move if any
     if (pendingNoteMove.value) {
         try {
@@ -97,23 +106,28 @@ const onSave = async () => {
         }
         pendingNoteMove.value = null
     }
-    
+
     open.value = false
 }
 
 const onCancel = () => {
     // Clear any pending move when cancelling
     pendingNoteMove.value = null
+    if (localNote.value.includes('tmp_nt_')) cleanupTmpImages()
     open.value = false
 }
 
 const { isTop, push, pop } = useModalStack('detailedNote')
 
-watch(open, (val) => { val ? push() : pop() })
+watch(open, (val) => {
+    if (val) push()
+    else pop()
+})
 
 const onKeyDown = (e: KeyboardEvent) => {
     if (!open.value || !isTop.value) return
     if (e.key === 'Escape') {
+        if (document.querySelector('.note-image-fullscreen')) return
         e.preventDefault()
         e.stopPropagation()
         onCancel()
@@ -125,6 +139,10 @@ const onKeyDown = (e: KeyboardEvent) => {
     }
 }
 
-onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
-onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
+onMounted(() => {
+    document.addEventListener('keydown', onKeyDown, true)
+})
+onUnmounted(() => {
+    document.removeEventListener('keydown', onKeyDown, true)
+})
 </script>

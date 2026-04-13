@@ -149,6 +149,7 @@
         <TradeDetailedNoteModal
             v-model:open="showDirectDetailedNote"
             v-model:model-value="directDetailedNote"
+            :trade-id="selectedTradeForNote?.id"
             @close="onDirectDetailedNoteClose"
         />
     </UCard>
@@ -209,6 +210,7 @@ const dayTag = ref<DayTagType | null>(null)
 // Composable pour gérer les trades
 const { getTagStyle } = useTags()
 const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
+const { cleanupOrphanImages } = useNoteImages()
 const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
@@ -476,7 +478,9 @@ const executeClearDetailedNote = async () => {
     if (!selectedTradeForDetailedNote.value) return
     try {
         const { updateTrade, fetchTrade } = useTrades()
+        const oldContent = (selectedTradeForDetailedNote.value.metadata as Record<string, unknown>)?.detailedNote as string || ''
         await updateTrade({ id: selectedTradeForDetailedNote.value.id, detailedNote: '' })
+        await cleanupOrphanImages(oldContent, '')
         const result = await fetchTrade(selectedTradeForDetailedNote.value.id)
         if (result) {
             selectedTradeForDetailedNote.value.metadata = result.metadata

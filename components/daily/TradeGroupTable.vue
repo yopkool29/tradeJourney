@@ -238,7 +238,7 @@
                     <hr class="border-dashed border-gray-300 dark:border-gray-700 mb-2">
                     <div 
                         class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors"
-                        @click="row.original.active !== false && emit('open-detailed-note', row.original)">
+                        @click="row.original.active !== false && (emit('open-detailed-note', row.original), ($event.currentTarget as HTMLElement)?.blur())">
                         <CommonNoteEditor 
                             :model-value="(row.original.metadata as Record<string, unknown>).detailedNote as string" 
                             :readonly="true" 
