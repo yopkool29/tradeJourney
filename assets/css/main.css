@@ -115,7 +115,7 @@ select {
 }
 
 .header-desktop-link {
-    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-300;
+    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-300;
 }
 
 .header-desktop-link-active {

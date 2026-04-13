@@ -120,7 +120,7 @@
                             :disabled="loading"
                             @click="saveAndClose"
                         />
-                        <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" :disabled="loading" @click="closePanel" />
+                        <UButton :label="$t('common.actions.close')" color="neutral" variant="ghost" :disabled="loading" @click="closePanel" />
                     </div>
                 </div>
             </div>
