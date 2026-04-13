@@ -478,7 +478,7 @@ const saveNote = async () => {
 
 const saveAndClose = async () => {
     await saveNote()
-    closePanel()
+    emit('close')
 }
 
 const onUnsavedDiscard = () => {
