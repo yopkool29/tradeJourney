@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col min-h-30">
         <div class="font-bold text-lg mb-1 text-gray-600 dark:text-gray-300"
             :class="{ 'text-gray-400': !day.isCurrentMonth }">
             {{ day.dayNumber }}

@@ -15,8 +15,8 @@
             <!-- Header -->
             <AppHeader />
 
-            <main class="flex-grow relative">
-                <div class="transition-all duration-300">
+            <main class="flex-grow relative flex flex-col">
+                <div class="transition-all duration-300 flex-grow">
                     <slot />
                 </div>
                 <LoadingDisplay />

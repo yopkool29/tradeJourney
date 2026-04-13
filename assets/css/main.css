@@ -25,6 +25,15 @@
     --ui-bg: #1f1f2f;
 }
 
+body {
+    background: linear-gradient(to bottom, #f1f1f1, #efefef) no-repeat;
+    min-height: 100vh;
+}
+
+.dark body {
+    background: linear-gradient(to bottom, #1f1f1f, #16161f) no-repeat;
+}
+
 button[role='combobox'],
 button[role='tab'] {
     user-select: none;

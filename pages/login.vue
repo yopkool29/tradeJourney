@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex justify-center px-4 pt-20 select-none">
+    <div class="min-h-full flex items-center justify-center px-4 py-30 select-none">
         <div class="w-full max-w-md">
             <UCard v-if="!userStore.user" class="bg-gray-100 dark:bg-gray-800">
                 <template #header>
@@ -51,7 +51,6 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 const { t } = useI18n()
 
 const router = useRouter()
-const route = useRoute()
 const { login } = useAuth()
 const userStore = useUserStore()
 const { errorStr, successStr, displayMessage } = useAlert()
