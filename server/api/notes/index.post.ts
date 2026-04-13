@@ -37,6 +37,11 @@ export default defineEventHandler(async (event) => {
             message: 'Note saved successfully'
         }
     } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
+
         throw createAppError({
             statusCode: 500,
             message: 'Error saving note',

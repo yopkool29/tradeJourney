@@ -1,5 +1,4 @@
 import { getPrisma } from '../../utils/db'
-import { Prisma } from '~/generated/prisma-data'
 
 export default defineEventHandler(async (event) => {
     await auth(event)

@@ -15,13 +15,13 @@ export interface DateFilter {
 
 export async function deleteAccountTrades(event: H3Event<EventHandlerRequest>, accountId: number, deleteInactive?: boolean, dateFilter?: DateFilter, importName?: string) {
     const prisma = await getPrisma(event)
-    
+
     // Récupérer userId et dbName depuis le contexte
     const userId = Number(event.context.userId)
     const dbName = event.context.dbName as string
-    
+
     const account = await prisma.account.findUnique({ where: { id: accountId } })
-  
+
     if (!account) {
         throw createAppError({ statusCode: 404, message: 'Account not found' })
     }
@@ -31,7 +31,7 @@ export async function deleteAccountTrades(event: H3Event<EventHandlerRequest>, a
     if (deleteInactive !== undefined) {
         where.active = !deleteInactive
     }
-    
+
     // Ajouter le filtre par date si spécifié
     if (dateFilter) {
         where.openDate = {
@@ -102,17 +102,23 @@ export default defineEventHandler(async (event) => {
         }
 
         const deleteInactive = body.deleteInactive === undefined ? undefined : Boolean(body.deleteInactive)
-        
+
         // Utiliser la fonction réutilisable pour supprimer les trades
         const result = await deleteAccountTrades(event, accountId, deleteInactive)
-        
+
         return { message: 'Trades deleted', count: result.count }
 
-    } catch (err) {
+    } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
+
         throw createAppError({
             statusCode: 500,
             message: 'Error deleting trades',
-            error: err
+            tag: 'api.trades.account.delete.error',
+            error
         })
     }
 

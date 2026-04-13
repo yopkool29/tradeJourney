@@ -1,5 +1,4 @@
 import { getPrisma } from '../../../utils/db'
-import { Prisma } from '~/generated/prisma-data'
 import auth from '../../../utils/auth'
 import { createAppError } from '../../../utils/errors'
 import { UpdateTradeTagsSchema } from '~/schema/trade'
@@ -80,6 +79,10 @@ export default defineEventHandler(async (event) => {
         return updatedTradeTags
 
     } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
 
         throw createAppError({
             statusCode: 500,

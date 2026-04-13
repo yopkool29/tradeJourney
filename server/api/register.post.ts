@@ -33,12 +33,14 @@ export default defineEventHandler(async (event) => {
 
         // Hachage du mot de passe et création de l'utilisateur
         const hash = await bcrypt.hash(password, 10)
-        const user = await prisma.user.create({ 
-            data: { 
-                email, 
+        const token = crypto.randomUUID()
+        const user = await prisma.user.create({
+            data: {
+                email,
                 password: hash,
-                settings: JSON.stringify(defaultSettings) // Initialiser avec les settings par défaut
-            } 
+                token,
+                settings: JSON.stringify(defaultSettings)
+            }
         })
 
         return { 

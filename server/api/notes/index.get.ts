@@ -50,6 +50,11 @@ export default defineEventHandler(async (event) => {
         return notes
 
     } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
+
         throw createAppError({
             statusCode: 500,
             message: 'Error fetching notes',

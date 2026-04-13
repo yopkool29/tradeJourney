@@ -1,5 +1,4 @@
 import { getPrisma } from '../../utils/db'
-import { Prisma } from '~/generated/prisma-data'
 import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
 import { UpdateAccountSchema } from '~/schema/account'

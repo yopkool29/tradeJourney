@@ -6,17 +6,16 @@ import { createAppError } from '../../utils/errors'
 
 
 export default defineEventHandler(async (event) => {
-    const { path: imagePath } = getQuery(event)
-
-    if (!imagePath || typeof imagePath !== 'string') {
-        throw createAppError({
-            statusCode: 400,
-            message: 'URL is required',
-            tag: 'api.image.get.missing_url'
-        })
-    }
-
     try {
+        const { path: imagePath } = getQuery(event)
+
+        if (!imagePath || typeof imagePath !== 'string') {
+            throw createAppError({
+                statusCode: 400,
+                message: 'URL is required',
+                tag: 'api.image.get.missing_url'
+            })
+        }
 
         const __dirname = dirname(fileURLToPath(import.meta.url))
         const uploadDir = resolve(__dirname, '../../upload')
@@ -31,23 +30,25 @@ export default defineEventHandler(async (event) => {
                 tag: 'api.image.get.file_not_found'
             })
         }
-        // Déterminer le type MIME
+
         const mimeType = getMimeType(filePath)
         const stream = createReadStream(filePath)
         setResponseHeader(event, 'Content-Type', mimeType)
-        // const isNoteImage = imagePath.includes('/nt_') || imagePath.includes('/tmp_nt_')
-        // const cacheControl = isNoteImage ? 'no-store' : 'public, max-age=31536000'
         const cacheControl = 'public, max-age=31536000'
         setResponseHeader(event, 'Cache-Control', cacheControl)
 
         return sendStream(event, stream)
+    } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
 
-    } catch {
-        // console.error('Image proxy error:', error)
         throw createAppError({
             statusCode: 500,
             message: 'Failed to fetch image',
-            tag: 'api.image.get.fetch_error'
+            tag: 'api.image.get.fetch_error',
+            error
         })
     }
 })

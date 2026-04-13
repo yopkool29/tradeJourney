@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     try {
         const prisma = await getPrisma(event)
 
-        const userId = event.context.userId
+        const _userId = event.context.userId
 
         const id = parseInt(event.context.params?.id || '')
 
@@ -40,12 +40,16 @@ export default defineEventHandler(async (event) => {
         }
 
     } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
 
         throw createAppError({
             statusCode: 500,
             message: 'Error while deleting trade',
             tag: 'api.trades.delete.error',
-            error: error
+            error
         })
 
     }

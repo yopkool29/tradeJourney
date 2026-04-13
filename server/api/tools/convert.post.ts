@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
 
             try {
                 // Extract conversion type and file
-                const conversionType = Array.isArray(fields.conversionType) 
-                    ? fields.conversionType[0] 
+                const conversionType = Array.isArray(fields.conversionType)
+                    ? fields.conversionType[0]
                     : fields.conversionType
 
                 const accountName = Array.isArray(fields.accountName)
@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
                     case 'tradingview':
                         scriptName = 'tradingview_to_standard-csv.py'
                         scriptArgs = [
-                            file.filepath, 
+                            file.filepath,
                             outputPath,
                             '--account-name', accountName,
                             '--account-fullname', accountFullname,
@@ -135,7 +135,7 @@ export default defineEventHandler(async (event) => {
                 // Return the converted CSV
                 setResponseHeader(event, 'Content-Type', 'text/csv')
                 setResponseHeader(event, 'Content-Disposition', `attachment; filename="${file.originalFilename?.replace(/\.[^/.]+$/, '')}_converted.csv"`)
-                
+
                 resolve(convertedData)
             } catch (error: unknown) {
                 // Clean up uploaded file on error

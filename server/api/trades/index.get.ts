@@ -1,5 +1,5 @@
 import { getPrisma } from '../../utils/db'
-import type { Prisma } from '@prisma/data-client'
+import type { Prisma } from '~/generated/prisma-data'
 import auth from '../../utils/auth'
 import { getColumnType } from '~/schema/trade'
 import { isValid, addDays, startOfDay, endOfDay } from 'date-fns'
@@ -177,11 +177,17 @@ export default defineEventHandler(async (event) => {
 
         return tradesWithTags
 
-    } catch (err) {
+    } catch (error) {
+        const err = error as { statusCode?: number; data?: { tag?: string } }
+        if (err.statusCode && err.data?.tag) {
+            throw error
+        }
+
         throw createAppError({
             statusCode: 500,
             message: 'Erreur lors de la récupération des trades',
-            error: err
+            tag: 'api.trades.get.error',
+            error
         })
     }
 })

@@ -9,18 +9,19 @@ import auth from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
-	const userId = event.context.userId as number
-	const dbName = event.context.dbName as string | undefined
-	
-    if (!userId) {
-		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.delete.unauthorized' })
-	}
-
-	if (!dbName) {
-		throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.delete.no_database' })
-	}
 
 	try {
+		const userId = event.context.userId as number
+		const dbName = event.context.dbName as string | undefined
+
+		if (!userId) {
+			throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.delete.unauthorized' })
+		}
+
+		if (!dbName) {
+			throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.delete.no_database' })
+		}
+
 		const pluginId = getRouterParam(event, 'id')
 		validatePluginId(pluginId)
 
@@ -30,17 +31,14 @@ export default defineEventHandler(async (event) => {
 			throw createAppError({ statusCode: 404, message: 'Plugin not found', tag: 'api.plugins.delete.not_found' })
 		}
 
-		// Delete from DB
 		await prisma.plugin.delete({ where: { id: pluginId } })
 
-		// Delete plugin folder from filesystem if exists
 		const pluginDir = resolve(process.cwd(), getPluginUploadPath(userId, dbName), pluginId as string)
 		if (existsSync(pluginDir)) {
 			await rm(pluginDir, { recursive: true, force: true })
 		}
 
 		return { success: true, pluginId }
-
 	} catch (error) {
 		const err = error as { statusCode?: number; data?: { tag?: string } }
 		if (err.statusCode && err.data?.tag) {

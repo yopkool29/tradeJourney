@@ -5,18 +5,19 @@ import auth from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
-	const userId = event.context.userId as number
-	const dbName = event.context.dbName as string | undefined
-	
-    if (!userId) {
-		throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
-	}
-
-	if (!dbName) {
-		throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.toggle.no_database' })
-	}
 
 	try {
+		const userId = event.context.userId as number
+		const dbName = event.context.dbName as string | undefined
+
+		if (!userId) {
+			throw createAppError({ statusCode: 401, message: 'Unauthorized', tag: 'api.plugins.unauthorized' })
+		}
+
+		if (!dbName) {
+			throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.toggle.no_database' })
+		}
+
 		const pluginId = getRouterParam(event, 'id')
 		validatePluginId(pluginId)
 		const body = await readBody<{ enabled: boolean }>(event)
@@ -29,7 +30,6 @@ export default defineEventHandler(async (event) => {
 
 		const enabledPlugins = await prisma.plugin.findMany({ where: { enabled: true }, select: { id: true } })
 		return { enabledPlugins: enabledPlugins.map(p => p.id) }
-
 	} catch (error) {
 		const err = error as { statusCode?: number; data?: { tag?: string } }
 		if (err.statusCode && err.data?.tag) {
