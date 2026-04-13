@@ -45,7 +45,8 @@
                                 }"
                                 @click="selectNote(note)"
                             >
-                                <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                                    <div v-if="selectedNoteId === note.id" class="w-2 h-2 bg-red-500 rounded-full shrink-0"></div>
                                     <div class="truncate">{{ formatNoteTime(note.date) }}</div>
                                 </div>
                                 <UButton
@@ -68,7 +69,16 @@
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <div class="flex-1">
                         <div class="flex items-center gap-3">
-                            <h2 class="text-lg font-semibold whitespace-nowrap">{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}</h2>
+                            <h2 class="text-lg font-semibold whitespace-nowrap">{{ showDirtyIndicator ? '* ' : '' }}{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}</h2>
+                            <UButton
+                                v-if="selectedNote"
+                                icon="i-heroicons-calendar"
+                                size="xs"
+                                color="neutral"
+                                variant="ghost"
+                                :title="$t('components.notes_panel.header.change_date_time')"
+                                @click="openChangeDateTimeModal"
+                            />
                             <input
                                 v-if="selectedNote"
                                 v-model="noteSubtitle"
@@ -151,6 +161,26 @@
         </template>
     </CommonModalDefault>
 
+    <!-- Modal de modification de date et heure -->
+    <CommonModalDefault v-model:open="showChangeDateTimeModal" :title="$t('components.notes_panel.change_datetime_modal.title')">
+        <template #content>
+            <div class="space-y-4">
+                <UFormField :label="$t('components.notes_panel.create_modal.date_label')">
+                    <UInput v-model="changeNoteDate" type="date" class="w-full" />
+                </UFormField>
+                <UFormField :label="$t('components.notes_panel.create_modal.time_label')">
+                    <UInput v-model="changeNoteTime" type="time" class="w-full" />
+                </UFormField>
+            </div>
+        </template>
+        <template #footer>
+            <div class="flex gap-2 justify-end">
+                <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showChangeDateTimeModal = false" />
+                <UButton :label="$t('common.actions.update')" color="primary" @click="confirmChangeDateTime" />
+            </div>
+        </template>
+    </CommonModalDefault>
+
     <!-- Modal de confirmation de suppression -->
     <CommonModalDelete v-model:open="showDeleteModal" :title="$t('components.notes_panel.delete_modal.title')" @confirm="deleteNoteConfirmed">
         <template #content>
@@ -181,7 +211,7 @@ const props = defineProps({
     },
 })
 const emit = defineEmits(['close', 'save', 'update:selectedDate'])
-const { fetchNote, fetchNoteDates, saveNote: saveNoteToApi, deleteNote } = useNotes()
+const { fetchNoteDates, saveNote: saveNoteToApi, updateNote, deleteNote } = useNotes()
 const { log_error } = useLogView()
 const { success: toastSuccess } = useAppToast()
 const userStore = useUserStore()
@@ -200,6 +230,10 @@ const createNoteDate = ref('')
 const createNoteTime = ref('')
 const createNoteSubtitle = ref('')
 
+const showChangeDateTimeModal = ref(false)
+const changeNoteDate = ref('')
+const changeNoteTime = ref('')
+
 const editorContent = ref('')
 const noteEditor = ref<{ getContent: () => string, setContent: (v: string) => Promise<void> } | null>(null)
 const getContent = () => editorContent.value
@@ -211,6 +245,8 @@ const isDirty = computed(() =>
     editorContent.value.trim() !== savedContent.value.trim() ||
     noteSubtitle.value !== savedSubtitle.value
 )
+const isNewNote = computed(() => !!selectedNote.value && !selectedNote.value.id)
+const showDirtyIndicator = computed(() => isDirty.value || isNewNote.value)
 
 const { t, locale } = useI18n()
 
@@ -277,6 +313,38 @@ const openCreateModal = () => {
     createNoteTime.value = now.toTimeString().slice(0, 5)
     createNoteSubtitle.value = ''
     showCreateModal.value = true
+}
+
+const openChangeDateTimeModal = () => {
+    if (!selectedNote.value) return
+    const noteDate = new Date(selectedNote.value.date)
+    changeNoteDate.value = formatDateToYYYYMMDD(noteDate)
+    changeNoteTime.value = noteDate.toTimeString().slice(0, 5)
+    showChangeDateTimeModal.value = true
+}
+
+const confirmChangeDateTime = async () => {
+    if (!selectedNote.value) return
+    
+    const [hours, minutes] = changeNoteTime.value.split(':').map(Number)
+    const parsed = new Date(changeNoteDate.value)
+    parsed.setHours(hours, minutes, 0, 0)
+    
+    try {
+        loading.value = true
+        await updateNote(selectedNote.value.id, {
+            date: parsed.toISOString()
+        })
+        
+        showChangeDateTimeModal.value = false
+        selectedNote.value.date = parsed.toISOString()
+        await loadNotes()
+        toastSuccess(t('components.notes_panel.change_datetime_modal.success'))
+    } catch (error) {
+        log_error('Failed to update note date/time:', error)
+    } finally {
+        loading.value = false
+    }
 }
 
 const confirmCreateNote = () => {
@@ -348,7 +416,9 @@ const saveNote = async () => {
 
         if (noteContent) {
             // Save or update the note
-            const savedNote = await saveNoteToApi(noteData)
+            const savedNote = selectedNote.value.id
+                ? await updateNote(selectedNote.value.id, noteData)
+                : await saveNoteToApi(noteData)
 
             if (savedNote) {
                 selectedNote.value = savedNote

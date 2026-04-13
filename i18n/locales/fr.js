@@ -194,7 +194,8 @@ export default {
             close: 'Fermer',
             reset: 'Réinitialiser',
             back: 'Retour',
-            create: 'Créer'
+            create: 'Créer',
+            update: 'Mettre à jour'
         },
         title: {
             success: 'Success',
@@ -362,9 +363,14 @@ export default {
                 time_label: 'Heure',
                 subtitle_label: 'Sous-titre',
             },
+            change_datetime_modal: {
+                title: 'Modifier la date et l\'heure',
+                success: 'Date et heure de la note mises à jour avec succès',
+            },
             header: {
                 notes_of: 'Notes du {date}',
                 subtitle_placeholder: 'Ajouter un sous-titre...',
+                change_date_time: 'Modifier la date et l\'heure',
             },
             editor: {
                 no_note_selected: 'Sélectionnez ou créez une note',

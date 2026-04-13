@@ -31,10 +31,20 @@ export const useNotes = () => {
         })
     }
 
+    // Update a note by ID
+    const updateNote = async (id: number, data: Partial<UpdateNoteType>) => {
+        const response = await $fetch(`/api/notes/${id}`, {
+            method: 'PATCH',
+            body: data
+        }) as SaveNoteResponse
+        return response.note
+    }
+
     return {
         fetchNoteDates,
         fetchNote,
         saveNote,
+        updateNote,
         deleteNote
     }
 }

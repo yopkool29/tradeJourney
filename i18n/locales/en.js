@@ -188,7 +188,8 @@ export default {
             close: 'Close',
             reset: 'Reset',
             back: 'Back',
-            create: 'Create'
+            create: 'Create',
+            update: 'Update'
         },
         title: {
             success: 'Success',
@@ -386,9 +387,14 @@ export default {
                 time_label: 'Time',
                 subtitle_label: 'Subtitle',
             },
+            change_datetime_modal: {
+                title: 'Change date and time',
+                success: 'Note date and time updated successfully',
+            },
             header: {
                 notes_of: 'Notes of {date}',
                 subtitle_placeholder: 'Add a subtitle...',
+                change_date_time: 'Change date and time',
             },
             editor: {
                 no_note_selected: 'Select or create a note',

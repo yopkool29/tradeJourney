@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TagSchema } from './tag'
 import { InstrumentType } from '~/type'
+
 export const TradeSchema = z.object({
     // Champs obligatoires
     id: z.number(),
