@@ -27,11 +27,12 @@ export default defineEventHandler(async (event) => {
 		throw createAppError({ statusCode: 400, message: 'Invalid path', tag: 'api.notes.images.delete.invalid_path' })
 	}
 
-	console.log(`[notes/images/delete] filePath: ${filePath}, exists: ${existsSync(filePath)}`)
-	if (existsSync(filePath)) {
-		await unlink(filePath)
-		console.log(`[notes/images/delete] deleted: ${filePath}`)
+	try {
+		if (existsSync(filePath)) {
+			await unlink(filePath)
+		}
+		return { success: true }
+	} catch (error) {
+		throw createAppError({ statusCode: 500, message: 'Error deleting image', tag: 'api.notes.images.delete.error', error })
 	}
-
-	return { success: true }
 })

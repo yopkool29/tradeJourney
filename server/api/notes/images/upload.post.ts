@@ -39,11 +39,16 @@ export default defineEventHandler(async (event) => {
 
 	const filename = `tmp_nt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`
 	const uploadDir = resolve(process.cwd(), getScreenshotUploadPath(userId, dbName))
-	await mkdir(uploadDir, { recursive: true })
-	await writeFile(resolve(uploadDir, filename), filePart.data)
 
-	const urlPath = `user_${userId}_data/${dbName}/screenshots/${filename}`
-	const url = `/api/image?path=${urlPath}`
+	try {
+		await mkdir(uploadDir, { recursive: true })
+		await writeFile(resolve(uploadDir, filename), filePart.data)
 
-	return { filename, url }
+		const urlPath = `user_${userId}_data/${dbName}/screenshots/${filename}`
+		const url = `/api/image?path=${urlPath}`
+
+		return { filename, url }
+	} catch (error) {
+		throw createAppError({ statusCode: 500, message: 'Error uploading image', tag: 'api.notes.images.upload.error', error })
+	}
 })

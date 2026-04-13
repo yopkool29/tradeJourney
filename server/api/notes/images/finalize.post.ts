@@ -24,23 +24,27 @@ export default defineEventHandler(async (event) => {
 	const tmpRegex = /tmp_nt_[^/&\s)]+/g
 	const tmpFiles = [...new Set(body.content.match(tmpRegex) ?? [])]
 
-	let updatedContent = body.content
-	for (const tmpName of tmpFiles) {
-		const suffix = tmpName.replace('tmp_nt_', '')
-		const finalName = `nt_${body.noteId}_${suffix}`
-		const tmpPath = resolve(uploadDir, tmpName)
-		const finalPath = resolve(uploadDir, finalName)
+	try {
+		let updatedContent = body.content
+		for (const tmpName of tmpFiles) {
+			const suffix = tmpName.replace('tmp_nt_', '')
+			const finalName = `nt_${body.noteId}_${suffix}`
+			const tmpPath = resolve(uploadDir, tmpName)
+			const finalPath = resolve(uploadDir, finalName)
 
-		if (existsSync(tmpPath)) {
-			await rename(tmpPath, finalPath)
+			if (existsSync(tmpPath)) {
+				await rename(tmpPath, finalPath)
+			}
+
+			const urlPath = `user_${userId}_data/${dbName}/screenshots/${finalName}`
+			const finalUrl = `/api/image?path=${urlPath}`
+			const tmpUrlPath = `user_${userId}_data/${dbName}/screenshots/${tmpName}`
+			const tmpUrl = `/api/image?path=${tmpUrlPath}`
+			updatedContent = updatedContent.replaceAll(tmpUrl, finalUrl)
 		}
 
-		const urlPath = `user_${userId}_data/${dbName}/screenshots/${finalName}`
-		const finalUrl = `/api/image?path=${urlPath}`
-		const tmpUrlPath = `user_${userId}_data/${dbName}/screenshots/${tmpName}`
-		const tmpUrl = `/api/image?path=${tmpUrlPath}`
-		updatedContent = updatedContent.replaceAll(tmpUrl, finalUrl)
+		return { content: updatedContent }
+	} catch (error) {
+		throw createAppError({ statusCode: 500, message: 'Error finalizing images', tag: 'api.notes.images.finalize.error', error })
 	}
-
-	return { content: updatedContent }
 })
