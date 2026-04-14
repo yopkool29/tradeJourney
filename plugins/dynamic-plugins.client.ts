@@ -24,6 +24,17 @@ import {
     getMaxDrawdownWithDates,
     getMaxRunUpWithDates
 } from '~/utils/tradeStats'
+import {
+    initPluginWindowGlobals,
+    cleanupPluginData,
+    isPluginLoaded,
+    getPlugin,
+    dispatchPluginOpenModalEvent,
+    addPluginAction,
+    addPluginModal,
+    addPluginPageSlot,
+    findPluginModal,
+} from '~/utils/plugins-window'
 
 declare global {
     interface Window {
@@ -38,9 +49,7 @@ declare global {
 
 export default defineNuxtPlugin(async () => {
     window.Vue = Vue
-    window.__TJ_PLUGIN_ACTIONS__ = []
-    window.__TJ_PLUGIN_MODALS__ = []
-    window.__TJ_PLUGIN_PAGE_SLOTS__ = []
+    initPluginWindowGlobals()
 
     const pluginPageSlots = useState<TJPluginPageSlotRegistered[]>('pluginPageSlots', () => [])
     pluginPageSlots.value = []
@@ -49,48 +58,48 @@ export default defineNuxtPlugin(async () => {
     let currentInstallingPluginId = ''
 
     // Resolve components in the application context and provide them as actual Vue components
-const resolvedComponents = {
-    UIcon: resolveComponent('UIcon'),
-    UCard: resolveComponent('UCard'),
-    UDivider: resolveComponent('UDivider'),
-    UButton: resolveComponent('UButton'),
-    USpinner: resolveComponent('USpinner'),
-    UAlert: resolveComponent('UAlert'),
-    USwitch: resolveComponent('USwitch'),
-    UBadge: resolveComponent('UBadge'),
-    UProgress: resolveComponent('UProgress'),
-    // Form components
-    UForm: resolveComponent('UForm'),
-    UInput: resolveComponent('UInput'),
-    UFormField: resolveComponent('UFormField'),
-    USelect: resolveComponent('USelect'),
-    UCheckbox: resolveComponent('UCheckbox'),
-    URadioGroup: resolveComponent('URadioGroup'),
-    UTextarea: resolveComponent('UTextarea'),
-    // Layout components
-    UAvatar: resolveComponent('UAvatar'),
-    UDropdown: resolveComponent('UDropdown'),
-    UTabs: resolveComponent('UTabs'),
-    UTab: resolveComponent('UTab'),
-    // Data display
-    UTable: resolveComponent('UTable'),
-    UPagination: resolveComponent('UPagination'),
-    UTooltip: resolveComponent('UTooltip'),
-    // Feedback
-    UToast: resolveComponent('UToast'),
-    UNotification: resolveComponent('UNotification'),
-    // Navigation
-    UMenu: resolveComponent('UMenu'),
-    UBreadcrumb: resolveComponent('UBreadcrumb'),
-    // Advanced
-    UAccordion: resolveComponent('UAccordion'),
-    UModal: resolveComponent('UModal'),
-    USlider: resolveComponent('USlider'),
-    UDatePicker: resolveComponent('UDatePicker'),
-    UTimePicker: resolveComponent('UTimePicker'),
-}
+    const resolvedComponents = {
+        UIcon: resolveComponent('UIcon'),
+        UCard: resolveComponent('UCard'),
+        UDivider: resolveComponent('UDivider'),
+        UButton: resolveComponent('UButton'),
+        USpinner: resolveComponent('USpinner'),
+        UAlert: resolveComponent('UAlert'),
+        USwitch: resolveComponent('USwitch'),
+        UBadge: resolveComponent('UBadge'),
+        UProgress: resolveComponent('UProgress'),
+        // Form components
+        UForm: resolveComponent('UForm'),
+        UInput: resolveComponent('UInput'),
+        UFormField: resolveComponent('UFormField'),
+        USelect: resolveComponent('USelect'),
+        UCheckbox: resolveComponent('UCheckbox'),
+        URadioGroup: resolveComponent('URadioGroup'),
+        UTextarea: resolveComponent('UTextarea'),
+        // Layout components
+        UAvatar: resolveComponent('UAvatar'),
+        UDropdown: resolveComponent('UDropdown'),
+        UTabs: resolveComponent('UTabs'),
+        UTab: resolveComponent('UTab'),
+        // Data display
+        UTable: resolveComponent('UTable'),
+        UPagination: resolveComponent('UPagination'),
+        UTooltip: resolveComponent('UTooltip'),
+        // Feedback
+        UToast: resolveComponent('UToast'),
+        UNotification: resolveComponent('UNotification'),
+        // Navigation
+        UMenu: resolveComponent('UMenu'),
+        UBreadcrumb: resolveComponent('UBreadcrumb'),
+        // Advanced
+        UAccordion: resolveComponent('UAccordion'),
+        UModal: resolveComponent('UModal'),
+        USlider: resolveComponent('USlider'),
+        UDatePicker: resolveComponent('UDatePicker'),
+        UTimePicker: resolveComponent('UTimePicker'),
+    }
 
-const sdk: TJPluginSdk = {
+    const sdk: TJPluginSdk = {
         api: {
             get: (path: string) => $fetch(path),
             post: (path: string, body: Record<string, unknown>) => $fetch(path, { method: 'POST', body }),
@@ -128,28 +137,20 @@ const sdk: TJPluginSdk = {
                 error: (message: string) => toast.error(message),
             },
             registerAction: (action) => {
-                const idx = window.__TJ_PLUGIN_ACTIONS__.findIndex(a => a.id === action.id)
-                if (idx >= 0) window.__TJ_PLUGIN_ACTIONS__.splice(idx, 1, action)
-                else window.__TJ_PLUGIN_ACTIONS__.push(action)
+                addPluginAction(action)
             },
             registerModal: (modal) => {
-                const idx = window.__TJ_PLUGIN_MODALS__.findIndex(m => m.id === modal.id)
-                if (idx >= 0) window.__TJ_PLUGIN_MODALS__.splice(idx, 1, modal)
-                else window.__TJ_PLUGIN_MODALS__.push(modal)
+                addPluginModal(modal)
             },
             openModal: (id: string) => {
-                const modal = window.__TJ_PLUGIN_MODALS__.find(m => m.id === id)
+                const modal = findPluginModal(id)
                 if (modal) {
-                    window.dispatchEvent(new CustomEvent('tj-plugin-open-modal', { detail: { id } }))
+                    dispatchPluginOpenModalEvent(id)
                 }
             },
             registerPageSlot: (slotId: string, config: { id: string; label: string; icon?: string; onClick: () => void }) => {
                 const pluginId = currentInstallingPluginId
-                const slot = { id: config.id, slotId, pluginId, label: config.label, icon: config.icon, onClick: config.onClick }
-                const idx = pluginPageSlots.value.findIndex(s => s.id === config.id)
-                if (idx >= 0) pluginPageSlots.value.splice(idx, 1, slot)
-                else pluginPageSlots.value.push(slot)
-                window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
+                addPluginPageSlot(slotId, config, pluginId, pluginPageSlots)
             },
         },
     }
@@ -160,17 +161,11 @@ const sdk: TJPluginSdk = {
     const loadPlugin = async (pluginId: string, forceReload = false) => {
         // Clean old plugin data if force reload
         if (forceReload) {
-            window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(pluginId))
-            window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(pluginId))
-            pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== pluginId)
-            window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
-            // Set plugin reference to undefined instead of deleting
-            ;(window as unknown as { [key: string]: TJPlugin | undefined })[pluginId] = undefined
+            cleanupPluginData(pluginId, pluginPageSlots)
         }
 
         // Check if already loaded (prevent duplicates)
-        const existing = (window as unknown as { [key: string]: TJPlugin })[pluginId]
-        if (existing && !forceReload) {
+        if (isPluginLoaded(pluginId) && !forceReload) {
             console.log(`[TJ Plugins] "${pluginId}" already loaded, skipping`)
             return true
         }
@@ -178,7 +173,7 @@ const sdk: TJPluginSdk = {
         try {
             const scriptUrl = `/api/plugins/file/${pluginId}?v=${Date.now()}`
             await import(/* @vite-ignore */ scriptUrl)
-            const plugin = (window as unknown as { [key: string]: TJPlugin })[pluginId]
+            const plugin = getPlugin(pluginId)
             if (plugin && plugin.install) {
                 currentInstallingPluginId = pluginId
                 plugin.install(sdk)

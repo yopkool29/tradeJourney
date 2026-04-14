@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import { TJPluginManifestSchema } from '~/schema/plugin'
 import type { TJPluginManifest, TJPluginPageSlot } from '~/type/plugin'
+import {
+	cleanupPluginData,
+	dispatchPluginLoadEvent,
+	findPluginActionsByPluginId,
+} from '~/utils/plugins-window'
 
 export const usePlugins = () => {
 	const plugins = ref<TJPluginManifest[]>([])
@@ -47,18 +52,42 @@ export const usePlugins = () => {
 		await $fetch(`/api/plugins/${id}`, { method: 'DELETE' })
 		plugins.value = plugins.value.filter(p => p.id !== id)
 		activePluginIds.value = activePluginIds.value.filter(pid => pid !== id)
-		
-		// Clean up page slots for this plugin
+
+		// Clean up plugin data
 		const pluginPageSlots = useState('pluginPageSlots', () => [] as TJPluginPageSlot[])
-		pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== id)
-		window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
-		
-		// Clean up plugin actions and modals
-		window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(id))
-		window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(id))
-		
-		// Remove plugin reference
-		;(window as unknown as { [key: string]: unknown })[id] = undefined
+		cleanupPluginData(id, pluginPageSlots)
+	}
+
+	const reloadPlugin = (id: string) => {
+		dispatchPluginLoadEvent(id)
+	}
+
+	const reloadActivePlugins = async () => {
+		if (activePluginIds.value.length === 0) {
+			await fetchPlugins()
+		}
+		for (const pluginId of activePluginIds.value) {
+			reloadPlugin(pluginId)
+		}
+	}
+
+	const togglePluginWithCleanup = async (id: string, enabled: boolean) => {
+		const result = await togglePlugin(id, enabled)
+		if (enabled) {
+			dispatchPluginLoadEvent(id)
+		} else {
+			const pluginPageSlots = useState<{ pluginId: string }[]>('pluginPageSlots', () => [])
+			cleanupPluginData(id, pluginPageSlots as unknown as { value: TJPluginPageSlot[] })
+		}
+		return result
+	}
+
+	const runPlugin = (id: string) => {
+		const actions = findPluginActionsByPluginId(id)
+		const action = actions?.[0]
+		if (action) {
+			action.run()
+		}
 	}
 
 	return {
@@ -70,6 +99,10 @@ export const usePlugins = () => {
 		isEnabled,
 		fetchPlugins,
 		togglePlugin,
+		togglePluginWithCleanup,
 		deletePlugin,
+		runPlugin,
+		reloadPlugin,
+		reloadActivePlugins,
 	}
 }

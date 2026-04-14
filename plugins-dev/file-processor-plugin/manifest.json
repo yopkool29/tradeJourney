@@ -1,0 +1,6 @@
+{
+	"id": "file-processor-plugin",
+	"name": "File Processor",
+	"version": "1.0.0",
+	"description": "Upload, process and download files directly in the browser"
+}

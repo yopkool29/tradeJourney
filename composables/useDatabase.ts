@@ -21,6 +21,7 @@ function loadPersistedDatabase(): Database | null {
 export const useDatabase = () => {
     const currentDatabase = useState<Database | null>('currentDatabase', () => loadPersistedDatabase())
     const databases = useState<Database[]>('databases', () => [])
+    const { reloadActivePlugins } = usePlugins()
 
     // Persist currentDatabase changes to localStorage
     if (import.meta.client) {
@@ -65,6 +66,7 @@ export const useDatabase = () => {
                 body: { databaseId }
             })
             currentDatabase.value = data
+            reloadActivePlugins()
             return data
         } catch (error) {
             console.error('Failed to select database:', error)

@@ -73,7 +73,7 @@
 						<USwitch
 							:model-value="isEnabled(plugin.id)"
 							:loading="toggling === plugin.id"
-							@update:model-value="toggle(plugin.id, $event)"
+							@update:model-value="togglePluginWithCleanup(plugin.id, $event)"
 						/>
 						<UButton
 							v-if="plugin.isUploaded"
@@ -117,8 +117,10 @@ const {
 	toggling,
 	isEnabled,
 	fetchPlugins,
-	togglePlugin,
+	togglePluginWithCleanup,
 	deletePlugin,
+	runPlugin,
+	reloadPlugin,
 } = usePlugins()
 
 const deleting = ref<string | null>(null)
@@ -160,39 +162,6 @@ const handleFileUpload = async (event: Event) => {
 			fileInput.value.value = ''
 		}
 	}
-}
-
-const toggle = async (id: string, enabled: boolean) => {
-	try {
-		await togglePlugin(id, enabled)
-		toastSuccess(enabled ? t('pages.settings.plugins.enabled') : t('pages.settings.plugins.disabled'))
-		if (enabled) {
-			window.dispatchEvent(new CustomEvent('tj-plugin-load', { detail: { pluginId: id } }))
-		} else {
-			window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(id))
-			window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(id))
-			const pluginPageSlots = useState<{ pluginId: string }[]>('pluginPageSlots', () => [])
-			pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== id)
-			window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value as typeof window.__TJ_PLUGIN_PAGE_SLOTS__
-		}
-	} catch {
-		toastError(t('pages.settings.plugins.toggle_error'))
-	}
-}
-
-const runPlugin = (id: string) => {
-	const actions = (window as { __TJ_PLUGIN_ACTIONS__?: { id: string; run: () => void }[] }).__TJ_PLUGIN_ACTIONS__
-	const action = actions?.find(a => a.id.startsWith(id))
-	if (action) {
-		action.run()
-	} else {
-		toastError('No action available for this plugin')
-	}
-}
-
-const reloadPlugin = (id: string) => {
-	window.dispatchEvent(new CustomEvent('tj-plugin-load', { detail: { pluginId: id } }))
-	toastSuccess('Plugin reloaded')
 }
 
 const handleDelete = (id: string) => {
