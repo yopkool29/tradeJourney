@@ -1,49 +1,37 @@
 <template>
     <div class="space-y-4">
-        <component :is="sdk.ui.components.UCard">
-            <div class="space-y-4">
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Upload File</label>
+                <UIInput id="file-input" @change="handleFileUpload" />
+                <p v-if="file" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Selected: {{ file.name }}</p>
+            </div>
+
+            <div v-if="file" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Upload File</label>
-                    <input
-                        id="file-input"
-                        type="file"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/80"
-                        @change="handleFileUpload"
-                    />
-                    <p v-if="file" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Selected: {{ file.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Original Content</p>
+                    <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ fileContent }}</pre>
                 </div>
 
-                <div v-if="file" class="space-y-4">
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Original Content</p>
-                        <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ fileContent }}</pre>
-                    </div>
+                <div class="flex gap-2">
+                    <UIButton color="primary" @click="processFile">Process File</UIButton>
+                    <UIButton :disabled="!processedContent" color="primary" @click="downloadFile">Download</UIButton>
+                    <UIButton color="red" @click="reset">Reset</UIButton>
+                </div>
 
-                    <div class="flex gap-2">
-                        <component :is="sdk.ui.components.UButton" @click="processFile"> Process File </component>
-                        <component :is="sdk.ui.components.UButton" :disabled="!processedContent" color="green" @click="downloadFile">
-                            Download
-                        </component>
-                        <component :is="sdk.ui.components.UButton" color="red" variant="ghost" @click="reset"> Reset </component>
-                    </div>
-
-                    <div v-if="processedContent">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Processed Content</p>
-                        <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{
-                            processedContent
-                        }}</pre>
-                    </div>
+                <div v-if="processedContent">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Processed Content</p>
+                    <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ processedContent }}</pre>
                 </div>
             </div>
-        </component>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { TJPluginSdk } from '~/type/plugin'
-
-const { sdk } = defineProps<{ sdk: TJPluginSdk }>()
+import UIButton from '../sdk/UIButton.vue'
+import UIInput from '../sdk/UIInput.vue'
 
 const file = ref<File | null>(null)
 const fileContent = ref<string>('')

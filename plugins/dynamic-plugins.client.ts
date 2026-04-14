@@ -57,48 +57,6 @@ export default defineNuxtPlugin(async () => {
     const toast = useAppToast()
     let currentInstallingPluginId = ''
 
-    // Resolve components in the application context and provide them as actual Vue components
-    const resolvedComponents = {
-        UIcon: resolveComponent('UIcon'),
-        UCard: resolveComponent('UCard'),
-        UDivider: resolveComponent('UDivider'),
-        UButton: resolveComponent('UButton'),
-        USpinner: resolveComponent('USpinner'),
-        UAlert: resolveComponent('UAlert'),
-        USwitch: resolveComponent('USwitch'),
-        UBadge: resolveComponent('UBadge'),
-        UProgress: resolveComponent('UProgress'),
-        // Form components
-        UForm: resolveComponent('UForm'),
-        UInput: resolveComponent('UInput'),
-        UFormField: resolveComponent('UFormField'),
-        USelect: resolveComponent('USelect'),
-        UCheckbox: resolveComponent('UCheckbox'),
-        URadioGroup: resolveComponent('URadioGroup'),
-        UTextarea: resolveComponent('UTextarea'),
-        // Layout components
-        UAvatar: resolveComponent('UAvatar'),
-        UDropdown: resolveComponent('UDropdown'),
-        UTabs: resolveComponent('UTabs'),
-        UTab: resolveComponent('UTab'),
-        // Data display
-        UTable: resolveComponent('UTable'),
-        UPagination: resolveComponent('UPagination'),
-        UTooltip: resolveComponent('UTooltip'),
-        // Feedback
-        UToast: resolveComponent('UToast'),
-        UNotification: resolveComponent('UNotification'),
-        // Navigation
-        UMenu: resolveComponent('UMenu'),
-        UBreadcrumb: resolveComponent('UBreadcrumb'),
-        // Advanced
-        UAccordion: resolveComponent('UAccordion'),
-        UModal: resolveComponent('UModal'),
-        USlider: resolveComponent('USlider'),
-        UDatePicker: resolveComponent('UDatePicker'),
-        UTimePicker: resolveComponent('UTimePicker'),
-    }
-
     const sdk: TJPluginSdk = {
         api: {
             get: (path: string) => $fetch(path),
@@ -131,7 +89,6 @@ export default defineNuxtPlugin(async () => {
             getMaxRunUpWithDates,
         },
         ui: {
-            components: resolvedComponents,
             toast: {
                 success: (message: string) => toast.success(message),
                 error: (message: string) => toast.error(message),
