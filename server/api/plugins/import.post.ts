@@ -43,16 +43,20 @@ export default defineEventHandler(async (event) => {
         await writeFile(tempPath, file.data)
 
         const zip = new AdmZip(tempPath)
-        zip.extractAllTo(uploadDir, true)
 
-        const entries = await readdir(uploadDir, { withFileTypes: true })
-        const pluginDir = entries.find(e => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('tmp-'))
-        if (!pluginDir) {
+        const zipEntries = zip.getEntries()
+        const firstEntry = zipEntries[0]
+        if (!firstEntry) {
             await unlink(tempPath).catch(() => { })
             throw createAppError({ message: 'Invalid archive structure', statusCode: 400, tag: 'PLUGIN_IMPORT_INVALID_STRUCTURE' })
         }
 
-        const pluginId = pluginDir.name
+        const pluginId = firstEntry.entryName.split('/')[0]
+        if (!pluginId) {
+            await unlink(tempPath).catch(() => { })
+            throw createAppError({ message: 'Invalid archive structure', statusCode: 400, tag: 'PLUGIN_IMPORT_INVALID_STRUCTURE' })
+        }
+        zip.extractAllTo(uploadDir, true)
         const pluginPath = join(uploadDir, pluginId)
 
         try {

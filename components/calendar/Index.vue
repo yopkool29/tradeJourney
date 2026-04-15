@@ -56,7 +56,7 @@
                             class="grid grid-cols-8 gap-2 mb-2">
                             <!-- Jours de la semaine -->
                             <div v-for="(day, dayIndex) in week.days" :key="dayIndex"
-                                class="border rounded p-2 min-h-[100px] transition-all cursor-pointer hover:shadow-lg hover:scale-105"
+                                class="border rounded px-2 py-0 min-h-[100px] transition-all cursor-pointer hover:shadow-lg hover:scale-105"
                                 :class="{
                                     'calendar-day-positive': day.pnl > 0,
                                     'calendar-day-negative': day.pnl < 0,

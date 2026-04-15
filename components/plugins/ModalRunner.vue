@@ -6,7 +6,7 @@
 		</template>
 		<template #footer>
 			<div class="flex justify-end">
-				<UButton :label="$t('common.actions.close')" color="neutral" variant="ghost" @click="onClose(false)" />
+				<UButton :label="activeModal.closeLabel ?? $t('common.actions.close')" :color="activeModal.closeColor ?? 'primary'" :variant="activeModal.closeVariant ?? 'solid'" @click="onClose(false)" />
 			</div>
 		</template>
 	</CommonModalDefault>

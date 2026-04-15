@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col min-h-30">
-        <div class="font-bold text-lg mb-1 text-gray-600 dark:text-gray-300"
+    <div class="flex flex-col min-h-28">
+        <div class="font-bold text-lg text-gray-600 dark:text-gray-300"
             :class="{ 'text-gray-400': !day.isCurrentMonth }">
             {{ day.dayNumber }}
         </div>

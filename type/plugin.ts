@@ -14,6 +14,9 @@ type TJPluginModal = {
 	message?: string
 	component?: unknown
 	onClose?: () => void
+	closeLabel?: string
+	closeColor?: 'primary' | 'secondary' | 'neutral' | 'error' | 'warning' | 'success'
+	closeVariant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link'
 }
 
 type TJPluginUi = {

@@ -18,6 +18,9 @@ const plugin = {
 			id: 'hello-plugin-modal',
 			title: 'Hello depuis le plugin !',
 			message: 'Ce plugin a été chargé dynamiquement sans rebuild de TradeJourney.',
+			closeLabel: 'Fermer',
+			closeColor: 'primary',
+			closeVariant: 'solid',
 			onClose() {
 				sdk.ui.toast.success('Hello Plugin fermé !')
 			},

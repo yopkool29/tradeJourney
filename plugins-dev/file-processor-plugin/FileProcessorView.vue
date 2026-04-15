@@ -30,8 +30,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import UIButton from '../sdk/UIButton.vue'
-import UIInput from '../sdk/UIInput.vue'
+import UIButton from '../ui/UIButton.vue'
+import UIInput from '../ui/UIInput.vue'
 
 const file = ref<File | null>(null)
 const fileContent = ref<string>('')
