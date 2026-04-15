@@ -295,7 +295,10 @@ const noteDatesGrouped = computed(() => {
 
 const selectedNoteId = computed(() => selectedNote.value?.id || null)
 
-const formattedDate = computed(() => formatDateLongString(props.selectedDate, locale.value))
+const formattedDate = computed(() => {
+    const date = selectedNote.value ? new Date(selectedNote.value.date) : props.selectedDate
+    return formatDateLongString(date, locale.value)
+})
 
 // Formater l'heure d'une note
 const formatNoteTime = (date: string | Date) => {
