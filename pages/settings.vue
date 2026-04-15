@@ -2,22 +2,16 @@
     <div class="container mx-auto px-4 py-8">
         <!-- Bouton Retour -->
         <div class="mb-4">
-            <UButton
-                :label="$t('common.actions.back')"
-                icon="i-heroicons-arrow-left"
-                color="neutral"
-                variant="ghost"
-                @click="goBack"
-            />
+            <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="neutral" variant="ghost"
+                @click="goBack" />
         </div>
-        
-        <UTabs :orientation="isMobile ? 'vertical' : 'horizontal'" v-model="active" :items="items" class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start'] }" />
+
+        <UTabs :orientation="isMobile ? 'vertical' : 'horizontal'" v-model="active" :items="items"
+            class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">
-                <component
-                    :is="items[items.findIndex((item) => item.value === active)].component"
-                    @imported="handleImported"
-                />
+                <component :is="items[items.findIndex((item) => item.value === active)].component"
+                    @imported="handleImported" />
             </KeepAlive>
         </div>
     </div>
@@ -90,13 +84,7 @@ const items = computed(() => {
             value: 'tools' as const,
             icon: 'i-lucide-wrench',
             component: markRaw(SettingsTools),
-        },
-        {
-            label: t('pages.settings.tabs.options'),
-            value: 'options' as const,
-            icon: 'i-heroicons-cog',
-            component: markRaw(SettingsOptions),
-        },
+        }
     ]
 
     if (config.public.pluginsEnabled) {
@@ -107,6 +95,13 @@ const items = computed(() => {
             component: markRaw(SettingsPlugins),
         })
     }
+
+    baseItems.push({
+        label: t('pages.settings.tabs.options'),
+        value: 'options' as const,
+        icon: 'i-heroicons-cog',
+        component: markRaw(SettingsOptions),
+    })
 
     return baseItems
 })
