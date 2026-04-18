@@ -111,7 +111,6 @@ const fileInput = ref<HTMLInputElement>()
 
 const {
 	plugins,
-	activePluginIds,
 	loading,
 	error,
 	toggling,
