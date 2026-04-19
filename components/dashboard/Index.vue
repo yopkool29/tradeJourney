@@ -6,19 +6,14 @@
                     <div class="section-label">{{ $t('components.dashboard.index.accounts') }}</div>
                     <PluginPageSlot slot-id="page-dashboard" />
                 </div>
-                <USelect v-model="userStore.dashBoardFilters.accountIds" :items="accountOptions"
-                    :placeholder="$t('components.dashboard.index.select_accounts')" multiple class="select-standard">
-                    <div>
-                        <span v-if="!userStore.dashBoardFilters.accountIds?.length">{{
-                            $t('components.dashboard.index.all_accounts') }}</span>
-                        <span v-else>{{
-                            $t('components.dashboard.index.selected_accounts', {
-                                count:
-                                    userStore.dashBoardFilters.accountIds?.length
-                            })
-                            }}</span>
-                    </div>
-                </USelect>
+                <CommonAccountSelect
+                    v-model="userStore.dashBoardFilters.accountIds"
+                    :items="accountOptions"
+                    :placeholder="$t('components.dashboard.index.select_accounts')"
+                    :all-label="$t('components.dashboard.index.all_accounts')"
+                    :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
+                    select-class="select-standard"
+                />
             </div>
             <div class="filter-actions-lg mb-4">
                 <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"

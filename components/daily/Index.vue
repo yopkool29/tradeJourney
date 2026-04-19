@@ -7,20 +7,14 @@
                     <div class="font-semibold">{{ $t('components.daily.index.accounts') }}</div>
                     <PluginPageSlot slot-id="page-daily" />
                 </div>
-                <USelect v-model="userStore.dailyHistoryFilters.accountIds" :items="accountOptions"
-                    :placeholder="$t('components.daily.index.select_accounts')" multiple
-                    class="min-w-[200px] max-w-[300px] w-full">
-                    <div>
-                        <span v-if="!userStore.dailyHistoryFilters.accountIds?.length">{{
-                            $t('components.daily.index.all_accounts') }}</span>
-                        <span v-else>{{
-                            $t('components.daily.index.selected_accounts', {
-                                count:
-                                    userStore.dailyHistoryFilters.accountIds?.length
-                            })
-                        }}</span>
-                    </div>
-                </USelect>
+                <CommonAccountSelect
+                    v-model="userStore.dailyHistoryFilters.accountIds"
+                    :items="accountOptions"
+                    :placeholder="$t('components.daily.index.select_accounts')"
+                    :all-label="$t('components.daily.index.all_accounts')"
+                    :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
+                    select-class="min-w-[200px] max-w-[300px] w-full"
+                />
             </div>
             <div class="flex gap-4 justify-between items-end">
                 <div class="flex flex-wrap gap-4 mb-2 items-end">

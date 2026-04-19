@@ -7,19 +7,14 @@
                     <div class="section-label">{{ $t('components.calendar.index.accounts') }}</div>
                     <PluginPageSlot slot-id="page-calendar" />
                 </div>
-                <USelect v-model="userStore.calendarFilters.accountIds" :items="accountOptions"
-                    :placeholder="$t('components.calendar.index.select_accounts')" multiple class="select-standard">
-                    <div>
-                        <span v-if="!userStore.calendarFilters.accountIds?.length">{{
-                            $t('components.calendar.index.all_accounts') }}</span>
-                        <span v-else>{{
-                            $t('components.calendar.index.selected_accounts', {
-                                count:
-                                    userStore.calendarFilters.accountIds?.length
-                            })
-                        }}</span>
-                    </div>
-                </USelect>
+                <CommonAccountSelect
+                    v-model="userStore.calendarFilters.accountIds"
+                    :items="accountOptions"
+                    :placeholder="$t('components.calendar.index.select_accounts')"
+                    :all-label="$t('components.calendar.index.all_accounts')"
+                    :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
+                    select-class="select-standard"
+                />
             </div>
             <div class="filter-actions-lg mb-2">
                 <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
