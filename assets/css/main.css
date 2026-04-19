@@ -11,6 +11,10 @@
     
     /* Fond légèrement grisé en mode light */
     --ui-bg: #f2f2f2;
+
+    /* Texte principal moins chargé en mode light */
+    --ui-text-highlighted: #334155;
+    --ui-text: #334155;
 }
 
 .dark {
@@ -23,6 +27,10 @@
     
     /* Fond pour le mode dark */
     --ui-bg: #1f1f2f;
+
+    /* Restaurer la couleur de texte par défaut en mode dark */
+    --ui-text-highlighted: var(--ui-color-neutral-100);
+    --ui-text: var(--ui-color-neutral-200);
 }
 
 body {
