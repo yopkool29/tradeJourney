@@ -3,7 +3,7 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium mb-2">Upload File</label>
-                <UIInput id="file-input" @change="handleFileUpload" />
+                <UIInput id="file-input" type="file" @change="handleFileUpload" />
                 <p v-if="file" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Selected: {{ file.name }}</p>
             </div>
 
