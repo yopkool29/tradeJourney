@@ -490,6 +490,9 @@ export default {
                 edit_notes_tags: 'Edit notes/tags',
                 clear_notes_tags: 'Clear notes/tags',
             },
+            tagSelector: {
+                manage_tags: 'Manage tags',
+            },
             columns: {
                 button: 'Columns',
                 headers: {

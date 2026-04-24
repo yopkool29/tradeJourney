@@ -500,6 +500,9 @@ export default {
                 edit_notes_tags: 'Modifier notes/tags',
                 clear_notes_tags: 'Effacer notes/tags',
             },
+            tagSelector: {
+                manage_tags: 'Gérer les tags',
+            },
             columns: {
                 button: 'Colonnes',
                 headers: {

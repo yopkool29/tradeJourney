@@ -3,7 +3,7 @@
         :open="!!trade"
         :title="modalTitle"
         :description="$t('components.trade.tagModal.description')"
-        :ui="{ overlay: 'z-[100]', content: 'z-[101] sm:max-w-2xl' }"
+        :ui="{ content: 'sm:max-w-2xl' }"
         @update:open="(open: boolean) => { if (!open) close() }"
     >
         <template #body>

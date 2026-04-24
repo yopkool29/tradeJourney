@@ -1,5 +1,6 @@
 <template>
     <div>
+        <CommonTagsManagerModal v-model:open="showTagsManager" :z-index="props.zIndex" @tags-updated="onTagsUpdated" />
         <!-- Sélection de tags -->
         <UFormField :name="props.fieldName" label="Tags" class="mb-4">
             <!-- Tags sélectionnés -->
@@ -19,8 +20,8 @@
             </div>
 
             <!-- Liste des groupes de tags disponibles -->
-            <div v-if="tagGroups.length > 0" class="border rounded-md p-2 max-h-64 overflow-y-auto">
-                <div v-for="group in tagGroups" :key="group.id" class="mb-3">
+            <div v-if="localTagGroups.length > 0" class="border rounded-md p-2 max-h-64 overflow-y-auto">
+                <div v-for="group in localTagGroups" :key="group.id" class="mb-3">
                     <div class="font-semibold mb-1">{{ group.name }}</div>
                     <div class="flex flex-wrap gap-1">
                         <UTooltip v-for="tag in group.tags" :key="tag.id" :text="tag.description || tag.name">
@@ -36,6 +37,9 @@
                 </div>
             </div>
             <div v-else class="text-gray-500 text-sm">Aucun groupe / tag disponible (Allez dans paramètres pour configurer)</div>
+            <div class="mt-2">
+                <UButton icon="i-lucide-settings" size="xs" color="neutral" variant="ghost" @click="showTagsManager = true">{{ $t('components.common.tagSelector.manage_tags') }}</UButton>
+            </div>
         </UFormField>
     </div>
 </template>
@@ -47,19 +51,32 @@ import type { TagSchema } from '~/schema/tag'
 
 type TagType = z.infer<typeof TagSchema>
 
-const { getTagStyle } = useTags()
+const { getTagStyle, fetchGroups, tagGroups: fetchedTagGroups } = useTags()
 
 const modelValue = defineModel<number[]>('modelValue', { required: true })
+const showTagsManager = ref(false)
 
 const props = withDefaults(
     defineProps<{
-        tagGroups: TagGroupType[] // Groupes de tags disponibles
-        fieldName?: string // Nom du champ pour UFormField
+        tagGroups: TagGroupType[]
+        fieldName?: string
+        zIndex?: number
     }>(),
     {
         fieldName: 'tagIds',
     }
 )
+
+const localTagGroups = ref<TagGroupType[]>(props.tagGroups)
+
+watch(() => props.tagGroups, (val) => {
+    localTagGroups.value = val
+})
+
+const onTagsUpdated = async () => {
+    await fetchGroups()
+    localTagGroups.value = fetchedTagGroups.value
+}
 
 const emit = defineEmits<{
     'tag-added': [tag: TagType]
@@ -69,7 +86,7 @@ const emit = defineEmits<{
 // Tags sélectionnés (calculés à partir des IDs)
 const selectedTags = computed<TagType[]>(() => {
     const result: TagType[] = []
-    props.tagGroups.forEach((group: TagGroupType) => {
+    localTagGroups.value.forEach((group: TagGroupType) => {
         group.tags.forEach((tag: TagType) => {
             if (modelValue.value.includes(tag.id)) {
                 result.push(tag)
