@@ -2,7 +2,7 @@
     <div class="container mx-auto px-4 py-8">
         <!-- Bouton Retour -->
         <div class="mb-4">
-            <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="neutral" variant="ghost"
+            <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="primary" variant="link"
                 @click="goBack" />
         </div>
 
