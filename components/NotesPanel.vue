@@ -136,7 +136,7 @@
             </UForm>
         </template>
         <template #footer>
-            <div class="flex gap-4 justify-end">
+            <div class="action-buttons-end">
                 <UButton type="submit" form="unsavedModalForm" :label="$t('common.actions.save')" color="primary" :loading="loading" />
                 <UButton
                     :label="$t('common.actions.cancel')"
@@ -172,7 +172,7 @@
             </UForm>
         </template>
         <template #footer>
-            <div class="flex gap-2 justify-end">
+            <div class="action-buttons-end">
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showCreateModal = false" />
                 <UButton type="submit" form="createNoteForm" :label="$t('common.actions.create')" color="primary" />
             </div>
@@ -194,7 +194,7 @@
             </UForm>
         </template>
         <template #footer>
-            <div class="flex gap-2 justify-end">
+            <div class="action-buttons-end">
                 <UButton :label="$t('common.actions.cancel')" color="neutral" variant="ghost" @click="showChangeDateTimeModal = false" />
                 <UButton type="submit" form="changeDateTimeForm" :label="$t('common.actions.update')" color="primary" />
             </div>

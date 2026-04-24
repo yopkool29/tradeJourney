@@ -1,6 +1,5 @@
 <template>
     <div>
-        <CommonTagsManagerModal v-model:open="showTagsManager" :z-index="props.zIndex" @tags-updated="onTagsUpdated" />
         <!-- Sélection de tags -->
         <UFormField :name="props.fieldName" label="Tags" class="mb-4">
             <!-- Tags sélectionnés -->
@@ -38,7 +37,7 @@
             </div>
             <div v-else class="text-gray-500 text-sm">Aucun groupe / tag disponible (Allez dans paramètres pour configurer)</div>
             <div class="mt-2">
-                <UButton icon="i-lucide-settings" size="xs" color="neutral" variant="ghost" @click="showTagsManager = true">{{ $t('components.common.tagSelector.manage_tags') }}</UButton>
+                <UButton icon="i-lucide-settings" size="xs" color="neutral" variant="ghost" @click="openTagsManager">{{ $t('components.common.tagSelector.manage_tags') }}</UButton>
             </div>
         </UFormField>
     </div>
@@ -52,20 +51,27 @@ import type { TagSchema } from '~/schema/tag'
 type TagType = z.infer<typeof TagSchema>
 
 const { getTagStyle, fetchGroups, tagGroups: fetchedTagGroups } = useTags()
+const overlay = useOverlay()
 
 const modelValue = defineModel<number[]>('modelValue', { required: true })
-const showTagsManager = ref(false)
 
 const props = withDefaults(
     defineProps<{
         tagGroups: TagGroupType[]
         fieldName?: string
-        zIndex?: number
     }>(),
     {
         fieldName: 'tagIds',
     }
 )
+
+const openTagsManager = async () => {
+    console.log('Opening tags manager')
+    const modalComponent = resolveComponent('LazyCommonTagsManagerModal')
+    const modal = overlay.create(modalComponent as Component)
+    await modal.open()
+    await onTagsUpdated()
+}
 
 const localTagGroups = ref<TagGroupType[]>(props.tagGroups)
 
@@ -83,7 +89,7 @@ const emit = defineEmits<{
     'tag-removed': [tagId: number]
 }>()
 
-// Tags sélectionnés (calculés à partir des IDs)
+// Tags sélectionnés (calculés à partir des IDs, triés par nom)
 const selectedTags = computed<TagType[]>(() => {
     const result: TagType[] = []
     localTagGroups.value.forEach((group: TagGroupType) => {
@@ -93,7 +99,7 @@ const selectedTags = computed<TagType[]>(() => {
             }
         })
     })
-    return result
+    return result.sort((a, b) => a.name.localeCompare(b.name))
 })
 
 // Ajouter un tag

@@ -12,7 +12,11 @@ export default defineEventHandler(async (event) => {
         
         // Récupération de tous les groupes de tags (et leurs tags)
         const groups = await prisma.tagGroup.findMany({
-            include: { tags: true },
+            include: {
+                tags: {
+                    orderBy: { name: 'asc' }
+                }
+            },
             orderBy: { name: 'asc' }
         })
 

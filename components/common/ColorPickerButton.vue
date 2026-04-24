@@ -27,7 +27,7 @@
             </div>
         </template>
         <template #footer>
-            <div class="flex gap-2 justify-end">
+            <div class="action-buttons-end">
                 <UButton @click="saveColor">{{ $t('common.actions.save') }}</UButton>
                 <UButton variant="soft" @click="cancelColor">{{ $t('common.actions.cancel') }}</UButton>
                 <UButton v-if="defaultColor" class="ml-4" variant="outline" @click="resetColor">{{ $t('common.actions.reset') }}</UButton>

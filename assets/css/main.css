@@ -192,12 +192,9 @@ select {
 }
 
 /* Action button groups */
-.action-buttons {
-    @apply flex gap-2;
-}
 
 .action-buttons-end {
-    @apply flex justify-end gap-2;
+    @apply flex justify-end gap-4;
 }
 
 /* Profit/Loss text colors */

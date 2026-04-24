@@ -23,6 +23,9 @@ export default defineEventHandler(async (event) => {
                 tags: {
                     include: {
                         tag: true
+                    },
+                    orderBy: {
+                        tag: { name: 'asc' }
                     }
                 },
                 account: true,

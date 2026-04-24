@@ -1,17 +1,18 @@
 <template>
-	<UModal v-model:open="open" :title="$t('components.settings.tags.title')" :overlay="false" :ui="{ content: 'max-w-3xl z-[600]' }" :portal="true">
+	<UModal :open="true" :title="$t('components.settings.tags.title')" :ui="{ content: 'max-w-3xl' }" @update:open="(val) => { if (!val) emit('close') }">
 		<template #body>
-			<SettingsTagsManager @tags-updated="emit('tags-updated')" />
+			<SettingsTagsManager />
 		</template>
 		<template #footer>
 			<div class="flex justify-end">
-				<UButton variant="soft" @click="open = false">{{ $t('common.actions.close') }}</UButton>
+				<UButton variant="soft" @click="emit('close')">{{ $t('common.actions.close') }}</UButton>
 			</div>
 		</template>
 	</UModal>
 </template>
 
 <script setup lang="ts">
-const open = defineModel<boolean>('open', { required: true })
-const emit = defineEmits<{ 'tags-updated': [] }>()
+const emit = defineEmits<{
+	close: []
+}>()
 </script>

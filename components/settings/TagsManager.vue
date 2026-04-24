@@ -47,7 +47,7 @@
 								</UForm>
 							</template>
 							<template #footer>
-								<div class="flex gap-2 justify-end">
+								<div class="action-buttons-end">
 									<UButton type="submit" form="modifyGroupForm" :disabled="!newGroupState?.name">{{ $t('common.actions.save') }}</UButton>
 									<UButton variant="soft" @click="editGroupStateId = null">{{ $t('common.actions.cancel') }}</UButton>
 								</div>
@@ -138,7 +138,7 @@
 								</UForm>
 							</template>
 							<template #footer>
-								<div class="flex gap-2 justify-end">
+								<div class="action-buttons-end">
 									<UButton type="submit" form="modifyTagForm" :disabled="!newTagState?.name">{{ $t('common.actions.save') }}</UButton>
 									<UButton variant="soft" @click="editTagStateId = null">{{ $t('common.actions.cancel') }}</UButton>
 								</div>
