@@ -1,6 +1,6 @@
 <template>
-    <UModal :open="isOpen" :title="modalTitle" @update:open="(open: boolean) => $emit('update:open', open)">
-        <template #body>
+    <CommonModalDefault v-model:open="openModel" :title="modalTitle" @closed="emit('update:open', false)">
+        <template #content>
             <UForm id="form1" :state="newState" :schema="CreateDayTagSchema" :validate-on="['change', 'input']" @submit="onSubmit" @error="onError">
                 <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
@@ -21,10 +21,10 @@
         <template #footer>
             <div class="flex justify-end gap-4 mt-6">
                 <UButton form="form1" type="submit">{{ dayTag ? $t('components.daily.day_tag_modal.update') : $t('common.actions.save') }}</UButton>
-                <UButton type="button" variant="soft" @click="$emit('update:open', false)">{{ $t('common.actions.cancel') }}</UButton>
+                <UButton type="button" variant="soft" @click="emit('update:open', false)">{{ $t('common.actions.cancel') }}</UButton>
             </div>
         </template>
-    </UModal>
+    </CommonModalDefault>
 </template>
 
 <script setup lang="ts">
@@ -46,6 +46,16 @@ const props = defineProps<{
     date: Date | string
     dayTag: DayTagType | null
 }>()
+
+const emit = defineEmits<{
+    'update:open': [value: boolean]
+    saved: [dayTag: DayTagType]
+}>()
+
+const openModel = computed({
+    get: () => props.isOpen,
+    set: (val: boolean) => { if (!val) emit('update:open', false) }
+})
 
 const modalTitle = computed(() => (props.dayTag ? t('components.daily.day_tag_modal.edit_title') : t('components.daily.day_tag_modal.add_title')))
 
@@ -128,11 +138,6 @@ watch(
 if (props.isOpen) {
     initializeData()
 }
-
-const emit = defineEmits<{
-    'update:open': [value: boolean]
-    saved: [dayTag: DayTagType]
-}>()
 
 // Exposer les méthodes pour le composant parent
 defineExpose({

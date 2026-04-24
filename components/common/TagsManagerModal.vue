@@ -1,6 +1,6 @@
 <template>
-	<UModal :open="true" :title="$t('components.settings.tags.title')" :ui="{ content: 'max-w-3xl' }" @update:open="(val) => { if (!val) emit('close') }">
-		<template #body>
+	<CommonModalDefault :open="true" :title="$t('components.settings.tags.title')" :ui="{ overlay: 'z-[70]', content: 'max-w-3xl z-[70]' }" @closed="emit('close')">
+		<template #content>
 			<SettingsTagsManager />
 		</template>
 		<template #footer>
@@ -8,7 +8,7 @@
 				<UButton variant="soft" @click="emit('close')">{{ $t('common.actions.close') }}</UButton>
 			</div>
 		</template>
-	</UModal>
+	</CommonModalDefault>
 </template>
 
 <script setup lang="ts">

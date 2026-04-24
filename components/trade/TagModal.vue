@@ -1,12 +1,11 @@
 <template>
-    <UModal
-        :open="!!trade"
+    <CommonModalDefault
+        v-model:open="isOpen"
         :title="modalTitle"
-        :description="$t('components.trade.tagModal.description')"
-        :ui="{ content: 'sm:max-w-2xl' }"
-        @update:open="(open: boolean) => { if (!open) close() }"
+        :ui="{ overlay: 'z-[60]', content: 'sm:max-w-2xl z-[60]' }"
+        @closed="close"
     >
-        <template #body>
+        <template #content>
             <UForm id="form1" :state="newState" :schema="formSchema" :validate-on="['change', 'input']" @submit="onSubmit" @error="onError">
                 <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
@@ -41,8 +40,7 @@
                 }}</UButton>
             </div>
         </template>
-    </UModal>
-
+    </CommonModalDefault>
 </template>
 
 <script setup lang="ts">
@@ -62,6 +60,11 @@ const { errorStr, successStr, displayMessage, clearMessages: clearAlertMessages 
 
 const { trade, close, notifySaved } = useTradeTagModal()
 const currentTrade = ref<TradeExtendedType | null>(null)
+
+const isOpen = computed({
+    get: () => !!trade.value,
+    set: (val: boolean) => { if (!val) close() }
+})
 
 const modalTitle = computed(() =>
     currentTrade.value ? t('components.trade.tagModal.titleWithSymbol', { symbol: currentTrade.value.symbol }) : t('components.trade.tagModal.title')
