@@ -75,7 +75,7 @@
                         <span v-else class="text-gray-400">-</span>
                     </template>
                     <template #actions-cell="{ row }">
-                        <div class="action-buttons">
+                        <div class="flex gap-2 items-center">
                             <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
                                 @click="editAccount(row.original)">
                                 {{ $t('components.settings.accounts.edit_account') }}

@@ -59,7 +59,7 @@
                         {{ formatDateWithUserTimezone(row.original.createdAt, settings, false, locale as 'fr' | 'en' | 'us') }}
                     </template>
                     <template #actions-cell="{ row }">
-                        <div class="action-buttons">
+                        <div class="flex gap-2 items-center">
                             <UTooltip
                                 :text="
                                     row.original.active
