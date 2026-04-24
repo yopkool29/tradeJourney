@@ -24,6 +24,18 @@ export default defineEventHandler(async (event) => {
 		if (body.content !== undefined) updateData.content = body.content
 		if (body.metadata !== undefined) updateData.metadata = body.metadata
 
+		// Merger subtitle dans metadata côté serveur
+		if (body.subtitle !== undefined) {
+			const existing = await prisma.dailyNote.findUnique({ where: { id }, select: { metadata: true } })
+			const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
+			if (body.subtitle) {
+				updateData.metadata = { ...currentMetadata, subtitle: body.subtitle }
+			} else {
+				const { subtitle: _, ...rest } = currentMetadata
+				updateData.metadata = Object.keys(rest).length > 0 ? rest : null
+			}
+		}
+
 		const note = await prisma.dailyNote.update({
 			where: { id },
 			data: updateData,

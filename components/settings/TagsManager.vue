@@ -30,6 +30,10 @@
 			<UCard v-for="group in tagGroups" :key="group.id" class="p-4">
 				<div class="flex items-center justify-between mb-3">
 					<div class="form-row-lg">
+						<div class="flex items-center gap-1">
+							<UButton icon="i-lucide-chevron-up" size="md" color="neutral" variant="ghost" :disabled="tagGroups.indexOf(group) === 0" @click="moveGroup(group, -1)" />
+							<UButton icon="i-lucide-chevron-down" size="md" color="neutral" variant="ghost" :disabled="tagGroups.indexOf(group) === tagGroups.length - 1" @click="moveGroup(group, 1)" />
+						</div>
 						<span class="font-semibold text-lg">{{ group.name }}</span>
 
 						<CommonModalDefault :open="editGroupStateId === group.id" :title="$t('components.settings.tags.edit_group')" @update:open="(open) => { if (!open) editGroupStateId = null }">
@@ -183,7 +187,7 @@ const userStore = useUserStore()
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
 
-const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, tagGroups } = useTags()
+const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, reorderGroups, tagGroups } = useTags()
 
 const { log_error } = useLogView()
 const { errorStr, successStr, displayMessage } = useAlert()
@@ -259,6 +263,23 @@ async function onDeleteGroup(group: TagGroupType) {
 onMounted(async () => {
 	await fetchGroups()
 })
+
+async function moveGroup(group: TagGroupType, direction: number) {
+	const index = tagGroups.value.indexOf(group)
+	const newIndex = index + direction
+	if (newIndex < 0 || newIndex >= tagGroups.value.length) return
+	const reordered = [...tagGroups.value]
+	reordered.splice(index, 1)
+	reordered.splice(newIndex, 0, group)
+	tagGroups.value = reordered
+	try {
+		await reorderGroups(reordered)
+		await fetchGroups()
+	} catch (err) {
+		const { message } = catchTagMessage(err, t)
+		displayMessage(null, message)
+	}
+}
 
 function newAddTag(group: TagGroupType) {
 	displayMessage(null, null)

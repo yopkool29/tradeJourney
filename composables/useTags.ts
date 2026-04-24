@@ -76,6 +76,18 @@ export const useTags = () => {
         })
     }
 
+    // Réordonner les groupes en mettant à jour metadata.order pour chaque groupe
+    const reorderGroups = async (orderedGroups: TagGroupType[]) => {
+        await Promise.all(
+            orderedGroups.map((group, index) =>
+                $fetch(`/api/tags/${group.id}`, {
+                    method: 'PATCH',
+                    body: { order: index }
+                })
+            )
+        )
+    }
+
     return {
         tagGroups,
         fetchGroups,
@@ -85,6 +97,7 @@ export const useTags = () => {
         createTag,
         updateTag,
         deleteTag,
+        reorderGroups,
         getTagStyle
     }
 }

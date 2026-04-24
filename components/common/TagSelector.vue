@@ -89,7 +89,7 @@ const emit = defineEmits<{
     'tag-removed': [tagId: number]
 }>()
 
-// Tags sélectionnés (calculés à partir des IDs, triés par nom)
+// Tags sélectionnés (calculés à partir des IDs, triés par ordre de groupe puis par nom)
 const selectedTags = computed<TagType[]>(() => {
     const result: TagType[] = []
     localTagGroups.value.forEach((group: TagGroupType) => {
@@ -99,7 +99,7 @@ const selectedTags = computed<TagType[]>(() => {
             }
         })
     })
-    return result.sort((a, b) => a.name.localeCompare(b.name))
+    return result
 })
 
 // Ajouter un tag

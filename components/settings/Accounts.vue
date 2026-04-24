@@ -282,23 +282,18 @@ const editAccount = (account: AccountType) => {
 
 const onSubmitAccount = async (event: FormSubmitEvent<CreateAccountType | UpdateAccountType>) => {
     try {
-        // Définir le capital de départ dans les metadata
-        let metadata = event.data.metadata
-        
-        metadata = metadataHelpers.merge(metadata, { startingCapital: startingCapital.value })
-
-        const dataWithMetadata = {
+        const dataToSend = {
             ...event.data,
-            metadata
+            startingCapital: startingCapital.value,
         }
         
         if (editingAccountId.value) {
             // Update
-            await updateAccount(dataWithMetadata as UpdateAccountType)
+            await updateAccount(dataToSend as UpdateAccountType)
             displayMessage(t('components.settings.accounts.account_updated'), null)
         } else {
             // Create
-            await createAccount(dataWithMetadata as CreateAccountType)
+            await createAccount(dataToSend as CreateAccountType)
             displayMessage(t('components.settings.accounts.account_created'), null)
         }
         await fetchAccounts()

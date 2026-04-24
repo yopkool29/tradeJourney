@@ -433,7 +433,7 @@ const saveNote = async () => {
         const noteData = {
             date: selectedNote.value.date,
             content: noteContent,
-            metadata: { ...(selectedNote.value.metadata || {}), subtitle: noteSubtitle.value },
+            subtitle: noteSubtitle.value,
         }
 
         if (noteContent) {

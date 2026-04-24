@@ -25,6 +25,18 @@ export default defineEventHandler(async (event) => {
         const id = parsed.id
         const { id: _, ...updateData } = parsed
 
+        // Merger startingCapital dans metadata côté serveur
+        if (body.startingCapital !== undefined) {
+            const existing = await prisma.account.findUnique({ where: { id }, select: { metadata: true } })
+            const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
+            if (body.startingCapital !== null) {
+                updateData.metadata = { ...currentMetadata, startingCapital: body.startingCapital }
+            } else {
+                const { startingCapital: _, ...rest } = currentMetadata
+                updateData.metadata = Object.keys(rest).length > 0 ? rest : null
+            }
+        }
+
         // Mise à jour du compte
         const updatedAccount = await prisma.account.update({
             where: { id },

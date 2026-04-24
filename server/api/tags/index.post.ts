@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
         const group = await prisma.tagGroup.create({
             data: {
                 name: input.data.name,
+                metadata: input.data.metadata ?? undefined,
             }
         })
 

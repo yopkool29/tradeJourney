@@ -16,8 +16,15 @@ export default defineEventHandler(async (event) => {
                 tags: {
                     orderBy: { name: 'asc' }
                 }
-            },
-            orderBy: { name: 'asc' }
+            }
+        })
+
+        // Tri par metadata.order (ASC) puis par name (ASC)
+        groups.sort((a, b) => {
+            const orderA = (a.metadata as Record<string, unknown>)?.order as number ?? Number.MAX_SAFE_INTEGER
+            const orderB = (b.metadata as Record<string, unknown>)?.order as number ?? Number.MAX_SAFE_INTEGER
+            if (orderA !== orderB) return orderA - orderB
+            return a.name.localeCompare(b.name)
         })
 
         return groups

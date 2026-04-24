@@ -24,6 +24,19 @@ export default defineEventHandler(async (event) => {
 
         const body = await readBody(event)
 
+        // Si 'order' est passé, on le merge dans metadata côté serveur
+        if (body.order !== undefined) {
+            const existing = await prisma.tagGroup.findUnique({ where: { id }, select: { metadata: true } })
+            const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
+            const group = await prisma.tagGroup.update({
+                where: { id },
+                data: {
+                    metadata: { ...currentMetadata, order: body.order }
+                }
+            })
+            return { ...group, message: 'Tag group updated successfully' }
+        }
+
         const parsed = UpdateTagGroupSchema.parse({ ...body, id })
 
         const { id: _, ...updateData } = parsed

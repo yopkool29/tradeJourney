@@ -28,13 +28,20 @@ export default defineEventHandler(async (event) => {
             })
         }
 
+        // Merger startingCapital dans metadata si fourni
+        let metadata: Record<string, unknown> | undefined
+        if (body.startingCapital !== undefined && body.startingCapital !== null) {
+            metadata = { startingCapital: body.startingCapital }
+        }
+
         // Créer le nouveau compte
         const newAccount = await prisma.account.create({
             data: {
                 name: parsed.name,
                 displayName: parsed.displayName,
                 fullname: parsed.fullname,
-                aliases: parsed.aliases || ''
+                aliases: parsed.aliases || '',
+                ...(metadata && { metadata }),
             }
         })
 
