@@ -63,7 +63,7 @@
         <div
             ref="editorContainer"
             class="flex-1 milkdown-editor"
-            :class="readonly ? 'overflow-hidden' : 'overflow-auto'"
+            :class="[readonly ? 'overflow-hidden' : 'overflow-auto', { 'is-readonly': readonly }]"
             :style="editorStyle"
         >
             <div v-if="editorLoading" class="flex items-center justify-center h-full text-gray-400 text-sm">
@@ -183,34 +183,31 @@ const uploadImage = async (file: File): Promise<string> => {
     return result.url
 }
 
-const injectFullscreenButton = (container: HTMLElement) => {
+const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {
     const wrappers = container.querySelectorAll<HTMLElement>('.milkdown-image-block > .image-wrapper')
     wrappers.forEach((wrapper) => {
         if (wrapper.dataset.fsInjected) return
         wrapper.dataset.fsInjected = '1'
-        const btn = document.createElement('div')
-        btn.title = 'Fullscreen'
-        btn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;cursor:pointer;z-index:10;pointer-events:auto;'
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`
-        wrapper.addEventListener('mouseenter', () => { btn.style.opacity = '1' })
-        wrapper.addEventListener('mouseleave', () => { btn.style.opacity = '0' })
-        btn.addEventListener('pointerdown', (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            const img = wrapper.querySelector<HTMLImageElement>('img')
-            if (img?.src) {
-                fullscreenImageUrl.value = img.src
-                fullscreenOpen.value = true
-            }
-        })
-        wrapper.appendChild(btn)
+
+        if (readonly) {
+            wrapper.style.cursor = 'zoom-in'
+            wrapper.addEventListener('pointerdown', (e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                const img = wrapper.querySelector<HTMLImageElement>('img')
+                if (img?.src) {
+                    fullscreenImageUrl.value = img.src
+                    fullscreenOpen.value = true
+                }
+            }, true)
+        }
     })
 }
 
-const startImageObserver = (container: HTMLElement) => {
+const startImageObserver = (container: HTMLElement, readonly: boolean) => {
     imageObserver?.disconnect()
-    injectFullscreenButton(container)
-    imageObserver = new MutationObserver(() => injectFullscreenButton(container))
+    injectFullscreenButton(container, readonly)
+    imageObserver = new MutationObserver(() => injectFullscreenButton(container, readonly))
     imageObserver.observe(container, { childList: true, subtree: true })
 }
 
@@ -242,7 +239,7 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
             })
         })
     }
-    startImageObserver(container)
+    startImageObserver(container, !editable)
     return instance
 }
 
