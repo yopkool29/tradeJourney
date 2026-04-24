@@ -73,6 +73,7 @@
     "@types/formidable": "^3.4.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.1",
+    "@vitejs/plugin-vue": "^6.0.6",
     "adm-zip": "^0.5.17",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
@@ -88,6 +89,7 @@
     "sass": "^1.89.2",
     "tailwindcss": "^4.1.11",
     "ufo": "^1.6.1",
+    "vite": "^8.0.8",
     "vitest": "^3.2.4"
   }
 }

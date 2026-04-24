@@ -37,7 +37,7 @@ export function parseStandardCSV(
     const requiredColumns = [
         'importName', 'accountName', 'accountFullname', 'openDate', 'closeDate',
         'symbol', 'type', 'lot', 'openPrice', 'closePrice', 'profit',
-        'stopLoss', 'takeProfit', 'commission'
+        'commission'
     ]
     
     for (const col of requiredColumns) {
@@ -111,8 +111,8 @@ export function parseStandardCSV(
                 closePrice: parseFloat(values[colIndex['closePrice']]),
                 profit,  // Profit BRUT
                 netProfit,  // Profit NET
-                stopLoss: parseFloat(values[colIndex['stopLoss']]),
-                takeProfit: parseFloat(values[colIndex['takeProfit']]),
+                stopLoss: colIndex['stopLoss'] !== undefined ? (parseFloat(values[colIndex['stopLoss']]) || 0) : 0,
+                takeProfit: colIndex['takeProfit'] !== undefined ? (parseFloat(values[colIndex['takeProfit']]) || 0) : 0,
                 commission,
                 exchange,
                 screenshotUrl: null

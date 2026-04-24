@@ -9,21 +9,14 @@
                         <PluginPageSlot slot-id="page-trade" />
                     </div>
                     <div class="action-buttons">
-                        <USelect
+                        <CommonAccountSelect
                             v-model="userStore.tradeOptions.accountIds"
                             :items="accountOptions"
                             :placeholder="$t('components.trade.table.accounts.placeholder')"
-                            multiple
-                            size="lg"
-                            class="select-standard"
-                        >
-                            <div>
-                                <span v-if="!userStore.tradeOptions.accountIds?.length"> {{ $t('components.trade.table.accounts.all') }} </span>
-                                <span v-else>
-                                    {{ $t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length }) }}
-                                </span>
-                            </div>
-                        </USelect>
+                            :all-label="$t('components.trade.table.accounts.all')"
+                            :selected-label="$t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length })"
+                            select-class="select-standard"
+                        />
                         <UCheckbox v-model="userStore.tradeOptions.showInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
                     </div>
                 </div>
