@@ -33,6 +33,20 @@
     --ui-text: var(--ui-color-neutral-200);
 }
 
+.light-blue {
+    --ui-primary: #379cce;
+}
+
+/* When system is in dark mode but user chose light-blue */
+html.dark.light-blue {
+    --ui-primary: #379cce;
+}
+
+/* dark-gold theme - both classes present */
+html.dark.dark-gold {
+    --ui-primary: #d7a72d;
+}
+
 body {
     background: linear-gradient(to bottom, #f1f1f1, #efefef) no-repeat;
     min-height: 100vh;
@@ -132,11 +146,11 @@ select {
 }
 
 .header-desktop-link {
-    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-300;
+    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary;
 }
 
 .header-desktop-link-active {
-    @apply bg-primary-100 dark:bg-primary-200/15 text-primary-600 dark:text-primary-300 font-medium;
+    @apply bg-primary/10 text-primary font-medium;
 }
 
 .header-mobile-link {
@@ -144,7 +158,7 @@ select {
 }
 
 .header-mobile-link-active {
-    @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+    @apply bg-primary/10 text-primary;
 }
 
 /* Dashboard card styles */

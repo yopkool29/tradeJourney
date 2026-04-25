@@ -9,10 +9,10 @@ import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
 import { useColorMode } from '#imports'
 import { formatHourString } from '~/utils/date-utils'
+import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 
-const lineChartRef = ref()
 const userStore = useUserStore()
 const { locale } = useI18n()
 
@@ -23,9 +23,15 @@ const props = defineProps<{
 }>()
 
 const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
-const appConfig = useAppConfig()
-const chartColors = appConfig.charts.colors
+
+const pnlchartColors = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.pnlchart || defaultSettings.chartColors!.pnlchart
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return {
+		line: colors.line[theme] || colors.line.light,
+		point: colors.point[theme] || colors.point.light,
+	}
+})
 
 // Dimensions du graphique
 const chartWidth = computed(() => props.width || 120)
@@ -70,12 +76,12 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     elements: {
         line: {
             borderWidth: 2,
-            borderColor: isDark.value ? chartColors.pnlchart.line.dark : chartColors.pnlchart.line.light,
+            borderColor: pnlchartColors.value.line,
             tension: 0.4,
         },
         point: {
             radius: 1,
-            borderColor: isDark.value ? chartColors.pnlchart.point.dark : chartColors.pnlchart.point.light,
+            borderColor: pnlchartColors.value.point,
             hoverRadius: 0,
         },
     },

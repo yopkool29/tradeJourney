@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col items-center justify-center min-h-screen px-4 dark:bg-gray-900">
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-3 text-primary-600 dark:text-primary-400">{{ $t('pages.index.title') }}
+            <h1 class="text-4xl font-bold mb-3 text-primary">{{ $t('pages.index.title') }}
             </h1>
             <p class="text-xl text-secondary">{{ $t('pages.index.subtitle') }}</p>
         </div>
@@ -9,7 +9,7 @@
         <UCard class="max-w-md w-full mb-8">
             <div class="p-2">
                 <div class="flex flex-col items-center mb-6">
-                    <UIcon name="i-heroicons-chart-bar" class="size-16 text-primary-500 mb-4" />
+                    <UIcon name="i-heroicons-chart-bar" class="size-16 text-primary mb-4" />
                     <h2 class="text-2xl font-semibold">{{ $t('pages.index.journal_title') }}</h2>
                     <p class="text-secondary mt-2 text-center">{{ $t('pages.index.journal_description') }}</p>
                 </div>

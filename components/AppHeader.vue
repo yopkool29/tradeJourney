@@ -15,10 +15,10 @@
                     </div>
                     <!-- Database Indicator (clickable) -->
                     <button v-if="userStore.user && currentDatabase"
-                        class="flex items-center gap-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 ease-out hover:scale-105 focus-visible:scale-105 cursor-pointer"
+                        class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-all duration-200 ease-out hover:scale-105 focus-visible:scale-105 cursor-pointer"
                         @click="navigateTo('/select-database')">
-                        <UIcon name="i-heroicons-circle-stack" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
-                        <span class="text-sm font-medium text-primary-700 dark:text-primary-300">{{
+                        <UIcon name="i-heroicons-circle-stack" class="w-4 h-4 text-primary" />
+                        <span class="text-sm font-medium text-primary">{{
                             currentDatabase.displayName }}</span>
                     </button>
                     <nav v-if="userStore.user && currentDatabase" class="hidden xl:flex w-full items-center gap-x-2">
@@ -85,12 +85,12 @@
                         <span class="font-medium">{{ $t('language.switch') }}</span>
                     </button>
 
-                    <UButton variant="ghost" class="p-2 rounded-full"
-                        :title="isDark ? $t('components.app_header.theme.light') : $t('components.app_header.theme.dark')"
-                        @click="toggleColorMode">
-                        <UIcon v-if="isDark" name="i-heroicons-sun" class="header-icon dark:text-primary-400" />
-                        <UIcon v-else name="i-heroicons-moon" class="header-icon" />
-                    </UButton>
+                    <UDropdownMenu :items="themeItems">
+                        <UButton variant="ghost" class="p-2 rounded-full flex items-center gap-2">
+                            <UIcon :name="themeIcon" class="header-icon" />
+                            <span class="hidden md:inline text-sm">{{ colorMode.value }}</span>
+                        </UButton>
+                    </UDropdownMenu>
                     <UButton v-if="userStore.user" color="primary" variant="ghost" class="ml-2 hidden md:inline-flex"
                         :title="$t('components.app_header.logout')" @click="onLogout">
                         <UIcon name="i-heroicons-arrow-left-on-rectangle" class="header-icon" />
@@ -245,7 +245,36 @@ watch(() => userStore.user, (newUser) => {
 
 const isDevMode = computed(() => import.meta.env.DEV)
 
-const isDark = computed(() => colorMode.value === 'dark')
+const isDark = useIsDark()
+
+const themeIcon = computed(() => {
+    switch (colorMode.value) {
+        case 'dark': return 'i-heroicons-moon'
+        case 'light-blue': return 'i-heroicons-sparkles'
+        case 'dark-gold': return 'i-heroicons-star'
+        default: return 'i-heroicons-sun'
+    }
+})
+
+const themeItems = computed(() => [
+    [{
+        label: 'Light',
+        icon: 'i-heroicons-sun',
+        onSelect: () => { colorMode.preference = 'light' }
+    }, {
+        label: 'Dark',
+        icon: 'i-heroicons-moon',
+        onSelect: () => { colorMode.preference = 'dark' }
+    }, {
+        label: 'Light Blue',
+        icon: 'i-heroicons-sparkles',
+        onSelect: () => { colorMode.preference = 'light-blue' }
+    }, {
+        label: 'Dark Gold',
+        icon: 'i-heroicons-star',
+        onSelect: () => { colorMode.preference = 'dark-gold' }
+    }]
+])
 
 const onLogout = async () => {
     mobileMenuOpen.value = false
@@ -297,10 +326,6 @@ const menuItems = computed(() => [
         onClick: 'onLogActivity',
     },
 ])
-
-const toggleColorMode = () => {
-    colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
-}
 
 const toggleLanguage = () => {
     const newLocale = locale.value === 'fr' ? 'en' : ('fr' as const)

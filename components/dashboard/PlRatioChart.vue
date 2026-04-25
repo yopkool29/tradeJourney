@@ -31,10 +31,11 @@
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
 import type { Context } from 'chartjs-plugin-datalabels'
-import type { ChartData, ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
-import { useUserStore } from '~/stores/user'
-import { generatePlRatioChartData } from '~/utils/dashboard'
+import type { ChartOptions, ChartData, TooltipItem, ChartTypeRegistry } from 'chart.js'
+import { generatePlRatioChartData, getSmartLabelAlign, getSmartLabelAnchor } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
+import { useUserStore } from '~/stores/user'
+import { useI18n } from '~/composables/useI18n'
 const barChartRef = ref()
 const isModalOpen = ref(false)
 const modalBarChartRef = ref()
@@ -47,9 +48,17 @@ const chartConfigOptions = appConfig.charts.options
 
 const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
-const chartColors = appConfig.charts.colors
-
 const { barColor, movingAverageColor, isDark } = useTypeColors('plRatioChart')
+
+const colorMode = useColorMode()
+const datalabelsSettings = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.datalabels || defaultSettings.chartColors!.datalabels
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return {
+		display: colors.display,
+		color: colors[theme] || colors.light,
+	}
+})
 
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed((): ChartData => {
@@ -118,7 +127,7 @@ const chartDisplayOptions = computed((): ChartOptions => ({
         // Afficher les valeurs au-dessus des barres
         datalabels: {
             display: function () {
-                return chartColors.datalabels.display
+                return datalabelsSettings.value.display
             },
             // Positionnement intelligent en fonction de la valeur et des limites du graphique
             align: function (context: Context) {
@@ -127,7 +136,7 @@ const chartDisplayOptions = computed((): ChartOptions => ({
             anchor: function (context: Context) {
                 return getSmartLabelAnchor(context)
             },
-            color: isDark.value ? chartColors.datalabels.dark : chartColors.datalabels.light,
+            color: datalabelsSettings.value.color,
             font: {
                 weight: 'bold',
             },

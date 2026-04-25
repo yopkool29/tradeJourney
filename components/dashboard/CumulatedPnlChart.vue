@@ -33,6 +33,7 @@ import { Bar } from 'vue-chartjs'
 import type { ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { CommonModalChart } from '#components'
+import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 
@@ -50,6 +51,16 @@ const chartConfigOptions = appConfig.charts.options
 const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
 const { pointColor, isDark, profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
+
+const colorMode = useColorMode()
+const datalabelsSettings = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.datalabels || defaultSettings.chartColors!.datalabels
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return {
+		display: colors.display,
+		color: colors[theme] || colors.light,
+	}
+})
 
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
@@ -135,18 +146,17 @@ const chartDisplayOptions = computed(
                 // Afficher les valeurs au-dessus des barres
                 datalabels: {
                     display: function () {
-                        // N'afficher que pour les barres (type 'bar'), pas pour les lignes
-                        return appConfig.charts.colors.datalabels.display
+                        return datalabelsSettings.value.display
                     },
                     // Positionnement intelligent en fonction de la valeur et des limites du graphique
                     align: function (context) {
+                        // Utiliser la fonction getSmartLabelAlign pour déterminer l'alignement
                         return getSmartLabelAlign(context)
-                    },
-                    anchor: function (context) {
+                        // Utiliser la fonction getSmartLabelAnchor pour déterminer l'ancrage
                         return getSmartLabelAnchor(context)
                     },
 
-                    color: isDark.value ? appConfig.charts.colors.datalabels.dark : appConfig.charts.colors.datalabels.light,
+                    color: datalabelsSettings.value.color,
                     font: {
                         weight: 'bold',
                     },

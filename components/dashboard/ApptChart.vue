@@ -35,6 +35,7 @@ import type { Context } from 'chartjs-plugin-datalabels'
 import { useUserStore } from '~/stores/user'
 import { generateApptChartData } from '~/utils/dashboard'
 import type { TooltipItem, ChartTypeRegistry } from 'chart.js'
+import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 
@@ -52,9 +53,17 @@ const chartConfigOptions = appConfig.charts.options
 
 const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
-const chartColors = appConfig.charts.colors
-
 const { movingAverageColor, isDark, profitColor, lossColor } = useTypeColors('apptChart')
+
+const colorMode = useColorMode()
+const datalabelsSettings = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.datalabels || defaultSettings.chartColors!.datalabels
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return {
+		display: colors.display,
+		color: colors[theme] || colors.light,
+	}
+})
 
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
@@ -132,7 +141,7 @@ const chartDisplayOptions = computed(() => ({
         // Afficher les valeurs au-dessus des barres
         datalabels: {
             display: function () {
-                return chartColors.datalabels.display
+                return datalabelsSettings.value.display
             },
             // Positionnement intelligent en fonction de la valeur et des limites du graphique
             align: function (context: Context) {
@@ -141,7 +150,7 @@ const chartDisplayOptions = computed(() => ({
             anchor: function (context: Context) {
                 return getSmartLabelAnchor(context)
             },
-            color: isDark.value ? chartColors.datalabels.dark : chartColors.datalabels.light,
+            color: datalabelsSettings.value.color,
             font: {
                 weight: 'bold',
             },

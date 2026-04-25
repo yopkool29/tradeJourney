@@ -58,7 +58,7 @@
                     <div v-if="selectedFile" class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <UIcon name="i-lucide-file-text" class="text-primary-500" />
+                                <UIcon name="i-lucide-file-text" class="text-primary" />
                                 <span class="text-sm font-medium">{{ selectedFile.name }}</span>
                                 <span class="text-xs text-gray-500">({{ formatFileSize(selectedFile.size) }})</span>
                             </div>

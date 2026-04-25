@@ -51,6 +51,16 @@ const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
 const { barColor, movingAverageColor, isDark } = useTypeColors('winrateChart')
 
+const colorMode = useColorMode()
+const datalabelsSettings = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.datalabels || defaultSettings.chartColors!.datalabels
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return {
+		display: colors.display,
+		color: colors[theme] || colors.light,
+	}
+})
+
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateWinrateChartData(
@@ -130,8 +140,7 @@ const chartDisplayOptions = computed(
                 // Afficher les valeurs au-dessus des barres
                 datalabels: {
                     display: function () {
-                        // Afficher les datalabels seulement pour les barres
-                        return appConfig.charts.colors.datalabels.display
+                        return datalabelsSettings.value.display
                     },
                     // Positionnement intelligent en fonction de la valeur
                     align: function (context) {
@@ -143,7 +152,7 @@ const chartDisplayOptions = computed(
                     font: {
                 weight: 'bold',
             },
-                    color: isDark.value ? appConfig.charts.colors.datalabels.dark : appConfig.charts.colors.datalabels.light,
+                    color: datalabelsSettings.value.color,
                     formatter: (value: number) => value.toFixed(0) + '%',
                 },
             },

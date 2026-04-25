@@ -4,7 +4,7 @@
             <UCard v-if="!userStore.user" class="bg-gray-100 dark:bg-gray-800">
                 <template #header>
                     <div class="flex flex-col">
-                        <h1 class="text-3xl font-bold mb-2 text-primary-600 dark:text-primary-400">{{ $t('pages.login.title') }}</h1>
+                        <h1 class="text-3xl font-bold mb-2 text-primary">{{ $t('pages.login.title') }}</h1>
                         <p class="text-secondary">{{ $t('pages.login.subtitle') }}</p>
                     </div>
                 </template>

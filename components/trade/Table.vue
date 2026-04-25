@@ -241,9 +241,18 @@ import {
 } from '~/utils'
 import { formatDateWithUserTimezone, parseDateStringToTimestamp } from '~/utils/date-utils'
 import type { Value } from '@prisma/client/runtime/library'
+import { defaultSettings } from '~/schema/user'
 
 const appConfig = useAppConfig()
 const { formatCurrency } = useUtils()
+const colorMode = useColorMode()
+const userStore = useUserStore()
+
+const tableRowHoverColor = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return colors[theme] || colors.light
+})
 
 const UTooltipComp = resolveComponent('UTooltip')
 
@@ -253,7 +262,6 @@ const { t, locale } = useI18n()
 const { trades, fetchTrades, deleteTrade, unDeleteTrade } = useTrades()
 const { fetchSymbols, getDigitFromSymbol } = useSymbols()
 const { accounts, fetchAccounts } = useAccount()
-const userStore = useUserStore()
 const { tradeTypeColors } = useTypeColors()
 
 const pageSize = computed(() => userStore.tradeOptions.nbLines)
@@ -413,7 +421,7 @@ const columns = [
                                 icon: 'i-heroicons-photo',
                                 class: [
                                     'text-gray-500 dark:text-gray-400',
-                                    'hover:text-primary-500 dark:hover:text-primary-400',
+                                    'hover:text-primary',
                                     'transition-colors duration-200',
                                     'p-0',
                                 ],
@@ -993,11 +1001,7 @@ watch(
 
 
 <style scoped>
-:not(.dark) .custom-table-hover :deep(tbody tr:hover) {
-    background-color: v-bind('appConfig.charts.colors.tableRowHover.light');
-}
-
-.dark .custom-table-hover :deep(tbody tr:hover) {
-    background-color: v-bind('appConfig.charts.colors.tableRowHover.dark');
+.custom-table-hover :deep(tbody tr:hover) {
+    background-color: v-bind('tableRowHoverColor');
 }
 </style>

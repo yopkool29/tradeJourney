@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// Reusable theme color type for 4 themes
+const ThemeColor = z.object({
+    light: z.string(),
+    dark: z.string(),
+    'light-blue': z.string(),
+    'dark-gold': z.string(),
+})
+
 export const UserSchema = z.object({
     id: z.number(),
     email: z.string(),
@@ -39,95 +47,76 @@ export const SettingsContentSchema = z.object({
         })
     ).optional(),
     chartColors: z.object({
+        tableRowHover: ThemeColor,
+        pnlchart: z.object({
+            line: ThemeColor,
+            point: ThemeColor,
+        }),
+        datalabels: ThemeColor.extend({
+            display: z.boolean(),
+        }),
         cumulatedPnlChart: z.object({
-            bar: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            point: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            bar: ThemeColor,
+            point: ThemeColor,
         }),
         apptChart: z.object({
-            bar: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            movingAverage: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            bar: ThemeColor,
+            movingAverage: ThemeColor,
         }),
         plRatioChart: z.object({
-            bar: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            movingAverage: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            bar: ThemeColor,
+            movingAverage: ThemeColor,
         }),
         winrateChart: z.object({
-            bar: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            movingAverage: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            bar: ThemeColor,
+            movingAverage: ThemeColor,
         }),
         pnlBarChart: z.object({
-            profit: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            loss: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            breakeven: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            profit: ThemeColor,
+            loss: ThemeColor,
+            breakeven: ThemeColor,
         }),
         tradeTypeBadges: z.object({
-            buy: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
-            sell: z.object({
-                light: z.string(),
-                dark: z.string(),
-            }),
+            buy: ThemeColor,
+            sell: ThemeColor,
         }),
     }).default({
+        tableRowHover: { light: '#e5e5e5', dark: '#374151', 'light-blue': '#e5e5e5', 'dark-gold': '#374151' },
+        pnlchart: {
+            line: { light: '#38bdf8', dark: '#38bdf8', 'light-blue': '#38bdf8', 'dark-gold': '#38bdf8' },
+            point: { light: '#094bff', dark: '#094bff', 'light-blue': '#094bff', 'dark-gold': '#094bff' },
+        },
+        datalabels: {
+            display: false,
+            light: '#333333',
+            dark: '#ffffff',
+            'light-blue': '#333333',
+            'dark-gold': '#ffffff',
+        },
         cumulatedPnlChart: {
-            bar: { light: '#38bdf8', dark: '#38bdf8' },
-            point: { light: '#444', dark: '#e79a0b' },
+            bar: { light: '#38bdf8', dark: '#38bdf8', 'light-blue': '#38bdf8', 'dark-gold': '#38bdf8' },
+            point: { light: '#444', dark: '#e79a0b', 'light-blue': '#444', 'dark-gold': '#e79a0b' },
         },
         apptChart: {
-            bar: { light: '#4ade80', dark: '#4ade80' },
-            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+            bar: { light: '#4ade80', dark: '#4ade80', 'light-blue': '#4ade80', 'dark-gold': '#4ade80' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)', 'light-blue': '#444', 'dark-gold': 'rgb(52, 128, 204)' },
         },
         plRatioChart: {
-            bar: { light: '#f59e0b', dark: '#f59e0b' },
-            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+            bar: { light: '#f59e0b', dark: '#f59e0b', 'light-blue': '#f59e0b', 'dark-gold': '#f59e0b' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)', 'light-blue': '#444', 'dark-gold': 'rgb(52, 128, 204)' },
         },
         winrateChart: {
-            bar: { light: '#ccba18', dark: '#ccba18' },
-            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)' },
+            bar: { light: '#ccba18', dark: '#ccba18', 'light-blue': '#ccba18', 'dark-gold': '#ccba18' },
+            movingAverage: { light: '#444', dark: 'rgb(52, 128, 204)', 'light-blue': '#444', 'dark-gold': 'rgb(52, 128, 204)' },
         },
         pnlBarChart: {
-            profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)' },
-            loss: { light: 'rgba(239, 68, 68, 0.8)', dark: 'rgba(239, 68, 68, 0.8)' },
-            breakeven: { light: 'rgba(156, 163, 175, 0.8)', dark: 'rgba(156, 163, 175, 0.8)' },
+            profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)', 'light-blue': 'rgba(34, 197, 94, 0.8)', 'dark-gold': 'rgba(34, 197, 94, 0.8)' },
+            loss: { light: 'rgba(239, 68, 68, 0.8)', dark: 'rgba(239, 68, 68, 0.8)', 'light-blue': 'rgba(239, 68, 68, 0.8)', 'dark-gold': 'rgba(239, 68, 68, 0.8)' },
+            breakeven: { light: 'rgba(156, 163, 175, 0.8)', dark: 'rgba(156, 163, 175, 0.8)', 'light-blue': 'rgba(156, 163, 175, 0.8)', 'dark-gold': 'rgba(156, 163, 175, 0.8)' },
         },
         tradeTypeBadges: {
-            buy: { light: '#10b981', dark: '#21c65e' },
-            sell: { light: '#f97316', dark: '#e27373' },
+            buy: { light: '#10b981', dark: '#21c65e', 'light-blue': '#10b981', 'dark-gold': '#21c65e' },
+            sell: { light: '#f97316', dark: '#e27373', 'light-blue': '#f97316', 'dark-gold': '#e27373' },
         },
     }),
 })

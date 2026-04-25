@@ -240,46 +240,25 @@
                         <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.pnl_bar_chart') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_profit')">
+                                <UFormField :label="$t('components.settings.options.color_profit') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.profit.light"
+                                        v-model="formState.chartColors!.pnlBarChart.profit[currentTheme]"
                                         :label="$t('components.settings.options.color_profit')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.profit.light"
+                                        :default-color="defaultSettings.chartColors!.pnlBarChart.profit[currentTheme]"
                                     />
                                 </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_profit')">
+                                <UFormField :label="$t('components.settings.options.color_loss') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.profit.dark"
-                                        :label="$t('components.settings.options.color_profit')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.profit.dark"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_loss')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.loss.light"
+                                        v-model="formState.chartColors!.pnlBarChart.loss[currentTheme]"
                                         :label="$t('components.settings.options.color_loss')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.loss.light"
+                                        :default-color="defaultSettings.chartColors!.pnlBarChart.loss[currentTheme]"
                                     />
                                 </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_loss')">
+                                <UFormField :label="$t('components.settings.options.color_breakeven') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.loss.dark"
-                                        :label="$t('components.settings.options.color_loss')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.loss.dark"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_breakeven')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.breakeven.light"
+                                        v-model="formState.chartColors!.pnlBarChart.breakeven[currentTheme]"
                                         :label="$t('components.settings.options.color_breakeven')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.breakeven.light"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_breakeven')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.breakeven.dark"
-                                        :label="$t('components.settings.options.color_breakeven')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.breakeven.dark"
+                                        :default-color="defaultSettings.chartColors!.pnlBarChart.breakeven[currentTheme]"
                                     />
                                 </UFormField>
                             </div>
@@ -289,32 +268,18 @@
                         <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.trade_type_badges') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_buy')">
+                                <UFormField :label="$t('components.settings.options.color_buy') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.buy.light"
+                                        v-model="formState.chartColors!.tradeTypeBadges!.buy[currentTheme]"
                                         :label="$t('components.settings.options.color_buy')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.buy.light"
+                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.buy[currentTheme]"
                                     />
                                 </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_buy')">
+                                <UFormField :label="$t('components.settings.options.color_sell') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.buy.dark"
-                                        :label="$t('components.settings.options.color_buy')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.buy.dark"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_sell')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.sell.light"
+                                        v-model="formState.chartColors!.tradeTypeBadges!.sell[currentTheme]"
                                         :label="$t('components.settings.options.color_sell')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.sell.light"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_sell')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.sell.dark"
-                                        :label="$t('components.settings.options.color_sell')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.sell.dark"
+                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.sell[currentTheme]"
                                     />
                                 </UFormField>
                             </div>
@@ -324,18 +289,11 @@
                         <!-- <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_cumulated_pnl') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_point')">
+                                <UFormField :label="$t('components.settings.options.color_point') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.cumulatedPnlChart.point.light"
+                                        v-model="formState.chartColors!.cumulatedPnlChart.point[currentTheme]"
                                         :label="$t('components.settings.options.color_point')"
-                                        :default-color="defaultSettings.chartColors!.cumulatedPnlChart.point.light"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_point')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.cumulatedPnlChart.point.dark"
-                                        :label="$t('components.settings.options.color_point')"
-                                        :default-color="defaultSettings.chartColors!.cumulatedPnlChart.point.dark"
+                                        :default-color="defaultSettings.chartColors!.cumulatedPnlChart.point[currentTheme]"
                                     />
                                 </UFormField>
                             </div>
@@ -345,18 +303,11 @@
                         <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_appt') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_moving_average')">
+                                <UFormField :label="$t('components.settings.options.color_moving_average') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.apptChart.movingAverage.light"
+                                        v-model="formState.chartColors!.apptChart.movingAverage[currentTheme]"
                                         :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.apptChart.movingAverage.light"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_moving_average')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.apptChart.movingAverage.dark"
-                                        :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.apptChart.movingAverage.dark"
+                                        :default-color="defaultSettings.chartColors!.apptChart.movingAverage[currentTheme]"
                                     />
                                 </UFormField>
                             </div>
@@ -397,32 +348,18 @@
                         <div class="mb-6">
                             <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_winrate') }}</h4>
                             <div class="grid grid-cols-2 gap-4">
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_bar')">
+                                <UFormField :label="$t('components.settings.options.color_bar') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.bar.light"
+                                        v-model="formState.chartColors!.winrateChart.bar[currentTheme]"
                                         :label="$t('components.settings.options.color_bar')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.bar.light"
+                                        :default-color="defaultSettings.chartColors!.winrateChart.bar[currentTheme]"
                                     />
                                 </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_bar')">
+                                <UFormField :label="$t('components.settings.options.color_moving_average') + ' (' + currentTheme + ')'">
                                     <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.bar.dark"
-                                        :label="$t('components.settings.options.color_bar')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.bar.dark"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="!isDark" :label="$t('components.settings.options.color_moving_average')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.movingAverage.light"
+                                        v-model="formState.chartColors!.winrateChart.movingAverage[currentTheme]"
                                         :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.movingAverage.light"
-                                    />
-                                </UFormField>
-                                <UFormField v-if="isDark" :label="$t('components.settings.options.color_moving_average')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.movingAverage.dark"
-                                        :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.movingAverage.dark"
+                                        :default-color="defaultSettings.chartColors!.winrateChart.movingAverage[currentTheme]"
                                     />
                                 </UFormField>
                             </div>
@@ -449,7 +386,13 @@ const { log_error } = useLogView()
 const { t } = useI18n()
 const colorMode = useColorMode()
 
-const isDark = computed(() => colorMode.value === 'dark')
+const isDark = useIsDark()
+
+// Current theme for color pickers
+const currentTheme = computed(() => {
+	const validThemes = ['light', 'dark', 'light-blue', 'dark-gold'] as const
+	return validThemes.includes(colorMode.value as any) ? colorMode.value as typeof validThemes[number] : 'light'
+})
 
 // Visibility toggles for sensitive data
 const showToken = ref(false)
@@ -515,6 +458,18 @@ onMounted(() => {
                 chartColors: {
                     ...defaultSettings.chartColors,
                     ...(savedSettings.chartColors || {}),
+                    tableRowHover: {
+                        ...defaultSettings.chartColors!.tableRowHover,
+                        ...(savedSettings.chartColors?.tableRowHover || {}),
+                    },
+                    pnlchart: {
+                        ...defaultSettings.chartColors!.pnlchart,
+                        ...(savedSettings.chartColors?.pnlchart || {}),
+                    },
+                    datalabels: {
+                        ...defaultSettings.chartColors!.datalabels,
+                        ...(savedSettings.chartColors?.datalabels || {}),
+                    },
                     pnlBarChart: {
                         ...defaultSettings.chartColors!.pnlBarChart,
                         ...(savedSettings.chartColors?.pnlBarChart || {}),
@@ -560,6 +515,12 @@ function resetSettings() {
         timezoneLocal: defaultSettings.timezoneLocal,
         timezoneUtcOffset: defaultSettings.timezoneUtcOffset,
         chartColors: {
+            tableRowHover: { ...defaultSettings.chartColors!.tableRowHover },
+            pnlchart: {
+                line: { ...defaultSettings.chartColors!.pnlchart.line },
+                point: { ...defaultSettings.chartColors!.pnlchart.point },
+            },
+            datalabels: { ...defaultSettings.chartColors!.datalabels },
             cumulatedPnlChart: {
                 bar: { ...defaultSettings.chartColors!.cumulatedPnlChart.bar },
                 point: { ...defaultSettings.chartColors!.cumulatedPnlChart.point },

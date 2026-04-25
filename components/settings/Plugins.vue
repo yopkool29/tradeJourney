@@ -45,7 +45,7 @@
 			<UCard v-for="plugin in plugins" :key="plugin.id" class="p-0">
 				<div class="flex items-center justify-between p-4">
 					<div class="flex items-center gap-3">
-						<UIcon name="i-heroicons-puzzle-piece" class="text-xl text-primary-500" />
+						<UIcon name="i-heroicons-puzzle-piece" class="text-xl text-primary" />
 						<div>
 							<div class="font-medium">{{ plugin.name }}</div>
 							<div class="text-sm text-gray-500 dark:text-gray-400">{{ plugin.description }}</div>

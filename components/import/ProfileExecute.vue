@@ -4,7 +4,7 @@
             <UButton variant="ghost" icon="i-lucide-arrow-left" size="xs" @click="emit('back')" />
             <div class="flex items-center gap-2">
                 <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)"
-                    class="w-5 h-5 text-primary-500" />
+                    class="w-5 h-5 text-primary" />
                 <h2 class="text-lg font-semibold">{{ profile.name }}</h2>
                 <UBadge variant="subtle" size="xs">{{ getProviderLabel(profile.provider) }}</UBadge>
             </div>
@@ -62,7 +62,7 @@
                     <div v-if="storageFiles.length > 0" class="space-y-2">
                         <div v-for="file in storageFiles" :key="file.file_id"
                             class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                            :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': selectedFileId === file.file_id }"
+                            :class="{ 'border-primary bg-primary/10': selectedFileId === file.file_id }"
                             @click="selectedFileId = file.file_id">
                             <div class="flex items-center justify-between">
                                 <div>

@@ -133,7 +133,7 @@
                                 ? $t('components.common.columns.screenshots.multiple', { count: allScreenshots.length })
                                 : $t('components.common.columns.screenshots.single')">
                             <UButton variant="ghost" color="neutral" icon="i-heroicons-photo"
-                                class="text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors duration-200"
+                                class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors duration-200"
                                 @click="openScreenshotsModal(allScreenshots, 0)" />
                         </UTooltip>
                     </div>

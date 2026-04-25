@@ -34,7 +34,7 @@
                                 :key="note.id"
                                 class="px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors flex justify-between items-center select-none ml-2"
                                 :class="{
-                                    'bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-200': selectedNoteId === note.id,
+                                    'bg-primary/10 text-primary': selectedNoteId === note.id,
                                     'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800': selectedNoteId !== note.id,
                                 }"
                                 @click="selectNote(note)"
@@ -80,7 +80,7 @@
                                 v-model="noteSubtitle"
                                 type="text"
                                 :placeholder="$t('components.notes_panel.header.subtitle_placeholder')"
-                                class="flex-1 text-sm bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 transition-colors"
+                                class="flex-1 text-sm bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary focus:outline-none text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 transition-colors"
                                 spellcheck="false"
                             />
                         </div>

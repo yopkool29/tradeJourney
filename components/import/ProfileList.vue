@@ -23,7 +23,7 @@
                 <template #header>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)" class="w-5 h-5 text-primary-500" />
+                            <UIcon :name="getProviderIconWithMetadata(profile.provider, profile.metadata)" class="w-5 h-5 text-primary" />
                             <span class="font-semibold">{{ profile.name }}</span>
                         </div>
                         <UBadge variant="subtle" size="xs">{{ getProviderLabel(profile.provider) }}</UBadge>

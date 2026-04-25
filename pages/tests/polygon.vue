@@ -30,7 +30,7 @@ const FOREX_PAIR = 'C:EURUSD'
 const EntryTime = '2025-10-14T10:00:00Z'
 const ExitTime = '2025-10-15T14:00:00Z'
 
-const isDark = computed(() => colorMode.value === 'dark')
+const isDark = useIsDark()
 
 // Protection de la page - redirection avant le rendu
 definePageMeta({

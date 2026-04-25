@@ -2,7 +2,7 @@
     <div>
         <!-- Loading State -->
         <div v-if="isLoading" class="flex justify-center py-12">
-            <UIcon name="i-heroicons-arrow-path" class="animate-spin text-4xl text-primary-500" />
+            <UIcon name="i-heroicons-arrow-path" class="animate-spin text-4xl text-primary" />
         </div>
 
         <!-- Error Alert -->
@@ -17,13 +17,13 @@
                     v-for="db in databases"
                     :key="db.id"
                     class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    :class="{ 'ring-2 ring-primary-500': selectedDatabaseId === db.id }"
+                    :class="{ 'ring-2 ring-primary': selectedDatabaseId === db.id }"
                     @click="selectedDatabaseId = db.id"
                     @dblclick="handleDoubleClick(db.id)"
                 >
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3 flex-1">
-                            <UIcon name="i-heroicons-circle-stack" class="text-2xl text-primary-500" />
+                            <UIcon name="i-heroicons-circle-stack" class="text-2xl text-primary" />
                             <div class="flex-1">
                                 <h3 class="font-semibold">{{ db.displayName }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ db.name }}</p>
@@ -40,7 +40,7 @@
                             <UBadge v-if="db.isDefault" color="primary" variant="subtle">
                                 {{ $t('pages.select_database.default') }}
                             </UBadge>
-                            <UIcon v-if="selectedDatabaseId === db.id" name="i-heroicons-check-circle" class="text-xl text-primary-500" />
+                            <UIcon v-if="selectedDatabaseId === db.id" name="i-heroicons-check-circle" class="text-xl text-primary" />
                         </div>
                     </div>
                 </UCard>

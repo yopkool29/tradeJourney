@@ -1,12 +1,32 @@
 import { defaultSettings } from '~/schema/user'
 
 type ChartType = 'pnlBarChart' | 'cumulatedPnlChart' | 'apptChart' | 'plRatioChart' | 'winrateChart'
+type ThemeKey = 'light' | 'dark' | 'light-blue' | 'dark-gold'
+
+// Helper to get color for current theme with fallback
+const getThemeColor = (colors: Record<ThemeKey, string>, theme: string): string => {
+    const validThemes: ThemeKey[] = ['light', 'dark', 'light-blue', 'dark-gold']
+    const themeKey = validThemes.includes(theme as ThemeKey) ? (theme as ThemeKey) : 'light'
+
+    // If theme exists, return it
+    if (colors[themeKey]) {
+        return colors[themeKey]
+    }
+
+    // Fallback for missing themes in old user data
+    const fallbacks: Record<ThemeKey, ThemeKey> = {
+        'light': 'light',
+        'dark': 'dark',
+        'light-blue': 'light',
+        'dark-gold': 'dark'
+    }
+    const fallbackKey = fallbacks[themeKey]
+    return colors[fallbackKey] || colors['light'] || '#000000'
+}
 
 export const useTypeColors = (chartType?: ChartType) => {
     const userStore = useUserStore()
     const colorMode = useColorMode()
-
-    const isDark = computed(() => colorMode.value === 'dark')
 
     // Colors for PnL Bar Chart (profit/loss/breakeven)
     const userChartColors = computed(() => {
@@ -18,15 +38,15 @@ export const useTypeColors = (chartType?: ChartType) => {
     })
 
     const profitColor = computed(() =>
-        isDark.value ? userChartColors.value.profit.dark : userChartColors.value.profit.light
+        getThemeColor(userChartColors.value.profit as Record<ThemeKey, string>, colorMode.value)
     )
 
     const lossColor = computed(() =>
-        isDark.value ? userChartColors.value.loss.dark : userChartColors.value.loss.light
+        getThemeColor(userChartColors.value.loss as Record<ThemeKey, string>, colorMode.value)
     )
 
     const breakevenColor = computed(() =>
-        isDark.value ? userChartColors.value.breakeven.dark : userChartColors.value.breakeven.light
+        getThemeColor(userChartColors.value.breakeven as Record<ThemeKey, string>, colorMode.value)
     )
 
     // Specific chart colors (bar, point, movingAverage) based on chart type
@@ -41,15 +61,15 @@ export const useTypeColors = (chartType?: ChartType) => {
     })
 
     const barColor = computed(() =>
-        isDark.value ? specificChartColors.value.bar?.dark : specificChartColors.value.bar?.light
+        specificChartColors.value.bar ? getThemeColor(specificChartColors.value.bar as Record<ThemeKey, string>, colorMode.value) : undefined
     )
 
     const pointColor = computed(() =>
-        isDark.value ? specificChartColors.value.point?.dark : specificChartColors.value.point?.light
+        specificChartColors.value.point ? getThemeColor(specificChartColors.value.point as Record<ThemeKey, string>, colorMode.value) : undefined
     )
 
     const movingAverageColor = computed(() =>
-        isDark.value ? specificChartColors.value.movingAverage?.dark : specificChartColors.value.movingAverage?.light
+        specificChartColors.value.movingAverage ? getThemeColor(specificChartColors.value.movingAverage as Record<ThemeKey, string>, colorMode.value) : undefined
     )
 
     const userBadgeColors = computed(() => {
@@ -61,17 +81,19 @@ export const useTypeColors = (chartType?: ChartType) => {
     })
 
     const buyColor = computed(() =>
-        isDark.value ? userBadgeColors.value.buy.dark : userBadgeColors.value.buy.light
+        getThemeColor(userBadgeColors.value.buy as Record<ThemeKey, string>, colorMode.value)
     )
 
     const sellColor = computed(() =>
-        isDark.value ? userBadgeColors.value.sell.dark : userBadgeColors.value.sell.light
+        getThemeColor(userBadgeColors.value.sell as Record<ThemeKey, string>, colorMode.value)
     )
 
     const tradeTypeColors = computed(() => ({
         buy: buyColor.value,
         sell: sellColor.value,
     }))
+
+    const isDark = useIsDark()
 
     return { 
         tradeTypeColors,

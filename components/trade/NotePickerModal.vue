@@ -25,7 +25,7 @@
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto">
                     <div v-for="note in filteredNotes" :key="note.id"
                         class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors" :class="selectedNote?.id === note.id
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                            ? 'border-primary bg-primary/10'
                             : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'"
                         @click="selectedNote = note">
                         <div class="flex-1 min-w-0">
@@ -43,7 +43,7 @@
                             </div>
                         </div>
                         <UIcon v-if="selectedNote?.id === note.id" name="i-heroicons-check-circle"
-                            class="text-primary-500 shrink-0 mt-0.5" />
+                            class="text-primary shrink-0 mt-0.5" />
                     </div>
                 </div>
 

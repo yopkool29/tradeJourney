@@ -164,6 +164,7 @@ import { DashboardWinratePie, UIcon } from '#components'
 
 import { formatDateLongString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
+import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
@@ -214,6 +215,13 @@ const { cleanupOrphanImages } = useNoteImages()
 const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
+const colorMode = useColorMode()
+
+const tableRowHoverColor = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return colors[theme] || colors.light
+})
 
 // Modal pour afficher les détails d'un trade
 const selectedTradeDetail = ref<TradeExtendedType | null>(null)
@@ -493,11 +501,7 @@ const executeClearDetailedNote = async () => {
 </script>
 
 <style scoped>
-:not(.dark) .custom-table-hover :deep(tbody tr:hover) {
-    background-color: v-bind('appConfig.charts.colors.tableRowHover.light');
-}
-
-.dark .custom-table-hover :deep(tbody tr:hover) {
-    background-color: v-bind('appConfig.charts.colors.tableRowHover.dark');
+.custom-table-hover :deep(tbody tr:hover) {
+    background-color: v-bind('tableRowHoverColor');
 }
 </style>

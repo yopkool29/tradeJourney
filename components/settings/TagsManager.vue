@@ -246,8 +246,7 @@ const emit = defineEmits<{ 'tags-updated': [] }>()
 
 const { t } = useI18n()
 const userStore = useUserStore()
-const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
+const isDark = useIsDark()
 
 const { getTagStyle, fetchGroups, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, reorderGroups, tagGroups } = useTags()
 

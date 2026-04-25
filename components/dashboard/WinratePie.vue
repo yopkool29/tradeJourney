@@ -12,8 +12,7 @@ const props = defineProps<{ value: number }>()
 const pieChartRef = ref()
 Chart.register(ArcElement, Tooltip, Legend)
 const { profitColor, breakevenColor } = useTypeColors()
-const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
+const isDark = useIsDark()
 
 const chartData = computed(() => ({
     labels: ['', ''], // Labels vides pour ne pas afficher de texte
