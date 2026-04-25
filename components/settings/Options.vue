@@ -235,53 +235,49 @@
                     <!-- Section Couleurs des graphiques -->
                     <div class="section-separator">
                         <h3 class="section-subtitle-lg">{{ $t('components.settings.options.chart_colors_section') }}</h3>
+                        <div class="grid grid-cols-4 gap-4 max-w-[400px] mb-2">
+                            <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'light' }">Light</div>
+                            <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'light-blue' }">Light Blue</div>
+                            <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'dark' }">Dark</div>
+                            <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'dark-gold' }">Dark Gold</div>
+                        </div>
                         
                         <!-- P&L Bar Chart -->
                         <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.pnl_bar_chart') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_profit') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.profit[currentTheme]"
-                                        :label="$t('components.settings.options.color_profit')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.profit[currentTheme]"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_loss') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.loss[currentTheme]"
-                                        :label="$t('components.settings.options.color_loss')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.loss[currentTheme]"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_breakeven') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.pnlBarChart.breakeven[currentTheme]"
-                                        :label="$t('components.settings.options.color_breakeven')"
-                                        :default-color="defaultSettings.chartColors!.pnlBarChart.breakeven[currentTheme]"
-                                    />
-                                </UFormField>
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.pnl_bar_chart') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.pnlBarChart.profit"
+                                    :label="$t('components.settings.options.color_profit')"
+                                    :default-colors="defaultSettings.chartColors!.pnlBarChart.profit"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.pnlBarChart.loss"
+                                    :label="$t('components.settings.options.color_loss')"
+                                    :default-colors="defaultSettings.chartColors!.pnlBarChart.loss"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.pnlBarChart.breakeven"
+                                    :label="$t('components.settings.options.color_breakeven')"
+                                    :default-colors="defaultSettings.chartColors!.pnlBarChart.breakeven"
+                                />
                             </div>
                         </div>
 
                         <!-- Trade Type Badges -->
                         <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.trade_type_badges') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_buy') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.buy[currentTheme]"
-                                        :label="$t('components.settings.options.color_buy')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.buy[currentTheme]"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_sell') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.tradeTypeBadges!.sell[currentTheme]"
-                                        :label="$t('components.settings.options.color_sell')"
-                                        :default-color="defaultSettings.chartColors!.tradeTypeBadges!.sell[currentTheme]"
-                                    />
-                                </UFormField>
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.trade_type_badges') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.tradeTypeBadges!.buy"
+                                    :label="$t('components.settings.options.color_buy')"
+                                    :default-colors="defaultSettings.chartColors!.tradeTypeBadges!.buy"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.tradeTypeBadges!.sell"
+                                    :label="$t('components.settings.options.color_sell')"
+                                    :default-colors="defaultSettings.chartColors!.tradeTypeBadges!.sell"
+                                />
                             </div>
                         </div>
 
@@ -301,15 +297,13 @@
 
                         <!-- APPT Chart -->
                         <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_appt') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_moving_average') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.apptChart.movingAverage[currentTheme]"
-                                        :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.apptChart.movingAverage[currentTheme]"
-                                    />
-                                </UFormField>
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_appt') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.apptChart.movingAverage"
+                                    :label="$t('components.settings.options.color_moving_average')"
+                                    :default-colors="defaultSettings.chartColors!.apptChart.movingAverage"
+                                />
                             </div>
                         </div>
 
@@ -346,27 +340,24 @@
 
                         <!-- Win Rate Chart -->
                         <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_winrate') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_bar') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.bar[currentTheme]"
-                                        :label="$t('components.settings.options.color_bar')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.bar[currentTheme]"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_moving_average') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.winrateChart.movingAverage[currentTheme]"
-                                        :label="$t('components.settings.options.color_moving_average')"
-                                        :default-color="defaultSettings.chartColors!.winrateChart.movingAverage[currentTheme]"
-                                    />
-                                </UFormField>
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_winrate') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.winrateChart.bar"
+                                    :label="$t('components.settings.options.color_bar')"
+                                    :default-colors="defaultSettings.chartColors!.winrateChart.bar"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.winrateChart.movingAverage"
+                                    :label="$t('components.settings.options.color_moving_average')"
+                                    :default-colors="defaultSettings.chartColors!.winrateChart.movingAverage"
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="action-buttons mt-8">
+                <div class="flex action-buttons mt-8">
+                    <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="primary" variant="link" @click="goBack" />
                     <UButton type="button" color="neutral" @click="resetSettings">{{ $t('components.settings.options.reset_button') }}</UButton>
                 </div>
             </UForm>
@@ -384,6 +375,7 @@ const { updateSettings } = useAuth()
 const userStore = useUserStore()
 const { log_error } = useLogView()
 const { t } = useI18n()
+const { goBack } = useQuickNav()
 const colorMode = useColorMode()
 
 const isDark = useIsDark()
@@ -457,26 +449,90 @@ onMounted(() => {
                 ...savedSettings,
                 chartColors: {
                     ...defaultSettings.chartColors,
-                    ...(savedSettings.chartColors || {}),
                     tableRowHover: {
                         ...defaultSettings.chartColors!.tableRowHover,
                         ...(savedSettings.chartColors?.tableRowHover || {}),
                     },
                     pnlchart: {
-                        ...defaultSettings.chartColors!.pnlchart,
-                        ...(savedSettings.chartColors?.pnlchart || {}),
+                        line: {
+                            ...defaultSettings.chartColors!.pnlchart.line,
+                            ...(savedSettings.chartColors?.pnlchart?.line || {}),
+                        },
+                        point: {
+                            ...defaultSettings.chartColors!.pnlchart.point,
+                            ...(savedSettings.chartColors?.pnlchart?.point || {}),
+                        },
                     },
                     datalabels: {
-                        ...defaultSettings.chartColors!.datalabels,
-                        ...(savedSettings.chartColors?.datalabels || {}),
+                        display: savedSettings.chartColors?.datalabels?.display ?? defaultSettings.chartColors!.datalabels.display,
+                        light: savedSettings.chartColors?.datalabels?.light || defaultSettings.chartColors!.datalabels.light,
+                        dark: savedSettings.chartColors?.datalabels?.dark || defaultSettings.chartColors!.datalabels.dark,
+                        'light-blue': savedSettings.chartColors?.datalabels?.['light-blue'] || defaultSettings.chartColors!.datalabels['light-blue'],
+                        'dark-gold': savedSettings.chartColors?.datalabels?.['dark-gold'] || defaultSettings.chartColors!.datalabels['dark-gold'],
+                    },
+                    cumulatedPnlChart: {
+                        bar: {
+                            ...defaultSettings.chartColors!.cumulatedPnlChart.bar,
+                            ...(savedSettings.chartColors?.cumulatedPnlChart?.bar || {}),
+                        },
+                        point: {
+                            ...defaultSettings.chartColors!.cumulatedPnlChart.point,
+                            ...(savedSettings.chartColors?.cumulatedPnlChart?.point || {}),
+                        },
+                    },
+                    apptChart: {
+                        bar: {
+                            ...defaultSettings.chartColors!.apptChart.bar,
+                            ...(savedSettings.chartColors?.apptChart?.bar || {}),
+                        },
+                        movingAverage: {
+                            ...defaultSettings.chartColors!.apptChart.movingAverage,
+                            ...(savedSettings.chartColors?.apptChart?.movingAverage || {}),
+                        },
+                    },
+                    plRatioChart: {
+                        bar: {
+                            ...defaultSettings.chartColors!.plRatioChart.bar,
+                            ...(savedSettings.chartColors?.plRatioChart?.bar || {}),
+                        },
+                        movingAverage: {
+                            ...defaultSettings.chartColors!.plRatioChart.movingAverage,
+                            ...(savedSettings.chartColors?.plRatioChart?.movingAverage || {}),
+                        },
+                    },
+                    winrateChart: {
+                        bar: {
+                            ...defaultSettings.chartColors!.winrateChart.bar,
+                            ...(savedSettings.chartColors?.winrateChart?.bar || {}),
+                        },
+                        movingAverage: {
+                            ...defaultSettings.chartColors!.winrateChart.movingAverage,
+                            ...(savedSettings.chartColors?.winrateChart?.movingAverage || {}),
+                        },
                     },
                     pnlBarChart: {
-                        ...defaultSettings.chartColors!.pnlBarChart,
-                        ...(savedSettings.chartColors?.pnlBarChart || {}),
+                        profit: {
+                            ...defaultSettings.chartColors!.pnlBarChart.profit,
+                            ...(savedSettings.chartColors?.pnlBarChart?.profit || {}),
+                        },
+                        loss: {
+                            ...defaultSettings.chartColors!.pnlBarChart.loss,
+                            ...(savedSettings.chartColors?.pnlBarChart?.loss || {}),
+                        },
+                        breakeven: {
+                            ...defaultSettings.chartColors!.pnlBarChart.breakeven,
+                            ...(savedSettings.chartColors?.pnlBarChart?.breakeven || {}),
+                        },
                     },
                     tradeTypeBadges: {
-                        ...defaultSettings.chartColors!.tradeTypeBadges,
-                        ...(savedSettings.chartColors?.tradeTypeBadges || {}),
+                        buy: {
+                            ...defaultSettings.chartColors!.tradeTypeBadges.buy,
+                            ...(savedSettings.chartColors?.tradeTypeBadges?.buy || {}),
+                        },
+                        sell: {
+                            ...defaultSettings.chartColors!.tradeTypeBadges.sell,
+                            ...(savedSettings.chartColors?.tradeTypeBadges?.sell || {}),
+                        },
                     },
                 }
             } as SettingsContentType

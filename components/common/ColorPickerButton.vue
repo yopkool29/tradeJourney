@@ -8,12 +8,15 @@
                 type="button"
                 :style="{
                     backgroundColor: modelValue,
-                    width: '2.5em',
-                    height: '2.5em',
+                    width: '3em',
+                    height: '3em',
                     borderRadius: '50%',
-                    border: '2px solid #ccc',
+                    border: '2px solid #e5e7eb',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                     cursor: 'pointer',
+                    transition: 'all 0.2s ease',
                 }"
+                class="hover:scale-105 hover:shadow-md"
                 @click="openPicker"
             />
         </template>

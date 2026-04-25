@@ -6,12 +6,12 @@
 
 <script setup lang="ts">
 import { Line } from 'vue-chartjs'
-import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
-import { useColorMode } from '#imports'
+import type { Chart, ChartData, ChartOptions, TooltipItem } from 'chart.js'
 import { formatHourString } from '~/utils/date-utils'
 import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
+const { t } = useI18n()
 
 const userStore = useUserStore()
 const { locale } = useI18n()
@@ -27,13 +27,16 @@ const colorMode = useColorMode()
 const pnlchartColors = computed(() => {
 	const colors = userStore.user?.settings_object?.chartColors?.pnlchart || defaultSettings.chartColors!.pnlchart
 	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
-	return {
+    console.log('theme', theme)
+    return {
 		line: colors.line[theme] || colors.line.light,
 		point: colors.point[theme] || colors.point.light,
 	}
 })
 
 // Dimensions du graphique
+const lineChartRef = ref<{ chart: Chart<'line'> } | null>(null)
+
 const chartWidth = computed(() => props.width || 120)
 const chartHeight = computed(() => props.height || 60)
 
@@ -44,7 +47,7 @@ const chartData = computed<ChartData<'line'>>(() => {
             labels: [],
             datasets: [
                 {
-                    label: useNuxtApp().$i18n.t('components.dashboard.intraday_pnl_chart.label'),
+                    label: t('components.dashboard.intraday_pnl_chart.label'),
                     data: [],
                     fill: false,
                 },
@@ -56,7 +59,7 @@ const chartData = computed<ChartData<'line'>>(() => {
         labels: props.chartData.map((point) => point.count),
         datasets: [
             {
-                label: useNuxtApp().$i18n.t('components.dashboard.intraday_pnl_chart.label'),
+                label: t('components.dashboard.intraday_pnl_chart.label'),
                 data: props.chartData.map((point) => point.pnl),
                 fill: false,
             },

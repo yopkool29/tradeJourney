@@ -4,7 +4,7 @@
 			<SettingsTagsManager />
 		</template>
 		<template #footer>
-			<div class="flex justify-end">
+			<div class="action-buttons">
 				<UButton variant="soft" @click="emit('close')">{{ $t('common.actions.close') }}</UButton>
 			</div>
 		</template>

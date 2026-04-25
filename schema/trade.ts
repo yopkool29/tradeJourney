@@ -17,30 +17,42 @@ export const TradeSchema = z.object({
     }),
     lot: z.preprocess(
         val => typeof val === 'string' && val.trim() !== '' ? Number(val) : val,
-        z.number({
-            invalid_type_error: "zodI18n.validation.trade.lot_invalid",
-            required_error: "zodI18n.validation.trade.lot_required"
-        }).refine(val => val > 0, {
-            params: { i18n: 'zodI18n.validation.trade.lot_positive' }
-        })
+        z.number()
+            .refine(val => typeof val === 'number' && !isNaN(val), {
+                params: { i18n: 'zodI18n.validation.trade.lot_invalid' }
+            })
+            .refine(val => val !== undefined && val !== null, {
+                params: { i18n: 'zodI18n.validation.trade.lot_required' }
+            })
+            .refine(val => val > 0, {
+                params: { i18n: 'zodI18n.validation.trade.lot_positive' }
+            })
     ),
     openPrice: z.preprocess(
         val => typeof val === 'string' && val.trim() !== '' ? Number(val) : val,
-        z.number({
-            invalid_type_error: "zodI18n.validation.trade.open_price_invalid",
-            required_error: "zodI18n.validation.trade.open_price_required"
-        }).refine(val => val > 0, {
-            params: { i18n: 'zodI18n.validation.trade.open_price_positive' }
-        })
+        z.number()
+            .refine(val => typeof val === 'number' && !isNaN(val), {
+                params: { i18n: 'zodI18n.validation.trade.open_price_invalid' }
+            })
+            .refine(val => val !== undefined && val !== null, {
+                params: { i18n: 'zodI18n.validation.trade.open_price_required' }
+            })
+            .refine(val => val > 0, {
+                params: { i18n: 'zodI18n.validation.trade.open_price_positive' }
+            })
     ),
     closePrice: z.preprocess(
         val => typeof val === 'string' && val.trim() !== '' ? Number(val) : val,
-        z.number({
-            invalid_type_error: "zodI18n.validation.trade.close_price_invalid",
-            required_error: "zodI18n.validation.trade.close_price_required"
-        }).refine(val => val > 0, {
-            params: { i18n: 'zodI18n.validation.trade.close_price_positive' }
-        })
+        z.number()
+            .refine(val => typeof val === 'number' && !isNaN(val), {
+                params: { i18n: 'zodI18n.validation.trade.close_price_invalid' }
+            })
+            .refine(val => val !== undefined && val !== null, {
+                params: { i18n: 'zodI18n.validation.trade.close_price_required' }
+            })
+            .refine(val => val > 0, {
+                params: { i18n: 'zodI18n.validation.trade.close_price_positive' }
+            })
     ),
     profit: z.preprocess(
         val => {
@@ -54,10 +66,13 @@ export const TradeSchema = z.object({
             }
             return val;
         },
-        z.number({
-            invalid_type_error: "zodI18n.validation.trade.profit_invalid",
-            required_error: "zodI18n.validation.trade.profit_required"
-        })
+        z.number()
+            .refine(val => typeof val === 'number' && !isNaN(val), {
+                params: { i18n: 'zodI18n.validation.trade.profit_invalid' }
+            })
+            .refine(val => val !== undefined && val !== null, {
+                params: { i18n: 'zodI18n.validation.trade.profit_required' }
+            })
             .refine(val => {
                 // Vérifie si le nombre a plus de 2 décimales après conversion
                 const decimalPart = String(val).split('.')[1];
@@ -101,8 +116,11 @@ export const TradeSchema = z.object({
 
     note: z.string().nullable().optional(),
 
-    accountId: z.number({ required_error: "zodI18n.validation.trade.account_id_required" })
+    accountId: z.number()
         .int()
+        .refine(val => val !== undefined && val !== null, {
+            params: { i18n: 'zodI18n.validation.trade.account_id_required' }
+        })
         .refine(val => val > 0, {
             params: { i18n: 'zodI18n.validation.trade.account_id_positive' }
         }),

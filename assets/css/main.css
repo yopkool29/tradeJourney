@@ -235,6 +235,10 @@ select {
 
 /* Action button groups */
 
+.action-buttons {
+    @apply flex gap-4;
+}
+
 .action-buttons-end {
     @apply flex justify-end gap-4;
 }
