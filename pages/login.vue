@@ -33,7 +33,10 @@
                     </UFormField>
                 </UForm>
 
-                <UButton type="submit" form="loginForm" size="lg" color="primary" :loading="isLoading" block class="mt-6">{{ $t('pages.login.submit_button') }}</UButton>
+                <UButton type="submit" form="loginForm" size="lg" :loading="isLoading" block
+                    class="mt-6 bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-400 hover:to-primary-600 text-white border-0">
+                    {{ $t('pages.login.submit_button') }}
+                </UButton>
 
                 <div class="mt-6">
                     <CommonAlertBox :success-str="successStr" :error-str="errorStr" />

@@ -35,16 +35,44 @@
 
 .light-blue {
     --ui-primary: #379cce;
+    /* Full blue palette for shade support */
+    --ui-color-primary-50: #eff6ff;
+    --ui-color-primary-100: #dbeafe;
+    --ui-color-primary-200: #bfdbfe;
+    --ui-color-primary-300: #93c5fd;
+    --ui-color-primary-400: #60a5fa;
+    --ui-color-primary-500: #3b82f6;
+    --ui-color-primary-600: #379cce;
+    --ui-color-primary-700: #1d4ed8;
+    --ui-color-primary-800: #1e40af;
+    --ui-color-primary-900: #1e3a8a;
+    --ui-color-primary-950: #172554;
 }
 
 /* When system is in dark mode but user chose light-blue */
 html.dark.light-blue {
-    --ui-primary: #379cce;
+    --ui-primary: #60a5fa;
+    /* Lighter shades for dark mode */
+    --ui-color-primary-400: #93c5fd;
+    --ui-color-primary-500: #60a5fa;
+    --ui-color-primary-600: #3b82f6;
 }
 
 /* dark-gold theme - both classes present */
 html.dark.dark-gold {
-    --ui-primary: #d7a72d;
+    --ui-primary: #c8a650;
+    /* Full gold/amber palette */
+    --ui-color-primary-50: #fffbeb;
+    --ui-color-primary-100: #fef3c7;
+    --ui-color-primary-200: #fde68a;
+    --ui-color-primary-300: #fcd34d;
+    --ui-color-primary-400: #fbbf24;
+    --ui-color-primary-500: #f59e0b;
+    --ui-color-primary-600: #c8a650;
+    --ui-color-primary-700: #b45309;
+    --ui-color-primary-800: #92400e;
+    --ui-color-primary-900: #78350f;
+    --ui-color-primary-950: #451a03;
 }
 
 body {
@@ -146,7 +174,7 @@ select {
 }
 
 .header-desktop-link {
-    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary;
+    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-300;
 }
 
 .header-desktop-link-active {
