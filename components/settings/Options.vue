@@ -56,6 +56,15 @@
                                     :description="$t('components.settings.options.show_quick_nav_desc')"
                                 />
                             </UFormField>
+
+                            <UFormField name="reverseDaysOrder" class="w-full">
+                                <UCheckbox
+                                    v-model="formState.reverseDaysOrder"
+                                    :label="$t('components.settings.options.reverse_days_order')"
+                                    :description="$t('components.settings.options.reverse_days_order_desc')"
+                                />
+                            </UFormField>
+
                         </div>
                     </div>
 
