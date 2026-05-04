@@ -33,7 +33,7 @@
             </div>
             
             <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.all_trades.profitable_trades') }}:</span>
+                <span class="text-secondary">{{ $t('components.dashboard.all_trades.winrate') }}:</span>
                 <span class="font-semibold">{{ result.winrate?.toFixed(2) }}%</span>
             </div>
             

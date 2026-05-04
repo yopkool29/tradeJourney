@@ -588,7 +588,7 @@ export default {
                 pl_ratio: 'Ratio P/L',
                 pl_ratio_tooltip: 'Ratio Profit/Perte. Formule : (Profit Moyen des Gagnants) / (Perte Moyenne des Perdants). Les valeurs supérieures à 1,5 suggèrent une bonne gestion du risque. Mesure combien vous gagnez vs combien vous perdez en moyenne.',
                 
-                win_rate: 'Taux de Gain',
+                win_rate: 'Taux de Gain (wr)',
                 win_rate_tooltip: 'Pourcentage de trades rentables. Formule : (Trades Gagnants / Total des Trades) × 100%. Doit être évalué avec le ratio P/L car un taux de gain élevé avec un mauvais ratio P/L peut quand même entraîner des pertes.',
                 
                 profit_factor: 'Facteur de Profit',
@@ -611,7 +611,7 @@ export default {
                 contracts: 'Nombre de Contrats',
                 avg_trade_time: 'Durée Moyenne',
                 longest_trade_time: 'Durée Maximale',
-                profitable_trades: '% Trades Profitables',
+                winrate: 'Taux de Gain (wr)',
                 expectancy: 'Espérance',
                 commission: 'Commission Totale',
                 total_pnl: 'PnL Total',

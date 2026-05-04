@@ -600,7 +600,7 @@ export default {
                 contracts: 'Number of Contracts',
                 avg_trade_time: 'Average Duration',
                 longest_trade_time: 'Longest Duration',
-                profitable_trades: '% Profitable Trades',
+                winrate: 'Win Rate (wr)',
                 expectancy: 'Expectancy',
                 commission: 'Total Commission',
                 total_pnl: 'Total P&L',
