@@ -380,7 +380,7 @@ export default defineEventHandler(async (event) => {
                             countDiscard += result.countDiscard
 
                             // Mettre à jour les symboles et les profits pour ce compte
-                            await updateSymbols(event, accountTrades.trades, 10, 0);
+                            await updateSymbols(event, accountTrades.trades, 10, 2);
                             // await updateFuturesTradesProfit(accountTrades.trades);
                         } catch (error) {
                             console.error(`Erreur lors du traitement du compte ${accountTrades.accountInfo.name}:`, error)
