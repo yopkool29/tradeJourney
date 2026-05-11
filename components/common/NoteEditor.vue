@@ -297,3 +297,12 @@ const setContent = async (newVal: string) => {
 
 defineExpose({ getContent, setContent })
 </script>
+
+<style scoped>
+:deep(.milkdown-image-block img) {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: none !important;
+}
+</style>

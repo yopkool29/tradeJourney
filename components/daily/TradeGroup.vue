@@ -3,8 +3,23 @@
         <template #header>
             <div class="flex justify-between items-start">
                 <div>
-                    <div class="section-title-semibold">
-                        {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
+                    <div class="flex items-center gap-8">
+                        <div class="section-title-semibold">
+                            {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
+                        </div>
+                        <UTooltip
+                            :text="dayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
+                            <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
+                                @click="openDayTagModal">{{
+                                    dayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
+                                }}</UButton>
+                        </UTooltip>
+                        <UTooltip v-if="dayTag" :text="$t('common.actions.delete')">
+                            <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
+                                @click="confirmClearDayTradeTags">{{
+                                    $t('common.actions.delete')
+                                }}</UButton>
+                        </UTooltip>
                     </div>
                     <div class="tag-container-lg items-center mb-2 text-sm">
                         <div class="stat-item">
@@ -44,22 +59,6 @@
                             <DashboardIntradayPnlChart :chart-data="intradayChartData" :width="192" :height="64" />
                         </div>
                     </div>
-                </div>
-
-                <div class="form-row-lg">
-                    <UTooltip
-                        :text="dayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
-                        <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
-                            @click="openDayTagModal">{{
-                                dayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
-                            }}</UButton>
-                    </UTooltip>
-                    <UTooltip v-if="dayTag" :text="$t('common.actions.delete')">
-                        <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
-                            @click="confirmClearDayTradeTags">{{
-                                $t('common.actions.delete')
-                            }}</UButton>
-                    </UTooltip>
                 </div>
             </div>
 
