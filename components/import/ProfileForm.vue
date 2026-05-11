@@ -96,6 +96,7 @@
                     v-model="formState.dayTagIds"
                     :tag-groups="tagGroups"
                     field-name="dayTagIds"
+                    :show-manage-button="false"
                 />
             </div>
 
@@ -106,6 +107,7 @@
                     v-model="formState.tradeTagIds"
                     :tag-groups="tagGroups"
                     field-name="tradeTagIds"
+                    :show-manage-button="false"
                 />
             </div>
         </UForm>

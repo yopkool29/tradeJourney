@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div v-else class="text-gray-500 text-sm">Aucun groupe / tag disponible (Allez dans paramètres pour configurer)</div>
-            <div class="mt-2">
+            <div v-if="props.showManageButton" class="mt-2">
                 <UButton icon="i-lucide-settings" size="xs" color="neutral" variant="ghost" @click="openTagsManager">{{ $t('components.common.tagSelector.manage_tags') }}</UButton>
             </div>
         </UFormField>
@@ -59,25 +59,26 @@ const props = withDefaults(
     defineProps<{
         tagGroups: TagGroupType[]
         fieldName?: string
+        showManageButton?: boolean
     }>(),
     {
         fieldName: 'tagIds',
+        showManageButton: true,
     }
 )
-
-const openTagsManager = async () => {
-    console.log('Opening tags manager')
-    const modalComponent = resolveComponent('LazyCommonTagsManagerModal')
-    const modal = overlay.create(modalComponent as Component)
-    await modal.open()
-    await onTagsUpdated()
-}
 
 const localTagGroups = ref<TagGroupType[]>(props.tagGroups)
 
 watch(() => props.tagGroups, (val) => {
     localTagGroups.value = val
 })
+
+const openTagsManager = async () => {
+    const modalComponent = resolveComponent('LazyCommonTagsManagerModal')
+    const modal = overlay.create(modalComponent as Component)
+    await modal.open()
+    await onTagsUpdated()
+}
 
 const onTagsUpdated = async () => {
     await fetchGroups()
