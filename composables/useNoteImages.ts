@@ -28,7 +28,7 @@ export const useNoteImages = () => {
 		const newImages = new Set(extractNtImages(newContent))
 		const orphans = oldImages.filter(name => !newImages.has(name))
 		for (const filename of orphans) {
-			console.log('Deleting orphan image:', filename)
+			// console.log('Deleting orphan image:', filename)
 			try {
 				await $fetch(`/api/notes/images/${encodeURIComponent(filename)}`, { method: 'DELETE' })
 			} catch {
