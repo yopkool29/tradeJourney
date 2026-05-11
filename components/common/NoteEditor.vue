@@ -76,17 +76,21 @@
     <UModal
         v-model:open="fullscreenOpen"
         :close="false"
-        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen h-screen flex items-center justify-center rounded-none' }"
+        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen h-screen overflow-auto rounded-none !items-start !justify-start' }"
         @keydown.esc.stop="fullscreenOpen = false"
     >
         <template #content>
-            <div class="note-image-fullscreen relative flex items-center justify-center w-full h-full" @click="fullscreenOpen = false">
-                <button class="absolute top-4 right-4 text-white opacity-70 hover:opacity-100 cursor-pointer z-10 outline-none" @click.stop="fullscreenOpen = false">
+            <div class="relative w-full h-full">
+                <button class="absolute top-6 right-12 text-white opacity-70 hover:opacity-100 cursor-pointer z-10 outline-none" @click.stop="fullscreenOpen = false">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <img :src="fullscreenImageUrl ?? ''" class="max-w-full max-h-full rounded-lg object-contain cursor-pointer" @click.stop="fullscreenOpen = false" />
+                <div class="w-full h-full overflow-auto" @click="fullscreenOpen = false">
+                    <div class="min-h-screen min-w-full p-8 pt-20 flex items-center justify-center">
+                        <img :src="fullscreenImageUrl ?? ''" class="rounded-lg cursor-pointer max-w-none" @click.stop="fullscreenOpen = false" />
+                    </div>
+                </div>
             </div>
         </template>
     </UModal>
