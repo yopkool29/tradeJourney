@@ -235,7 +235,7 @@ const { fetchNoteDates, saveNote: saveNoteToApi, updateNote, deleteNote } = useN
 const { log_error } = useLogView()
 const { success: toastSuccess } = useAppToast()
 const userStore = useUserStore()
-const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages } = useNoteImages()
+const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, deleteNoteImages } = useNoteImages()
 
 const loading = ref(false)
 const noteDates = ref<NoteType[]>([])
@@ -462,6 +462,8 @@ const saveNote = async () => {
             }
         } else if (selectedNote.value.id) {
             // If note is empty and has no metadata, delete it
+            // First cleanup orphan images (all images since content is empty)
+            await cleanupOrphanImages(savedContent.value, '')
             const success = await deleteNote(selectedNote.value.id)
             if (success) {
                 selectedNote.value = null
@@ -528,6 +530,12 @@ const deleteNoteConfirmed = async () => {
 
     try {
         loading.value = true
+
+        // Delete associated images first
+        if (noteToDelete.value.content) {
+            await deleteNoteImages(noteToDelete.value.content)
+        }
+
         const success = await deleteNote(noteToDelete.value.id)
 
         if (success) {

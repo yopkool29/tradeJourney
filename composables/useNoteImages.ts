@@ -113,5 +113,18 @@ export const useNoteImages = () => {
 		return newContent
 	}
 
-	return { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, duplicateImages }
+	// Delete images from the server that are no longer referenced in the content
+	const deleteNoteImages = async (content: string): Promise<void> => {
+		if (!uploadContext.value) return
+		const images = extractNtImages(content)
+		for (const filename of images) {
+			try {
+				await $fetch(`/api/notes/images/${encodeURIComponent(filename)}`, { method: 'DELETE' })
+			} catch {
+				// ignore — file may already be deleted
+			}
+		}
+	}
+
+	return { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, duplicateImages, deleteNoteImages }
 }
