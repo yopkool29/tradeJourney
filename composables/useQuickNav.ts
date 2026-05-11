@@ -1,10 +1,13 @@
+import { useMediaQuery } from '@vueuse/core'
+
 export interface QuickNavItem {
     path: string
     label: string
     icon: string
 }
 
-const MAX_SHORTCUTS = 5
+const MAX_SHORTCUTS_DEFAULT = 5
+const MAX_SHORTCUTS_XL = 6
 
 // Trackable pages (top-level only, no individual tabs)
 const NAV_PAGES: Record<string, { labelKey: string; icon: string }> = {
@@ -12,6 +15,7 @@ const NAV_PAGES: Record<string, { labelKey: string; icon: string }> = {
     '/calendar': { labelKey: 'pages.trades.tabs.calendar', icon: 'i-lucide-calendar' },
     '/daily': { labelKey: 'pages.trades.tabs.daily', icon: 'i-lucide-calendar-days' },
     '/main': { labelKey: 'pages.trades.tabs.trades', icon: 'i-lucide-receipt-text' },
+    '/import': { labelKey: 'components.import.index.title', icon: 'i-lucide-upload' },
     '/settings': { labelKey: 'components.app_header.menu_items.settings', icon: 'i-heroicons-cog-6-tooth' },
 }
 
@@ -20,6 +24,10 @@ export const useQuickNav = () => {
     const router = useRouter()
     const route = useRoute()
     const userStore = useUserStore()
+
+    // Dynamic max shortcuts based on screen width (xl = 1280px)
+    const isXl = useMediaQuery('(min-width: 1280px)')
+    const maxShortcuts = computed(() => isXl.value ? MAX_SHORTCUTS_XL : MAX_SHORTCUTS_DEFAULT)
 
     // Record a visit to the current page
     const recordVisit = () => {
@@ -40,7 +48,7 @@ export const useQuickNav = () => {
         return [...userStore.quickNavHistory]
             .filter(e => NAV_PAGES[e.path])
             .sort((a, b) => b.lastVisit - a.lastVisit)
-            .slice(0, MAX_SHORTCUTS)
+            .slice(0, maxShortcuts.value)
             .map(e => ({
                 path: e.path,
                 label: t(NAV_PAGES[e.path].labelKey),
