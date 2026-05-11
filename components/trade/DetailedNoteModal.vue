@@ -52,7 +52,7 @@ type Props = { tradeId?: number }
 const props = defineProps<Props>()
 
 const { deleteNote } = useNotes()
-const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages } = useNoteImages()
+const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, duplicateImages } = useNoteImages()
 const { trapRef, initFocusTrap, clearFocusTrap } = useFocusTrap()
 const editorContainer = ref<HTMLElement | null>(null)
 watch(editorContainer, (el) => {
@@ -79,7 +79,15 @@ watch(open, async (val) => {
 })
 
 const onNoteAssociated = async (note: NoteType, mode: 'copy' | 'move') => {
-    localNote.value = note.content || ''
+    let content = note.content || ''
+
+    // When copying, duplicate the images so they are independent
+    if (mode === 'copy') {
+        content = await duplicateImages(content)
+    }
+
+    localNote.value = content
+
     if (mode === 'move' && note.id) {
         // Store the pending move instead of executing it immediately
         pendingNoteMove.value = { noteId: note.id }
