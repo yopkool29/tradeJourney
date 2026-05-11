@@ -3,9 +3,13 @@ import { resolve, extname } from 'node:path'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'
 import { getScreenshotUploadPath } from '~/server/utils/index'
+import { createRateLimiter } from '~/server/utils/rateLimiter'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+
+// Rate limiter: 10 uploads per minute per user
+const uploadRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 6 })
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
@@ -13,6 +17,17 @@ export default defineEventHandler(async (event) => {
 	try {
 		const userId = Number(event.context.userId)
 		const dbName = event.context.dbName
+
+		// Check rate limit
+		const rateLimit = uploadRateLimiter.check(userId)
+		
+		if (!rateLimit.allowed) {
+			throw createAppError({
+				statusCode: 429,
+				message: 'Too many uploads. Please wait a moment.',
+				tag: 'api.notes.images.upload.rate_limited'
+			})
+		}
 
 		if (!userId || !dbName) {
 			throw createAppError({ statusCode: 401, message: 'User not authenticated or database not selected', tag: 'api.notes.images.upload.unauthorized' })
