@@ -291,7 +291,7 @@ const labelColumnsHeader = computed(() => {
 
 const columns = computed(() => {
     return [
-        { id: 'actionToggle', header: () => h(UIcon, { name: 'i-heroicons-trash', class: 'size-4 text-[var(--ui-error)]' }), meta: addMeta('w-[40px]') },
+        { id: 'actionToggle', header: () => h(UIcon, { name: '', class: 'size-4 text-[var(--ui-error)]' }), meta: addMeta('w-[40px]') },
         { id: 'symbol', accessorKey: 'symbol', header: labelColumnsHeader.value.symbol, meta: addMeta() },
         { id: 'account', accessorKey: 'account', header: labelColumnsHeader.value.account, meta: addMeta() },
         { id: 'type', accessorKey: 'type', header: labelColumnsHeader.value.type, meta: addMeta() },
