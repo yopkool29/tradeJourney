@@ -3,23 +3,10 @@
         <template #header>
             <div class="flex justify-between items-start">
                 <div>
-                    <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-4">
                         <div class="section-title-semibold">
                             {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
                         </div>
-                        <UTooltip
-                            :text="dayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
-                            <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
-                                @click="openDayTagModal">{{
-                                    dayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
-                                }}</UButton>
-                        </UTooltip>
-                        <UTooltip v-if="dayTag" :text="$t('common.actions.delete')">
-                            <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
-                                @click="confirmClearDayTradeTags">{{
-                                    $t('common.actions.delete')
-                                }}</UButton>
-                        </UTooltip>
                     </div>
                     <div class="tag-container-lg items-center mb-2 text-sm">
                         <div class="stat-item">
@@ -42,7 +29,8 @@
                             <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
                             <span class="stat-value text-lg" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
                                 {{ formatCurrency(pnl) }}
-                                <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{ formatCurrency(totalCommission) }}]</span>
+                                <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{
+                                    formatCurrency(totalCommission) }}]</span>
                             </span>
                         </div>
                     </div>
@@ -83,7 +71,8 @@
 
             <!-- Modal de confirmation pour effacer la detailedNote -->
             <CommonModalDelete v-model:open="showClearDetailedNoteModal" :from="'detailed_note'"
-                :title="$t('components.daily.trade_group.delete_detailed_note_title')" @confirm="executeClearDetailedNote">
+                :title="$t('components.daily.trade_group.delete_detailed_note_title')"
+                @confirm="executeClearDetailedNote">
                 <template #content>
                     <p class="mb-4">{{ $t('components.daily.trade_group.delete_detailed_note_confirm') }}</p>
                 </template>
@@ -93,24 +82,42 @@
             <DailyTradeDetailModal :is-open="showTradeDetailModal" :trade="selectedTradeDetail"
                 @update:open="showTradeDetailModal = $event" />
 
-            <!-- Affichage des tags et de la note s'ils existent -->
-            <div v-if="dayTag" class="tag-container-lg items-center mt-2">
-                <div v-if="dayTag.note">
-                    <UTooltip :text="dayTag.note">
-                        <UBadge color="neutral">
-                            <span class="badge-clickable truncate2" @click="openDayTagModal">{{ dayTag.note }}</span>
-                        </UBadge>
-                    </UTooltip>
-                </div>
-                <div v-if="dayTag.tags?.length > 0" class="tag-container">
-                    <UTooltip v-for="tag in dayTag.tags" :key="tag.id" :text="tag.description || tag.name">
-                        <UBadge class="badge-clickable" title="" :label="tag.name" :style="getTagStyle(tag)"
-                            @click="openDayTagModal">
-                            {{ tag.name }}
-                        </UBadge>
-                    </UTooltip>
+            <div class="flex items-center gap-2 mt-2">
+                <UTooltip
+                    :text="dayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
+                    <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
+                        @click="openDayTagModal">{{
+                            dayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
+                        }}</UButton>
+                </UTooltip>
+                <UTooltip v-if="dayTag" :text="$t('components.daily.trade_group.delete_day_note_title')">
+                    <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
+                        @click="confirmClearDayTradeTags">{{
+                            $t('common.actions.delete')
+                        }}</UButton>
+                </UTooltip>
+
+                <!-- Affichage des tags et de la note s'ils existent -->
+                <div v-if="dayTag" class="tag-container-lg items-center ml-2">
+                    <div v-if="dayTag.note">
+                        <UTooltip :text="dayTag.note">
+                            <UBadge color="neutral">
+                                <span class="badge-clickable truncate2" @click="openDayTagModal">{{ dayTag.note
+                                    }}</span>
+                            </UBadge>
+                        </UTooltip>
+                    </div>
+                    <div v-if="dayTag.tags?.length > 0" class="tag-container">
+                        <UTooltip v-for="tag in dayTag.tags" :key="tag.id" :text="tag.description || tag.name">
+                            <UBadge class="badge-clickable" title="" :label="tag.name" :style="getTagStyle(tag)"
+                                @click="openDayTagModal">
+                                {{ tag.name }}
+                            </UBadge>
+                        </UTooltip>
+                    </div>
                 </div>
             </div>
+
         </template>
         <div class="flex">
             <UCollapsible v-model:open="showTable" class="mb-2 w-full">
@@ -122,22 +129,12 @@
                 </div>
 
                 <template #content>
-                    <DailyTradeGroupTable
-                        :columns="columns"
-                        :table-data="tableData"
-                        :label-columns-header="labelColumnsHeader"
-                        :show-table="showTable"
-                        :timezone-key="timezoneKey"
-                        :get-tag-style="getTagStyle"
-                        @activate="onActivate"
-                        @deactivate="onDeactivate"
-                        @open-tag-modal="openTradeTagModal"
-                        @open-detail-modal="openTradeDetailModal"
-                        @open-screenshots="openScreenshotsModal"
-                        @open-detailed-note="openDirectDetailedNote"
-                        @clear-tags="confirmClearTradeTags"
-                        @clear-detailed-note="onClearDetailedNote"
-                    />
+                    <DailyTradeGroupTable :columns="columns" :table-data="tableData"
+                        :label-columns-header="labelColumnsHeader" :show-table="showTable" :timezone-key="timezoneKey"
+                        :get-tag-style="getTagStyle" @activate="onActivate" @deactivate="onDeactivate"
+                        @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
+                        @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
+                        @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
                 </template>
             </UCollapsible>
         </div>
@@ -145,12 +142,8 @@
         <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="currentScreenshots"
             @closed="showScreenshots = false" />
 
-        <TradeDetailedNoteModal
-            v-model:open="showDirectDetailedNote"
-            v-model:model-value="directDetailedNote"
-            :trade-id="selectedTradeForNote?.id"
-            @close="onDirectDetailedNoteClose"
-        />
+        <TradeDetailedNoteModal v-model:open="showDirectDetailedNote" v-model:model-value="directDetailedNote"
+            :trade-id="selectedTradeForNote?.id" @close="onDirectDetailedNoteClose" />
     </UCard>
 </template>
 
@@ -217,9 +210,9 @@ const { displayModeNet } = useNetGrossDisplay()
 const colorMode = useColorMode()
 
 const tableRowHoverColor = computed(() => {
-	const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
-	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
-	return colors[theme] || colors.light
+    const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
+    const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+    return colors[theme] || colors.light
 })
 
 // Modal pour afficher les détails d'un trade
@@ -301,16 +294,16 @@ const columns = computed(() => {
         { id: 'openPrice', accessorKey: 'openPrice', header: labelColumnsHeader.value.openPrice, meta: addMeta() },
         { id: 'closePrice', accessorKey: 'closePrice', header: labelColumnsHeader.value.closePrice, meta: addMeta() },
         { id: 'profit', accessorKey: 'netProfit', header: labelColumnsHeader.value.profit, meta: addMeta() },
-        { 
-            id: 'grossProfit', 
-            accessorKey: 'profit', 
+        {
+            id: 'grossProfit',
+            accessorKey: 'profit',
             header: labelColumnsHeader.value.grossProfit,
             cell: ({ row }) => formatCurrency(row.original.profit || 0),
             meta: addMeta('w-[100px]')
         },
-        { 
-            id: 'commission', 
-            accessorKey: 'commission', 
+        {
+            id: 'commission',
+            accessorKey: 'commission',
             header: labelColumnsHeader.value.commission,
             cell: ({ row }) => formatCurrency(row.original.commission || 0),
             meta: addMeta('w-[100px]')
