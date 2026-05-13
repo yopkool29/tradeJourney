@@ -31,7 +31,6 @@
         <ImportProfileForm
             v-else-if="currentView === 'form'"
             :profile="editingProfile"
-            :tag-groups="tagGroups"
             @cancel="currentView = 'list'"
             @save="onSaveProfile"
         />
@@ -48,14 +47,11 @@
 
 <script setup lang="ts">
 import type { ImportProfileType, CreateImportProfileType, UpdateImportProfileType } from '~/schema/importProfile'
-import type { TagGroupType } from '~/schema/tagGroup'
 
 const { profiles, fetchProfiles, createProfile, updateProfile, deleteProfile } = useImportProfiles()
 const { fetchGroups } = useTags()
 const { errorStr, successStr, displayMessage } = useAlert()
 const { t } = useI18n()
-
-const tagGroups = ref<TagGroupType[]>([])
 
 type ViewMode = 'list' | 'form' | 'execute'
 const currentView = ref<ViewMode>('list')
@@ -65,9 +61,7 @@ const activeProfile = ref<ImportProfileType | null>(null)
 onMounted(async () => {
     await Promise.all([
         fetchProfiles(),
-        fetchGroups().then((groups) => {
-            tagGroups.value = groups
-        }),
+        fetchGroups(),
     ])
 })
 

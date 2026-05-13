@@ -118,6 +118,11 @@ export const useBackup = () => {
                 throw new Error('Failed to restore backup')
             }
 
+            // Recharger les tags après la restauration
+            const { fetchGroups } = useTags()
+            
+            await fetchGroups()
+
             toastSuccess(t('common.title.success'), t('components.backup_manager.success.backup_restored'))
 
             return true

@@ -11,7 +11,7 @@ export interface TagStyle {
 }
 
 export const useTags = () => {
-    const tagGroups = ref<TagGroupType[]>([])
+    const userStore = useUserStore()
     
     const getTagStyle = (tag: { color?: string | null; dark_fg_reverse?: boolean }): TagStyle => ({
         backgroundColor: tag.color || '#333',
@@ -22,9 +22,9 @@ export const useTags = () => {
     const fetchGroups = async () => {
         const result = await $fetch('/api/tags')
 
-        tagGroups.value = z.array(TagGroupSchema).parse(result)
+        userStore.tagGroups = z.array(TagGroupSchema).parse(result)
 
-        return tagGroups.value
+        return userStore.tagGroups
     }
 
     const createGroup = async (group: CreateTagGroupType) => {
@@ -32,6 +32,7 @@ export const useTags = () => {
             method: 'POST',
             body: group
         })
+        await fetchGroups()
         return TagGroupSchema.parse(result)
     }
 
@@ -40,14 +41,17 @@ export const useTags = () => {
             method: 'PATCH',
             body: group
         })
+        await fetchGroups()
         return TagGroupSchema.parse(result)
     }
 
     const deleteGroup = async (id: number, deleteAssoc: boolean = false) => {
-        return await $fetch(`/api/tags/${id}`, {
+        const result = await $fetch(`/api/tags/${id}`, {
             method: 'DELETE',
             body: { deleteAssoc }
         })
+        await fetchGroups()
+        return result
     }
 
     // Créer un tag dans un groupe
@@ -56,6 +60,7 @@ export const useTags = () => {
             method: 'POST',
             body: tag
         })
+        await fetchGroups()
         return TagSchema.parse(result)
     }
 
@@ -65,15 +70,18 @@ export const useTags = () => {
             method: 'PATCH',
             body: tag
         })
+        await fetchGroups()
         return TagSchema.parse(result)
     }
 
     // Supprimer un tag
     const deleteTag = async (groupId: number, tagId: number, deleteAssoc: boolean = false) => {
-        return await $fetch(`/api/tags/${groupId}/${tagId}`, {
+        const result = await $fetch(`/api/tags/${groupId}/${tagId}`, {
             method: 'DELETE',
             body: { deleteAssoc }
         })
+        await fetchGroups()
+        return result
     }
 
     // Réordonner les groupes en mettant à jour metadata.order pour chaque groupe
@@ -88,8 +96,11 @@ export const useTags = () => {
         )
     }
 
+    const tagGroups = computed(() => userStore.tagGroups)
+
     return {
         tagGroups,
+        getTagById: userStore.getTagById,
         fetchGroups,
         createGroup,
         updateGroup,

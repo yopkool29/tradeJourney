@@ -127,7 +127,7 @@
             </template>
             <template #tags-cell="{ row }">
                 <div class="tag-container cell-narrow">
-                    <UTooltip v-for="tag in row.original.tags" :key="tag.id"
+                    <UTooltip v-for="tag in getTradeTagsById(row.original)" :key="tag.id"
                         :text="tag.description || tag.name">
                         <UBadge title="" :label="tag.name" :style="getTagStyle(tag)"
                             :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
@@ -206,9 +206,9 @@
                     </div>
 
                     <!-- Tags -->
-                    <div v-if="row.original.tags?.length > 0" class="flex gap-2 items-center flex-wrap">
+                    <div v-if="getTradeTagsById(row.original).length > 0" class="flex gap-2 items-center flex-wrap">
                         <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2" :class="{ 'opacity-50': !row.original.active }">Tags:</span>
-                        <UTooltip v-for="tag in row.original.tags" :key="tag.id"
+                        <UTooltip v-for="tag in getTradeTagsById(row.original)" :key="tag.id"
                             :text="tag.description || tag.name">
                             <UBadge :label="tag.name" :style="getTagStyle(tag)"
                                 :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
@@ -264,6 +264,12 @@ const { t, locale } = useI18n()
 const userStore = useUserStore()
 const { tradeTypeColors } = useTypeColors()
 const { getDigitFromSymbol } = useSymbols()
+const { getTagById } = useTags()
+
+const getTradeTagsById = (trade: TradeExtendedType) => {
+    if (!trade.tags?.length) return []
+    return trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+}
 
 const props = defineProps<{
     columns: any[]

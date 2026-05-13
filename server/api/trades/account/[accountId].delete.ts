@@ -3,6 +3,7 @@ import { createAppError } from '../../../utils/errors'
 import auth from '../../../utils/auth'
 import { getPrisma } from '../../../utils/db'
 import { deleteFiles } from '../../../utils'
+import { cleanupDayTagData } from '../../../utils/dayTagCleanup'
 import type { Prisma } from '~/generated/prisma-data'
 
 // ------------------------------------------------
@@ -76,6 +77,9 @@ export async function deleteAccountTrades(event: H3Event<EventHandlerRequest>, a
             await tx.trade.deleteMany({
                 where
             })
+
+            // Nettoyer les DayTags et DayTagAssociations orphelins
+            await cleanupDayTagData(tx)
         })
     }
 

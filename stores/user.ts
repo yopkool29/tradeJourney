@@ -3,6 +3,7 @@ import type { UserType } from '~/schema/user'
 import type { SymbolType } from '~/schema/symbol'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { DayTagType } from '~/schema/dayTag'
+import type { TagGroupType } from '~/schema/tagGroup'
 import type {
     CustomInputs,
     TradeOptions,
@@ -44,6 +45,7 @@ export const useUserStore = defineStore(
         // --- DB-specific state (internal storage per database) ---
         const customInputsPerDb = ref<Record<string, CustomInputs>>({})
         const dayTagsPerDb = ref<Record<string, DayTagType[]>>({})
+        const tagGroupsPerDb = ref<Record<string, TagGroupType[]>>({})
         const recentColorsPerDb = ref<Record<string, string[]>>({})
         const recentColors2PerDb = ref<Record<string, string[]>>({})
         const tradeOptionsPerDb = ref<Record<string, TradeOptions>>({})
@@ -112,6 +114,28 @@ export const useUserStore = defineStore(
                 dayTagsPerDb.value[dbName] = val
             }
         })
+
+        const tagGroups = computed({
+            get: () => {
+                const dbName = getCurrentDbName()
+                if (!tagGroupsPerDb.value[dbName]) {
+                    tagGroupsPerDb.value[dbName] = []
+                }
+                return tagGroupsPerDb.value[dbName]
+            },
+            set: (val) => {
+                const dbName = getCurrentDbName()
+                tagGroupsPerDb.value[dbName] = val
+            }
+        })
+
+        const getTagById = (id: number) => {
+            for (const group of tagGroups.value) {
+                const tag = group.tags.find(t => t.id === id)
+                if (tag) return tag
+            }
+            return null
+        }
 
         const recentColors = computed({
             get: () => {
@@ -421,6 +445,9 @@ export const useUserStore = defineStore(
             dayTagsPerDb.value = Object.fromEntries(
                 Object.entries(dayTagsPerDb.value).filter(([key]) => key !== dbName)
             )
+            tagGroupsPerDb.value = Object.fromEntries(
+                Object.entries(tagGroupsPerDb.value).filter(([key]) => key !== dbName)
+            )
             recentColorsPerDb.value = Object.fromEntries(
                 Object.entries(recentColorsPerDb.value).filter(([key]) => key !== dbName)
             )
@@ -470,6 +497,8 @@ export const useUserStore = defineStore(
             recentColors,
             recentColors2,
             dayTags,
+            tagGroups,
+            getTagById,
             tradeOptions,
             dashBoardFilters,
             dailyHistoryFilters,
@@ -482,6 +511,7 @@ export const useUserStore = defineStore(
             // Expose internal refs for persistence
             customInputsPerDb,
             dayTagsPerDb,
+            tagGroupsPerDb,
             recentColorsPerDb,
             recentColors2PerDb,
             tradeOptionsPerDb,
@@ -537,6 +567,7 @@ export const useUserStore = defineStore(
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
                 'dayTagsPerDb',
+                'tagGroupsPerDb',
                 'recentColorsPerDb',
                 'recentColors2PerDb',
                 'tradeOptionsPerDb',

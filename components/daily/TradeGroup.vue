@@ -99,22 +99,17 @@
 
                 <!-- Affichage des tags et de la note s'ils existent -->
                 <div v-if="dayTag" class="tag-container-lg items-center ml-2">
-                    <div v-if="dayTag.note">
-                        <UTooltip :text="dayTag.note">
-                            <UBadge color="neutral">
-                                <span class="badge-clickable truncate2" @click="openDayTagModal">{{ dayTag.note
-                                    }}</span>
-                            </UBadge>
-                        </UTooltip>
-                    </div>
-                    <div v-if="dayTag.tags?.length > 0" class="tag-container">
-                        <UTooltip v-for="tag in dayTag.tags" :key="tag.id" :text="tag.description || tag.name">
-                            <UBadge class="badge-clickable" title="" :label="tag.name" :style="getTagStyle(tag)"
-                                @click="openDayTagModal">
-                                {{ tag.name }}
-                            </UBadge>
-                        </UTooltip>
-                    </div>
+                    <UTooltip v-if="dayTag.note" :text="dayTag.note">
+                        <UBadge color="neutral">
+                            <span class="badge-clickable truncate2" @click="openDayTagModal">{{ dayTag.note }}</span>
+                        </UBadge>
+                    </UTooltip>
+                    <UTooltip v-for="tag in dayTagTags" :key="tag.id" :text="tag.description || tag.name">
+                        <UBadge class="badge-clickable" title="" :label="tag.name" :style="getTagStyle(tag)"
+                            @click="openDayTagModal">
+                            {{ tag.name }}
+                        </UBadge>
+                    </UTooltip>
                 </div>
             </div>
 
@@ -201,13 +196,18 @@ const selectedTradeForDetailedNote = ref<TradeExtendedType | null>(null)
 const dayTag = ref<DayTagType | null>(null)
 
 // Composable pour gérer les trades
-const { getTagStyle } = useTags()
+const { getTagStyle, getTagById } = useTags()
 const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
 const { cleanupOrphanImages } = useNoteImages()
 const { getDayTagByDate, deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
 const colorMode = useColorMode()
+
+const dayTagTags = computed(() => {
+    if (!dayTag.value?.tags) return []
+    return dayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+})
 
 const tableRowHoverColor = computed(() => {
     const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover

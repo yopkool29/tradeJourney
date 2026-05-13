@@ -639,3 +639,14 @@ export const getDatetimeLocalNow = (_now = new Date()) => {
     (minute < 10 ? '0' + minute.toString() : minute)
   return localDatetime
 }
+
+/**
+ * Convertit une date (string YYYY-MM-DD ou Date) en DateTime UTC à minuit
+ * Utilisé pour normaliser les dates de DayTag
+ */
+export function toUTCMidnight(date: string | Date): Date {
+  if (date instanceof Date) {
+    return date
+  }
+  return new Date(`${date}T00:00:00.000Z`)
+}

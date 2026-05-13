@@ -64,9 +64,9 @@
                                     </div>
 
                                     <!-- Tags -->
-                                    <div v-if="trade.tags && trade.tags.length > 0" class="flex flex-wrap gap-1 mb-2">
+                                    <div v-if="getTradeTagsById(trade).length > 0" class="flex flex-wrap gap-1 mb-2">
                                         <UBadge
-                                            v-for="tag in trade.tags"
+                                            v-for="tag in getTradeTagsById(trade)"
                                             :key="tag.id"
                                             :style="getTagStyle(tag)"
                                             size="xs"
@@ -110,12 +110,17 @@ const props = defineProps<Props>()
 const open = defineModel<boolean>('open', { required: true })
 const { locale } = useI18n()
 const { fetchTrades } = useTrades()
-const { getTagStyle } = useTags()
+const { getTagStyle, getTagById } = useTags()
 const { tradeTypeColors } = useTypeColors()
 const { formatCurrency } = useUtils()
 
 const loading = ref(false)
 const trades = ref<TradeExtendedType[]>([])
+
+const getTradeTagsById = (trade: TradeExtendedType) => {
+    if (!trade.tags?.length) return []
+    return trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+}
 
 type DayGroup = {
     date: string

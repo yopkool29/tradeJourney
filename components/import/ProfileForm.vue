@@ -96,7 +96,7 @@
                     v-model="formState.dayTagIds"
                     :tag-groups="tagGroups"
                     field-name="dayTagIds"
-                    :show-manage-button="false"
+                    :show-manage-button="true"
                 />
             </div>
 
@@ -107,7 +107,7 @@
                     v-model="formState.tradeTagIds"
                     :tag-groups="tagGroups"
                     field-name="tradeTagIds"
-                    :show-manage-button="false"
+                    :show-manage-button="true"
                 />
             </div>
         </UForm>
@@ -130,14 +130,12 @@ import type { ImportProfileType, CreateImportProfileType } from '~/schema/import
 import { CreateImportProfileSchema, INSTRUMENT_TYPES, DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER } from '~/schema/importProfile'
 import type { ReportType } from '~/type'
 import { InstrumentType } from '~/type'
-import type { TagGroupType } from '~/schema/tagGroup'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 
 const config = useRuntimeConfig()
 
 const props = defineProps<{
     profile?: ImportProfileType | null
-    tagGroups: TagGroupType[]
 }>()
 
 const emit = defineEmits<{
@@ -147,6 +145,8 @@ const emit = defineEmits<{
 
 const formRef = ref()
 const isEditing = computed(() => !!props.profile)
+
+const { tagGroups } = useTags()
 
 const formState = reactive<{
     name: string

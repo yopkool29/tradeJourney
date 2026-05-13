@@ -1,6 +1,7 @@
 import { getPrisma } from '../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
 import { CreateDayTagSchema } from '~/schema/dayTag'
+import { toUTCMidnight } from '~/utils/date-utils'
 
 export default defineEventHandler(async (event) => {
     await auth(event)
@@ -19,35 +20,78 @@ export default defineEventHandler(async (event) => {
         const tagIds = body.tagIds || []
 
         // Convertir la date YYYY-MM-DD en ISO 8601 DateTime (ajouter l'heure minuit)
-        const dateTime = input.date instanceof Date 
-            ? input.date 
-            : new Date(`${input.date}T00:00:00.000Z`)
+        const dateTime = toUTCMidnight(input.date)
 
-        // Créer le DayTag
-        const dayTag = await prisma.dayTag.create({
-            data: {
-                date: dateTime,
-                note: input.note,
-                // Créer les relations avec les tags via DayTagAssociation
-                DayTagAssociation: {
-                    create: tagIds.map((tagId: number) => ({
-                        tag: { connect: { id: tagId } }
-                    }))
+        // Upsert: créer ou mettre à jour le DayTag
+        const dayTag = await prisma.$transaction(async (tx) => {
+            // Vérifier si un DayTag existe déjà pour cette date
+            const existing = await tx.dayTag.findFirst({
+                where: { date: dateTime }
+            })
+
+            if (existing) {
+                // Mettre à jour l'existant
+                await tx.dayTag.update({
+                    where: { id: existing.id },
+                    data: { note: input.note }
+                })
+
+                // Remplacer les tags
+                await tx.dayTagAssociation.deleteMany({
+                    where: { dayTagId: existing.id }
+                })
+
+                if (tagIds.length > 0) {
+                    await tx.dayTagAssociation.createMany({
+                        data: tagIds.map((tagId: number) => ({
+                            dayTagId: existing.id,
+                            tagId
+                        }))
+                    })
                 }
-            },
-            include: {
-                DayTagAssociation: {
+
+                return tx.dayTag.findUnique({
+                    where: { id: existing.id },
                     include: {
-                        tag: true
+                        DayTagAssociation: {
+                            include: { tag: true }
+                        }
                     }
-                }
+                })
+            } else {
+                // Créer un nouveau DayTag
+                return tx.dayTag.create({
+                    data: {
+                        date: dateTime,
+                        note: input.note,
+                        DayTagAssociation: {
+                            create: tagIds.map((tagId: number) => ({
+                                tag: { connect: { id: tagId } }
+                            }))
+                        }
+                    },
+                    include: {
+                        DayTagAssociation: {
+                            include: { tag: true }
+                        }
+                    }
+                })
             }
         })
 
+        if (!dayTag) {
+            throw createAppError({
+                statusCode: 500,
+                tag: 'api.day_tags.create.error',
+                message: 'Error while creating/updating day tag'
+            })
+        }
+
         // Transformer le résultat pour un format plus pratique
+        const { DayTagAssociation, ...dayTagWithoutAssoc } = dayTag
         const formattedDayTag = {
-            ...dayTag,
-            tags: dayTag.DayTagAssociation.map(t => t.tag)
+            ...dayTagWithoutAssoc,
+            tags: DayTagAssociation.map(t => t.tag)
         }
 
         // Retourner avec un message de succès internationalisé

@@ -117,10 +117,10 @@
                         :readonly="true"
                     />
                 </div>
-                <div v-if="trade.tags && trade.tags.length > 0">
+                <div v-if="tradeTags.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.tags') }}</span>
                     <div class="flex flex-wrap gap-1 mt-1">
-                        <UBadge v-for="tag in trade.tags" :key="tag.id" :style="getTagStyle(tag)">
+                        <UBadge v-for="tag in tradeTags" :key="tag.id" :style="getTagStyle(tag)">
                             {{ tag.name }}
                         </UBadge>
                     </div>
@@ -149,7 +149,12 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 const { getDigitFromSymbol } = useSymbols()
-const { getTagStyle } = useTags()
+const { getTagStyle, getTagById } = useTags()
+
+const tradeTags = computed(() => {
+    if (!props.trade?.tags?.length) return []
+    return props.trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+})
 
 const props = defineProps<{
     trade: TradeExtendedType | null

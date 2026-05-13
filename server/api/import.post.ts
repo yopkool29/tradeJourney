@@ -10,6 +10,7 @@ import { parseStandardCSV } from '../utils/standard-csv-parser'
 import { getDataDb } from '../utils/db'
 import type { AccountTrades } from '../utils'
 import { symbolPricePerPoint } from '~/utils'
+import { toUTCMidnight } from '~/utils/date-utils'
 import { generateUniqueId, CreateTradeSchema } from '~/schema/trade'
 import auth from '../utils/auth'
 import { existsSync, readFileSync } from 'fs';
@@ -39,7 +40,7 @@ const upsertDayTagsForImport = async (
     for (const day of tradingDays) {
         // Parser la date ISO correctement (format: "2026-01-31")
         // Ajouter l'heure pour éviter les problèmes de timezone
-        const dayDate = new Date(day + 'T00:00:00.000Z')
+        const dayDate = toUTCMidnight(day)
 
         // Chercher si un DayTag existe déjà pour cette date
         const existingDayTag = await dataDb.dayTag.findFirst({
@@ -47,24 +48,18 @@ const upsertDayTagsForImport = async (
         })
 
         if (existingDayTag) {
-
-            // Récupérer les tags existants
-            const existingAssocs = await dataDb.dayTagAssociation.findMany({
+            // Supprimer toutes les associations existantes
+            await dataDb.dayTagAssociation.deleteMany({
                 where: { dayTagId: existingDayTag.id }
             })
-            const existingTagIds = existingAssocs.map(a => a.tagId)
 
-            // Ajouter uniquement les nouveaux tags (merge)
-            const newTagIds = tagIds.filter(id => !existingTagIds.includes(id))
-
-            if (newTagIds.length > 0) {
-                await dataDb.dayTagAssociation.createMany({
-                    data: newTagIds.map(tagId => ({
-                        dayTagId: existingDayTag.id,
-                        tagId
-                    }))
-                })
-            }
+            // Créer les nouvelles associations (remplacer au lieu de merger)
+            await dataDb.dayTagAssociation.createMany({
+                data: tagIds.map(tagId => ({
+                    dayTagId: existingDayTag.id,
+                    tagId
+                }))
+            })
         } else {
             // Créer un nouveau DayTag avec les tags
             const createdDayTag = await dataDb.dayTag.create({

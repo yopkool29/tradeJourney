@@ -41,6 +41,13 @@
       "description": "Add metadata JSONB column to Plugin table for storing plugin versions and system compatibility",
       "file": "006-add-plugin-metadata.sql",
       "date": "2026-04-13"
+    },
+    {
+      "version": 7,
+      "name": "add-unique-constraint-on-daytag-date",
+      "description": "Add unique constraint on DayTag date field to prevent duplicate entries for the same date",
+      "file": "007-add-unique-constraint-on-daytag-date-description.sql",
+      "date": "2026-05-13"
     }
   ]
 }

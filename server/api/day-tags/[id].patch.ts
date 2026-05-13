@@ -22,14 +22,19 @@ export default defineEventHandler(async (event) => {
 
         const body = await readBody(event)
 
-        // Valider les données d'entrée
-        const input = UpdateDayTagSchema.parse({ ...body, id })
-
+        // Le schéma Zod va automatiquement filtrer les champs non définis
+        const input = UpdateDayTagSchema.parse({ 
+            id,
+            note: body.note,
+            date: body.date,
+            tagIds: body.tagIds
+        })
+        
         // Vérifier que le DayTag existe
         const existingDayTag = await prisma.dayTag.findUnique({
             where: { id }
         })
-
+        
         if (!existingDayTag) {
             throw createAppError({
                 statusCode: 404,
@@ -39,34 +44,41 @@ export default defineEventHandler(async (event) => {
         }
 
         // Extraire les IDs de tags s'ils sont fournis
-        const tagIds = body.tagIds || []
+        const tagIds = body.tagIds
+       
 
         // Mettre à jour le DayTag
         const dayTag = await prisma.$transaction(async (prisma) => {
             // 1. Mettre à jour les informations de base du DayTag
-            await prisma.dayTag.update({
-                where: { id },
-                data: {
-                    date: input.date,
-                    note: input.note
+            // Note: La date n'est pas modifiable car c'est l'identifiant unique
+            const updateData: { note?: string | null } = {}
+            if (input.note !== undefined) updateData.note = input.note
+            
+            if (Object.keys(updateData).length > 0) {
+                await prisma.dayTag.update({
+                    where: { id },
+                    data: updateData
+                })
+            }
+
+            // 2. Mettre à jour les tags SEULEMENT si tagIds est fourni
+            if (tagIds !== undefined) {
+                // Supprimer toutes les relations existantes
+                await prisma.dayTagAssociation.deleteMany({
+                    where: { dayTagId: id }
+                })
+
+                if (tagIds.length > 0) {
+                    // Créer les nouvelles relations
+                    await Promise.all(tagIds.map((tagId: number) =>
+                        prisma.dayTagAssociation.create({
+                            data: {
+                                dayTagId: id,
+                                tagId
+                            }
+                        })
+                    ))
                 }
-            })
-
-            // Supprimer toutes les relations existantes
-            await prisma.dayTagAssociation.deleteMany({
-                where: { dayTagId: id }
-            })
-
-            if (tagIds.length > 0) {
-                // Créer les nouvelles relations
-                await Promise.all(tagIds.map((tagId: number) =>
-                    prisma.dayTagAssociation.create({
-                        data: {
-                            dayTagId: id,
-                            tagId
-                        }
-                    })
-                ))
             }
 
             // 3. Récupérer le DayTag mis à jour avec ses tags
@@ -91,9 +103,10 @@ export default defineEventHandler(async (event) => {
         }
 
         // Transformer le résultat pour un format plus pratique
+        const { DayTagAssociation, ...dayTagWithoutAssoc } = dayTag
         const formattedDayTag = {
-            ...dayTag,
-            tags: dayTag.DayTagAssociation.map(t => t.tag)
+            ...dayTagWithoutAssoc,
+            tags: DayTagAssociation.map(t => t.tag)
         }
 
         return {

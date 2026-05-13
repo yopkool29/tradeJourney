@@ -65,8 +65,16 @@ export const useDatabase = () => {
                 method: 'POST',
                 body: { databaseId }
             })
+            
             currentDatabase.value = data
+
             reloadActivePlugins()
+            
+            // Charger les tags de la nouvelle base de données
+            const { fetchGroups } = useTags()
+
+            await fetchGroups()
+            
             return data
         } catch (error) {
             console.error('Failed to select database:', error)

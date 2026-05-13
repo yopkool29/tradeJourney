@@ -4,7 +4,7 @@ import { TagSchema } from './tag'
 export const DayTagSchema = z.object({
     id: z.number(),
     date: z.string().or(z.date()),
-    note: z.string().optional(),
+    note: z.string().nullable().optional(),
     metadata: z.preprocess(
         val => {
             if (!val) return null;
@@ -28,13 +28,16 @@ export type DayTagType = z.output<typeof DayTagSchema>
 
 
 // Fonction de validation commune pour vérifier qu'il y a une note ou des tags
-const validateNoteOrTags = (data: { note?: string; tagIds?: number[] }) => {
+const validateNoteOrTags = (data: { note?: string | null; tagIds?: number[] }) => {
     return (data.note && data.note.trim().length > 0) || (data.tagIds && data.tagIds.length > 0)
 }
 
 export const CreateDayTagSchema = z.object({
     date: z.string().or(z.date()),
-    note: z.string().optional(),
+    note: z.preprocess(
+        (val) => val === '' ? null : val,
+        z.string().nullable().optional()
+    ),
     tagIds: z.array(z.number()).default([])
 }).refine(
     validateNoteOrTags,
@@ -48,7 +51,10 @@ export type CreateDayTagType = z.output<typeof CreateDayTagSchema>
 
 export const UpdateDayTagSchema = z.object({
     id: z.number(),
-    note: z.string().optional(),
+    note: z.preprocess(
+        (val) => val === '' ? null : val,
+        z.string().nullable().optional()
+    ),
     date: z.string().or(z.date()).optional(),
     tagIds: z.array(z.number()).default([]).optional()
 }).refine(
