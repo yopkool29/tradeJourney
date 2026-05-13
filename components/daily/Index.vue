@@ -250,11 +250,10 @@ onMounted(async () => {
         await fetchAccounts()
 
         // Déterminer si on doit forcer le chargement des données
-        const needForceDayTags = userStore.dayTags.length === 0
         const needForceCalendar = userStore.dailyHistoryFilters.last_results.length === 0
 
-        // Charger les dayTags si nécessaire
-        await applyDaysTags(needForceDayTags)
+        // Toujours charger les dayTags pour le mois sélectionné
+        await applyDaysTags(true)
 
         // Charger les données du calendrier si nécessaire
         await applyCalendar(selectedMonth.value, needForceCalendar)

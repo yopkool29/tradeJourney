@@ -51,8 +51,8 @@
             </div>
 
             <!-- Modals pour les DayTags et TradeTags -->
-            <DailyDayTagModal :is-open="showDayTagModal" :date="groupDate" :day-tag="dayTag"
-                @update:open="showDayTagModal = $event" @saved="onDayTagSaved" />
+            <DailyDayTagModal :is-open="showDayTagModal" :date="groupDate" :day-tag="currentDayTag"
+                @update:open="showDayTagModal = $event" />
 
             <CommonModalDelete v-model:open="showClearDayTagsModal" :from="'note_tags'"
                 :title="$t('components.daily.trade_group.delete_day_note_title')" @confirm="onClearDayNoteTags">
@@ -84,13 +84,13 @@
 
             <div class="flex items-center gap-2 mt-2">
                 <UTooltip
-                    :text="dayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
+                    :text="currentDayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
                     <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
                         @click="openDayTagModal">{{
-                            dayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
+                            currentDayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
                         }}</UButton>
                 </UTooltip>
-                <UTooltip v-if="dayTag" :text="$t('components.daily.trade_group.delete_day_note_title')">
+                <UTooltip v-if="currentDayTag" :text="$t('components.daily.trade_group.delete_day_note_title')">
                     <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
                         @click="confirmClearDayTradeTags">{{
                             $t('common.actions.delete')
@@ -98,10 +98,10 @@
                 </UTooltip>
 
                 <!-- Affichage des tags et de la note s'ils existent -->
-                <div v-if="dayTag" class="tag-container-lg items-center ml-2">
-                    <UTooltip v-if="dayTag.note" :text="dayTag.note">
+                <div v-if="currentDayTag" class="tag-container-lg items-center ml-2">
+                    <UTooltip v-if="currentDayTag.note" :text="currentDayTag.note">
                         <UBadge color="neutral">
-                            <span class="badge-clickable truncate2" @click="openDayTagModal">{{ dayTag.note }}</span>
+                            <span class="badge-clickable truncate2" @click="openDayTagModal">{{ currentDayTag.note }}</span>
                         </UBadge>
                     </UTooltip>
                     <UTooltip v-for="tag in dayTagTags" :key="tag.id" :text="tag.description || tag.name">
@@ -149,7 +149,7 @@ import type { DayTagType } from '~/schema/dayTag'
 import type { TradeExtendedType } from '~/schema/trade'
 import { DashboardWinratePie, UIcon } from '#components'
 
-import { formatDateLongString } from '~/utils/date-utils'
+import { formatDateLongString, normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
 
@@ -193,20 +193,28 @@ const showClearDayTagsModal = ref(false)
 const showClearDetailedNoteModal = ref(false)
 const selectedTrade = ref<TradeExtendedType | null>(null)
 const selectedTradeForDetailedNote = ref<TradeExtendedType | null>(null)
-const dayTag = ref<DayTagType | null>(null)
 
 // Composable pour gérer les trades
 const { getTagStyle, getTagById } = useTags()
 const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
 const { cleanupOrphanImages } = useNoteImages()
-const { getDayTagByDate, deleteDayTag } = useDayTags()
+const { deleteDayTag } = useDayTags()
 const { deleteTradeTags } = useTradeTags()
 const { displayModeNet } = useNetGrossDisplay()
 const colorMode = useColorMode()
 
+const currentDayTag = computed(() => {
+    if (!props.groupDate) return null
+    return userStore.dayTags.find((dt: DayTagType) => {
+        const dtDateStr = normalizeDateToUTCString(new Date(dt.date))
+        const dateStr = normalizeDateToLocalString(props.groupDate)
+        return dtDateStr === dateStr
+    }) || null
+})
+
 const dayTagTags = computed(() => {
-    if (!dayTag.value?.tags) return []
-    return dayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+    if (!currentDayTag.value?.tags) return []
+    return currentDayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
 })
 
 const tableRowHoverColor = computed(() => {
@@ -311,25 +319,9 @@ const columns = computed(() => {
     ]
 })
 
-// Charger le DayTag pour la date courante si elle existe
-const loadDayTag = async () => {
-    if (!props.groupDate) return
-    try {
-        dayTag.value = await getDayTagByDate(props.groupDate)
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
-
 // Ouvrir la modal pour ajouter/modifier un DayTag
 const openDayTagModal = () => {
     showDayTagModal.value = true
-}
-
-// Gérer la sauvegarde d'un DayTag
-const onDayTagSaved = (savedDayTag: DayTagType) => {
-    dayTag.value = savedDayTag
 }
 
 const { open: openTagModal } = useTradeTagModal()
@@ -414,29 +406,13 @@ const onDeactivate = async (tradeId: number) => {
 
 const onClearDayNoteTags = async () => {
     try {
-        if (!dayTag.value?.id) return
-        await deleteDayTag(dayTag.value?.id)
-        dayTag.value = null
+        if (!currentDayTag.value?.id) return
+        await deleteDayTag(currentDayTag.value.id)
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         log_error(message)
     }
 }
-
-// Charger le DayTag au montage du composant
-onMounted(() => {
-    loadDayTag()
-})
-
-// Recharger le DayTag si la date change
-watch(
-    () => props.groupDate,
-    () => {
-        if (props.groupDate) {
-            loadDayTag()
-        }
-    }
-)
 
 const showTable = defineModel('showTable', { type: Boolean, default: false })
 

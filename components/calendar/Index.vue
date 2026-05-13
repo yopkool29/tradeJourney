@@ -163,6 +163,7 @@ type WeekData = {
 }
 
 const { accounts, fetchAccounts, fetchData } = useDailyHistory('calendarFilters')
+const { fetchDayTags } = useDayTags()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -399,7 +400,10 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const startDate = startOfMonth(selectedMonth.value)
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
-            await fetchData(startDate, endDate, true, userStore.calendarFilters.accountIds)
+            await Promise.all([
+                fetchData(startDate, endDate, true, userStore.calendarFilters.accountIds),
+                fetchDayTags(selectedMonth.value)
+            ])
         }
     }
 }
@@ -417,7 +421,10 @@ onMounted(async () => {
         if (settings?.autoDataSync)
             filterLoading.value = true
 
-        await fetchAccounts()
+        await Promise.all([
+            fetchAccounts(),
+            fetchDayTags(selectedMonth.value)
+        ])
 
         // Initialiser calendarValue avec le mois sélectionné
         const [year, month] = selectedMonth.value.split('-').map(Number)
