@@ -11,7 +11,7 @@ import { createAppError } from './errors'
 import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
-const VERSION_MANIFEST = '1.1.7'
+const VERSION_MANIFEST = '1.1.8'
 const versionToInt = (version: string): number => {
     const parts = version.split('.').map(p => parseInt(p, 10))
     return (parts[0] || 0) * 100 + (parts[1] || 0) * 10 + (parts[2] || 0)
@@ -355,6 +355,41 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
         }
 
         const data: ImportData = JSON.parse(await readFile(dataSource, 'utf-8'))
+
+        // Migration pour les backups < 1.1.8 : convertir les URLs d'images au format filename-only
+        if (backupVersionInt < 118) {
+            console.log('Migrating image URLs to filename-only format...')
+            
+            const migrateImageUrls = (content: string | null): string | null => {
+                if (!content) return content
+                // Convertit: /api/image?path=user_X_data/ANY_DB/screenshots/file.png
+                // En: /api/image?path=file.png
+                return content.replace(/\/api\/image\?path=user_\d+_data\/[^/]+\/screenshots\/([^)\s"&]+)/g, '/api/image?path=$1')
+            }
+
+            // Migrer les URLs dans les trades (metadata.detailedNote)
+            data.trades = data.trades.map(trade => {
+                if (trade.metadata && typeof trade.metadata === 'object' && 'detailedNote' in trade.metadata) {
+                    const detailedNote = trade.metadata.detailedNote
+                    if (typeof detailedNote === 'string') {
+                        return {
+                            ...trade,
+                            metadata: {
+                                ...trade.metadata,
+                                detailedNote: migrateImageUrls(detailedNote)
+                            }
+                        }
+                    }
+                }
+                return trade
+            })
+
+            // Migrer les URLs dans les dailyNotes
+            data.dailyNotes = data.dailyNotes.map(note => ({
+                ...note,
+                content: migrateImageUrls(note.content) || note.content
+            }))
+        }
 
         // Get the correct database for this user
         const { getDataDb } = await import('./db')

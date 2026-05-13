@@ -184,7 +184,16 @@ const uploadImage = async (file: File): Promise<string> => {
         method: 'POST',
         body: formData,
     })
-    return result.url
+    
+    // Extraire seulement le filename pour la portabilité
+    // Convertit: /api/image?path=user_1_data/db/screenshots/file.png
+    // En: /api/image?path=file.png
+    const url = result.url
+    const match = url.match(/\/screenshots\/([^&\s]+)/)
+    if (match) {
+        return `/api/image?path=${match[1]}`
+    }
+    return url
 }
 
 const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {

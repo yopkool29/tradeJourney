@@ -36,11 +36,18 @@ export default defineEventHandler(async (event) => {
 				await rename(tmpPath, finalPath)
 			}
 
-			const urlPath = `user_${userId}_data/${dbName}/screenshots/${finalName}`
-			const finalUrl = `/api/image?path=${urlPath}`
-			const tmpUrlPath = `user_${userId}_data/${dbName}/screenshots/${tmpName}`
-			const tmpUrl = `/api/image?path=${tmpUrlPath}`
+			// Utiliser le format filename-only pour la portabilité
+			const finalUrl = `/api/image?path=${finalName}`
+			const tmpUrl = `/api/image?path=${tmpName}`
+			
+			// Remplacer aussi l'ancien format avec path complet (pour compatibilité)
+			const screenshotPath = getScreenshotUploadPath(userId, dbName).replace('./upload/', '')
+			const oldFormatTmpUrl = `/api/image?path=${screenshotPath}/${tmpName}`
+			const oldFormatFinalUrl = `/api/image?path=${screenshotPath}/${finalName}`
+			
 			updatedContent = updatedContent.replaceAll(tmpUrl, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatTmpUrl, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatFinalUrl, finalUrl)
 		}
 
 		return { content: updatedContent }

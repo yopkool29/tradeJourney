@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { stat } from 'node:fs/promises'
 import { createAppError } from '../../utils/errors'
+import { getScreenshotUploadPath } from '../../utils/index'
+import auth from '../../utils/auth'
 
 
 export default defineEventHandler(async (event) => {
@@ -19,8 +21,29 @@ export default defineEventHandler(async (event) => {
 
         const __dirname = dirname(fileURLToPath(import.meta.url))
         const uploadDir = resolve(__dirname, '../../upload')
-        const filePath = resolve(uploadDir, imagePath.startsWith('/') ? imagePath.slice(1) :
-            imagePath)
+        
+        let filePath: string
+        
+        // Si le path contient un slash, c'est le format complet avec le chemin
+        if (imagePath.includes('/')) {
+            filePath = resolve(uploadDir, imagePath.startsWith('/') ? imagePath.slice(1) : imagePath)
+        } else {
+            // Format filename-only : utiliser le contexte utilisateur
+            await auth(event)
+            const userId = Number(event.context.userId)
+            const dbName = event.context.dbName
+            
+            if (!userId || !dbName) {
+                throw createAppError({
+                    statusCode: 401,
+                    message: 'User not authenticated or database not selected',
+                    tag: 'api.image.get.unauthorized'
+                })
+            }
+            
+            const screenshotPath = getScreenshotUploadPath(userId, dbName)
+            filePath = resolve(__dirname, '../../', screenshotPath, imagePath)
+        }
 
         const stats = await stat(filePath)
         if (!stats.isFile()) {
