@@ -18,7 +18,7 @@
 }
 
 body {
-    background: linear-gradient(to bottom, #f1f1f1, #efefef) no-repeat;
+    background: linear-gradient(to bottom, #f1f1f1, #e0e0e0) no-repeat;
     min-height: 100vh;
 }
 
@@ -169,7 +169,11 @@ select {
 }
 
 .header-desktop-link-active {
-    @apply bg-primary/10 text-primary font-medium;
+    @apply bg-gray-200 text-gray-900 font-medium dark:bg-primary/10 dark:text-primary;
+}
+
+.header-desktop-link-active:hover {
+    @apply bg-gray-300 text-gray-900 dark:bg-primary/20 dark:text-primary;
 }
 
 .header-mobile-link {
@@ -177,7 +181,11 @@ select {
 }
 
 .header-mobile-link-active {
-    @apply bg-primary/10 text-primary;
+    @apply bg-gray-200 text-gray-900 dark:bg-primary/10 dark:text-primary;
+}
+
+.header-mobile-link-active:hover {
+    @apply bg-gray-300 text-gray-900 dark:bg-primary/20;
 }
 
 /* Dashboard card styles */
