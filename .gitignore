@@ -31,7 +31,6 @@ logs
 prisma/generated
 /generated
 prisma/dev.db
-pnpm-lock.yaml
 temp/
 flex_results.csv
 docs/README_CONVERTER_TO_STANDARD_CSV.md
