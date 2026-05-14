@@ -9,10 +9,13 @@ WORKDIR /app
 # Install build essentials
 RUN apk add --no-cache python3 make g++
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Copy package files and prisma schema
-COPY package.json package-lock.json ./
-    
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --frozen-lockfile
 
 # -----------------------------------------------------------
 # Builder stage
@@ -26,7 +29,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy configuration files first (changes less frequently)
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml ./
 COPY .env .env
 COPY nuxt.config.ts tsconfig.json app.config.js ./
 
@@ -38,14 +41,32 @@ COPY prisma ./prisma
 RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/data/schema.prisma
 
-# Now copy the rest of the source code
+# Now copy the rest of the source code (excluding docs)
 # Changes here won't invalidate Prisma generation cache
-COPY . .
+COPY assets ./assets
+COPY components ./components
+COPY composables ./composables
+COPY i18n ./i18n
+COPY layouts ./layouts
+COPY middleware ./middleware
+COPY pages ./pages
+COPY plugins ./plugins
+COPY providers ./providers
+COPY public ./public
+COPY schema ./schema
+COPY scripts ./scripts
+COPY server ./server
+COPY stores ./stores
+COPY tradeJourney-tools ./tradeJourney-tools
+COPY utils ./utils
+COPY type ./type
 
-RUN npm install -g npm@latest
+COPY app.vue ./app.vue
+COPY error.vue ./error.vue
+COPY app.config.js ./app.config.js
 
 RUN npx nuxt prepare
-RUN npm run build
+RUN pnpm run build
 
 # CMD ["tail", "-f", "/dev/null"]
 
@@ -66,11 +87,12 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 WORKDIR /app
 
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma /app/prisma
-# COPY --from=builder /app/generated/prisma  ./generated/prisma
 COPY --from=builder /app/generated/prisma-auth ./generated/prisma-auth
 COPY --from=builder /app/generated/prisma-data ./generated/prisma-data
+
+# Copy node_modules from builder (already includes all dependencies)
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copier les scripts nécessaires
 COPY --from=builder /app/scripts /app/scripts
@@ -80,7 +102,7 @@ COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/pytho
 
 # Installer les dépendances Python avec uv
 WORKDIR /app/tradeJourney-tools/python
-RUN uv sync --frozen
+RUN uv sync --frozen-lockfile
 
 WORKDIR /app
 
