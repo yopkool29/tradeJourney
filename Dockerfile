@@ -64,9 +64,10 @@ COPY type ./type
 COPY app.vue ./app.vue
 COPY error.vue ./error.vue
 COPY app.config.js ./app.config.js
+COPY server-start.mjs ./server-start.mjs
 
 RUN npx nuxt prepare
-RUN pnpm run build
+RUN npm run build
 
 # CMD ["tail", "-f", "/dev/null"]
 
@@ -102,7 +103,7 @@ COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/pytho
 
 # Installer les dépendances Python avec uv
 WORKDIR /app/tradeJourney-tools/python
-RUN uv sync --frozen-lockfile
+RUN uv sync
 
 WORKDIR /app
 

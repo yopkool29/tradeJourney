@@ -16,6 +16,12 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n'
     ],
 
+    fonts: {
+        providers: {
+            fontshare: false
+        }
+    },
+
     devtools: { 
         enabled: true,
         // timeline: {
