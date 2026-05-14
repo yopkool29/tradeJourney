@@ -361,6 +361,36 @@ Simply **restart the server** (or wait for the next user connection) for the mig
 >   docker compose exec -T postgres psql -U tradejourney -d tradejourney
 > ```
 
+#### Image URL Migration
+
+When migrating backups between databases with different names, you may need to migrate image URLs from the old format (with full path) to the new portable format (filename-only).
+
+**Run the migration script:**
+
+```bash
+# Connect to the container
+docker exec -it <container_name> sh
+
+# Run the script (dry-run to preview)
+npx tsx scripts/migrate-image-urls.ts 1 database_name --dry-run
+
+# Run the actual migration
+npx tsx scripts/migrate-image-urls.ts 1 database_name
+```
+
+**Or run in one command:**
+```bash
+docker exec -it <container_name> npx tsx scripts/migrate-image-urls.ts 1 database_name --dry-run
+```
+
+**What it does:**
+- Converts image URLs from `/api/image?path=user_X_data/DB_NAME/screenshots/file.png` to `/api/image?path=file.png`
+- Migrates URLs in `trades[].metadata.detailedNote` and `dailyNotes[].content`
+- Supports `--dry-run` flag to preview changes without modifying the database
+
+**Note:** New images inserted via Milkdown already use the portable format. This script is only needed for migrating old images.
+
+
 ### ⚠️ Important
 
 - **Always test** the migration on a development database before applying it in production
