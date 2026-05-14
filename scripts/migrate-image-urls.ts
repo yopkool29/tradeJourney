@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { config } from 'dotenv'
+import { getDataDbUnsafe } from '../server/utils/db'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+// Charger les variables d'environnement
+config()
 
-const migrateImageUrls = (content) => {
+const migrateImageUrls = (content: string | null): string | null => {
 	if (!content) return content
 	// Convertit: /api/image?path=user_X_data/ANY_DB/screenshots/file.png
 	// En: /api/image?path=file.png
@@ -20,9 +19,9 @@ const main = async () => {
 	const filteredArgs = args.filter(arg => arg !== '--dry-run')
 	
 	if (filteredArgs.length < 2) {
-		console.error('Usage: node scripts/migrate-image-urls.mjs [userId] [dbName] [--dry-run]')
-		console.error('Example: node scripts/migrate-image-urls.mjs 1 database_test')
-		console.error('         node scripts/migrate-image-urls.mjs 1 database_test --dry-run')
+		console.error('Usage: npx tsx scripts/migrate-image-urls.ts [userId] [dbName] [--dry-run]')
+		console.error('Example: npx tsx scripts/migrate-image-urls.ts 1 database_test')
+		console.error('         npx tsx scripts/migrate-image-urls.ts 1 database_test --dry-run')
 		process.exit(1)
 	}
 
@@ -37,18 +36,10 @@ const main = async () => {
 	if (dryRun) {
 		console.log(`\n🔍 DRY RUN - Aperçu des migrations (aucune modification)\n`)
 	}
-	console.log(`🔄 Migration des URLs d'images pour user ${userId}, database ${dbName}\n`)
+	console.log(`\n🔄 Migration des URLs d'images pour user ${userId}, database ${dbName}\n`)
 
-	// Connexion à la base de données spécifique
-	const databaseUrl = `postgresql://postgres:postgres@localhost:5432/tradejourney_user_${userId}_${dbName}?schema=public`
-	
-	const prisma = new PrismaClient({
-		datasources: {
-			db: {
-				url: databaseUrl
-			}
-		}
-	})
+	// Utiliser getDataDbUnsafe pour la connexion dynamique à la base de données
+	const prisma = getDataDbUnsafe(userId, dbName)
 
 	try {
 		// Migrer les trades (metadata.detailedNote)
@@ -57,7 +48,7 @@ const main = async () => {
 			where: {
 				metadata: {
 					path: ['detailedNote'],
-					not: null
+					not: null as any
 				}
 			}
 		})
@@ -121,7 +112,7 @@ const main = async () => {
 					await prisma.dailyNote.update({
 						where: { id: note.id },
 						data: {
-							content: migratedContent
+							content: migratedContent as any
 						}
 					})
 					console.log(`  ✅ Daily note ${dateStr} migrée`)
@@ -142,7 +133,7 @@ const main = async () => {
 		console.log(`   - Total: ${tradesUpdated + notesUpdated} enregistrements\n`)
 
 	} catch (error) {
-		console.error('\n❌ Erreur lors de la migration:', error.message)
+		console.error('\n❌ Erreur lors de la migration:', (error as Error).message)
 		process.exit(1)
 	} finally {
 		await prisma.$disconnect()
