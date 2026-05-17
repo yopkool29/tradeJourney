@@ -16,7 +16,7 @@
             :data="tableData"
             :empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.trade.table.no_trades.title') }"
             :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
-            class="custom-table-hover table-fixed">
+            class="trade-table">
             <template #actionToggle-cell="{ row }">
                 <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
                     <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
@@ -294,7 +294,7 @@ const emit = defineEmits<{
 
 const table = useTemplateRef('table')
 
-// Initialiser toutes les lignes comme expandées par défaut
+// Initialiser toutes les lignes comme expand\u00e9es par d\u00e9faut
 const expanded = computed(() => {
     const expandedState: Record<string, boolean> = {}
     props.tableData.forEach((_, index) => {
@@ -303,3 +303,4 @@ const expanded = computed(() => {
     return expandedState
 })
 </script>
+

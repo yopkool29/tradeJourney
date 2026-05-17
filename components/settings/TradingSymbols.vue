@@ -52,6 +52,9 @@
                             }}
                         </UBadge>
                     </template>
+                    <template #aliases-cell="{ row }">
+                        <span class="text-secondary">{{ getAliasDisplay(row.original) || '—' }}</span>
+                    </template>
                     <template #notes-cell="{ row }">
                         <span class="text-secondary">{{ row.original.notes || '—' }}</span>
                     </template>
@@ -156,6 +159,11 @@ const columns = computed(() => {
 
 const { fetchSymbols, createSymbol, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
 
+const getAliasDisplay = (symbol: SymbolType) => {
+    const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'alias')?.value
+    return fromMeta ?? symbol.aliases ?? ''
+}
+
 onMounted(() => {
     fetchSymbols()
 })
@@ -222,7 +230,7 @@ const filteredSymbols = computed(() => {
         return filters.value.every((filter) => {
             if (!filter.value && filter.value !== false && filter.value !== 0) return true
 
-            const symbolValue = symbol[filter.column as keyof typeof symbol]
+            const symbolValue = filter.column === 'aliases' ? getAliasDisplay(symbol) : symbol[filter.column as keyof typeof symbol]
             const filterValue = filter.value
 
             switch (filter.operator) {

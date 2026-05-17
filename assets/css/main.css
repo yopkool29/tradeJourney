@@ -524,3 +524,17 @@ select {
 .calendar-pnl-negative {
     @apply text-red-700 dark:text-red-400 font-semibold;
 }
+
+/* Trade table: fusionne visuellement la row principale et la row expanded */
+.trade-table tbody tr[data-expanded="true"] td {
+    @apply border-b-0 pb-0.5;
+}
+
+.trade-table tbody tr[data-expanded="true"] + tr td {
+    @apply pt-0.5 border-t-0 bg-transparent;
+}
+
+.trade-table tbody tr[data-expanded="true"] td:first-child,
+.trade-table tbody tr[data-expanded="true"] + tr td:first-child {
+    @apply border-l-2 border-l-primary;
+}
