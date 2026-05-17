@@ -1014,7 +1014,7 @@ export default {
                     digit: 'Décimales',
                     pricePerPoint: 'Prix par point',
                     active: 'Statut',
-                    aliases: 'Alias',
+                    aliases: 'Aliases',
                     notes: 'Notes',
                     createdAt: 'Créé le',
                     actions: 'Actions',

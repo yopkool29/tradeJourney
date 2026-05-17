@@ -23,24 +23,38 @@ export default defineEventHandler(async (event) => {
         }
 
         const id = parsed.id
-        const { id: _, ...updateData } = parsed
+        const { id: _, customFields: _customFields, ...updateData } = parsed
 
-        // Merger startingCapital dans metadata côté serveur
-        if (body.startingCapital !== undefined) {
+        // Merger startingCapital et customFields dans metadata côté serveur
+        const needsMetadataUpdate = body.startingCapital !== undefined || body.customFields !== undefined
+        if (needsMetadataUpdate) {
             const existing = await prisma.account.findUnique({ where: { id }, select: { metadata: true } })
-            const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
-            if (body.startingCapital !== null) {
-                updateData.metadata = { ...currentMetadata, startingCapital: body.startingCapital }
-            } else {
-                const { startingCapital: _, ...rest } = currentMetadata
-                updateData.metadata = Object.keys(rest).length > 0 ? rest : null
+            let currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
+
+            if (body.startingCapital !== undefined) {
+                if (body.startingCapital !== null) {
+                    currentMetadata = { ...currentMetadata, startingCapital: body.startingCapital }
+                } else {
+                    const { startingCapital: _, ...rest } = currentMetadata
+                    currentMetadata = rest
+                }
             }
+
+            if (body.customFields) {
+                const aliasFromFields = body.customFields.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
+                if (aliasFromFields !== null) {
+                    ;(updateData as any).aliases = aliasFromFields
+                }
+                currentMetadata = { ...currentMetadata, customFields: body.customFields }
+            }
+
+            ;(updateData as any).metadata = Object.keys(currentMetadata).length > 0 ? currentMetadata : null
         }
 
         // Mise à jour du compte
         const updatedAccount = await prisma.account.update({
             where: { id },
-            data: updateData
+            data: updateData as any
         })
 
         return {

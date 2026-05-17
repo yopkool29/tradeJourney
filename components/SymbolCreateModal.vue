@@ -49,7 +49,7 @@
                     <UFormField name="customFields" :label="$t('components.common.customFields.label')">
                         <CommonCustomFields
                             v-model="customFields"
-                            first-field-key="alias"
+                            first-field-key="aliases"
                         />
                     </UFormField>
                 </div>
@@ -101,7 +101,7 @@ const getDefaultSymbol = () => ({
 
 const newSymbolState = ref<Partial<SymbolType>>(getDefaultSymbol())
 
-const customFields = ref<CustomField[]>([{ key: 'alias', value: '' }])
+const customFields = ref<CustomField[]>([{ key: 'aliases', value: '' }])
 
 const customFieldsHasErrors = computed(() => {
     const allKeys = customFields.value.map(f => f.key.trim().toLowerCase()).filter(k => k)
@@ -113,22 +113,19 @@ const customFieldsHasErrors = computed(() => {
 
 const { createSymbol, updateSymbol } = useSymbols()
 
-const getAliasFromCustomFields = (fields: CustomField[]) => {
-    return fields.find(f => f.key === 'alias')?.value ?? ''
-}
-
 // Initialiser customFields depuis le symbol (migration depuis aliases CSV si besoin)
 const initCustomFields = (symbol: SymbolType | null | undefined) => {
     if (!symbol) {
-        customFields.value = [{ key: 'alias', value: '' }]
+        customFields.value = [{ key: 'aliases', value: '' }]
         return
     }
     const existing = symbol.metadata?.customFields
     if (existing && existing.length > 0) {
-        customFields.value = existing
+        // Migration : renommer l'ancienne clé 'alias' en 'aliases'
+        customFields.value = existing.map(f => f.key === 'alias' ? { ...f, key: 'aliases' } : f)
     } else {
         // Migration depuis l'ancien champ aliases CSV
-        customFields.value = [{ key: 'alias', value: symbol.aliases ?? '' }]
+        customFields.value = [{ key: 'aliases', value: symbol.aliases ?? '' }]
     }
 }
 
@@ -142,22 +139,19 @@ const handleSubmit = async () => {
 const submitSymbol = async (event: FormSubmitEvent<CreateSymbolType>) => {
     if (customFieldsHasErrors.value) return
     try {
-        const aliasValue = getAliasFromCustomFields(customFields.value)
-        const metadata = { ...(event.data.metadata ?? {}), customFields: customFields.value }
-
         if (props.symbol?.id) {
             // Mode édition
-            const updatedSymbol = await updateSymbol({ ...event.data, id: props.symbol.id, aliases: aliasValue, metadata })
+            const updatedSymbol = await updateSymbol({ ...event.data, id: props.symbol.id, customFields: customFields.value })
             emit('updated', updatedSymbol)
         } else {
             // Mode création
-            const createdSymbol = await createSymbol({ ...event.data, aliases: aliasValue, metadata })
+            const createdSymbol = await createSymbol({ ...event.data, customFields: customFields.value })
             emit('created', createdSymbol)
         }
         
         // Réinitialiser et fermer
         newSymbolState.value = getDefaultSymbol()
-        customFields.value = [{ key: 'alias', value: '' }]
+        customFields.value = [{ key: 'aliases', value: '' }]
         isOpen.value = false
     } catch (err) {
         const { message } = catchTagMessage(err, t)
@@ -177,12 +171,12 @@ watch(isOpen, (newValue) => {
         } else {
             // Mode création : formulaire vide
             newSymbolState.value = getDefaultSymbol()
-            customFields.value = [{ key: 'alias', value: '' }]
+            customFields.value = [{ key: 'aliases', value: '' }]
         }
     } else {
         // Fermeture (annuler ou après save) : reset propre
         newSymbolState.value = getDefaultSymbol()
-        customFields.value = [{ key: 'alias', value: '' }]
+        customFields.value = [{ key: 'aliases', value: '' }]
     }
 })
 </script>

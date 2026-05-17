@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { nameFormatRefine } from './index'
+import { CustomFieldSchema } from './symbol'
 
 export const AccountSchema = z.object({
     id: z.number(),
@@ -34,10 +35,14 @@ export const AccountSchema = z.object({
 
 export type AccountType = z.output<typeof AccountSchema>;
 
-export const CreateAccountSchema = AccountSchema.omit({ id: true, createdAt: true });
+export const CreateAccountSchema = AccountSchema.omit({ id: true, createdAt: true, metadata: true }).extend({
+    customFields: z.array(CustomFieldSchema).optional(),
+});
 
 export type CreateAccountType = z.output<typeof CreateAccountSchema>;
 
-export const UpdateAccountSchema = AccountSchema.partial().required({ id: true }).omit({ createdAt: true });
+export const UpdateAccountSchema = AccountSchema.partial().required({ id: true }).omit({ createdAt: true, metadata: true }).extend({
+    customFields: z.array(CustomFieldSchema).optional(),
+});
 
 export type UpdateAccountType = z.output<typeof UpdateAccountSchema>;

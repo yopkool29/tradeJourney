@@ -92,7 +92,7 @@ const findSymbolByNameOrAlias = async (dataDb: DataPrismaClient, symbolName: str
         const allSymbols = await dataDb.configSymbol.findMany()
         existingSymbol = allSymbols.find(sym => {
             // Lire les alias depuis metadata.customFields en priorité, sinon aliases CSV
-            const aliasFromMeta = (sym.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'alias')?.value ?? null
+            const aliasFromMeta = (sym.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
             const aliasStr: string = aliasFromMeta ?? sym.aliases ?? ''
             if (!aliasStr) return false
             const aliases = aliasStr.split(',').map((a: string) => a.trim().toUpperCase())
@@ -145,8 +145,10 @@ const processTrades = async (
     if (!account) {
         const allAccounts = await dataDb.account.findMany()
         account = allAccounts.find(acc => {
-            if (!acc.aliases) return false
-            const aliases = acc.aliases.split(',').map(a => a.trim())
+            const aliasFromMeta = (acc.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
+            const aliasStr: string = aliasFromMeta ?? acc.aliases ?? ''
+            if (!aliasStr) return false
+            const aliases = aliasStr.split(',').map(a => a.trim())
             return aliases.includes(parsedTrades.accountInfo.name)
         }) || null
     }

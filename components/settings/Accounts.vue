@@ -31,13 +31,15 @@
                                     <UInput class="md:w-2/3" v-model="newAccountState.fullname"
                                         :placeholder="$t('components.settings.accounts.fullname_placeholder')" />
                                 </UFormField>
-                                <UFormField name="aliases" :label="$t('components.settings.accounts.aliases_label')">
-                                    <UInput class="md:w-2/3" v-model="newAccountState.aliases"
-                                        :placeholder="$t('components.settings.accounts.aliases_placeholder')" />
-                                </UFormField>
                                 <UFormField name="startingCapital" :label="$t('components.settings.accounts.starting_capital_label')">
                                     <UInputNumber class="md:w-2/3" v-model="startingCapital" :min="100" :max="5000000" :step="100"
                                         :placeholder="$t('components.settings.accounts.starting_capital_placeholder')" />
+                                </UFormField>
+                                <UFormField name="customFields" :label="$t('components.common.customFields.label')">
+                                    <CommonCustomFields
+                                        v-model="customFields"
+                                        first-field-key="aliases"
+                                    />
                                 </UFormField>
                             </div>
                         </UForm>
@@ -68,6 +70,9 @@
             <div class="mt-6">
                 <h3 class="section-subtitle">{{ $t('components.settings.accounts.accounts_list') }}</h3>
                 <UTable :data="filteredAccounts" :columns="columns" class="mb-2">
+                    <template #aliases-cell="{ row }">
+                        <span class="text-secondary">{{ getAliasDisplay(row.original) || '—' }}</span>
+                    </template>
                     <template #startingCapital-cell="{ row }">
                         <span v-if="getStartingCapital(row.original)">
                             {{ formatCurrency(getStartingCapital(row.original)) }}
@@ -120,6 +125,7 @@
 
 <script setup lang="ts">
 import { CreateAccountSchema, type AccountType, type CreateAccountType, type UpdateAccountType } from '~/schema/account'
+import type { CustomField } from '~/schema/symbol'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import type { TradeFilter, FilterColumn } from '~/type'
 import { metadataHelpers } from '~/utils'
@@ -210,13 +216,27 @@ const getDefaultCreateAccount = () => ({
     fullname: '',
     displayName: '',
     aliases: '',
-    metadata: null,
 })
 
 const showAddAccount = ref(false)
 const newAccountState = ref<CreateAccountType>(getDefaultCreateAccount())
 const editingAccountId = ref<number | null>(null)
 const startingCapital = ref<number | null>(null)
+const customFields = ref<CustomField[]>([{ key: 'aliases', value: '' }])
+
+const customFieldsHasErrors = computed(() => {
+    const allKeys = customFields.value.map(f => f.key.trim().toLowerCase()).filter(k => k)
+    const hasDuplicates = allKeys.length !== new Set(allKeys).size
+    const freeFields = customFields.value.slice(1)
+    const hasEmptyKeys = freeFields.some(f => !f.key.trim())
+    return hasDuplicates || hasEmptyKeys
+})
+
+watch(showAddAccount, (newValue) => {
+    if (!newValue) {
+        customFields.value = [{ key: 'aliases', value: '' }]
+    }
+})
 
 // Synchroniser displayName avec name quand on n'est pas en mode édition
 watch(
@@ -235,7 +255,7 @@ const columns = computed(() => [
     { id: 'displayName', accessorKey: 'displayName', header: t('components.settings.accounts.column_display_name') },
     { id: 'fullname', accessorKey: 'fullname', header: t('components.settings.accounts.column_fullname') },
     { id: 'startingCapital', accessorKey: 'startingCapital', header: t('components.settings.accounts.column_starting_capital') },
-    { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.accounts.column_aliases') }
+    { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.accounts.column_aliases') },
 
 ])
 
@@ -263,12 +283,27 @@ const getStartingCapital = (account: AccountType): number | null => {
     return metadataHelpers.get<number>(account.metadata, 'startingCapital') ?? null
 }
 
+const getAliasDisplay = (account: AccountType) => {
+    const fromMeta = (account.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'aliases')?.value
+    return fromMeta ?? account.aliases ?? ''
+}
+
 const newAccount = () => {
     displayMessage(null, null)
     editingAccountId.value = null
     newAccountState.value = getDefaultCreateAccount()
     startingCapital.value = null
+    customFields.value = [{ key: 'aliases', value: '' }]
     showAddAccount.value = true
+}
+
+const initCustomFieldsFromAccount = (account: AccountType) => {
+    const existing = (account.metadata as any)?.customFields
+    if (existing && existing.length > 0) {
+        customFields.value = existing
+    } else {
+        customFields.value = [{ key: 'aliases', value: account.aliases ?? '' }]
+    }
 }
 
 const editAccount = (account: AccountType) => {
@@ -277,14 +312,17 @@ const editAccount = (account: AccountType) => {
     newAccountState.value = { ...account }
     // Extraire le capital de départ depuis metadata
     startingCapital.value = metadataHelpers.get(account.metadata, 'startingCapital') ?? null
+    initCustomFieldsFromAccount(account)
     showAddAccount.value = true
 }
 
 const onSubmitAccount = async (event: FormSubmitEvent<CreateAccountType | UpdateAccountType>) => {
+    if (customFieldsHasErrors.value) return
     try {
         const dataToSend = {
             ...event.data,
-            startingCapital: startingCapital.value,
+            startingCapital: startingCapital.value ?? null,
+            customFields: customFields.value,
         }
         
         if (editingAccountId.value) {
@@ -303,6 +341,7 @@ const onSubmitAccount = async (event: FormSubmitEvent<CreateAccountType | Update
         log_error(message)
     } finally {
         showAddAccount.value = false
+        customFields.value = [{ key: 'aliases', value: '' }]
     }
 }
 

@@ -152,7 +152,7 @@ const columns = computed(() => {
         { id: 'pricePerPoint', accessorKey: 'pricePerPoint', header: t('components.settings.tradingSymbols.columns.pricePerPoint'), meta: addMeta() },
         { id: 'active', accessorKey: 'active', header: t('components.settings.tradingSymbols.columns.active'), meta: addMeta() },
         { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.tradingSymbols.columns.aliases') },
-        { id: 'createdAt', accessorKey: 'createdAt', header: t('components.settings.tradingSymbols.columns.createdAt'), meta: addMeta() },
+        // { id: 'createdAt', accessorKey: 'createdAt', header: t('components.settings.tradingSymbols.columns.createdAt'), meta: addMeta() },
         { id: 'notes', accessorKey: 'notes', header: t('components.settings.tradingSymbols.columns.notes') },
     ]
 })
@@ -160,7 +160,7 @@ const columns = computed(() => {
 const { fetchSymbols, createSymbol, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
 
 const getAliasDisplay = (symbol: SymbolType) => {
-    const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'alias')?.value
+    const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'aliases')?.value
     return fromMeta ?? symbol.aliases ?? ''
 }
 

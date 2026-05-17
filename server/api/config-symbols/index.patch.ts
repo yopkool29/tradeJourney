@@ -24,13 +24,16 @@ export default defineEventHandler(async (event) => {
 
         const id = parsed.data.id
 
-        // Mettre à jour le symbole avec seulement les champs fournis
-        const { id: _, ...updateData } = parsed.data // On exclut l'id des données de mise à jour
+        // Mettre à jour le symbole avec seulement les champs fournis (customFields n'est pas un champ Prisma)
+        const { id: _, customFields: _customFields, ...updateData } = parsed.data
 
-        // Sync aliases depuis metadata.customFields si présent
-        const aliasFromFields = (updateData.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'alias')?.value ?? null
-        if (aliasFromFields !== null) {
-            updateData.aliases = aliasFromFields
+        // Merger customFields dans metadata côté serveur
+        const customFields = body.customFields ?? null
+        if (customFields) {
+            const existing = await prisma.configSymbol.findUnique({ where: { id }, select: { metadata: true } })
+            const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
+            updateData.aliases = customFields.find((f: { key: string }) => f.key === 'aliases')?.value ?? updateData.aliases ?? ''
+            ;(updateData as any).metadata = { ...currentMetadata, customFields }
         }
 
         try {

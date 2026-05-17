@@ -54,7 +54,7 @@ async function clearCachedViews() {
 // Utiliser computed pour rendre les labels réactifs aux changements de langue
 
 const items = computed(() => {
-    const baseItems = [
+    const baseItems: { label: string; value: 'accounts' | 'trading-symbols' | 'tags' | 'backup' | 'tools' | 'plugins' | 'options'; icon: string; component: ReturnType<typeof markRaw> }[] = [
         {
             label: t('pages.settings.tabs.accounts'),
             value: 'accounts' as const,
@@ -62,16 +62,16 @@ const items = computed(() => {
             component: markRaw(SettingsAccounts),
         },
         {
-            label: t('pages.settings.tabs.tags'),
-            value: 'tags' as const,
-            icon: 'i-heroicons-tag',
-            component: markRaw(SettingsTags),
-        },
-        {
             label: t('pages.settings.tabs.trading_symbols'),
             value: 'trading-symbols' as const,
             icon: 'i-heroicons-chart-bar',
             component: markRaw(SettingsTradingSymbols),
+        },
+        {
+            label: t('pages.settings.tabs.tags'),
+            value: 'tags' as const,
+            icon: 'i-heroicons-tag',
+            component: markRaw(SettingsTags),
         },
         {
             label: t('pages.settings.tabs.backup'),

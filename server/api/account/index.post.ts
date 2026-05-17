@@ -28,10 +28,17 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        // Merger startingCapital dans metadata si fourni
+        // Merger startingCapital et customFields dans metadata
+        const customFields = body.customFields ?? null
+        const aliasFromFields = customFields?.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
+        const aliases = aliasFromFields ?? parsed.aliases ?? ''
+
         let metadata: Record<string, unknown> | undefined
         if (body.startingCapital !== undefined && body.startingCapital !== null) {
             metadata = { startingCapital: body.startingCapital }
+        }
+        if (customFields) {
+            metadata = { ...(metadata ?? {}), customFields }
         }
 
         // Créer le nouveau compte
@@ -40,8 +47,8 @@ export default defineEventHandler(async (event) => {
                 name: parsed.name,
                 displayName: parsed.displayName,
                 fullname: parsed.fullname,
-                aliases: parsed.aliases || '',
-                ...(metadata && { metadata }),
+                aliases,
+                ...(metadata && { metadata: metadata as any }),
             }
         })
 

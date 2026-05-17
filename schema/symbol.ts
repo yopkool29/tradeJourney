@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export type CustomField = { key: string; value: string }
 
-const CustomFieldSchema = z.object({
+export const CustomFieldSchema = z.object({
 	key: z.string(),
 	value: z.string(),
 })
@@ -50,11 +50,20 @@ export type SymbolType = z.output<typeof SymbolSchema>;
 export const CreateSymbolSchema = SymbolSchema.omit({
     id: true,
     createdAt: true,
-    updatedAt: true
-}); // digit est bien conservé dans CreateSymbolSchema
+    updatedAt: true,
+    metadata: true,
+}).extend({
+    customFields: z.array(CustomFieldSchema).optional(),
+});
 
 export type CreateSymbolType = z.output<typeof CreateSymbolSchema>;
 
-export const UpdateSymbolSchema = SymbolSchema.partial().required({ id: true });
+export const UpdateSymbolSchema = SymbolSchema.partial().required({ id: true }).omit({
+    createdAt: true,
+    updatedAt: true,
+    metadata: true,
+}).extend({
+    customFields: z.array(CustomFieldSchema).optional(),
+});
 
 export type UpdateSymbolType = z.output<typeof UpdateSymbolSchema>;
