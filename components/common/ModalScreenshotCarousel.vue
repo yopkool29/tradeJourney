@@ -1,5 +1,5 @@
 <template>
-    <UModal v-model:open="open" :ui="{ content: 'md:max-w-full' }">
+    <UModal v-model:open="open" description="Screenshots" :ui="{ content: 'md:max-w-full' }">
         <template #body>
             <div class="mb-4 text-left ml-10 text-sm text-gray-600 dark:text-gray-400">
                 {{ screenshots.length }} {{ screenshots.length > 1 ? 'images' : 'image' }}

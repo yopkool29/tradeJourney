@@ -1,5 +1,5 @@
 <template>
-    <UModal v-model:open="open" :dismissible="dismissible" :title="title" :class="class" :ui="ui">
+    <UModal v-model:open="open" :dismissible="dismissible" :title="title" :description="description || title" :class="class" :ui="ui">
 
         <slot name="trigger" />
 
@@ -16,6 +16,10 @@
 <script setup lang="ts">
 defineProps({
     title: {
+        type: String,
+        default: '',
+    },
+    description: {
         type: String,
         default: '',
     },

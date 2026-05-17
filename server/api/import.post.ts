@@ -91,14 +91,17 @@ const findSymbolByNameOrAlias = async (dataDb: DataPrismaClient, symbolName: str
     if (!existingSymbol) {
         const allSymbols = await dataDb.configSymbol.findMany()
         existingSymbol = allSymbols.find(sym => {
-            if (!sym.aliases) return false
-            const aliases = sym.aliases.split(',').map(a => a.trim().toUpperCase())
+            // Lire les alias depuis metadata.customFields en priorité, sinon aliases CSV
+            const aliasFromMeta = (sym.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'alias')?.value ?? null
+            const aliasStr: string = aliasFromMeta ?? sym.aliases ?? ''
+            if (!aliasStr) return false
+            const aliases = aliasStr.split(',').map((a: string) => a.trim().toUpperCase())
 
             // Vérifier les alias exacts
             if (aliases.includes(normalizedSymbol)) return true
 
             // Vérifier les wildcards (ex: MES* match MESZ5, MESH5, etc.)
-            return aliases.some(alias => {
+            return aliases.some((alias: string) => {
                 if (alias.endsWith('*')) {
                     const prefix = alias.slice(0, -1)
                     return normalizedSymbol.startsWith(prefix)

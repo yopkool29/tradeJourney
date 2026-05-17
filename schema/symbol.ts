@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+export type CustomField = { key: string; value: string }
+
+const CustomFieldSchema = z.object({
+	key: z.string(),
+	value: z.string(),
+})
+
+const MetadataSchema = z.object({
+	customFields: z.array(CustomFieldSchema).optional(),
+}).passthrough()
+
 export const SymbolSchema = z.object({
     id: z.number(),
     symbol: z.string().min(1).transform(val => val.toUpperCase()),
@@ -28,7 +39,7 @@ export const SymbolSchema = z.object({
             }
             return val;
         },
-        z.any().nullable().optional()
+        MetadataSchema.nullable().optional()
     ),
     createdAt: z.string().or(z.date()),
     updatedAt: z.string().or(z.date())

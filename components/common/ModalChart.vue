@@ -3,6 +3,7 @@
         v-model:open="modelValue"
         :dismissible="true"
         :title="title"
+        :description="title"
         class="sm:max-w-6xl h-[300px] sm:h-[500px]"
         :ui="{ content: 'md:max-w-4/5' }"
     >

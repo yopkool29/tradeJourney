@@ -485,6 +485,17 @@ export default {
             },
         },
         common: {
+            customFields: {
+                label: 'Custom fields',
+                edit: 'Edit',
+                collapse: 'Collapse',
+                empty: 'No fields',
+                add: 'Add field',
+                key_placeholder: 'Field name',
+                value_placeholder: 'Value',
+                duplicate_key_error: 'Field keys must be unique',
+                empty_key_error: 'Field name cannot be empty',
+            },
             actions: {
                 add_notes_tags: 'Add notes/tags',
                 edit_notes_tags: 'Edit notes/tags',

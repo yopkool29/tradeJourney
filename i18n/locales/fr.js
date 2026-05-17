@@ -495,6 +495,17 @@ export default {
             },
         },
         common: {
+            customFields: {
+                label: 'Champs personnalisés',
+                edit: 'Modifier',
+                collapse: 'Replier',
+                empty: 'Aucun champ',
+                add: 'Ajouter un champ',
+                key_placeholder: 'Nom du champ',
+                value_placeholder: 'Valeur',
+                duplicate_key_error: 'Les clés des champs doivent être uniques',
+                empty_key_error: 'Le nom du champ ne peut pas être vide',
+            },
             actions: {
                 add_notes_tags: 'Ajouter notes/tags',
                 edit_notes_tags: 'Modifier notes/tags',

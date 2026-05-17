@@ -27,10 +27,16 @@ export default defineEventHandler(async (event) => {
         // Mettre à jour le symbole avec seulement les champs fournis
         const { id: _, ...updateData } = parsed.data // On exclut l'id des données de mise à jour
 
+        // Sync aliases depuis metadata.customFields si présent
+        const aliasFromFields = (updateData.metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'alias')?.value ?? null
+        if (aliasFromFields !== null) {
+            updateData.aliases = aliasFromFields
+        }
+
         try {
             const symbol = await prisma.configSymbol.update({
                 where: { id },
-                data: updateData
+                data: updateData as any
             });
 
             return symbol;

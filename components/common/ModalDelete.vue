@@ -1,5 +1,5 @@
 <template>
-    <UModal v-model:open="open" :dismissible="true" :title="modalTitle">
+    <UModal v-model:open="open" :dismissible="true" :title="modalTitle" :description="modalTitle">
         <slot name="trigger" />
 
         <template #body>

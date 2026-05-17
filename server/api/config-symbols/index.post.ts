@@ -38,13 +38,19 @@ export default defineEventHandler(async (event) => {
             })
         }
 
+        const metadata = parsed.data.metadata ?? null
+        const aliasFromFields = (metadata as any)?.customFields?.find((f: { key: string }) => f.key === 'alias')?.value ?? null
+        const aliases = aliasFromFields ?? parsed.data.aliases ?? ''
+
         // Créer le nouveau symbole
         const newSymbol = await prisma.configSymbol.create({
             data: {
                 digit: parsed.data.digit,
                 symbol: parsed.data.symbol,
                 notes: parsed.data.notes || null,
-                aliases: parsed.data.aliases || ''
+                aliases,
+                pricePerPoint: parsed.data.pricePerPoint ?? -1,
+                ...(metadata && { metadata }),
             }
         })
 

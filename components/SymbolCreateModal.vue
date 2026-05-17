@@ -46,11 +46,10 @@
                             :placeholder="$t('components.settings.tradingSymbols.notes_placeholder')"
                         />
                     </UFormField>
-                    <UFormField name="aliases" :label="$t('components.settings.tradingSymbols.aliases_label')">
-                        <UInput
-                            v-model="newSymbolState.aliases"
-                            class="md:w-2/3"
-                            :placeholder="$t('components.settings.tradingSymbols.aliases_placeholder')"
+                    <UFormField name="customFields" :label="$t('components.common.customFields.label')">
+                        <CommonCustomFields
+                            v-model="customFields"
+                            first-field-key="alias"
                         />
                     </UFormField>
                 </div>
@@ -72,7 +71,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { CreateSymbolSchema } from '~/schema/symbol'
-import type { CreateSymbolType, SymbolType } from '~/schema/symbol'
+import type { CreateSymbolType, SymbolType, CustomField } from '~/schema/symbol'
 
 const { t } = useI18n()
 const { log_error } = useLogView()
@@ -102,7 +101,36 @@ const getDefaultSymbol = () => ({
 
 const newSymbolState = ref<Partial<SymbolType>>(getDefaultSymbol())
 
-const { createSymbol, updateSymbol, fetchSymbols } = useSymbols()
+const customFields = ref<CustomField[]>([{ key: 'alias', value: '' }])
+
+const customFieldsHasErrors = computed(() => {
+    const allKeys = customFields.value.map(f => f.key.trim().toLowerCase()).filter(k => k)
+    const hasDuplicates = allKeys.length !== new Set(allKeys).size
+    const freeFields = customFields.value.slice(1)
+    const hasEmptyKeys = freeFields.some(f => !f.key.trim())
+    return hasDuplicates || hasEmptyKeys
+})
+
+const { createSymbol, updateSymbol } = useSymbols()
+
+const getAliasFromCustomFields = (fields: CustomField[]) => {
+    return fields.find(f => f.key === 'alias')?.value ?? ''
+}
+
+// Initialiser customFields depuis le symbol (migration depuis aliases CSV si besoin)
+const initCustomFields = (symbol: SymbolType | null | undefined) => {
+    if (!symbol) {
+        customFields.value = [{ key: 'alias', value: '' }]
+        return
+    }
+    const existing = symbol.metadata?.customFields
+    if (existing && existing.length > 0) {
+        customFields.value = existing
+    } else {
+        // Migration depuis l'ancien champ aliases CSV
+        customFields.value = [{ key: 'alias', value: symbol.aliases ?? '' }]
+    }
+}
 
 // Fonction pour déclencher la soumission du formulaire
 const handleSubmit = async () => {
@@ -112,21 +140,24 @@ const handleSubmit = async () => {
 }
 
 const submitSymbol = async (event: FormSubmitEvent<CreateSymbolType>) => {
+    if (customFieldsHasErrors.value) return
     try {
+        const aliasValue = getAliasFromCustomFields(customFields.value)
+        const metadata = { ...(event.data.metadata ?? {}), customFields: customFields.value }
+
         if (props.symbol?.id) {
             // Mode édition
-            const updatedSymbol = await updateSymbol({ ...event.data, id: props.symbol.id })
-            await fetchSymbols()
+            const updatedSymbol = await updateSymbol({ ...event.data, id: props.symbol.id, aliases: aliasValue, metadata })
             emit('updated', updatedSymbol)
         } else {
             // Mode création
-            const createdSymbol = await createSymbol(event.data)
-            await fetchSymbols()
+            const createdSymbol = await createSymbol({ ...event.data, aliases: aliasValue, metadata })
             emit('created', createdSymbol)
         }
         
         // Réinitialiser et fermer
         newSymbolState.value = getDefaultSymbol()
+        customFields.value = [{ key: 'alias', value: '' }]
         isOpen.value = false
     } catch (err) {
         const { message } = catchTagMessage(err, t)
@@ -136,16 +167,22 @@ const submitSymbol = async (event: FormSubmitEvent<CreateSymbolType>) => {
     }
 }
 
-// Initialiser le formulaire quand on ouvre le modal
+// Initialiser/réinitialiser le formulaire à l'ouverture/fermeture du modal
 watch(isOpen, (newValue) => {
     if (newValue) {
         if (props.symbol) {
             // Mode édition : charger les données du symbole
             newSymbolState.value = { ...props.symbol }
+            initCustomFields(props.symbol)
         } else {
             // Mode création : formulaire vide
             newSymbolState.value = getDefaultSymbol()
+            customFields.value = [{ key: 'alias', value: '' }]
         }
+    } else {
+        // Fermeture (annuler ou après save) : reset propre
+        newSymbolState.value = getDefaultSymbol()
+        customFields.value = [{ key: 'alias', value: '' }]
     }
 })
 </script>
