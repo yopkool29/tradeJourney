@@ -101,6 +101,9 @@ COPY --from=builder /app/scripts /app/scripts
 # Copier le dossier server pour les scripts qui en dépendent
 COPY --from=builder /app/server /app/server
 
+# Copier les clients Prisma générés pour les scripts standalone
+COPY --from=builder /app/generated/prisma-data ./generated/prisma-data
+
 # Copier les outils Python
 COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/python
 

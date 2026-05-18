@@ -151,15 +151,17 @@ const isOpen = () => {
 }
 
 const onDebug1 = () => {
-    userStore.addDebug1()
+    debug('logDebug1')
 }
 
 const onDebug2 = () => {
-    userStore.addDebug2()
+    error('logDebug2')
 }
 
-const onFix = () => {
-    userStore.addFix()
+const onFix = async () => {
+    info('🔧 Fix Image urls')
+    const { fixImageUrls } = useFix()
+    await fixImageUrls()
 }
 
 defineExpose<ILogView>({ onClose, onOpen, isOpen, debug, info, warn, error })

@@ -98,7 +98,8 @@ export default defineNuxtConfig({
             appTagVersion: process.env.APP_VERSION,
             enableRouteLogger: false,
             enableApiLogger: process.env.DEBUG_MODE === 'true',
-            pluginsEnabled: process.env.PLUGINS_ENABLED === 'true'
+            pluginsEnabled: process.env.PLUGINS_ENABLED === 'true',
+            showLogView: process.env.SHOW_LOG_VIEW === 'true' || process.env.NODE_ENV !== 'production'
         }
     },
 

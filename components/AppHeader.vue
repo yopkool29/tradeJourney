@@ -217,12 +217,11 @@ const { logout } = useAuth()
 const { locale, setLocale, t } = useI18n()
 const { currentDatabase, clearCurrentDatabase } = useDatabase()
 const router = useRouter()
-
-const { log_debug, log_error, log_info } = useLogView()
+const config = useRuntimeConfig()
 
 const mobileMenuOpen = ref(false)
 
-const displayLog = ref(import.meta.env.DEV)
+const displayLog = ref(config.public.showLogView)
 
 // Vérification périodique de la session
 const { startSessionCheck, stopSessionCheck } = useSessionCheck()
@@ -352,28 +351,4 @@ watch(
         }
     }
 )
-
-watch(
-    () => userStore.logDebug1,
-    () => {
-        log_debug('logDebug1 changed')
-    }
-)
-
-watch(
-    () => userStore.logDebug2,
-    () => {
-        log_error('logDebug2 changed')
-    }
-)
-
-watch(
-    () => userStore.logFix,
-    async () => {
-        log_info('🔧 Correction des commissions négatives...')
-        // const { fixNegativeCommissions } = useFix()
-        // await fixNegativeCommissions()
-    }
-)
-
 </script>

@@ -371,16 +371,16 @@ When migrating backups between databases with different names, you may need to m
 # Connect to the container
 docker exec -it <container_name> sh
 
-# Run the script (dry-run to preview)
-npx tsx scripts/migrate-image-urls.ts 1 database_name --dry-run
+# Run the standalone script (dry-run to preview)
+npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name --dry-run
 
 # Run the actual migration
-npx tsx scripts/migrate-image-urls.ts 1 database_name
+npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name
 ```
 
 **Or run in one command:**
 ```bash
-docker exec -it <container_name> npx tsx scripts/migrate-image-urls.ts 1 database_name --dry-run
+docker exec -it <container_name> npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name --dry-run
 ```
 
 **What it does:**
