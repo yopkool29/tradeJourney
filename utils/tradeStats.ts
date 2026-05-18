@@ -148,23 +148,34 @@ export const getRecoveryFactor = (trades: { profit: number; netProfit: number }[
  * @param round Nombre de décimales pour l'arrondi (-1 pour ne pas arrondir)
  * @returns Ratio de Sharpe
  */
-export const getSharpeRatio = (trades: { profit: number; netProfit: number }[], riskFreeRate = 0, round = -1, useNet = true) => {
+export const getSharpeRatio = (trades: { profit: number; netProfit: number; openDate?: Date | string }[], riskFreeRate = 0, round = -1, useNet = true) => {
     if (trades.length < 2) return 0
 
-    // Calculer les rendements quotidiens (ou par trade)
     const returns = trades.map(trade => useNet ? trade.netProfit : trade.profit)
 
-    // Calculer le rendement moyen
     const meanReturn = returns.reduce((sum, val) => sum + val, 0) / returns.length
 
-    // Calculer l'écart-type des rendements
     const squaredDiffs = returns.map(val => Math.pow(val - meanReturn, 2))
     const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (returns.length - 1)
     const stdDev = Math.sqrt(variance)
 
-    // Calculer le ratio de Sharpe selon la formule MT5
-    // (Rendement moyen - Taux sans risque) / Écart-type
-    const result = stdDev === 0 ? 0 : (meanReturn - riskFreeRate) / stdDev
+    const rawSharpe = stdDev === 0 ? 0 : (meanReturn - riskFreeRate) / stdDev
+
+    // Annualisation : √(trades par an) pour obtenir un ratio comparable aux standards financiers
+    const tradesWithDates = trades.filter(t => t.openDate)
+    let annualizationFactor = 1
+    if (tradesWithDates.length >= 2) {
+        const dates = tradesWithDates.map(t => new Date(t.openDate!).getTime())
+        const minDate = Math.min(...dates)
+        const maxDate = Math.max(...dates)
+        const years = (maxDate - minDate) / (365.25 * 24 * 60 * 60 * 1000)
+        if (years > 0) {
+            const tradesPerYear = Math.min(trades.length / years, 252)
+            annualizationFactor = Math.sqrt(tradesPerYear)
+        }
+    }
+
+    const result = rawSharpe * annualizationFactor
 
     if (round < 0)
         return result

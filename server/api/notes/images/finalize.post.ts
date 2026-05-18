@@ -36,18 +36,21 @@ export default defineEventHandler(async (event) => {
 				await rename(tmpPath, finalPath)
 			}
 
-			// Utiliser le format filename-only pour la portabilité
-			const finalUrl = `/api/image?path=${finalName}`
-			const tmpUrl = `/api/image?path=${tmpName}`
+			const finalUrl = `/api/image?path=screenshots/${finalName}`
+			const tmpUrl = `/api/image?path=screenshots/${tmpName}`
 			
-			// Remplacer aussi l'ancien format avec path complet (pour compatibilité)
+			// Remplacer aussi les anciens formats (filename-only et path complet)
 			const screenshotPath = getScreenshotUploadPath(userId, dbName).replace('./upload/', '')
-			const oldFormatTmpUrl = `/api/image?path=${screenshotPath}/${tmpName}`
-			const oldFormatFinalUrl = `/api/image?path=${screenshotPath}/${finalName}`
+			const oldFormatTmpUrlFull = `/api/image?path=${screenshotPath}/${tmpName}`
+			const oldFormatFinalUrlFull = `/api/image?path=${screenshotPath}/${finalName}`
+			const oldFormatTmpUrlFilename = `/api/image?path=${tmpName}`
+			const oldFormatFinalUrlFilename = `/api/image?path=${finalName}`
 			
 			updatedContent = updatedContent.replaceAll(tmpUrl, finalUrl)
-			updatedContent = updatedContent.replaceAll(oldFormatTmpUrl, finalUrl)
-			updatedContent = updatedContent.replaceAll(oldFormatFinalUrl, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatTmpUrlFull, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatFinalUrlFull, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatTmpUrlFilename, finalUrl)
+			updatedContent = updatedContent.replaceAll(oldFormatFinalUrlFilename, finalUrl)
 		}
 
 		return { content: updatedContent }

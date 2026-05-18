@@ -49,6 +49,15 @@
                     </div>
                     <div></div>
                     <div>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.stopLoss') }}</span>
+                        <span class="font-semibold">{{ !trade.stopLoss ? '---' : trade.stopLoss.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.takeProfit') }}</span>
+                        <span class="font-semibold">{{ !trade.takeProfit ? '---' : trade.takeProfit.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                    </div>
+                    <div></div>
+                    <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.openHour')
                             }}</span>
                         <span>{{ formatDateWithUserTimezone(trade.openDate, userStore.user?.settings_object!, true,

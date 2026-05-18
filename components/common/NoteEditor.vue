@@ -185,13 +185,11 @@ const uploadImage = async (file: File): Promise<string> => {
         body: formData,
     })
     
-    // Extraire seulement le filename pour la portabilité
-    // Convertit: /api/image?path=user_1_data/db/screenshots/file.png
-    // En: /api/image?path=file.png
+    // Normaliser l'URL au format screenshots/filename pour la portabilité
     const url = result.url
     const match = url.match(/\/screenshots\/([^&\s]+)/)
     if (match) {
-        return `/api/image?path=${match[1]}`
+        return `/api/image?path=screenshots/${match[1]}`
     }
     return url
 }

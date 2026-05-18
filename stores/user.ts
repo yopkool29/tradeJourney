@@ -235,6 +235,8 @@ export const useUserStore = defineStore(
                             profit: true,
                             grossProfit: false,
                             commission: false,
+                            stopLoss: false,
+                            takeProfit: false,
                         }),
                         last_results: [] as TradeExtendedType[]
                     }
@@ -334,6 +336,8 @@ export const useUserStore = defineStore(
                         profit: true,
                         grossProfit: false,
                         commission: false,
+                        stopLoss: false,
+                        takeProfit: false,
                     }
                 }
                 return columnVisibilityPerDb.value[dbName]

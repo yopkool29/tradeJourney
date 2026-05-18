@@ -183,6 +183,16 @@
                         {{ row.original.closePrice.toFixed(getDigitFromSymbol(row.original.symbol)) }}
                     </span>
                 </template>
+                <template #stopLoss-cell="{ row }">
+                    <span class="font-semibold">
+                        {{ !row.original.stopLoss ? '---' : row.original.stopLoss.toFixed(getDigitFromSymbol(row.original.symbol)) }}
+                    </span>
+                </template>
+                <template #takeProfit-cell="{ row }">
+                    <span class="font-semibold">
+                        {{ !row.original.takeProfit ? '---' : row.original.takeProfit.toFixed(getDigitFromSymbol(row.original.symbol)) }}
+                    </span>
+                </template>
                 <template #profit-cell="{ row }">
                     <span :class="(row.original.netProfit || 0) >= 0 ? 'profit-text' : 'loss-text'">
                         {{ formatCurrency(row.original.netProfit || 0) }}
@@ -314,6 +324,8 @@ const labelColumnsHeader = computed(() => {
         profit: t('components.common.columns.headers.profit'),
         grossProfit: t('components.common.columns.headers.grossProfit'),
         commission: t('components.common.columns.headers.commission'),
+        stopLoss: t('components.common.columns.headers.stopLoss'),
+        takeProfit: t('components.common.columns.headers.takeProfit'),
         // Index signature is added via the type assertion below
     }
 })
@@ -775,6 +787,20 @@ const columns = [
         accessorKey: 'commission',
         header: () => t('components.common.columns.headers.commission'),
         cell: ({ row }) => formatCurrency(row.original.commission || 0),
+        sortable: false,
+        meta: addMeta('w-[100px]'),
+    },
+    {
+        id: 'stopLoss',
+        accessorKey: 'stopLoss',
+        header: () => t('components.common.columns.headers.stopLoss'),
+        sortable: false,
+        meta: addMeta('w-[100px]'),
+    },
+    {
+        id: 'takeProfit',
+        accessorKey: 'takeProfit',
+        header: () => t('components.common.columns.headers.takeProfit'),
         sortable: false,
         meta: addMeta('w-[100px]'),
     },

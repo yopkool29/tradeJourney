@@ -286,6 +286,8 @@ const labelColumnsHeader = computed(() => {
         profit: t('components.common.columns.headers.profit'),
         grossProfit: t('components.common.columns.headers.grossProfit'),
         commission: t('components.common.columns.headers.commission'),
+        stopLoss: t('components.common.columns.headers.stopLoss'),
+        takeProfit: t('components.common.columns.headers.takeProfit'),
         // Index signature is added via the type assertion below
     }
 })
@@ -314,6 +316,18 @@ const columns = computed(() => {
             accessorKey: 'commission',
             header: labelColumnsHeader.value.commission,
             cell: ({ row }) => formatCurrency(row.original.commission || 0),
+            meta: addMeta('w-[100px]')
+        },
+        {
+            id: 'stopLoss',
+            accessorKey: 'stopLoss',
+            header: labelColumnsHeader.value.stopLoss,
+            meta: addMeta('w-[100px]')
+        },
+        {
+            id: 'takeProfit',
+            accessorKey: 'takeProfit',
+            header: labelColumnsHeader.value.takeProfit,
             meta: addMeta('w-[100px]')
         },
     ]

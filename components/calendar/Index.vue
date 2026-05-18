@@ -387,7 +387,7 @@ const onFilter = async () => {
 const handleMonthChangeDebounced = useDebounceFn(async () => {
     filterLoading.value = true
     await applyCalendar(selectedMonth.value)
-}, 200)
+}, 500)
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }

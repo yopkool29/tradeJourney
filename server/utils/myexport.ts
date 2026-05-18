@@ -8,10 +8,11 @@ import extract from 'extract-zip'
 import { getDataDb, validateSchemaExists } from '../utils/db'
 import { getUploadPath } from "./index"
 import { createAppError } from './errors'
+import { migrateImageUrlsInContent, migrateScreenshotUrl, migrateScreenshotsDir } from './export-utils'
 import type { InstrumentType } from '~/type'
 
 const EXPORT_BASE_DIR = join(process.cwd(), 'temp/exports')
-const VERSION_MANIFEST = '1.1.8'
+const VERSION_MANIFEST = '1.1.9'
 const versionToInt = (version: string): number => {
     const parts = version.split('.').map(p => parseInt(p, 10))
     return (parts[0] || 0) * 100 + (parts[1] || 0) * 10 + (parts[2] || 0)
@@ -356,38 +357,34 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
 
         const data: ImportData = JSON.parse(await readFile(dataSource, 'utf-8'))
 
-        // Migration pour les backups < 1.1.8 : convertir les URLs d'images au format filename-only
-        if (backupVersionInt < 118) {
-            console.log('Migrating image URLs to filename-only format...')
-            
-            const migrateImageUrls = (content: string | null): string | null => {
-                if (!content) return content
-                // Convertit: /api/image?path=user_X_data/ANY_DB/screenshots/file.png
-                // En: /api/image?path=file.png
-                return content.replace(/\/api\/image\?path=user_\d+_data\/[^/]+\/screenshots\/([^)\s"&]+)/g, '/api/image?path=$1')
-            }
+        // Migration des URLs de screenshots : uniquement pour les backups antérieurs à la version courante
+        if (backupVersionInt < versionToInt(VERSION_MANIFEST)) {
+            console.log('Migrating screenshot URLs to screenshots/filename format...')
 
-            // Migrer les URLs dans les trades (metadata.detailedNote)
             data.trades = data.trades.map(trade => {
+                const migratedScreenshots = trade.screenshots.map(s => ({
+                    ...s,
+                    url: migrateScreenshotUrl(s.url)
+                }))
                 if (trade.metadata && typeof trade.metadata === 'object' && 'detailedNote' in trade.metadata) {
                     const detailedNote = trade.metadata.detailedNote
                     if (typeof detailedNote === 'string') {
                         return {
                             ...trade,
+                            screenshots: migratedScreenshots,
                             metadata: {
                                 ...trade.metadata,
-                                detailedNote: migrateImageUrls(detailedNote)
+                                detailedNote: migrateImageUrlsInContent(detailedNote)
                             }
                         }
                     }
                 }
-                return trade
+                return { ...trade, screenshots: migratedScreenshots }
             })
 
-            // Migrer les URLs dans les dailyNotes
             data.dailyNotes = data.dailyNotes.map(note => ({
                 ...note,
-                content: migrateImageUrls(note.content) || note.content
+                content: migrateImageUrlsInContent(note.content) || note.content
             }))
         }
 
@@ -640,6 +637,11 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             }
 
             await processDirectory(uploadsSource, uploadsSource)
+        }
+
+        // Migration fichiers physiques : uniquement pour les backups antérieurs à la version courante
+        if (backupVersionInt < versionToInt(VERSION_MANIFEST)) {
+            await migrateScreenshotsDir(uploadDir)
         }
 
         // Cleanup

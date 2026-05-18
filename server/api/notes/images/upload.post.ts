@@ -58,8 +58,7 @@ export default defineEventHandler(async (event) => {
 		await mkdir(uploadDir, { recursive: true })
 		await writeFile(resolve(uploadDir, filename), filePart.data)
 
-		const urlPath = `user_${userId}_data/${dbName}/screenshots/${filename}`
-		const url = `/api/image?path=${urlPath}`
+		const url = `/api/image?path=screenshots/${filename}`
 
 		return { filename, url }
 	} catch (error) {

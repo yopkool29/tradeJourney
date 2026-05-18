@@ -1,15 +1,9 @@
 import { config } from 'dotenv'
 import { getDataDbUnsafe } from '../server/utils/db'
+import { migrateImageUrlsInContent, migrateScreenshotUrl } from '../server/utils/export-utils'
 
 // Charger les variables d'environnement
 config()
-
-const migrateImageUrls = (content: string | null): string | null => {
-	if (!content) return content
-	// Convertit: /api/image?path=user_X_data/ANY_DB/screenshots/file.png
-	// En: /api/image?path=file.png
-	return content.replace(/\/api\/image\?path=user_\d+_data\/[^/]+\/screenshots\/([^)\s"&]+)/g, '/api/image?path=$1')
-}
 
 const main = async () => {
 	const args = process.argv.slice(2)
@@ -42,47 +36,50 @@ const main = async () => {
 	const prisma = getDataDbUnsafe(userId, dbName)
 
 	try {
-		// Migrer les trades (metadata.detailedNote)
+		// Migrer les trades (metadata.detailedNote + screenshot.url)
 		console.log('📊 Migration des trades...')
 		const trades = await prisma.trade.findMany({
-			where: {
-				metadata: {
-					path: ['detailedNote'],
-					not: null as any
-				}
-			}
+			include: { screenshots: true }
 		})
 
 		let tradesUpdated = 0
 		for (const trade of trades) {
 			const metadata = trade.metadata
+			const migratedScreenshots = trade.screenshots.map(s => ({
+				id: s.id,
+				original: s.url,
+				migrated: migrateScreenshotUrl(s.url)
+			})).filter(s => s.original !== s.migrated)
+
+			let migratedNote: string | null = null
 			if (metadata && typeof metadata === 'object' && 'detailedNote' in metadata) {
 				const detailedNote = metadata.detailedNote
-				if (typeof detailedNote === 'string' && detailedNote.includes('/api/image?path=user_')) {
-					const migratedNote = migrateImageUrls(detailedNote)
-					
-					if (dryRun) {
-						console.log(`  🔍 Trade #${trade.id} serait migré`)
-						const oldUrls = detailedNote.match(/\/api\/image\?path=user_\d+_data\/[^/]+\/screenshots\/[^)\s"&]+/g)
-						if (oldUrls) {
-							oldUrls.forEach(url => console.log(`     - ${url}`))
-						}
-					} else {
-						await prisma.trade.update({
-							where: { id: trade.id },
-							data: {
-								metadata: {
-									...metadata,
-									detailedNote: migratedNote
-								}
-							}
-						})
-						console.log(`  ✅ Trade #${trade.id} migré`)
-					}
-					
-					tradesUpdated++
+				if (typeof detailedNote === 'string') {
+					const result = migrateImageUrlsInContent(detailedNote)
+					if (result !== detailedNote) migratedNote = result
 				}
 			}
+
+			if (migratedScreenshots.length === 0 && !migratedNote) continue
+
+			if (dryRun) {
+				console.log(`  🔍 Trade #${trade.id} serait migré`)
+				migratedScreenshots.forEach(s => console.log(`     screenshot: ${s.original} → ${s.migrated}`))
+				if (migratedNote) console.log(`     detailedNote: URLs migrées`)
+			} else {
+				for (const s of migratedScreenshots) {
+					await prisma.screenshot.update({ where: { id: s.id }, data: { url: s.migrated } })
+				}
+				if (migratedNote && metadata && typeof metadata === 'object') {
+					await prisma.trade.update({
+						where: { id: trade.id },
+						data: { metadata: { ...metadata, detailedNote: migratedNote } as any }
+					})
+				}
+				console.log(`  ✅ Trade #${trade.id} migré`)
+			}
+
+			tradesUpdated++
 		}
 		console.log(`${dryRun ? '🔍' : '✨'} ${tradesUpdated} trade(s) ${dryRun ? 'à migrer' : 'migré(s)'}\n`)
 
@@ -99,15 +96,13 @@ const main = async () => {
 		let notesUpdated = 0
 		for (const note of dailyNotes) {
 			if (note.content) {
-				const migratedContent = migrateImageUrls(note.content)
+				const migratedContent = migrateImageUrlsInContent(note.content)
 				const dateStr = new Date(note.date).toISOString().split('T')[0]
 				
+				if (migratedContent === note.content) continue
+
 				if (dryRun) {
 					console.log(`  🔍 Daily note ${dateStr} serait migrée`)
-					const oldUrls = note.content.match(/\/api\/image\?path=user_\d+_data\/[^/]+\/screenshots\/[^)\s"&]+/g)
-					if (oldUrls) {
-						oldUrls.forEach(url => console.log(`     - ${url}`))
-					}
 				} else {
 					await prisma.dailyNote.update({
 						where: { id: note.id },

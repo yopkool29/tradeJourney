@@ -113,6 +113,16 @@
                     {{ row.original.closePrice.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
                 </span>
             </template>
+            <template #stopLoss-cell="{ row }">
+                <span class="font-semibold">
+                    {{ !row.original.stopLoss ? '---' : row.original.stopLoss.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
+                </span>
+            </template>
+            <template #takeProfit-cell="{ row }">
+                <span class="font-semibold">
+                    {{ !row.original.takeProfit ? '---' : row.original.takeProfit.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
+                </span>
+            </template>
             <template #note-cell="{ row }">
                 <div class="tag-container cell-wide">
                     <UTooltip :text="row.original.note ?? ''">

@@ -195,7 +195,7 @@ const loadMonthData = async () => {
 }
 
 // Debounce pour éviter les appels multiples
-const loadMonthDataDebounced = useDebounceFn(loadMonthData, 200)
+const loadMonthDataDebounced = useDebounceFn(loadMonthData, 500)
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }

@@ -19,9 +19,7 @@ export const getDateFnsLocale = (_locale: 'fr' | 'en' | 'es' | 'de' | 'it' = 'fr
 
 export const getImagePath = (src: string, userId?: number, dbName?: string): string => {
     if (userId && dbName) {
-        // Use the same path construction as getUploadPath: ./upload/user_{userId}_data/{dbName}/screenshots
-        const uploadPath = `user_${userId}_data/${dbName}/screenshots`
-        return `/api/image?path=${encodeURIComponent(uploadPath)}/${src}`
+        return `/api/image?path=${src}`
     }
     return ""
 }

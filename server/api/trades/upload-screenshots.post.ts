@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
                     throw { statusCode: 400, statusMessage: 'Fichier trop volumineux' }
                 }
                 const filename = path.basename(file.newFilename || file.filepath)
-                screenshotUrls.push(`${filename}`)
+                screenshotUrls.push(`screenshots/${filename}`)
             }
 
             // Limiter à 3 screenshots maximum

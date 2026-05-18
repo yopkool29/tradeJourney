@@ -521,6 +521,8 @@ export default {
                     profit: 'Net Profit',
                     grossProfit: 'Gross Profit',
                     commission: 'Commission',
+                    stopLoss: 'Stop Loss',
+                    takeProfit: 'Take Profit',
                     note: 'Note',
                     tags: 'Tags',
                     screenshots: 'Screenshots',
