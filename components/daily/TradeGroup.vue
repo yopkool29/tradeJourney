@@ -214,7 +214,7 @@ const currentDayTag = computed(() => {
 
 const dayTagTags = computed(() => {
     if (!currentDayTag.value?.tags) return []
-    return currentDayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+    return currentDayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 })
 
 const tableRowHoverColor = computed(() => {

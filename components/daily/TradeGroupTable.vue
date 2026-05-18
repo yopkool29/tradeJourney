@@ -268,7 +268,7 @@ const { getTagById } = useTags()
 
 const getTradeTagsById = (trade: TradeExtendedType) => {
     if (!trade.tags?.length) return []
-    return trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+    return trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 }
 
 const props = defineProps<{
