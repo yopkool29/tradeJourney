@@ -98,6 +98,9 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copier les scripts nécessaires
 COPY --from=builder /app/scripts /app/scripts
 
+# Copier le dossier server pour les scripts qui en dépendent
+COPY --from=builder /app/server /app/server
+
 # Copier les outils Python
 COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/python
 
