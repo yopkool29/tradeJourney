@@ -76,7 +76,7 @@
     <UModal
         v-model:open="fullscreenOpen"
         :close="false"
-        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen h-screen overflow-auto rounded-none !items-start !justify-start' }"
+        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen overflow-auto rounded-none !items-start !justify-start' }"
         @keydown.esc.stop="fullscreenOpen = false"
     >
         <template #content>
