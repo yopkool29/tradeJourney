@@ -1,11 +1,16 @@
 <template>
     <div class="logwindow hidden">
         <div class="flex gap-x-2">
-            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onClose">X</a>
-            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onClear">Clear</a>
-            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onDebug1">Debug1</a>
-            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onDebug2">Debug2</a>
-            <a href="#" class="link link-neutral link-hover" @click.stop.prevent="onFix">Fix</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onClose">X</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onClear">Clear</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onDebug1">Debug1</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onDebug2">Debug2</a>
+            <span class="text-gray-500">ImageUrl</span>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onFixDry">[D]</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onFixFull">[F]</a>
+            <span class="text-gray-500">OrphanI</span>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onOrphanDry">[D]</a>
+            <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onOrphanFull">[F]</a>
         </div>
 
         <!-- eslint-disable-next-line vue/no-v-html -->
@@ -158,10 +163,28 @@ const onDebug2 = () => {
     error('logDebug2')
 }
 
-const onFix = async () => {
-    info('🔧 Fix Image urls')
+const onFixDry = async () => {
+    info('🔧 ImageUrl Dry Run')
     const { fixImageUrls } = useFix()
-    await fixImageUrls()
+    await fixImageUrls(true)
+}
+
+const onFixFull = async () => {
+    info('🔧 ImageUrl Full Apply')
+    const { fixImageUrls } = useFix()
+    await fixImageUrls(false)
+}
+
+const onOrphanDry = async () => {
+    info('🧹 OrphanI Dry Run')
+    const { cleanupOrphanImages } = useFix()
+    await cleanupOrphanImages(true)
+}
+
+const onOrphanFull = async () => {
+    info('🧹 OrphanI Full Apply')
+    const { cleanupOrphanImages } = useFix()
+    await cleanupOrphanImages(false)
 }
 
 defineExpose<ILogView>({ onClose, onOpen, isOpen, debug, info, warn, error })

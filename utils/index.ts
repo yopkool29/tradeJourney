@@ -16,12 +16,15 @@ export const getDateFnsLocale = (_locale: 'fr' | 'en' | 'es' | 'de' | 'it' = 'fr
     return enUS
 }
 
-
 export const getImagePath = (src: string, userId?: number, dbName?: string): string => {
+    // If src is already a complete URL (from NoteEditor), return as-is
+    if (src.startsWith('/api/image?path=') || src.startsWith('http')) {
+        return src
+    }
     if (userId && dbName) {
         return `/api/image?path=${src}`
     }
-    return ""
+    return src
 }
 
 /**
@@ -280,7 +283,7 @@ export const metadataHelpers = {
     merge: (existing: Record<string, any> | null | undefined, updates: Record<string, any>): Record<string, any> | null => {
         // Reconstruire le JSON en ne prenant que les clés non-undefined
         const merged: Record<string, any> = {}
-        
+
         // Ajouter les clés existantes (sauf undefined/null)
         if (existing && typeof existing === 'object') {
             try {
@@ -294,7 +297,7 @@ export const metadataHelpers = {
                 // Ignorer les erreurs de conversion
             }
         }
-        
+
         // Appliquer les updates : ajouter si valide, supprimer si undefined/null
         if (updates && typeof updates === 'object') {
             Object.entries(updates).forEach(([key, value]) => {
@@ -307,7 +310,7 @@ export const metadataHelpers = {
                 }
             })
         }
-        
+
         return Object.keys(merged).length > 0 ? merged : null
     },
 
@@ -333,7 +336,7 @@ export const metadataHelpers = {
     set: (metadata: Record<string, any> | null | undefined, key: string, value: any): Record<string, any> | null => {
         // Reconstruire l'objet en ne prenant que les clés valides
         const result: Record<string, any> = {}
-        
+
         // Copier les clés existantes (sauf undefined/null)
         if (metadata && typeof metadata === 'object') {
             Object.entries(metadata).forEach(([k, v]) => {
@@ -342,12 +345,12 @@ export const metadataHelpers = {
                 }
             })
         }
-        
+
         // Ajouter/mettre à jour la nouvelle clé (sauf si undefined/null)
         if (value !== undefined && value !== null) {
             result[key] = value
         }
-        
+
         // Retourner l'objet ou null si vide
         return Object.keys(result).length > 0 ? result : null
     },

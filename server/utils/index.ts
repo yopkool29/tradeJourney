@@ -112,8 +112,10 @@ export const deleteFiles = (screenshotsToDelete: {
 }[], userId: number, dbName: string) => {
     for (const screenshot of screenshotsToDelete) {
         try {
+            // Enlever le prefix 'screenshots/' si présent (URLs stockées avec ce format)
+            const filename = screenshot.url.replace(/^screenshots\//, '')
             // Construire le chemin: ./upload/user_{userId}_data/{dbName}/screenshots
-            const filePath = path.join(process.cwd(), 'upload', `user_${userId}_data`, dbName, 'screenshots', screenshot.url)
+            const filePath = path.join(process.cwd(), 'upload', `user_${userId}_data`, dbName, 'screenshots', filename)
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath)
             }

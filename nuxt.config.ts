@@ -32,7 +32,6 @@ export default defineNuxtConfig({
     vite: {
         server: {
             allowedHosts: [
-                'cindie-unpetalled-hourly.ngrok-free.dev',
                 '.ngrok-free.dev',
                 '.ngrok.io'
             ]

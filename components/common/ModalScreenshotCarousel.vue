@@ -30,7 +30,7 @@ const userStore = useUserStore()
 const { currentDatabase } = useDatabase()
 const carouselRef = ref()
 
-defineProps({
+const props = defineProps({
     modelValue: {
         type: Boolean,
         default: false,
@@ -38,6 +38,10 @@ defineProps({
     screenshots: {
         type: Array as PropType<Array<{ id?: number; url: string }>>,
         default: () => [],
+    },
+    initialIndex: {
+        type: Number,
+        default: 0,
     },
 })
 
@@ -59,6 +63,7 @@ watch(open, async (newValue) => {
         await nextTick()
         if (carouselRef.value?.emblaApi) {
             carouselRef.value.emblaApi.reInit()
+            carouselRef.value.emblaApi.scrollTo(props.initialIndex)
         }
     } else {
         emit('closed')

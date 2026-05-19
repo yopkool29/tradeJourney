@@ -72,28 +72,13 @@
         </div>
     </div>
 
-    <!-- Fullscreen image modal -->
-    <UModal
-        v-model:open="fullscreenOpen"
-        :close="false"
-        :ui="{ overlay: 'z-[500]', content: 'z-[501] bg-black/90 shadow-none max-w-screen max-h-screen w-screen overflow-auto rounded-none !items-start !justify-start' }"
-        @keydown.esc.stop="fullscreenOpen = false"
-    >
-        <template #content>
-            <div class="relative w-full h-full">
-                <button class="absolute top-6 right-12 text-white opacity-70 hover:opacity-100 cursor-pointer z-10 outline-none" @click.stop="fullscreenOpen = false">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-                <div class="w-full h-full overflow-auto" @click="fullscreenOpen = false">
-                    <div class="min-h-screen min-w-full p-8 pt-20 flex items-center justify-center">
-                        <img :src="fullscreenImageUrl ?? ''" class="rounded-lg cursor-pointer max-w-none" @click.stop="fullscreenOpen = false" />
-                    </div>
-                </div>
-            </div>
-        </template>
-    </UModal>
+    <!-- Image carousel modal -->
+    <CommonModalScreenshotCarousel
+        :open="showImageCarousel"
+        :screenshots="carouselImages"
+        :initial-index="carouselInitialIndex"
+        @closed="showImageCarousel = false"
+    />
 
     <!-- Editor fullscreen overlay -->
     <!-- <Teleport to="body">
@@ -152,13 +137,18 @@ const editorContainer = ref<HTMLElement | null>(null)
 const fullscreenContainer = ref<HTMLElement | null>(null)
 const editorLoading = ref(true)
 const editor = ref<Crepe | null>(null)
-const fullscreenImageUrl = ref<string | null>(null)
-const fullscreenOpen = ref(false)
+const showImageCarousel = ref(false)
+const carouselImages = ref<{ url: string }[]>([])
+const carouselInitialIndex = ref(0)
 let imageObserver: MutationObserver | null = null
 
-watch(fullscreenOpen, (open) => {
-    if (!open) fullscreenImageUrl.value = null
-})
+// Extract all images from editor content
+const extractImagesFromContent = (): { url: string }[] => {
+    const container = editorContainer.value
+    if (!container) return []
+    const imgs = container.querySelectorAll<HTMLImageElement>('.milkdown-image-block img, .image-wrapper img')
+    return Array.from(imgs).map(img => ({ url: img.src }))
+}
 
 const hasContent = computed(() => props.modelValue.trim().length > 0)
 
@@ -180,7 +170,7 @@ const uploadImage = async (file: File): Promise<string> => {
     }
     const formData = new FormData()
     formData.append('image', file)
-    const result = await $fetch<{ url: string }>('/api/notes/images/upload', {
+    const result = await $fetch('/api/notes/images/upload', {
         method: 'POST',
         body: formData,
     })
@@ -196,7 +186,7 @@ const uploadImage = async (file: File): Promise<string> => {
 
 const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {
     const wrappers = container.querySelectorAll<HTMLElement>('.milkdown-image-block > .image-wrapper')
-    wrappers.forEach((wrapper) => {
+    wrappers.forEach((wrapper, index) => {
         if (wrapper.dataset.fsInjected) return
         wrapper.dataset.fsInjected = '1'
 
@@ -205,11 +195,9 @@ const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {
             wrapper.addEventListener('pointerdown', (e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                const img = wrapper.querySelector<HTMLImageElement>('img')
-                if (img?.src) {
-                    fullscreenImageUrl.value = img.src
-                    fullscreenOpen.value = true
-                }
+                carouselImages.value = extractImagesFromContent()
+                carouselInitialIndex.value = index
+                showImageCarousel.value = true
             }, true)
         }
     })

@@ -380,6 +380,7 @@ const onClearTradeNoteTags = async () => {
         await updateTrade({
             id: selectedTrade.value.id,
             note: '',
+            screenshots: [], // Supprime aussi les screenshots
         })
 
         // Recharger le trade pour avoir les données à jour
