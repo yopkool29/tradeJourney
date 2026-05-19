@@ -282,9 +282,9 @@ const noteDatesGrouped = computed(() => {
         grouped.get(dateKey)!.push(note)
     })
 
-    // Trier les notes par heure (plus ancien en premier)
+    // Trier les notes par heure (plus récent en premier)
     grouped.forEach((notes) => {
-        notes.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        notes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     })
 
     // Convertir en tableau et trier par date
@@ -331,6 +331,15 @@ const selectNote = (note: NoteType) => {
 }
 
 const openCreateModal = () => {
+    if (isDirty.value && selectedNote.value) {
+        pendingAction.value = () => doOpenCreateModal()
+        showUnsavedModal.value = true
+        return
+    }
+    doOpenCreateModal()
+}
+
+const doOpenCreateModal = () => {
     const now = new Date()
     createNoteDate.value = formatDateToYYYYMMDD(now)
     createNoteTime.value = now.toTimeString().slice(0, 5)
@@ -370,7 +379,7 @@ const confirmChangeDateTime = async () => {
     }
 }
 
-const confirmCreateNote = () => {
+const confirmCreateNote = async () => {
     const [hours, minutes] = createNoteTime.value.split(':').map(Number)
     const parsed = new Date(createNoteDate.value)
     parsed.setHours(hours, minutes, 0, 0)
@@ -381,6 +390,7 @@ const confirmCreateNote = () => {
     }
     noteSubtitle.value = createNoteSubtitle.value
     savedSubtitle.value = ''
+    savedContent.value = ''
     selectedNote.value = newNote as NoteType
     setContent('')
     showCreateModal.value = false
@@ -388,6 +398,15 @@ const confirmCreateNote = () => {
 
 // Créer une nouvelle note pour une date donnée
 const createNewNote = (date: string) => {
+    if (isDirty.value && selectedNote.value) {
+        pendingAction.value = () => doCreateNewNote(date)
+        showUnsavedModal.value = true
+        return
+    }
+    doCreateNewNote(date)
+}
+
+const doCreateNewNote = (date: string) => {
     const parsed = new Date(date)
     const now = new Date()
     parsed.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
@@ -399,6 +418,7 @@ const createNewNote = (date: string) => {
 
     noteSubtitle.value = ''
     savedSubtitle.value = ''
+    savedContent.value = ''
     selectedNote.value = newNote as NoteType
     setContent('')
 }
@@ -502,9 +522,10 @@ const onUnsavedDiscard = () => {
 const onUnsavedSaveAndContinue = async () => {
     await saveNote()
     showUnsavedModal.value = false
-    if (pendingAction.value) {
-        pendingAction.value()
-        pendingAction.value = null
+    const action = pendingAction.value
+    pendingAction.value = null
+    if (action) {
+        action()
     }
 }
 

@@ -184,7 +184,7 @@ model ImportProfileTradeTag {
 
 model DailyNote {
     id        Int      @id @default(autoincrement())
-    date      DateTime @unique // Date unique pour chaque note
+    date      DateTime // Plus de contrainte unique - plusieurs notes par jour possibles
     content   String   // Contenu riche de la note
     metadata  Json?    @db.JsonB
     createdAt DateTime @default(now())

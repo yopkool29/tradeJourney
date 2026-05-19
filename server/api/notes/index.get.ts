@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
         
         const date = query.date
 
-        // If a specific date is provided, get that note
+        // If a specific date is provided, get all notes for that day
         if (date) {
             const targetDate = new Date(date as string)
 
@@ -24,15 +24,16 @@ export default defineEventHandler(async (event) => {
             const endOfDay = new Date(targetDate)
             endOfDay.setHours(23, 59, 59, 999)
 
-            const note = await prisma.dailyNote.findFirst({
+            const notes = await prisma.dailyNote.findMany({
                 where: {
                     date: {
                         gte: startOfDay,
                         lte: endOfDay
                     }
-                }
+                },
+                orderBy: { date: 'desc' }
             })
-            return note
+            return notes
         }
 
         // Otherwise, get all notes with their dates

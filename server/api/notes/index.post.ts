@@ -15,29 +15,15 @@ export default defineEventHandler(async (event) => {
 
         const noteDate = new Date(body.date)
 
-        // Merger subtitle dans metadata côté serveur
-        let metadata = body.metadata ?? undefined
-        if (body.subtitle !== undefined) {
-            const existing = await prisma.dailyNote.findUnique({ where: { date: noteDate }, select: { metadata: true } })
-            const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
-            if (body.subtitle) {
-                metadata = { ...currentMetadata, subtitle: body.subtitle }
-            } else {
-                const { subtitle: _, ...rest } = currentMetadata
-                metadata = Object.keys(rest).length > 0 ? rest : null
-            }
+        // Merger subtitle dans metadata
+        let metadata = body.metadata ?? null
+        if (body.subtitle !== undefined && body.subtitle) {
+            metadata = { ...(body.metadata ?? {}), subtitle: body.subtitle }
         }
 
-        // Create or update the note
-        const note = await prisma.dailyNote.upsert({
-            where: {
-                date: noteDate
-            },
-            update: {
-                content: body.content,
-                metadata,
-            },
-            create: {
+        // Create a new note (always create, never update via date)
+        const note = await prisma.dailyNote.create({
+            data: {
                 date: noteDate,
                 content: body.content,
                 metadata,

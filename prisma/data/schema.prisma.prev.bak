@@ -92,7 +92,7 @@ model Tag {
 
 model DayTag {
     id                Int                 @id @default(autoincrement())
-    date              DateTime // ou startDate et endDate pour une plage
+    date              DateTime            @unique // ou startDate et endDate pour une plage
     note              String?
     tags              Tag[]               @relation("DayTagsOnTags")
     metadata          Json?    @db.JsonB

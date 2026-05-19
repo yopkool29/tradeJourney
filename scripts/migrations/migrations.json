@@ -48,6 +48,13 @@
       "description": "Add unique constraint on DayTag date field to prevent duplicate entries for the same date",
       "file": "007-add-unique-constraint-on-daytag-date-description.sql",
       "date": "2026-05-13"
+    },
+    {
+      "version": 8,
+      "name": "drop-unique-constraint-on-dailynote-date",
+      "description": "Drop unique constraint on DailyNote date field to allow multiple notes for the same date",
+      "file": "008-drop-unique-constraint-dailynote-date.sql",
+      "date": "2026-5-19"
     }
   ]
 }

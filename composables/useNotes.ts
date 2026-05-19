@@ -9,10 +9,10 @@ export const useNotes = () => {
         return await $fetch('/api/notes', { method: 'GET' })
     }
 
-    // Fetch a single note by date
-    const fetchNote = async (date: string | Date) => {
+    // Fetch all notes for a specific date
+    const fetchNotesByDate = async (date: string | Date) => {
         const dateStr = typeof date === 'string' ? date : toISODate(date)
-        return await $fetch(`/api/notes?date=${dateStr}`, { method: 'GET' })
+        return await $fetch(`/api/notes?date=${dateStr}`, { method: 'GET' }) as NoteType[]
     }
 
     // Save a note (create or update)
@@ -42,7 +42,7 @@ export const useNotes = () => {
 
     return {
         fetchNoteDates,
-        fetchNote,
+        fetchNotesByDate,
         saveNote,
         updateNote,
         deleteNote
