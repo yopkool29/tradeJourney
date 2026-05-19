@@ -39,6 +39,9 @@ export default defineNuxtConfig({
         },
         ssr: {
             noExternal: ['vue', 'vue-router']
+        },
+        build: {
+            chunkSizeWarningLimit: 1000
         }
     },
 
