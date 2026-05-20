@@ -40,7 +40,34 @@ export default defineNuxtConfig({
             noExternal: ['vue', 'vue-router']
         },
         build: {
-            chunkSizeWarningLimit: 1000
+            chunkSizeWarningLimit: 1000,
+            rollupOptions: {
+                output: {
+                    manualChunks: (id) => {
+                        // Charts libraries
+                        if (id.includes('chart.js') || id.includes('vue-chartjs') || id.includes('lightweight-charts')) {
+                            return 'charts'
+                        }
+                        // Milkdown editor
+                        if (id.includes('@milkdown')) {
+                            return 'editor'
+                        }
+                        // Date libraries
+                        if (id.includes('date-fns') || id.includes('@internationalized/date')) {
+                            return 'dates'
+                        }
+                        // Dashboard chart components
+                        if (id.includes('/dashboard/') && (
+                            id.includes('Winrate') ||
+                            id.includes('Chart') ||
+                            id.includes('Pnl') ||
+                            id.includes('Pie')
+                        )) {
+                            return 'dashboard-charts'
+                        }
+                    }
+                }
+            }
         }
     },
 

@@ -28,7 +28,7 @@
         </div>
 
         <!-- Modal de tags (montée une fois, pilotée par useTradeTagModal) -->
-        <TradeTagModal />
+        <LazyTradeTagModal />
 
         <!-- Runner de modals plugins -->
         <PluginsModalRunner />

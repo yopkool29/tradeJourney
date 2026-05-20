@@ -1,3 +1,5 @@
+import { ref, watch, onMounted, onUnmounted, readonly, type Ref } from 'vue'
+
 interface UseLazyRenderOptions {
 	// Delai minimum avant rendu (ms)
 	minDelay?: number
