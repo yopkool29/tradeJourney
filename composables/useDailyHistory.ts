@@ -4,6 +4,8 @@ import type { TradeFilter } from '~/type'
 export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilters' = 'dailyHistoryFilters') => {
 
     const accounts = ref<AccountType[]>([])
+    // Utiliser shallowRef pour les trades - pas besoin de réactivité profonde sur chaque propriété de trade
+    const lastResults = shallowRef<TradeExtendedType[]>([])
     const { fetchTrades } = useTrades()
     const userStore = useUserStore()
 
@@ -43,6 +45,8 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
 
         const trades = await fetchTrades(filtersForApi, 1000, showInactive)
 
+        // Stocker dans shallowRef (pas de réactivité profonde) et sync avec store
+        lastResults.value = trades
         userStore[storeKey].last_results = trades
 
         return trades
@@ -50,6 +54,7 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
 
     return {
         accounts,
+        lastResults,
         fetchAccounts,
         fetchData
     }

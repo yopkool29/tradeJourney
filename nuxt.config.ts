@@ -22,12 +22,12 @@ export default defineNuxtConfig({
         }
     },
 
-    devtools: { 
-        enabled: true,
+    devtools: {
+        enabled: false,
         // timeline: {
         //     enabled: true
         // }
-     },
+    },
 
     vite: {
         server: {

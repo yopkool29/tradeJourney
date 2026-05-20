@@ -70,7 +70,7 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebounceFn, useMemoize } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -94,7 +94,7 @@ const isExpanded = computed({
 type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number }
 type TradeGroups = { [key: string]: TradeGroup }
 
-const { accounts, fetchAccounts, fetchData } = useDailyHistory()
+const { accounts, lastResults, fetchAccounts, fetchData } = useDailyHistory()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -122,7 +122,8 @@ const getDaysStats = () => {
     // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
     refreshTrigger.value
     
-    const trades = userStore.dailyHistoryFilters.last_results as TradeExtendedType[]
+    // Utiliser lastResults (shallowRef) au lieu du store pour de meilleures perfs
+    const trades = lastResults.value as TradeExtendedType[]
     if (!selectedMonth.value) return {}
     const [year, month] = selectedMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
