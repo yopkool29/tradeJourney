@@ -439,7 +439,7 @@ const showTable = defineModel('showTable', { type: Boolean, default: false })
 const dateKey = computed(() => props.groupDate?.toISOString() || '')
 const { isVisible: tableVisible, triggerRender: renderTable } = useConditionalLazyRender(
     showTable,
-    { id: dateKey.value, minDelay: 0, maxDelay: 300 }
+    { id: dateKey.value, minDelay: 50, maxDelay: 300 }
 )
 
 const openTradeDetailModal = (trade: TradeExtendedType) => {

@@ -32,7 +32,7 @@
         </template>
         <template #footer>
             <div class="action-buttons-end">
-                <UButton form="form1" type="submit" :loading="isLoading">{{
+                <UButton form="form1" type="submit">{{
                     currentTrade ? $t('components.trade.tagModal.buttons.update') : $t('common.actions.save')
                 }}</UButton>
                 <UButton type="button" variant="soft" @click="close()">{{

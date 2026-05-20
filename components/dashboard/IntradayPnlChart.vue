@@ -27,7 +27,6 @@ const colorMode = useColorMode()
 const pnlchartColors = computed(() => {
 	const colors = userStore.user?.settings_object?.chartColors?.pnlchart || defaultSettings.chartColors!.pnlchart
 	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
-    console.log('theme', theme)
     return {
 		line: colors.line[theme] || colors.line.light,
 		point: colors.point[theme] || colors.point.light,

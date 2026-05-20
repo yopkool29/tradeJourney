@@ -69,8 +69,8 @@
 
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
-import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
-import { useDebounceFn, useMemoize } from '@vueuse/core'
+import { eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
+import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -171,7 +171,7 @@ const filteredGroups = computed(() => {
 
 const onExpand = async () => {
     filterLoading.value = true
-    setTimeout(async () => {
+    setTimeout(() => {
         isExpanded.value = !isExpanded.value
         // Appliquer à tous les groupes
         const groups = filteredGroups.value
@@ -196,7 +196,7 @@ const loadMonthData = async () => {
 }
 
 // Debounce pour éviter les appels multiples
-const loadMonthDataDebounced = useDebounceFn(loadMonthData, 500)
+const loadMonthDataDebounced = useDebounceFn(loadMonthData, 200)
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
@@ -205,8 +205,8 @@ const onCalendarMonthChange = (...args: unknown[]) => {
 }
 
 const setDialogToFirstTradingDay = () => {
-    // Cherche la première journée avec trade dans dayStats
-    const groups = Object.values(getDaysStats()) as TradeGroup[]
+    // Cherche la première journée avec trade dans les groupes filtrés (utilise le cached dayStats)
+    const groups = filteredGroups.value
     const first = groups.find((g) => g.count > 0)
     if (first) {
         dialogGroup.value = first
@@ -303,8 +303,8 @@ watchEffect(() => {
 // Appliquer les filtres quand showInactive change
 watch(
     () => userStore.dailyHistoryFilters.showInactive,
-    () => {
-        forceReactivity()
+    async () => {
+        await forceReactivity()
     }
 )
 
