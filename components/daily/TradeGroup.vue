@@ -124,12 +124,17 @@
                 </div>
 
                 <template #content>
-                    <DailyTradeGroupTable :columns="columns" :table-data="tableData"
-                        :label-columns-header="labelColumnsHeader" :show-table="showTable" :timezone-key="timezoneKey"
-                        :get-tag-style="getTagStyle" @activate="onActivate" @deactivate="onDeactivate"
-                        @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
-                        @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
-                        @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
+                    <div ref="tableContainer">
+                        <DailyTradeGroupTable v-if="tableVisible" :columns="columns" :table-data="tableData"
+                            :label-columns-header="labelColumnsHeader" :show-table="showTable" :timezone-key="timezoneKey"
+                            :get-tag-style="getTagStyle" @activate="onActivate" @deactivate="onDeactivate"
+                            @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
+                            @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
+                            @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
+                        <div v-else class="py-8 text-center text-gray-500">
+                            <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
+                        </div>
+                    </div>
                 </template>
             </UCollapsible>
         </div>
@@ -143,15 +148,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
 import { getWinLossNb, getWinrate, getPNL } from '~/utils/tradeStats'
 import type { DayTagType } from '~/schema/dayTag'
 import type { TradeExtendedType } from '~/schema/trade'
-import { DashboardWinratePie, UIcon } from '#components'
 
 import { formatDateLongString, normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
+import { UIcon } from '#components'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
@@ -430,6 +434,13 @@ const onClearDayNoteTags = async () => {
 }
 
 const showTable = defineModel('showTable', { type: Boolean, default: false })
+
+// Chargement progressif - utilisation du composable
+const dateKey = computed(() => props.groupDate?.toISOString() || '')
+const { isVisible: tableVisible, triggerRender: renderTable } = useConditionalLazyRender(
+    showTable,
+    { id: dateKey.value, minDelay: 0, maxDelay: 300 }
+)
 
 const openTradeDetailModal = (trade: TradeExtendedType) => {
     selectedTradeDetail.value = trade
