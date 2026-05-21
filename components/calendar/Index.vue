@@ -20,7 +20,7 @@
                 </div>
                 <div class="flex flex-col items-start gap-2">
                     <PluginPageSlot slot-id="page-calendar" />
-                    <div v-if="settings.showCalendarCalendar" class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900">
+                    <div v-if="settings.showCalendarCalendar" class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
                     <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
                         readonly size="md" :ui="{ cellTrigger: 'm-[2px] relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted transition size-5' }" @update:placeholder="onCalendarMonthChange">
                         <template #day="{ day }">
