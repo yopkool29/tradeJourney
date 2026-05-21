@@ -239,14 +239,20 @@ const showTradeDetailModal = ref(false)
 // Trades actifs uniquement (pour les stats)
 const activeTrades = computed(() => props.groupTrades.filter(t => t.active !== false))
 
-const winLoss = computed(() => getWinLossNb(activeTrades.value, props.groupDate || new Date()))
-const winrate = computed(() => getWinrate(activeTrades.value, 1))
-const pnl = computed(() => getPNL(activeTrades.value, 2, displayModeNet.value))
-const totalCommission = computed(() => activeTrades.value.reduce((sum, t) => sum + (t.commission || 0), 0))
-// Données pour les graphiques
-const intradayChartData = computed(() => {
-    return generateIntradayPnlChartData(activeTrades.value)
-})
+const tradeStats = computed(() => ({
+    winLoss: getWinLossNb(activeTrades.value, props.groupDate || new Date()),
+    winrate: getWinrate(activeTrades.value, 1),
+    pnl: getPNL(activeTrades.value, 2, displayModeNet.value),
+    totalCommission: activeTrades.value.reduce((sum, t) => sum + (t.commission || 0), 0),
+    intradayChartData: generateIntradayPnlChartData(activeTrades.value),
+}))
+
+const winLoss = computed(() => tradeStats.value.winLoss)
+const winrate = computed(() => tradeStats.value.winrate)
+const pnl = computed(() => tradeStats.value.pnl)
+const totalCommission = computed(() => tradeStats.value.totalCommission)
+const intradayChartData = computed(() => tradeStats.value.intradayChartData)
+
 // Données du tableau calculées uniquement lorsque le collapsible est ouvert
 const tableData = computed<TradeExtendedType[]>(() => {
     if (userStore.dailyHistoryFilters.showInactive) {

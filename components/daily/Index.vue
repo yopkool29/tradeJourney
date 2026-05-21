@@ -125,26 +125,35 @@ const getDaysStats = () => {
     
     // Utiliser lastResults (shallowRef) au lieu du store pour de meilleures perfs
     const trades = lastResults.value as TradeExtendedType[]
-    if (!selectedMonth.value) return {}
+    
+    if (!selectedMonth.value) 
+        return {}
+    
     const [year, month] = selectedMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
     const end = endOfMonth(start)
-    // Filtrage par compte et par mois
 
-    const filtered = trades.filter((trade) => {
-        // S'assurer que closeDate est un objet Date
+    // Extraire accountIds en Set pour O(1) lookup
+    const accountIds = userStore.dailyHistoryFilters.accountIds
+    const accountIdSet = new Set(accountIds)
+    const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
+
+    // Filtrage + pre-indexation par jour en un seul passage O(n)
+    const tradesByDay: Record<string, TradeExtendedType[]> = {}
+    for (const trade of trades) {
         const closeDate = trade.closeDate
-        const matchAccount =
-            userStore.dailyHistoryFilters.accountIds.length === 0 ||
-            userStore.dailyHistoryFilters.accountIds.includes(-1) ||
-            userStore.dailyHistoryFilters.accountIds.includes(trade.accountId)
-        return closeDate >= start && closeDate <= end && matchAccount
-    })
+        if (closeDate < start || closeDate > end) continue
+        if (!allAccounts && !accountIdSet.has(trade.accountId)) continue
+        const key = formatDateToYYYYMMDD(closeDate)
+        if (!tradesByDay[key]) tradesByDay[key] = []
+        tradesByDay[key].push(trade)
+    }
+
     // Grouper par jour
     const stats: TradeGroups = {}
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
-        const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
+        const tradesOfDay = tradesByDay[key] || []
         const activeTradesOfDay = tradesOfDay.filter((trade) => trade.active !== false)
         const pnl = activeTradesOfDay.reduce((sum, t) => sum + (t.netProfit || 0), 0)
         const commission = activeTradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)

@@ -288,20 +288,27 @@ const getDaysStats = () => {
     const start = new Date(year, month - 1, 1)
     const end = endOfMonth(start)
 
-    const filtered = trades.filter((trade) => {
+    // Extraire accountIds en Set pour O(1) lookup
+    const accountIds = userStore.calendarFilters.accountIds
+    const accountIdSet = new Set(accountIds)
+    const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
+
+    // Filtrage + pre-indexation par jour en un seul passage O(n)
+    const tradesByDay: Record<string, TradeExtendedType[]> = {}
+    for (const trade of trades) {
         const closeDate = trade.closeDate
-        const matchAccount =
-            userStore.calendarFilters.accountIds.length === 0 ||
-            userStore.calendarFilters.accountIds.includes(-1) ||
-            userStore.calendarFilters.accountIds.includes(trade.accountId)
-        return closeDate >= start && closeDate <= end && matchAccount
-    })
+        if (closeDate < start || closeDate > end) continue
+        if (!allAccounts && !accountIdSet.has(trade.accountId)) continue
+        const key = formatDateToYYYYMMDD(closeDate)
+        if (!tradesByDay[key]) tradesByDay[key] = []
+        tradesByDay[key].push(trade)
+    }
 
     const stats: { [key: string]: { count: number; pnl: number; commission: number; trades: TradeExtendedType[] } } = {}
 
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
-        const tradesOfDay = filtered.filter((trade) => formatDateToYYYYMMDD(trade.closeDate) === key)
+        const tradesOfDay = tradesByDay[key] || []
         const pnl = tradesOfDay.reduce((sum, t) => sum + (displayModeNet.value ? (t.netProfit || 0) : (t.profit || 0)), 0)
         const commission = tradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
         stats[key] = {
