@@ -64,6 +64,7 @@ const chartOptions = computed(() => ({
             display: false, // Désactiver les datalabels si présents
         },
     },
+    animation: false,
 })) as ChartOptions
 
 const handleResize = () => {

@@ -35,8 +35,8 @@
                         </div>
                     </div>
 
-                    <!-- Graphiques -->
-                    <div class="form-row-lg ml-auto">
+                    <!-- Graphiques - lazy render avec meme delai que la table -->
+                    <div v-if="chartsVisible" class="form-row-lg ml-auto">
                         <!-- Graphique en anneau Winrate -->
                         <div class="w-16 h-16 flex items-center justify-center">
                             <DashboardWinratePie :value="winrate / 100" />
@@ -120,7 +120,7 @@
                     <UButton size="xs" class="w-32 group" :label="$t('components.daily.trade_group.show_trades')"
                         color="neutral" variant="subtle" trailing-icon="i-lucide-chevron-down" :ui="{
                             trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200',
-                        }" block />
+                        }" block @click="handleManualOpen" />
                 </div>
 
                 <template #content>
@@ -178,6 +178,11 @@ const props = defineProps({
     showToggleButton: {
         type: Boolean,
         default: true,
+    },
+    index: {
+        type: Number,
+        required: false,
+        default: undefined,
     },
 })
 
@@ -435,12 +440,29 @@ const onClearDayNoteTags = async () => {
 
 const showTable = defineModel('showTable', { type: Boolean, default: false })
 
-// Chargement progressif - utilisation du composable
-const dateKey = computed(() => props.groupDate?.toISOString() || '')
-const { isVisible: tableVisible, triggerRender: renderTable } = useConditionalLazyRender(
+// Instance pour la table (declenchee par showTable)
+const { isVisible: tableVisible, triggerRender: renderTable, forceRender: forceTableRender, setOverrideDelay, reset: resetTableRender } = useConditionalLazyRender(
     showTable,
-    { id: dateKey.value, minDelay: 50, maxDelay: 300 }
+    { index: props.index, baseDelay: 500, delayIncrement: 100, maxIndexedDelay: 1000 }
 )
+
+// Instance pour les graphiques (toujours declenchee au montage avec meme delai)
+const { isVisible: chartsVisible, triggerRender: renderCharts } = useLazyRender(
+    { index: props.index, baseDelay: 500, delayIncrement: 100, maxIndexedDelay: 1000 }
+)
+// Declencher le rendu des graphiques au montage
+onMounted(() => {
+    renderCharts()
+})
+
+// Click handler - pas de delai quand on ouvre manuellement
+const handleManualOpen = () => {
+    // Force le rendu immediat sans delai pour la table
+    setOverrideDelay(0)
+    setTimeout(() => {
+        setOverrideDelay(undefined)
+    }, 0)
+}
 
 const openTradeDetailModal = (trade: TradeExtendedType) => {
     selectedTradeDetail.value = trade

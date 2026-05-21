@@ -7,8 +7,20 @@ interface UseLazyRenderOptions {
 	maxDelay?: number
 	// Identifiant unique pour generer un delai consistant
 	id?: string
+	// Index pour delai progressif (0-based)
+	index?: number
+	// Delai de base pour le delai progressif (ms)
+	baseDelay?: number
+	// Increment par index pour le delai progressif (ms)
+	delayIncrement?: number
+	// Delai maximum pour le delai progressif (ms)
+	maxIndexedDelay?: number
+	// Delai fixe pour remplacer le delai indexe (pour clics manuels)
+	overrideDelay?: number
 	// Condition initiale pour forcer le rendu immediat
 	immediate?: boolean
+	// Sauter le delai lors du declenchement manuel
+	skipDelayOnTrigger?: boolean
 }
 
 /**
@@ -20,11 +32,18 @@ export const useLazyRender = (options: UseLazyRenderOptions = {}) => {
 		minDelay = 0,
 		maxDelay = 300,
 		id = '',
+		index,
+		baseDelay = 300,
+		delayIncrement = 50,
+		maxIndexedDelay,
+		overrideDelay,
 		immediate = false,
+		skipDelayOnTrigger = false,
 	} = options
 
 	const isVisible = ref(immediate)
 	let renderTimeout: ReturnType<typeof setTimeout> | null = null
+	const overrideDelayRef = ref(overrideDelay)
 
 	// Generer un delai pseudo-aleatoire base sur l'ID
 	const getStaggeredDelay = (): number => {
@@ -40,14 +59,36 @@ export const useLazyRender = (options: UseLazyRenderOptions = {}) => {
 		return minDelay + (Math.abs(hash) % range)
 	}
 
+	// Generer un delai progressif base sur l'index (non aleatoire)
+	const getIndexedDelay = (): number => {
+		if (overrideDelayRef.value !== undefined) {
+			// console.log(`[useLazyRender] Override delay: ${overrideDelayRef.value}ms`)
+			return overrideDelayRef.value
+		}
+		if (index === undefined) {
+			const delay = getStaggeredDelay()
+			// console.log(`[useLazyRender] Staggered delay (no index): ${delay}ms`)
+			return delay
+		}
+		const delay = baseDelay + (index * delayIncrement)
+		const finalDelay = maxIndexedDelay !== undefined ? Math.min(delay, maxIndexedDelay) : delay
+		// console.log(`[useLazyRender] Indexed delay: index=${index}, delay=${finalDelay}ms`)
+		return finalDelay
+	}
+
 	// Lancer le rendu avec delai
 	const triggerRender = (): void => {
 		if (isVisible.value) return
 
 		if (renderTimeout) clearTimeout(renderTimeout)
-		renderTimeout = setTimeout(() => {
+
+		if (skipDelayOnTrigger) {
 			isVisible.value = true
-		}, getStaggeredDelay())
+		} else {
+			renderTimeout = setTimeout(() => {
+				isVisible.value = true
+			}, getIndexedDelay())
+		}
 	}
 
 	// Forcer le rendu immediat
@@ -62,6 +103,11 @@ export const useLazyRender = (options: UseLazyRenderOptions = {}) => {
 		isVisible.value = false
 	}
 
+	// Definir un delai de remplacement (pour clics manuels)
+	const setOverrideDelay = (delay: number | undefined): void => {
+		overrideDelayRef.value = delay
+	}
+
 	// Nettoyage
 	const cleanup = (): void => {
 		if (renderTimeout) clearTimeout(renderTimeout)
@@ -74,6 +120,7 @@ export const useLazyRender = (options: UseLazyRenderOptions = {}) => {
 		triggerRender,
 		forceRender,
 		reset,
+		setOverrideDelay,
 	}
 }
 

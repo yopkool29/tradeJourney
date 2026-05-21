@@ -43,9 +43,10 @@
                         <div class="text-lg mb-2">{{ $t('components.daily.index.no_history') }}</div>
                     </div>
                 </div>
-                <template v-for="group in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())" v-else :key="group.key">
+                <template v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())" v-else :key="group.key">
                     <DailyTradeGroup v-model:show-table="expandedGroups[group.key]" :group-date="group.day"
-                        :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())" />
+                        :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
+                        :index="index" />
                 </template>
             </div>
             <!-- Colonne droite : Calendrier -->
