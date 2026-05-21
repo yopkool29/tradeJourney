@@ -247,6 +247,8 @@ const forceReactivity = async () => {
     await loadMonthData()
 }
 
+// const mountStart = performance.now()
+
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync)
@@ -280,6 +282,9 @@ onMounted(async () => {
 
         filterLoading.value = false
         isInitialLoad.value = false
+        
+        // const mountEnd = performance.now()
+        // console.log(`Daily Index mounted in ${mountEnd - mountStart}ms`)
     })
 })
 
