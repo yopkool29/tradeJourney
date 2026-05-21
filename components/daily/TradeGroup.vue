@@ -1,5 +1,5 @@
 <template>
-    <UCard variant="subtle" class="my-6" :ui="{ header: 'p-2', body: 'sm:p-2 p-2' }">
+    <UCard variant="subtle" class="my-2" :ui="{ header: 'p-2', body: 'sm:p-2 p-2' }">
         <template #header>
             <div class="flex justify-between items-start">
                 <div>

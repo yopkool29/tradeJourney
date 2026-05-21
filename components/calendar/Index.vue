@@ -1,35 +1,45 @@
 <template>
     <div>
         <!-- Filtres simplifiés : compte + mois -->
-        <UCard class="card-container">
-            <div class="filter-container">
-                <div class="flex items-center justify-between">
+        <UCard class="mb-4">
+            <div class="flex items-start">
+                <div class="flex flex-col gap-4 min-w-[400px]">
                     <div class="section-label">{{ $t('components.calendar.index.accounts') }}</div>
-                    <PluginPageSlot slot-id="page-calendar" />
+                    <CommonAccountSelect
+                        v-model="userStore.calendarFilters.accountIds"
+                        :items="accountOptions"
+                        :placeholder="$t('components.calendar.index.select_accounts')"
+                        :all-label="$t('components.calendar.index.all_accounts')"
+                        :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
+                        select-class="select-standard"
+                    />
+                    <div class="filter-actions-lg">
+                        <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
+                        <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{ $t('components.calendar.index.filter') }}</UButton>
+                    </div>
                 </div>
-                <CommonAccountSelect
-                    v-model="userStore.calendarFilters.accountIds"
-                    :items="accountOptions"
-                    :placeholder="$t('components.calendar.index.select_accounts')"
-                    :all-label="$t('components.calendar.index.all_accounts')"
-                    :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
-                    select-class="select-standard"
-                />
-            </div>
-            <div class="filter-actions-lg mb-2">
-                <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
-                <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm" @click="onFilter">{{
-                    $t('components.calendar.index.filter')
-                }}</UButton>
+                <div class="flex flex-col items-start gap-2">
+                    <PluginPageSlot slot-id="page-calendar" />
+                    <div v-if="settings.showCalendarCalendar" class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900">
+                    <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
+                        readonly size="md" :ui="{ cellTrigger: 'm-[2px] relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted transition size-5' }" @update:placeholder="onCalendarMonthChange">
+                        <template #day="{ day }">
+                            <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
+                                'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
+                                'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
+                            }">
+                                <span>{{ day.day }}</span>
+                            </div>
+                        </template>
+                    </UCalendar>
+                    </div>
+                </div>
             </div>
         </UCard>
 
         <!-- Grille calendrier mensuelle -->
-        <div class="flex flex-col-reverse xl:flex-row xl:gap-8 items-start">
-            <div :class="{
-                'w-full': !settings.showCalendarCalendar,
-                'w-full xl:w-2/3 2xl:w-[calc(100%-300px)]': settings.showCalendarCalendar
-            }">
+        <div class="flex flex-col-reverse xl:flex-row xl:gap-8 items-start min-w-4xl max-w-6xl">
+            <div class="w-full">
                 <div v-if="!filteredGroups.length" class="py-8 text-center text-secondary">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_history') }}</div>
                 </div>
@@ -82,21 +92,6 @@
                 </div>
             </div>
 
-            <!-- Colonne droite : Calendrier de navigation -->
-            <div v-if="settings.showCalendarCalendar"
-                class="px-2 border-2 border-gray-300 mb-8 xl:mb-0 xl:sticky xl:top-4 xl:self-start min-w-[250px]">
-                <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
-                    readonly class="mb-8" size="xl" @update:placeholder="onCalendarMonthChange">
-                    <template #day="{ day }">
-                        <div class="flex flex-col items-center justify-center w-full h-full rounded p-1" :class="{
-                            'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
-                            'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
-                        }">
-                            <span>{{ day.day }}</span>
-                        </div>
-                    </template>
-                </UCalendar>
-            </div>
         </div>
 
         <!-- Modal pour afficher les trades d'une journée -->

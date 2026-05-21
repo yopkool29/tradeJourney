@@ -1,68 +1,67 @@
 <template>
     <div>
         <!-- Filtres simplifiés : compte + mois -->
-        <UCard class="mb-4 md:max-w-4xl min-w-md">
-            <div class="flex flex-col mb-4 gap-4">
-                <div class="flex items-center justify-between">
+        <UCard class="mb-4">
+            <div class="flex items-start">
+                <div class="flex flex-col gap-4 min-w-[400px]">
                     <div class="font-semibold">{{ $t('components.daily.index.accounts') }}</div>
-                    <PluginPageSlot slot-id="page-daily" />
+                    <CommonAccountSelect v-model="userStore.dailyHistoryFilters.accountIds" :items="accountOptions"
+                        :placeholder="$t('components.daily.index.select_accounts')"
+                        :all-label="$t('components.daily.index.all_accounts')"
+                        :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
+                        select-class="min-w-[200px] max-w-[300px] w-full" />
+                    <div class="flex flex-col gap-y-4">
+                        <div class="flex flex-wrap gap-4 items-end">
+                            <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
+                            <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm"
+                                @click="onFilter">{{ $t('components.daily.index.filter') }}</UButton>
+                            <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
+                                size="sm" @click="onExpand">
+                                {{ isExpanded ? $t('components.daily.index.collapse') :
+                                    $t('components.daily.index.expand') }}
+                            </UButton>
+                        </div>
+                        <div>
+                            <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
+                                :label="$t('components.trade.table.show_inactive')" />
+                        </div>
+                    </div>
                 </div>
-                <CommonAccountSelect
-                    v-model="userStore.dailyHistoryFilters.accountIds"
-                    :items="accountOptions"
-                    :placeholder="$t('components.daily.index.select_accounts')"
-                    :all-label="$t('components.daily.index.all_accounts')"
-                    :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
-                    select-class="min-w-[200px] max-w-[300px] w-full"
-                />
-            </div>
-            <div class="flex gap-4 justify-between items-end">
-                <div class="flex flex-wrap gap-4 mb-2 items-end">
-                    <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
-                    <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm"
-                        @click="onFilter">{{
-                            $t('components.daily.index.filter')
-                        }}</UButton>
-                    <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary" size="sm"
-                        @click="onExpand">
-                        {{ isExpanded ? $t('components.daily.index.collapse') : $t('components.daily.index.expand') }}
-                    </UButton>
-                    <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
-                        :label="$t('components.trade.table.show_inactive')" />
+                <div class="flex flex-col items-start gap-2">
+                    <PluginPageSlot slot-id="page-daily" />
+                    <div v-if="settings.showCalendarDaily"
+                        class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900">
+                        <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
+                            :year-controls="false" readonly size="md"
+                            :ui="{ cellTrigger: 'm-[2px] relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted transition size-5' }"
+                            @update:placeholder="onCalendarMonthChange">
+                            <template #day="{ day }">
+                                <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
+                                    'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
+                                    'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
+                                }">
+                                    <span>{{ day.day }}</span>
+                                </div>
+                            </template>
+                        </UCalendar>
+                    </div>
                 </div>
             </div>
         </UCard>
-        <!-- Calendrier mensuel Nuxt UI customisé -->
         <div class="flex flex-col-reverse md:flex-row md:gap-8 items-start">
-            <div :class="{
-                'w-full': !settings.showCalendarDaily,
-                'w-full md:w-2/3 xl:w-3/4 2xl:w-[calc(100%-300px)]': settings.showCalendarDaily
-            }">
+            <div class="w-full">
                 <div v-if="!filteredGroups.length">
                     <div class="py-8 text-center text-gray-500 dark:text-gray-400">
                         <div class="text-lg mb-2">{{ $t('components.daily.index.no_history') }}</div>
                     </div>
                 </div>
-                <template v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())" v-else :key="group.key">
+                <template
+                    v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())"
+                    v-else :key="group.key">
                     <DailyTradeGroup v-model:show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
                         :index="index" />
                 </template>
-            </div>
-            <!-- Colonne droite : Calendrier -->
-            <div v-if="settings.showCalendarDaily"
-                class="px-2 border-2 border-gray-300 md:sticky md:top-4 md:self-start min-w-[250px]">
-                <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
-                    readonly class="mb-8" size="xl" @update:placeholder="onCalendarMonthChange">
-                    <template #day="{ day }">
-                        <div class="flex flex-col items-center justify-center w-full h-full rounded p-1" :class="{
-                            'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
-                            'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
-                        }">
-                            <span>{{ day.day }}</span>
-                        </div>
-                    </template>
-                </UCalendar>
             </div>
         </div>
     </div>
@@ -122,13 +121,13 @@ const calendarMonth = computed(() => {
 const getDaysStats = () => {
     // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
     refreshTrigger.value
-    
+
     // Utiliser lastResults (shallowRef) au lieu du store pour de meilleures perfs
     const trades = lastResults.value as TradeExtendedType[]
-    
-    if (!selectedMonth.value) 
+
+    if (!selectedMonth.value)
         return {}
-    
+
     const [year, month] = selectedMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
     const end = endOfMonth(start)
@@ -256,9 +255,9 @@ onMounted(async () => {
 
     // Charger les données en arrière-plan sans bloquer le rendu
     nextTick(async () => {
-        if (settings?.autoDataSync) 
+        if (settings?.autoDataSync)
             filterLoading.value = true
-        
+
         await fetchSymbols()
         await fetchAccounts()
 
@@ -277,12 +276,12 @@ onMounted(async () => {
             userStore.clearDataRefresh()
         }
 
-        if (!settings?.autoDataSync) 
+        if (!settings?.autoDataSync)
             refreshTrigger.value++
 
         filterLoading.value = false
         isInitialLoad.value = false
-        
+
         // const mountEnd = performance.now()
         // console.log(`Daily Index mounted in ${mountEnd - mountStart}ms`)
     })
