@@ -176,7 +176,7 @@
                 </div>
             </template>
             <template #expanded="{ row }">
-                <div class="flex gap-4 p-4 dark:bg-gray-800/50 dark:border-gray-700">
+                <div class="flex gap-4 p-4 dark:border-gray-700">
                     <!-- Actions - aligné avec Symbole -->
                     <div class="flex gap-2 items-center" style="margin-left: 80px;">
                         <span class="text-sm font-semibold text-gray-900 dark:text-white mr-2" :class="{ 'opacity-50': !row.original.active }">→</span>

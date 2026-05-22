@@ -261,13 +261,13 @@ const themeItems = computed(() => [
         icon: 'i-heroicons-sun',
         onSelect: () => { colorMode.preference = 'light' }
     }, {
-        label: 'Dark',
-        icon: 'i-heroicons-moon',
-        onSelect: () => { colorMode.preference = 'dark' }
-    }, {
         label: 'Light Blue',
         icon: 'i-heroicons-sparkles',
         onSelect: () => { colorMode.preference = 'light-blue' }
+    }, {
+        label: 'Dark',
+        icon: 'i-heroicons-moon',
+        onSelect: () => { colorMode.preference = 'dark' }
     }, {
         label: 'Dark Gold',
         icon: 'i-heroicons-star',
