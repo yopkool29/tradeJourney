@@ -74,6 +74,7 @@ export interface TradeOptions {
     showInactive: boolean
     showAdvancedFilters: boolean
     filters: TradeFilter[]
+    lastFilterColumn: string
 }
 
 export interface DashBoardFilters {
@@ -87,6 +88,7 @@ export interface DashBoardFilters {
     showInactive: boolean
     showAdvancedFilters: boolean
     filters: TradeFilter[]
+    lastFilterColumn: string
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
@@ -99,6 +101,7 @@ export interface DailyHistoryFilters {
     showAdvancedFilters: boolean
     columnVisibility: Record<string, boolean>
     filters: TradeFilter[]
+    lastFilterColumn: string
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
@@ -108,6 +111,7 @@ export interface CalendarFilters {
     showInactive: boolean
     showAdvancedFilters: boolean
     filters: TradeFilter[]
+    lastFilterColumn: string
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 

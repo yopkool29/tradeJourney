@@ -21,11 +21,16 @@
                         :filterable-columns-config="filterableColumnsConfig"
                         :show-inactive-checkbox="false"
                         :tag-groups="tagGroups"
-                        @add="addFilter"
-                        @remove="removeFilter"
+                        v-model:last-filter-column="userStore.calendarFilters.lastFilterColumn"
                         @apply="onApplyFilters"
                         @reset="resetFilters"
                     >
+                        <template #field-type="{ filter, onValueChange }">
+                            <USelect :model-value="filter.value as string" :items="[
+                                { label: 'Buy', value: 'buy' },
+                                { label: 'Sell', value: 'sell' },
+                            ]" placeholder="Buy/Sell" class="min-w-[200px]" @update:model-value="onValueChange" />
+                        </template>
                         <template #after-accounts>
                             <div class="">
                                 <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
@@ -253,16 +258,6 @@ const filters = computed({
     set: (val) => userStore.calendarFilters.filters = val
 })
 
-function addFilter() {
-    if (filters.value.length < 4) {
-        const newFilters = [...filters.value, { column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
-        filters.value = newFilters
-    }
-}
-
-function removeFilter(idx: number) {
-    filters.value.splice(idx, 1)
-}
 
 function resetFilters() {
     filters.value = []

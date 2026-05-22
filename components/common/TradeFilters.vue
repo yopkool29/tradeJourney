@@ -37,8 +37,8 @@
                         :columns="filterableColumnsConfig"
                         :loading="filterLoading"
                         :tag-groups="tagGroups"
-                        @add="emit('add')"
-                        @remove="emit('remove', $event)"
+                        @add="addFilter"
+                        @remove="removeFilter($event)"
                         @apply="emit('apply')"
                     >
                         <template #field-type="slotProps">
@@ -71,6 +71,9 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn } from '~/type'
+import { useDebounceFn } from '@vueuse/core'
+const { log_debug } = useLogView()
+import { OPERATOR_EQUAL } from '~/utils'
 
 const props = defineProps<{
     title: string
@@ -93,6 +96,8 @@ const props = defineProps<{
     showAdvancedFilters: boolean
     showInactiveCheckbox?: boolean
     tagGroups?: any[]
+    lastFilterColumn?: string
+    maxFilters?: number
 }>()
 
 const emit = defineEmits<{
@@ -100,8 +105,7 @@ const emit = defineEmits<{
     'update:showInactive': [value: boolean]
     'update:filters': [value: TradeFilter[]]
     'update:showAdvancedFilters': [value: boolean]
-    add: []
-    remove: [index: number]
+    'update:lastFilterColumn': [value: string]
     apply: []
     reset: []
 }>()
@@ -119,6 +123,41 @@ const localShowInactive = computed({
 const localFilters = computed({
     get: () => props.filters,
     set: (val) => emit('update:filters', val)
+})
+
+const maxFiltersCount = computed(() => props.maxFilters ?? 4)
+
+// Debounce l'application des filtres pour éviter trop de requêtes API
+const debouncedApply = useDebounceFn(() => {
+    emit('apply')
+    // log_debug("debouncedApply")
+}, 500)
+
+const addFilter = () => {
+    if (localFilters.value.length < maxFiltersCount.value) {
+        const column = props.lastFilterColumn || 'symbol'
+        localFilters.value = [...localFilters.value, { column, operator: OPERATOR_EQUAL, value: '' }]
+    }
+}
+
+const removeFilter = (idx: number) => {
+    const removedFilter = localFilters.value[idx]
+    if (removedFilter?.column) {
+        emit('update:lastFilterColumn', removedFilter.column)
+    }
+    const newFilters = [...localFilters.value]
+    newFilters.splice(idx, 1)
+    localFilters.value = newFilters
+    debouncedApply()
+}
+
+watch(() => props.filters.map(f => f.column), (newColumns, oldColumns) => {
+    if (!oldColumns) return
+    for (let i = 0; i < newColumns.length; i++) {
+        if (newColumns[i] !== oldColumns[i] && newColumns[i]) {
+            emit('update:lastFilterColumn', newColumns[i])
+        }
+    }
 })
 
 const isFiltersOpen = computed({

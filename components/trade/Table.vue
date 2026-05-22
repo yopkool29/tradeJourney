@@ -14,7 +14,9 @@
                         :filterable-columns-config="filterableColumnsConfig" :show-column-visibility="true"
                         :table="table" :label-columns-header="labelColumnsHeader"
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
-                        :show-inactive-checkbox="true" :tag-groups="tagGroups" @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
+                        :show-inactive-checkbox="true" :tag-groups="tagGroups"
+                        v-model:last-filter-column="userStore.tradeOptions.lastFilterColumn"
+                        @apply="onApplyFilters" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
                             <USelect :model-value="filter.value as string" :items="[
                                 { label: 'Buy', value: 'buy' },
@@ -761,15 +763,6 @@ onMounted(() => {
     onApplyFilters()
 })
 
-function addFilter() {
-    if (filters.value.length < 4) {
-        filters.value.push({ column: 'symbol', operator: OPERATOR_EQUAL, value: '' })
-    }
-}
-
-function removeFilter(idx: number) {
-    filters.value.splice(idx, 1)
-}
 
 function resetFilters() {
     sortBy.value = ''

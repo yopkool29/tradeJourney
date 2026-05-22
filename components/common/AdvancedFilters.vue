@@ -22,7 +22,7 @@
                         v-if="filter.column === 'tags'"
                         :model-value="filter.value as number"
                         :tag-groups="tagGroups || []"
-                        @update:model-value="(val) => { onValueChange(idx, val); emit('apply') }"
+                        @update:model-value="(val) => onValueChange(idx, val)"
                     />
 
                     <!-- Slot pour champ personnalisé (autres colonnes) -->
@@ -37,7 +37,7 @@
                         />
                     </slot>
 
-                    <UButton v-if="modelValue.length > 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
+                    <UButton v-if="modelValue.length >= 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
                 </div>
             </div>
         </div>
@@ -54,6 +54,8 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn, TradeFilterValue } from '~/type'
+import { useDebounceFn } from '@vueuse/core'
+const { log_debug } = useLogView()
 
 import {
     OPERATOR_EQUAL,
@@ -112,6 +114,12 @@ const getPlaceholder = (filter: TradeFilter) => {
     return t('components.trade.table.advanced_filters.placeholder')
 }
 
+// Debounce l'application des filtres pour éviter trop de requêtes API
+const debouncedApply = useDebounceFn(() => {
+    emit('apply')
+    // log_debug("debouncedApply")
+}, 500)
+
 const onColumnChange = (index: number, value: string) => {
     const newFilters = [...props.modelValue]
     const column = props.columns.find((c) => c.value === value)
@@ -121,24 +129,21 @@ const onColumnChange = (index: number, value: string) => {
         operator: column?.defaultOperator || OPERATOR_EQUAL,
         value: column?.defaultValue ?? '',
     }
-
     emit('update:modelValue', newFilters)
+    debouncedApply()
 }
 
 const onOperatorChange = (index: number, value: string) => {
     const newFilters = [...props.modelValue]
     newFilters[index].operator = value
     emit('update:modelValue', newFilters)
+    debouncedApply()
 }
 
 const onValueChange = (index: number, value: TradeFilterValue) => {
     const newFilters = [...props.modelValue]
     newFilters[index].value = value
     emit('update:modelValue', newFilters)
-
-    // Auto-apply si la valeur est vidée
-    if (value === '' || value === null) {
-        emit('apply')
-    }
+    debouncedApply()
 }
 </script>

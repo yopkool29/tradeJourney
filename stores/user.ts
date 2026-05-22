@@ -176,10 +176,13 @@ export const useUserStore = defineStore(
                         nbLines: 10,
                         showInactive: false,
                         showAdvancedFilters: false,
-                        filters: [] as TradeFilter[]
+                        filters: [] as TradeFilter[],
+                        lastFilterColumn: 'symbol'
                     }
                 }
-                return tradeOptionsPerDb.value[dbName]
+                const tradeOpts = tradeOptionsPerDb.value[dbName]
+                if (!tradeOpts.lastFilterColumn) tradeOpts.lastFilterColumn = 'symbol'
+                return tradeOpts
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
@@ -202,12 +205,14 @@ export const useUserStore = defineStore(
                         showInactive: false,
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
+                        lastFilterColumn: 'symbol',
                         last_results: [] as TradeExtendedType[]
                     }
                 }
                 
                 // Ensure dates are Date objects (localStorage restores them as strings)
                 const filters = dashBoardFiltersPerDb.value[dbName]
+                if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
                 filters.customStartDate = filters.customStartDate instanceof Date ? filters.customStartDate : new Date(filters.customStartDate)
@@ -247,10 +252,13 @@ export const useUserStore = defineStore(
                             takeProfit: false,
                         }),
                         filters: [] as TradeFilter[],
+                        lastFilterColumn: 'symbol',
                         last_results: [] as TradeExtendedType[]
                     }
                 }
-                return dailyHistoryFiltersPerDb.value[dbName]
+                const dailyFilters = dailyHistoryFiltersPerDb.value[dbName]
+                if (!dailyFilters.lastFilterColumn) dailyFilters.lastFilterColumn = 'symbol'
+                return dailyFilters
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
@@ -268,10 +276,13 @@ export const useUserStore = defineStore(
                         showInactive: false,
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
+                        lastFilterColumn: 'symbol',
                         last_results: [] as TradeExtendedType[]
                     }
                 }
-                return calendarFiltersPerDb.value[dbName]
+                const calFilters = calendarFiltersPerDb.value[dbName]
+                if (!calFilters.lastFilterColumn) calFilters.lastFilterColumn = 'symbol'
+                return calFilters
             },
             set: (val) => {
                 const dbName = getCurrentDbName()

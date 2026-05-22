@@ -13,8 +13,15 @@
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
                             :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
-                            :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" :tag-groups="tagGroups" @add="addFilter" @remove="removeFilter"
+                            :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" :tag-groups="tagGroups"
+                            v-model:last-filter-column="userStore.dailyHistoryFilters.lastFilterColumn"
                             @apply="onApplyFilters" @reset="resetFilters">
+                            <template #field-type="{ filter, onValueChange }">
+                                <USelect :model-value="filter.value as string" :items="[
+                                    { label: 'Buy', value: 'buy' },
+                                    { label: 'Sell', value: 'sell' },
+                                ]" placeholder="Buy/Sell" class="min-w-[200px]" @update:model-value="onValueChange" />
+                            </template>
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
                                     <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
@@ -176,16 +183,6 @@ const filters = computed({
     set: (val) => userStore.dailyHistoryFilters.filters = val
 })
 
-function addFilter() {
-    if (filters.value.length < 4) {
-        const newFilters = [...filters.value, { column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
-        filters.value = newFilters
-    }
-}
-
-function removeFilter(idx: number) {
-    filters.value.splice(idx, 1)
-}
 
 function resetFilters() {
     filters.value = []
