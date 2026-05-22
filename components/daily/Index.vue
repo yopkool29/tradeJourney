@@ -36,22 +36,13 @@
                     </div>
                     <div class="flex flex-col items-start gap-2">
                         <PluginPageSlot slot-id="page-daily" />
-                        <div v-if="settings.showCalendarDaily"
-                            class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
-                            <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
-                                :year-controls="false" readonly size="lg"
-                                :ui="{ cellTrigger: 'calendar-cell-trigger', cell: 'w-9 h-7' }"
-                                @update:placeholder="onCalendarMonthChange">
-                                <template #day="{ day }">
-                                    <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
-                                        'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
-                                        'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
-                                    }">
-                                        <span>{{ day.day }}</span>
-                                    </div>
-                                </template>
-                            </UCalendar>
-                        </div>
+                        <CommonPnLCalendar
+                            v-model="calendarValue"
+                            v-model:month="calendarMonth"
+                            :day-stats="dayStats"
+                            :show="settings.showCalendarDaily"
+                            @update:month="onCalendarMonthChange"
+                        />
                     </div>
                 </div>
             </template>

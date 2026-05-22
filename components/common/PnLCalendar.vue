@@ -1,0 +1,43 @@
+<template>
+    <div v-if="show" class="hidden md:flex border border-gray-400 dark:border-gray-700 rounded-lg p-2 bg-gray-100 dark:bg-gray-900">
+        <UCalendar v-model="modelValue" :month="month" :month-controls="true" :year-controls="false"
+            readonly size="lg" :ui="{ cellTrigger: 'calendar-cell-trigger', cell: 'w-9 h-7' }" @update:placeholder="onMonthChange">
+            <template #day="{ day }">
+                <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
+                    'calendar-cell-positive': dayStats[day.toString()]?.pnl > 0,
+                    'calendar-cell-negative': dayStats[day.toString()]?.pnl < 0,
+                }">
+                    <span>{{ day.day }}</span>
+                </div>
+            </template>
+        </UCalendar>
+    </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps<{
+    modelValue: any
+    month: any
+    dayStats: Record<string, { pnl: number }>
+    show: boolean
+}>()
+
+const emit = defineEmits<{
+    'update:modelValue': [value: any]
+    'update:month': [value: any]
+}>()
+
+const modelValue = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val)
+})
+
+const month = computed({
+    get: () => props.month,
+    set: (val) => emit('update:month', val)
+})
+
+const onMonthChange = (val: any) => {
+    emit('update:month', val)
+}
+</script>

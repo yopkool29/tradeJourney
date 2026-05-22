@@ -57,7 +57,7 @@ export default defineAppConfig({
             variants: {
                 variant: {
                     subtle: {
-                        root: 'bg-stone-100 dark:bg-slate-900/50 border-gray-500 dark:border-slate-800'
+                        root: 'bg-gray-50 dark:bg-slate-900/50 border-gray-500 dark:border-slate-800'
                     }
                 }
             }

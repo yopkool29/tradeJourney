@@ -525,13 +525,30 @@ select {
     background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.6), rgba(55, 65, 81, 0.8));
 }
 
+/* Calendar cell colors for UCalendar (more saturated) */
+.calendar-cell-positive {
+    background: linear-gradient(to bottom right, rgb(187, 247, 208), rgb(134, 239, 172));
+}
+
+.dark .calendar-cell-positive {
+    background: linear-gradient(to bottom right, rgba(30, 122, 67, 0.8), rgba(30, 122, 67, 0.8));
+}
+
+.calendar-cell-negative {
+    background: linear-gradient(to bottom right, rgb(254, 202, 202), rgb(252, 165, 165));
+}
+
+.dark .calendar-cell-negative {
+    background: linear-gradient(to bottom right, rgba(175, 42, 42, 0.7), rgba(175, 42, 42, 0.7));
+}
+
 /* Calendar text colors for profit/loss */
 .calendar-pnl-positive {
-    @apply text-green-700 dark:text-green-400 font-semibold;
+    @apply text-green-600 dark:text-green-400 font-semibold;
 }
 
 .calendar-pnl-negative {
-    @apply text-red-700 dark:text-red-400 font-semibold;
+    @apply text-red-600 dark:text-red-400 font-semibold;
 }
 
 /* Trade table: fusionne visuellement la row principale et la row expanded */
