@@ -9,142 +9,91 @@
                         <PluginPageSlot slot-id="page-trade" />
                     </div>
                     <div class="action-buttons">
-                        <CommonAccountSelect
-                            v-model="userStore.tradeOptions.accountIds"
-                            :items="accountOptions"
+                        <CommonAccountSelect v-model="userStore.tradeOptions.accountIds" :items="accountOptions"
                             :placeholder="$t('components.trade.table.accounts.placeholder')"
                             :all-label="$t('components.trade.table.accounts.all')"
                             :selected-label="$t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length })"
-                            select-class="select-standard"
-                        />
-                        <UCheckbox v-model="userStore.tradeOptions.showInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
+                            select-class="select-standard" />
+                        <UCheckbox v-model="userStore.tradeOptions.showInactive" class="mt-2"
+                            :label="$t('components.trade.table.show_inactive')" />
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-y-4">
 
-                    <CommonAdvancedFilters
-                        v-model="filters"
-                        :columns="filterableColumnsConfig"
-                        :loading="filterLoading"
-                        @add="addFilter"
-                        @remove="removeFilter"
-                        @apply="onApplyFilters"
-                        @reset="resetFilters"
-                    >
+                    <CommonAdvancedFilters v-model="filters" :columns="filterableColumnsConfig" :loading="filterLoading"
+                        @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
-                            <USelect
-                                :model-value="filter.value as string"
-                                :items="[
-                                    { label: 'Buy', value: 'buy' },
-                                    { label: 'Sell', value: 'sell' },
-                                ]"
-                                placeholder="Buy/Sell"
-                                class="min-w-[200px]"
-                                @update:model-value="onValueChange"
-                            />
+                            <USelect :model-value="filter.value as string" :items="[
+                                { label: 'Buy', value: 'buy' },
+                                { label: 'Sell', value: 'sell' },
+                            ]" placeholder="Buy/Sell" class="min-w-[200px]" @update:model-value="onValueChange" />
                         </template>
                     </CommonAdvancedFilters>
-                    
+
                     <div class="filter-actions justify-start">
-                        <ColumnVisibilityMenu
-                            :table="table"
-                            :label-columns-header="labelColumnsHeader"
-                            :exclude-columns="['actions', 'symbol', 'type', 'profit']"
-                            button-class="w-36"
-                        />
+                        <ColumnVisibilityMenu :table="table" :label-columns-header="labelColumnsHeader"
+                            :exclude-columns="['actions', 'symbol', 'type', 'profit']" button-class="w-36" />
                     </div>
                 </div>
             </template>
         </UCard>
         <div class="filter-actions mb-2">
-            <span class="text-secondary-xs ml-2">{{ $t('components.trade.table.results_count', { count: sortedTrades.length }) }}</span>
+            <span class="text-secondary-xs ml-2">{{ $t('components.trade.table.results_count', {
+                count:
+                sortedTrades.length })
+                }}</span>
         </div>
         <div class="flex-center mb-4 items-center gap-4">
             <div v-if="paginatedTrades.length">
-                <UPagination
-                    v-model:page="page"
-                    :page-count="pageCount"
-                    :total="sortedTrades.length"
-                    :items-per-page="pageSize"
-                    :ui="{
+                <UPagination v-model:page="page" :page-count="pageCount" :total="sortedTrades.length"
+                    :items-per-page="pageSize" :ui="{
                         root: '',
                         item: 'min-w-[32px] mx-[5px] !rounded-full justify-center',
-                    }"
-                />
+                    }" />
             </div>
             <div v-if="paginatedTrades.length" class="form-row">
-                <USelect
-                    v-model="userStore.tradeOptions.nbLines"
-                    :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))"
-                    class="w-20"
-                />
+                <USelect v-model="userStore.tradeOptions.nbLines"
+                    :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
                 <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
             </div>
         </div>
         <div class="w-full">
-            <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="currentScreenshots" @closed="showScreenshots = false" />
-            <CommonModalDelete
-                :from="'trade'"
-                :title="$t('components.trade.table.bulk_activate_title')"
-                :confirm-text="$t('common.actions.confirm')"
-                confirm-color="primary"
-                :open="showBulkActivateModal"
-                @confirm="confirmBulkActivate"
-                @closed="showBulkActivateModal = false"
-            >
+            <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="currentScreenshots"
+                @closed="showScreenshots = false" />
+            <CommonModalDelete :from="'trade'" :title="$t('components.trade.table.bulk_activate_title')"
+                :confirm-text="$t('common.actions.confirm')" confirm-color="primary" :open="showBulkActivateModal"
+                @confirm="confirmBulkActivate" @closed="showBulkActivateModal = false">
                 <template #content>
                     {{ $t('components.trade.table.bulk_activate_confirm') }}
                 </template>
             </CommonModalDelete>
-            <CommonModalDelete
-                :from="'trade'"
-                :title="$t('components.trade.table.bulk_deactivate_title')"
-                :confirm-text="$t('common.actions.confirm')"
-                confirm-color="error"
-                :open="showBulkDeactivateModal"
-                @confirm="confirmBulkDeactivate"
-                @closed="showBulkDeactivateModal = false"
-            >
+            <CommonModalDelete :from="'trade'" :title="$t('components.trade.table.bulk_deactivate_title')"
+                :confirm-text="$t('common.actions.confirm')" confirm-color="error" :open="showBulkDeactivateModal"
+                @confirm="confirmBulkDeactivate" @closed="showBulkDeactivateModal = false">
                 <template #content>
                     {{ $t('components.trade.table.bulk_deactivate_confirm') }}
                 </template>
             </CommonModalDelete>
-            <UTable
-                :key="timezoneKey"
-                ref="table"
-                v-model:column-visibility="userStore.columnVisibility"
-                :data="paginatedTrades"
-                :columns="columns"
-                :loading="tableIsLoading"
+            <UTable :key="timezoneKey" ref="table" v-model:column-visibility="userStore.columnVisibility"
+                :data="paginatedTrades" :columns="columns" :loading="tableIsLoading"
                 :empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.trade.table.empty_state') }"
-                :ui="{ td: 'p-2' }"
-                class="custom-table-hover table-fixed"
-                @sort="onSort"
-            >
+                :ui="{ td: 'p-2' }" class="custom-table-hover table-fixed" @sort="onSort">
                 <template #actions-cell="{ row }">
                     <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
                         <UTooltip :text="$t('components.trade.table.edit_button')">
-                            <UButton
-                                icon="i-heroicons-pencil-square"
-                                size="xs"
-                                color="primary"
-                                variant="ghost"
-                                @click="$emit('edit', row.original)"
-                                >{{ $t('components.trade.table.edit_button') }}</UButton
-                            >
+                            <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
+                                @click="$emit('edit', row.original)">{{ $t('components.trade.table.edit_button') }}
+                            </UButton>
                         </UTooltip>
-                        <CommonModalDelete
-                            v-if="row.original.active === false"
-                            :from="'trade'"
+                        <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
                             :title="$t('components.trade.table.activate_title')"
-                            :confirm-text="$t('common.actions.confirm')"
-                            confirm-color="primary"
-                            @confirm="onUndelete(row.original.id!)"
-                        >
+                            :confirm-text="$t('common.actions.confirm')" confirm-color="primary"
+                            @confirm="onUndelete(row.original.id!)">
                             <template #trigger>
                                 <UTooltip :text="$t('components.trade.table.activate_button')">
-                                    <UButton icon="i-lucide-archive-restore" size="xs" color="primary" variant="ghost"></UButton>
+                                    <UButton icon="i-lucide-archive-restore" size="xs" color="primary" variant="ghost">
+                                    </UButton>
                                 </UTooltip>
                             </template>
                             <template #content>{{ $t('components.trade.table.activate_confirm') }}</template>
@@ -163,10 +112,12 @@
                     <span class="font-semibold">{{ row.original.symbol }}</span>
                 </template>
                 <template #openDate-cell="{ row }">
-                    {{ formatDateWithUserTimezone(row.original.openDate, userStore.user?.settings_object, true, locale as 'fr' | 'en' | 'us') }}
+                    {{ formatDateWithUserTimezone(row.original.openDate, userStore.user?.settings_object, true, locale
+                    as 'fr' | 'en' | 'us') }}
                 </template>
                 <template #closeDate-cell="{ row }">
-                    {{ formatDateWithUserTimezone(row.original.closeDate, userStore.user?.settings_object, true, locale as 'fr' | 'en' | 'us') }}
+                    {{ formatDateWithUserTimezone(row.original.closeDate, userStore.user?.settings_object, true, locale
+                    as 'fr' | 'en' | 'us') }}
                 </template>
                 <template #openPrice-cell="{ row }">
                     <span class="font-semibold">
@@ -185,12 +136,14 @@
                 </template>
                 <template #stopLoss-cell="{ row }">
                     <span class="font-semibold">
-                        {{ !row.original.stopLoss ? '---' : row.original.stopLoss.toFixed(getDigitFromSymbol(row.original.symbol)) }}
+                        {{ !row.original.stopLoss ? '---' :
+                            row.original.stopLoss.toFixed(getDigitFromSymbol(row.original.symbol)) }}
                     </span>
                 </template>
                 <template #takeProfit-cell="{ row }">
                     <span class="font-semibold">
-                        {{ !row.original.takeProfit ? '---' : row.original.takeProfit.toFixed(getDigitFromSymbol(row.original.symbol)) }}
+                        {{ !row.original.takeProfit ? '---' :
+                            row.original.takeProfit.toFixed(getDigitFromSymbol(row.original.symbol)) }}
                     </span>
                 </template>
                 <template #profit-cell="{ row }">
@@ -218,23 +171,15 @@
         </div>
         <div class="flex-center mt-4 items-center gap-4">
             <div v-if="paginatedTrades.length">
-                <UPagination
-                    v-model:page="page"
-                    :page-count="pageCount"
-                    :total="sortedTrades.length"
-                    :items-per-page="pageSize"
-                    :ui="{
+                <UPagination v-model:page="page" :page-count="pageCount" :total="sortedTrades.length"
+                    :items-per-page="pageSize" :ui="{
                         root: '',
                         item: 'min-w-[32px] mx-[5px] !rounded-full justify-center',
-                    }"
-                />
+                    }" />
             </div>
             <div v-if="paginatedTrades.length" class="form-row">
-                <USelect
-                    v-model="userStore.tradeOptions.nbLines"
-                    :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))"
-                    class="w-20"
-                />
+                <USelect v-model="userStore.tradeOptions.nbLines"
+                    :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
                 <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
             </div>
         </div>
@@ -247,6 +192,7 @@ import type { TradeFilter } from '~/type'
 import { UIcon } from '#components'
 import {
     OPERATOR_EQUAL,
+    OPERATOR_NOT_EQUAL,
     OPERATOR_GREATER_THAN_OR_EQUAL,
 } from '~/utils'
 import { formatDateWithUserTimezone, parseDateStringToTimestamp } from '~/utils/date-utils'
@@ -259,9 +205,9 @@ const colorMode = useColorMode()
 const userStore = useUserStore()
 
 const tableRowHoverColor = computed(() => {
-	const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
-	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
-	return colors[theme] || colors.light
+    const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
+    const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+    return colors[theme] || colors.light
 })
 
 const UTooltipComp = resolveComponent('UTooltip')
@@ -332,47 +278,47 @@ const labelColumnsHeader = computed(() => {
 
 // Configuration des colonnes filtrables pour CommonAdvancedFilters
 const filterableColumnsConfig = computed(() => [
-    { 
-        label: t('components.trade.table.filters.openDate'), 
+    {
+        label: t('components.trade.table.filters.openDate'),
         value: 'openDate',
         type: 'date' as const
     },
-    { 
-        label: t('components.trade.table.filters.closeDate'), 
+    {
+        label: t('components.trade.table.filters.closeDate'),
         value: 'closeDate',
         type: 'date' as const
     },
-    { 
-        label: t('components.trade.table.filters.symbol'), 
+    {
+        label: t('components.trade.table.filters.symbol'),
         value: 'symbol',
-        operators: [OPERATOR_EQUAL],
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
         defaultOperator: OPERATOR_EQUAL
     },
-    { 
-        label: t('components.trade.table.filters.type'), 
+    {
+        label: t('components.trade.table.filters.type'),
         value: 'type',
         type: 'select' as const,
-        operators: [OPERATOR_EQUAL],
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
         defaultOperator: OPERATOR_EQUAL,
         defaultValue: 'buy'
     },
-    { 
-        label: t('components.trade.table.filters.lot'), 
+    {
+        label: t('components.trade.table.filters.lot'),
         value: 'lot',
         type: 'number' as const
     },
-    { 
-        label: t('components.trade.table.filters.openPrice'), 
+    {
+        label: t('components.trade.table.filters.openPrice'),
         value: 'openPrice',
         type: 'number' as const
     },
-    { 
-        label: t('components.trade.table.filters.closePrice'), 
+    {
+        label: t('components.trade.table.filters.closePrice'),
         value: 'closePrice',
         type: 'number' as const
     },
-    { 
-        label: t('components.trade.table.filters.profit'), 
+    {
+        label: t('components.trade.table.filters.profit'),
         value: 'profit',
         type: 'number' as const,
         defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
@@ -479,7 +425,7 @@ const columns = [
             ),
         meta: addMeta(),
     },
-{
+    {
         id: 'symbol',
         accessorKey: 'symbol',
         header: () =>
@@ -937,10 +883,10 @@ function onSort({ column, direction }: { column: { accessorKey: string }; direct
 const confirmBulkActivate = async () => {
     const inactiveTrades = paginatedTrades.value.filter(trade => trade.active === false)
     const tradeIds = inactiveTrades.map(t => t.id!)
-    
+
     // Faire tous les appels API en parallèle
     await Promise.all(tradeIds.map(id => unDeleteTrade(id)))
-    
+
     // Mettre à jour le state en une seule fois
     tradeIds.forEach(id => {
         const tradeInList = trades.value.find(t => t.id === id)
@@ -948,17 +894,17 @@ const confirmBulkActivate = async () => {
             tradeInList.active = true
         }
     })
-    
+
     showBulkActivateModal.value = false
 }
 
 const confirmBulkDeactivate = async () => {
     const activeTrades = paginatedTrades.value.filter(trade => trade.active !== false)
     const tradeIds = activeTrades.map(t => t.id!)
-    
+
     // Faire tous les appels API en parallèle
     await Promise.all(tradeIds.map(id => deleteTrade(id)))
-    
+
     // Mettre à jour le state en une seule fois
     tradeIds.forEach(id => {
         const tradeInList = trades.value.find(t => t.id === id)
@@ -966,7 +912,7 @@ const confirmBulkDeactivate = async () => {
             tradeInList.active = false
         }
     })
-    
+
     showBulkDeactivateModal.value = false
 }
 

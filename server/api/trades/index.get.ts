@@ -7,6 +7,7 @@ import type { TradeFilter } from '~/type'
 
 import {
     OPERATOR_EQUAL,
+    OPERATOR_NOT_EQUAL,
     OPERATOR_GREATER_THAN,
     OPERATOR_GREATER_THAN_OR_EQUAL,
     OPERATOR_LESS_THAN,
@@ -58,6 +59,7 @@ export default defineEventHandler(async (event) => {
                         let prismaOperator: string
                         switch (filter.operator) {
                             case OPERATOR_EQUAL: prismaOperator = 'equals'; break
+                            case OPERATOR_NOT_EQUAL: prismaOperator = 'not'; break
                             case OPERATOR_GREATER_THAN: prismaOperator = 'gt'; break
                             case OPERATOR_LESS_THAN: prismaOperator = 'lt'; break
                             case OPERATOR_GREATER_THAN_OR_EQUAL: prismaOperator = 'gte'; break
