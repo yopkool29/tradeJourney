@@ -1,32 +1,34 @@
 <template>
     <div>
-        <UCard class="card-container">
-            <div class="filter-container">
-                <div class="flex items-center justify-between">
-                    <div class="section-label">{{ $t('components.dashboard.index.accounts') }}</div>
-                    <PluginPageSlot slot-id="page-dashboard" />
-                </div>
-                <CommonAccountSelect
-                    v-model="userStore.dashBoardFilters.accountIds"
-                    :items="accountOptions"
+        <UCard class="card-container-xl">
+            <template #default>
+                <CommonTradeFilters
+                    :title="$t('components.dashboard.index.accounts')"
+                    slot-id="page-dashboard"
+                    :show-plugin-slot="true"
+                    v-model:account-ids="userStore.dashBoardFilters.accountIds"
+                    v-model:show-inactive="userStore.dashBoardFilters.showInactive"
+                    v-model:filters="filters"
+                    v-model:show-advanced-filters="userStore.dashBoardFilters.showAdvancedFilters"
+                    :filter-loading="filterLoading"
+                    :account-options="accountOptions"
                     :placeholder="$t('components.dashboard.index.select_accounts')"
                     :all-label="$t('components.dashboard.index.all_accounts')"
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
-                    select-class="select-standard"
+                    :filterable-columns-config="filterableColumnsConfig"
+                    @add="addFilter"
+                    @remove="removeFilter"
+                    @apply="onApplyFilters"
+                    @reset="resetFilters"
                 />
-            </div>
-            <div class="filter-actions-lg mb-4">
+            <div class="filter-actions-lg mt-4">
                 <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
                     :placeholder="$t('components.dashboard.index.period')" class="select-standard" />
                 <UInput v-model="startDateStr" type="date" class="date-input" />
                 <UInput v-model="endDateStr" type="date" class="date-input" />
-                <UButton icon="i-lucide-filter" :loading="filterLoading" color="primary" size="sm"
-                    @click="onApplyFilters">
-                    {{ $t('components.dashboard.index.filter') }}
-                </UButton>
             </div>
             <!-- Ligne d'options avancées -->
-            <div class="filter-actions-lg">
+            <div class="mt-4">
                 <div class="form-row">
                     <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
                         }}</label>
@@ -34,6 +36,7 @@
                         :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full" />
                 </div>
             </div>
+            </template>
         </UCard>
 
         <div class="flex flex-col gap-4 max-w-5xl mb-8">
@@ -127,6 +130,12 @@ import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
+import type { TradeFilter, FilterColumn } from '~/type'
+import {
+    OPERATOR_EQUAL,
+    OPERATOR_NOT_EQUAL,
+    OPERATOR_GREATER_THAN_OR_EQUAL,
+} from '~/utils'
 
 const { formatCurrency } = useUtils()
 
@@ -158,6 +167,76 @@ const accountOptions = computed(() => {
         }
     })
 })
+
+// Configuration des colonnes filtrables pour CommonAdvancedFilters
+const filterableColumnsConfig = computed(() => [
+    {
+        label: t('components.trade.table.filters.openDate'),
+        value: 'openDate',
+        type: 'date' as const
+    },
+    {
+        label: t('components.trade.table.filters.closeDate'),
+        value: 'closeDate',
+        type: 'date' as const
+    },
+    {
+        label: t('components.trade.table.filters.symbol'),
+        value: 'symbol',
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.type'),
+        value: 'type',
+        type: 'select' as const,
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+        defaultOperator: OPERATOR_EQUAL,
+        defaultValue: 'buy'
+    },
+    {
+        label: t('components.trade.table.filters.lot'),
+        value: 'lot',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.openPrice'),
+        value: 'openPrice',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.closePrice'),
+        value: 'closePrice',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.profit'),
+        value: 'profit',
+        type: 'number' as const,
+        defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+])
+
+const filters = computed({
+    get: () => userStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => userStore.dashBoardFilters.filters = val
+})
+
+function addFilter() {
+    if (filters.value.length < 4) {
+        const newFilters = [...filters.value, { column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' }]
+        filters.value = newFilters
+    }
+}
+
+function removeFilter(idx: number) {
+    if (filters.value.length > 1) filters.value.splice(idx, 1)
+}
+
+function resetFilters() {
+    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    onApplyFilters()
+}
 
 // Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
@@ -248,7 +327,8 @@ const onApplyFilters = async () => {
             userStore.dashBoardFilters.endDate,
             true,
             userStore.dashBoardFilters.accountIds,
-            displayModeNet.value
+            displayModeNet.value,
+            filters.value
         )
     } finally {
         filterLoading.value = false

@@ -1120,7 +1120,7 @@ export default {
                 show_detailed_note: 'Detailed notes',
                 advanced_filters: {
                     title: 'Advanced filters',
-                    add: 'Add filter',
+                    add: 'Filter',
                     apply: 'Apply',
                     reset: 'Reset',
                     placeholder: 'Value',

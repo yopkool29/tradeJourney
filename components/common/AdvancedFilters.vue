@@ -1,42 +1,50 @@
 <template>
-    <div class="filter-actions">
-        <div v-for="(filter, idx) in modelValue" :key="idx" class="filter-actions">
-            <USelect
-                :model-value="filter.column"
-                :items="columns"
-                class="min-w-[200px] select-none"
-                @update:model-value="(val) => onColumnChange(idx, val)"
-            />
-            <USelect
-                :model-value="filter.operator"
-                :items="getOperatorOptions(filter.column)"
-                class="w-20 select-none"
-                @update:model-value="(val) => onOperatorChange(idx, val)"
-            />
+    <div class="flex flex-row gap-x-4 items-start">
 
-            <!-- Slot pour champ personnalisé -->
-            <slot :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => onValueChange(idx, val)">
-                <!-- Champ par défaut -->
-                <CommonFilterClear
-                    :model-value="filter.value as string"
-                    :placeholder="getPlaceholder(filter)"
-                    @enter="emit('apply')"
-                    @update:model-value="(val) => onValueChange(idx, val)"
+        <div class="flex flex-col gap-2">
+            <div v-for="(filter, idx) in modelValue" :key="idx" class="filter-actions-nowrap">
+                <USelect
+                    :model-value="filter.column"
+                    :items="columns"
+                    class="min-w-[200px] select-none"
+                    @update:model-value="(val) => onColumnChange(idx, val)"
                 />
-            </slot>
+                <USelect
+                    :model-value="filter.operator"
+                    :items="getOperatorOptions(filter.column)"
+                    class="w-20 select-none"
+                    @update:model-value="(val) => onOperatorChange(idx, val)"
+                />
 
-            <UButton v-if="modelValue.length > 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
+                <!-- Slot pour champ personnalisé -->
+                <slot :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => onValueChange(idx, val)">
+                    <!-- Champ par défaut -->
+                    <CommonFilterClear
+                        :model-value="filter.value as string"
+                        :placeholder="getPlaceholder(filter)"
+                        @enter="emit('apply')"
+                        @update:model-value="(val) => onValueChange(idx, val)"
+                    />
+                </slot>
+
+                <UButton v-if="modelValue.length > 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
+            </div>
         </div>
-        <UButton icon="i-heroicons-plus" color="primary" variant="outline" size="sm" @click="emit('add')">
-            {{ $t('components.trade.table.advanced_filters.add') }}
-        </UButton>
-        <UButton icon="i-lucide-filter" :loading="loading" color="primary" variant="solid" size="sm" @click="emit('apply')">
-            {{ $t('components.trade.table.advanced_filters.apply') }}
-        </UButton>
-        <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
-            {{ $t('components.trade.table.advanced_filters.reset') }}
-        </UButton>
+
+        <div class="filter-actions-lg">
+            <UButton icon="i-heroicons-plus" color="primary" variant="outline" size="sm" @click="emit('add')">
+                {{ $t('components.trade.table.advanced_filters.add') }}
+            </UButton>
+            <UButton icon="i-lucide-filter" :loading="loading" color="primary" variant="solid" size="sm" @click="emit('apply')">
+                {{ $t('components.trade.table.advanced_filters.apply') }}
+            </UButton>
+            <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
+                {{ $t('components.trade.table.advanced_filters.reset') }}
+            </UButton>
+        </div>
+
     </div>
+
 </template>
 
 <script setup lang="ts">

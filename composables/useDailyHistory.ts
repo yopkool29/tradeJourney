@@ -14,7 +14,7 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
         accounts.value = await $fetch('/api/account') as AccountType[]
     }
 
-    const fetchData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = []) => {
+    const fetchData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], advancedFilters: TradeFilter[] = []) => {
         const _startDate = startDate ? startDate.getTime() : null
         const _endDate = endDate ? endDate.getTime() : null
 
@@ -26,7 +26,7 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
             const operator = includeEndDay ? '<=' : '<'
             filtersForApi.push({ column: 'closeDate', operator: operator, value: _endDate })
         }
-        
+
         // Gestion des comptes sélectionnés
         if (accountIds && accountIds.length > 0) {
             // Si un seul compte est sélectionné, on utilise l'opérateur '=' pour la compatibilité
@@ -34,12 +34,18 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
                 filtersForApi.push({ column: 'accountId', operator: '=', value: accountIds[0] })
             } else {
                 // Pour plusieurs comptes, on utilise l'opérateur 'in'
-                filtersForApi.push({ 
-                    column: 'accountId', 
-                    operator: 'in', 
-                    value: accountIds 
+                filtersForApi.push({
+                    column: 'accountId',
+                    operator: 'in',
+                    value: accountIds
                 })
             }
+        }
+
+        // Ajouter les filtres avancés (exclure ceux avec valeur vide)
+        if (advancedFilters && advancedFilters.length > 0) {
+            const validFilters = advancedFilters.filter(f => f.value !== '' && f.value !== null && f.value !== undefined)
+            filtersForApi.push(...validFilters)
         }
 
         const showInactive = storeKey === 'dailyHistoryFilters' ? userStore.dailyHistoryFilters.showInactive : false

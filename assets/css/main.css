@@ -219,6 +219,15 @@ select {
     @apply flex flex-wrap gap-4 items-end;
 }
 
+.filter-actions-nowrap {
+    @apply flex flex-nowrap gap-2 items-end;
+}
+
+/* Calendar cell trigger */
+.calendar-cell-trigger {
+    @apply m-[2px] relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted transition size-5;
+}
+
 /* Card containers */
 .card-container {
     @apply mb-4 md:max-w-4xl min-w-md;

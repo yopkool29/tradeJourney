@@ -28,7 +28,7 @@ export const useDashboard = () => {
         accounts.value = await $fetch('/api/account') as AccountType[]
     }
 
-    const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true) => {
+    const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true, advancedFilters: TradeFilter[] = []) => {
         const _startDate = startDate ? startDate.getTime() : null
         const _endDate = endDate ? endDate.getTime() : null
 
@@ -40,7 +40,7 @@ export const useDashboard = () => {
             const operator = includeEndDay ? '<=' : '<'
             filtersForApi.push({ column: 'closeDate', operator: operator, value: _endDate })
         }
-        
+
         // Gestion des comptes sélectionnés
         if (accountIds && accountIds.length > 0) {
             // Si un seul compte est sélectionné, on utilise l'opérateur '=' pour la compatibilité
@@ -48,12 +48,18 @@ export const useDashboard = () => {
                 filtersForApi.push({ column: 'accountId', operator: '=', value: accountIds[0] })
             } else {
                 // Pour plusieurs comptes, on utilise l'opérateur 'in'
-                filtersForApi.push({ 
-                    column: 'accountId', 
-                    operator: 'in', 
-                    value: accountIds 
+                filtersForApi.push({
+                    column: 'accountId',
+                    operator: 'in',
+                    value: accountIds
                 })
             }
+        }
+
+        // Ajouter les filtres avancés (exclure ceux avec valeur vide)
+        if (advancedFilters && advancedFilters.length > 0) {
+            const validFilters = advancedFilters.filter(f => f.value !== '' && f.value !== null && f.value !== undefined)
+            filtersForApi.push(...validFilters)
         }
 
         let trades = await fetchTrades(filtersForApi, -1)

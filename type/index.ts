@@ -72,6 +72,7 @@ export interface TradeOptions {
     accountIds: number[]
     nbLines: number
     showInactive: boolean
+    showAdvancedFilters: boolean
 }
 
 export interface DashBoardFilters {
@@ -82,6 +83,9 @@ export interface DashBoardFilters {
     customStartDate: Date
     customEndDate: Date
     cumuleMode: string
+    showInactive: boolean
+    showAdvancedFilters: boolean
+    filters: TradeFilter[]
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
@@ -91,13 +95,18 @@ export interface DailyHistoryFilters {
     selectedMonth: string
     showInactive: boolean
     isExpanded: boolean
+    showAdvancedFilters: boolean
     columnVisibility: Record<string, boolean>
+    filters: TradeFilter[]
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
 export interface CalendarFilters {
     accountIds: number[]
     selectedMonth: string
+    showInactive: boolean
+    showAdvancedFilters: boolean
+    filters: TradeFilter[]
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 

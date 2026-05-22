@@ -1140,9 +1140,9 @@ export default {
                 show_detailed_note: 'Notes détaillées',
                 advanced_filters: {
                     title: 'Filtres avancés',
-                    add: 'Ajouter un filtre',
+                    add: 'Filtre',
                     apply: 'Appliquer',
-                    reset: 'Réinitialiser',
+                    reset: 'Reset',
                     placeholder: 'Valeur',
                 },
                 columns_button: 'Colonnes',

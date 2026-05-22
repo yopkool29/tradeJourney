@@ -1,52 +1,50 @@
 <template>
     <div>
         <!-- Filtres simplifiés : compte + mois -->
-        <UCard class="mb-4">
-            <div class="flex items-start">
-                <div class="flex flex-col gap-4 min-w-[400px]">
-                    <div class="font-semibold">{{ $t('components.daily.index.accounts') }}</div>
-                    <CommonAccountSelect v-model="userStore.dailyHistoryFilters.accountIds" :items="accountOptions"
-                        :placeholder="$t('components.daily.index.select_accounts')"
-                        :all-label="$t('components.daily.index.all_accounts')"
-                        :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
-                        select-class="min-w-[200px] max-w-[300px] w-full" />
-                    <div class="flex flex-col gap-y-4">
-                        <div class="flex flex-wrap gap-4 items-end">
+        <UCard class="card-container-xl">
+            <template #default>
+                <div class="flex items-start">
+                    <div class="flex flex-col">
+                        <CommonTradeFilters :title="$t('components.daily.index.accounts')" slot-id="page-daily"
+                            :show-plugin-slot="false" v-model:account-ids="userStore.dailyHistoryFilters.accountIds"
+                            v-model:show-inactive="userStore.dailyHistoryFilters.showInactive" v-model:filters="filters"
+                            v-model:show-advanced-filters="userStore.dailyHistoryFilters.showAdvancedFilters"
+                            :filter-loading="filterLoading" :account-options="accountOptions"
+                            :placeholder="$t('components.daily.index.select_accounts')"
+                            :all-label="$t('components.daily.index.all_accounts')"
+                            :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
+                            :filterable-columns-config="filterableColumnsConfig" @add="addFilter" @remove="removeFilter"
+                            @apply="onApplyFilters" @reset="resetFilters" />
+                        <div class="filter-actions-lg mt-4">
                             <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
-                            <UButton :loading="filterLoading" icon="i-lucide-filter" color="primary" size="sm"
-                                @click="onFilter">{{ $t('components.daily.index.filter') }}</UButton>
                             <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
                                 size="sm" @click="onExpand">
                                 {{ isExpanded ? $t('components.daily.index.collapse') :
                                     $t('components.daily.index.expand') }}
                             </UButton>
                         </div>
-                        <div>
-                            <UCheckbox v-model="userStore.dailyHistoryFilters.showInactive" class="mt-2"
-                                :label="$t('components.trade.table.show_inactive')" />
+                    </div>
+                    <div class="flex flex-col items-start gap-2 ml-4">
+                        <PluginPageSlot slot-id="page-daily" />
+                        <div v-if="settings.showCalendarDaily"
+                            class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
+                            <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
+                                :year-controls="false" readonly size="md"
+                                :ui="{ cellTrigger: 'calendar-cell-trigger' }"
+                                @update:placeholder="onCalendarMonthChange">
+                                <template #day="{ day }">
+                                    <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
+                                        'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
+                                        'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
+                                    }">
+                                        <span>{{ day.day }}</span>
+                                    </div>
+                                </template>
+                            </UCalendar>
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col items-start gap-2">
-                    <PluginPageSlot slot-id="page-daily" />
-                    <div v-if="settings.showCalendarDaily"
-                        class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
-                        <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
-                            :year-controls="false" readonly size="md"
-                            :ui="{ cellTrigger: 'm-[2px] relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted transition size-5' }"
-                            @update:placeholder="onCalendarMonthChange">
-                            <template #day="{ day }">
-                                <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
-                                    'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
-                                    'bg-red-300 text-red-900': dayStats[day.toString()]?.pnl < 0,
-                                }">
-                                    <span>{{ day.day }}</span>
-                                </div>
-                            </template>
-                        </UCalendar>
-                    </div>
-                </div>
-            </div>
+            </template>
         </UCard>
         <div class="flex flex-col-reverse md:flex-row md:gap-8 items-start">
             <div class="w-full">
@@ -74,6 +72,12 @@ import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
+import type { TradeFilter, FilterColumn } from '~/type'
+import {
+    OPERATOR_EQUAL,
+    OPERATOR_NOT_EQUAL,
+    OPERATOR_GREATER_THAN_OR_EQUAL,
+} from '~/utils'
 
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
@@ -104,6 +108,82 @@ const accountOptions = computed(() => {
         }
     })
 })
+
+const { t, locale } = useI18n()
+
+// Configuration des colonnes filtrables pour CommonAdvancedFilters
+const filterableColumnsConfig = computed(() => [
+    {
+        label: t('components.trade.table.filters.openDate'),
+        value: 'openDate',
+        type: 'date' as const
+    },
+    {
+        label: t('components.trade.table.filters.closeDate'),
+        value: 'closeDate',
+        type: 'date' as const
+    },
+    {
+        label: t('components.trade.table.filters.symbol'),
+        value: 'symbol',
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.type'),
+        value: 'type',
+        type: 'select' as const,
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+        defaultOperator: OPERATOR_EQUAL,
+        defaultValue: 'buy'
+    },
+    {
+        label: t('components.trade.table.filters.lot'),
+        value: 'lot',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.openPrice'),
+        value: 'openPrice',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.closePrice'),
+        value: 'closePrice',
+        type: 'number' as const
+    },
+    {
+        label: t('components.trade.table.filters.profit'),
+        value: 'profit',
+        type: 'number' as const,
+        defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+])
+
+const filters = computed({
+    get: () => userStore.dailyHistoryFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => userStore.dailyHistoryFilters.filters = val
+})
+
+function addFilter() {
+    if (filters.value.length < 4) {
+        const newFilters = [...filters.value, { column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' }]
+        filters.value = newFilters
+    }
+}
+
+function removeFilter(idx: number) {
+    if (filters.value.length > 1) filters.value.splice(idx, 1)
+}
+
+function resetFilters() {
+    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    onFilter()
+}
+
+async function onApplyFilters() {
+    await onFilter()
+}
 
 // Valeurs appliquées par le bouton Filtrer
 const selectedMonth = computed({
@@ -231,7 +311,7 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const startDate = startOfMonth(selectedMonth.value)
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
-            await fetchData(startDate, endDate, true, userStore.dailyHistoryFilters.accountIds)
+            await fetchData(startDate, endDate, true, userStore.dailyHistoryFilters.accountIds, filters.value)
         }
     }
 }

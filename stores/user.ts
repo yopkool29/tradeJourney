@@ -4,6 +4,8 @@ import type { SymbolType } from '~/schema/symbol'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { DayTagType } from '~/schema/dayTag'
 import type { TagGroupType } from '~/schema/tagGroup'
+import type { TradeFilter } from '~/type'
+
 import type {
     CustomInputs,
     TradeOptions,
@@ -172,7 +174,8 @@ export const useUserStore = defineStore(
                     tradeOptionsPerDb.value[dbName] = {
                         accountIds: [] as number[],
                         nbLines: 10,
-                        showInactive: false
+                        showInactive: false,
+                        showAdvancedFilters: false
                     }
                 }
                 return tradeOptionsPerDb.value[dbName]
@@ -195,6 +198,9 @@ export const useUserStore = defineStore(
                         customStartDate: new Date(),
                         customEndDate: new Date(),
                         cumuleMode: 'week',
+                        showInactive: false,
+                        showAdvancedFilters: false,
+                        filters: [] as TradeFilter[],
                         last_results: [] as TradeExtendedType[]
                     }
                 }
@@ -224,6 +230,7 @@ export const useUserStore = defineStore(
                         selectedMonth: formatDateToYYYYMM(new Date()),
                         showInactive: false,
                         isExpanded: false,
+                        showAdvancedFilters: false,
                         columnVisibility: ({
                             lot: true,
                             openDate: true,
@@ -238,6 +245,7 @@ export const useUserStore = defineStore(
                             stopLoss: false,
                             takeProfit: false,
                         }),
+                        filters: [] as TradeFilter[],
                         last_results: [] as TradeExtendedType[]
                     }
                 }
@@ -256,6 +264,9 @@ export const useUserStore = defineStore(
                     calendarFiltersPerDb.value[dbName] = {
                         accountIds: [] as number[],
                         selectedMonth: formatDateToYYYYMM(new Date()),
+                        showInactive: false,
+                        showAdvancedFilters: false,
+                        filters: [] as TradeFilter[],
                         last_results: [] as TradeExtendedType[]
                     }
                 }

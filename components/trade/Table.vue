@@ -3,25 +3,17 @@
         <!-- Barre de filtres avancés -->
         <UCard class="card-container-xl">
             <template #default>
-                <div class="filter-container">
-                    <div class="flex items-center justify-between">
-                        <div class="section-label">{{ $t('components.trade.table.accounts.title') }}</div>
-                        <PluginPageSlot slot-id="page-trade" />
-                    </div>
-                    <div class="action-buttons">
-                        <CommonAccountSelect v-model="userStore.tradeOptions.accountIds" :items="accountOptions"
-                            :placeholder="$t('components.trade.table.accounts.placeholder')"
-                            :all-label="$t('components.trade.table.accounts.all')"
-                            :selected-label="$t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length })"
-                            select-class="select-standard" />
-                        <UCheckbox v-model="userStore.tradeOptions.showInactive" class="mt-2"
-                            :label="$t('components.trade.table.show_inactive')" />
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-y-4">
-
-                    <CommonAdvancedFilters v-model="filters" :columns="filterableColumnsConfig" :loading="filterLoading"
+                <CommonTradeFilters :title="$t('components.trade.table.accounts.title')" slot-id="page-trade"
+                        :show-plugin-slot="true" v-model:account-ids="userStore.tradeOptions.accountIds"
+                        v-model:show-inactive="userStore.tradeOptions.showInactive" v-model:filters="filters"
+                        v-model:show-advanced-filters="userStore.tradeOptions.showAdvancedFilters"
+                        :filter-loading="filterLoading" :account-options="accountOptions"
+                        :placeholder="$t('components.trade.table.accounts.placeholder')"
+                        :all-label="$t('components.trade.table.accounts.all')"
+                        :selected-label="$t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length })"
+                        :filterable-columns-config="filterableColumnsConfig" :show-column-visibility="true"
+                        :table="table" :label-columns-header="labelColumnsHeader"
+                        :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
                         @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
                             <USelect :model-value="filter.value as string" :items="[
@@ -29,20 +21,15 @@
                                 { label: 'Sell', value: 'sell' },
                             ]" placeholder="Buy/Sell" class="min-w-[200px]" @update:model-value="onValueChange" />
                         </template>
-                    </CommonAdvancedFilters>
-
-                    <div class="filter-actions justify-start">
-                        <ColumnVisibilityMenu :table="table" :label-columns-header="labelColumnsHeader"
-                            :exclude-columns="['actions', 'symbol', 'type', 'profit']" button-class="w-36" />
-                    </div>
-                </div>
+                    </CommonTradeFilters>
             </template>
         </UCard>
-        <div class="filter-actions mb-2">
+        <div class="mt-4">
             <span class="text-secondary-xs ml-2">{{ $t('components.trade.table.results_count', {
                 count:
-                sortedTrades.length })
-                }}</span>
+                    sortedTrades.length
+            })
+            }}</span>
         </div>
         <div class="flex-center mb-4 items-center gap-4">
             <div v-if="paginatedTrades.length">
@@ -112,12 +99,10 @@
                     <span class="font-semibold">{{ row.original.symbol }}</span>
                 </template>
                 <template #openDate-cell="{ row }">
-                    {{ formatDateWithUserTimezone(row.original.openDate, userStore.user?.settings_object, true, locale
-                    as 'fr' | 'en' | 'us') }}
+                    {{ formatDateWithUserTimezone(row.original.openDate, userStore.user?.settings_object, true, locale as 'fr' | 'en' | 'us') }}
                 </template>
                 <template #closeDate-cell="{ row }">
-                    {{ formatDateWithUserTimezone(row.original.closeDate, userStore.user?.settings_object, true, locale
-                    as 'fr' | 'en' | 'us') }}
+                    {{ formatDateWithUserTimezone(row.original.closeDate, userStore.user?.settings_object, true, locale as 'fr' | 'en' | 'us') }}
                 </template>
                 <template #openPrice-cell="{ row }">
                     <span class="font-semibold">
