@@ -28,12 +28,14 @@ defineProps({
     },
 })
 
-defineEmits<{
+const emit = defineEmits<{
     enter: []
+    clear: []
 }>()
 
 const clearInput = () => {
     modelValue.value = ''
+    emit('clear')
 }
 
 const hasValue = computed(() => {

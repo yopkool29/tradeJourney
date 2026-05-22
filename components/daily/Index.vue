@@ -13,7 +13,7 @@
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
                             :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
-                            :filterable-columns-config="filterableColumnsConfig" @add="addFilter" @remove="removeFilter"
+                            :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" @add="addFilter" @remove="removeFilter"
                             @apply="onApplyFilters" @reset="resetFilters">
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
@@ -32,7 +32,7 @@
                         <div v-if="settings.showCalendarDaily"
                             class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
                             <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
-                                :year-controls="false" readonly size="md"
+                                :year-controls="false" readonly size="lg"
                                 :ui="{ cellTrigger: 'calendar-cell-trigger' }"
                                 @update:placeholder="onCalendarMonthChange">
                                 <template #day="{ day }">
@@ -164,23 +164,24 @@ const filterableColumnsConfig = computed(() => [
 ])
 
 const filters = computed({
-    get: () => userStore.dailyHistoryFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    get: () => userStore.dailyHistoryFilters.filters || [],
     set: (val) => userStore.dailyHistoryFilters.filters = val
 })
 
 function addFilter() {
     if (filters.value.length < 4) {
-        const newFilters = [...filters.value, { column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' }]
+        const newFilters = [...filters.value, { column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
         filters.value = newFilters
     }
 }
 
 function removeFilter(idx: number) {
-    if (filters.value.length > 1) filters.value.splice(idx, 1)
+    filters.value.splice(idx, 1)
 }
 
 function resetFilters() {
-    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    filters.value = []
+    userStore.dailyHistoryFilters.showAdvancedFilters = false
     onFilter()
 }
 

@@ -19,6 +19,7 @@
                         :all-label="$t('components.calendar.index.all_accounts')"
                         :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
                         :filterable-columns-config="filterableColumnsConfig"
+                        :show-inactive-checkbox="false"
                         @add="addFilter"
                         @remove="removeFilter"
                         @apply="onApplyFilters"
@@ -35,7 +36,7 @@
                     <PluginPageSlot slot-id="page-calendar" />
                     <div v-if="settings.showCalendarCalendar" class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
                     <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"
-                        readonly size="md" :ui="{ cellTrigger: 'calendar-cell-trigger' }" @update:placeholder="onCalendarMonthChange">
+                        readonly size="lg" :ui="{ cellTrigger: 'calendar-cell-trigger' }" @update:placeholder="onCalendarMonthChange">
                         <template #day="{ day }">
                             <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
                                 'bg-green-300 text-green-900': dayStats[day.toString()]?.pnl > 0,
@@ -245,17 +246,18 @@ const filters = computed({
 
 function addFilter() {
     if (filters.value.length < 4) {
-        const newFilters = [...filters.value, { column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' }]
+        const newFilters = [...filters.value, { column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
         filters.value = newFilters
     }
 }
 
 function removeFilter(idx: number) {
-    if (filters.value.length > 1) filters.value.splice(idx, 1)
+    filters.value.splice(idx, 1)
 }
 
 function resetFilters() {
-    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    filters.value = []
+    userStore.calendarFilters.showAdvancedFilters = false
     onFilter()
 }
 

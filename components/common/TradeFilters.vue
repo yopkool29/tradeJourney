@@ -1,68 +1,71 @@
 <template>
-    <div class="filter-container">
-        <div class="flex items-center justify-between">
-            <div class="section-label">{{ title }}</div>
-            <PluginPageSlot v-if="showPluginSlot" :slot-id="slotId" />
-        </div>
-        <div class="action-buttons">
-            <CommonAccountSelect
-                v-model="localAccountIds"
-                :items="accountOptions"
-                :placeholder="placeholder"
-                :all-label="allLabel"
-                :selected-label="selectedLabel"
-                select-class="select-standard"
-            />
-            <UCheckbox v-model="localShowInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
-        </div>
-        <slot name="after-accounts" />
-    </div>
-
-    <UCollapsible v-model:open="isFiltersOpen" class="flex flex-col gap-y-4 items-start">
-        <UButton
-            class="group"
-            :label="$t('components.trade.table.advanced_filters.title')"
-            :color="buttonColor"
-            variant="ghost"
-            size="sm"
-            :class="buttonClass"
-            trailing-icon="i-lucide-chevron-down"
-            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
-        />
-        <template #content>
-            <div class="flex flex-col gap-y-4 pr-2">
-                <CommonAdvancedFilters
-                    v-model="localFilters"
-                    :columns="filterableColumnsConfig"
-                    :loading="filterLoading"
-                    @add="emit('add')"
-                    @remove="emit('remove', $event)"
-                >
-                    <template #field-type="slotProps">
-                        <slot name="field-type" v-bind="slotProps" />
-                    </template>
-                </CommonAdvancedFilters>
+    <UForm id="tradeFiltersForm" :state="{}" @submit="emit('apply')">
+        <div class="filter-container">
+            <div class="flex items-center justify-between">
+                <div class="section-label">{{ title }}</div>
+                <PluginPageSlot v-if="showPluginSlot" :slot-id="slotId" />
             </div>
-        </template>
-    </UCollapsible>
+            <div class="action-buttons">
+                <CommonAccountSelect
+                    v-model="localAccountIds"
+                    :items="accountOptions"
+                    :placeholder="placeholder"
+                    :all-label="allLabel"
+                    :selected-label="selectedLabel"
+                    select-class="select-standard"
+                />
+                <UCheckbox v-if="showInactiveCheckbox !== false" v-model="localShowInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
+            </div>
+            <slot name="after-accounts" />
+        </div>
 
-    <div v-if="showColumnVisibility" class="filter-actions justify-start mt-4">
-        <ColumnVisibilityMenu
-            :table="table"
-            :label-columns-header="labelColumnsHeader"
-            :exclude-columns="excludeColumns"
-            :button-class="columnVisibilityButtonClass"
-        />
-    </div>
+        <UCollapsible v-model:open="isFiltersOpen" class="flex flex-col gap-y-3 items-start">
+            <UButton
+                class="group"
+                :label="$t('components.trade.table.advanced_filters.title')"
+                :color="buttonColor"
+                variant="ghost"
+                size="sm"
+                :class="buttonClass"
+                trailing-icon="i-lucide-chevron-down"
+                :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+            />
+            <template #content>
+                <div class="flex flex-col gap-y-3 mx-4">
+                    <CommonAdvancedFilters
+                        v-model="localFilters"
+                        :columns="filterableColumnsConfig"
+                        :loading="filterLoading"
+                        @add="emit('add')"
+                        @remove="emit('remove', $event)"
+                        @apply="emit('apply')"
+                    >
+                        <template #field-type="slotProps">
+                            <slot name="field-type" v-bind="slotProps" />
+                        </template>
+                    </CommonAdvancedFilters>
+                </div>
+            </template>
+        </UCollapsible>
 
-    <div class="filter-actions-lg mt-4">
-        <UButton icon="i-lucide-filter" :loading="filterLoading" color="primary" variant="solid" size="sm" @click="emit('apply')">
-            {{ $t('components.trade.table.advanced_filters.apply') }}
-        </UButton>
-        <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
-            {{ $t('components.trade.table.advanced_filters.reset') }}
-        </UButton>
-    </div>
+        <div v-if="showColumnVisibility" class="filter-actions justify-start mt-4">
+            <ColumnVisibilityMenu
+                :table="table"
+                :label-columns-header="labelColumnsHeader"
+                :exclude-columns="excludeColumns"
+                :button-class="columnVisibilityButtonClass"
+            />
+        </div>
+
+        <div class="filter-actions-lg mt-4">
+            <UButton type="submit" form="tradeFiltersForm" icon="i-lucide-filter" :loading="filterLoading" color="primary" variant="solid" size="sm">
+                {{ $t('components.trade.table.advanced_filters.apply') }}
+            </UButton>
+            <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
+                {{ $t('components.trade.table.advanced_filters.reset') }}
+            </UButton>
+        </div>
+    </UForm>
 </template>
 
 <script setup lang="ts">
@@ -87,6 +90,7 @@ const props = defineProps<{
     excludeColumns?: string[]
     columnVisibilityButtonClass?: string
     showAdvancedFilters: boolean
+    showInactiveCheckbox?: boolean
 }>()
 
 const emit = defineEmits<{

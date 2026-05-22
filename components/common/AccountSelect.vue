@@ -6,6 +6,7 @@
             :placeholder="placeholder"
             multiple
             :class="selectClass"
+            :content="{ align: 'center', position: 'popper' }"
             @update:model-value="$emit('update:modelValue', $event)"
         >
             <div>

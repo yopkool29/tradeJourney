@@ -14,7 +14,7 @@
                         :filterable-columns-config="filterableColumnsConfig" :show-column-visibility="true"
                         :table="table" :label-columns-header="labelColumnsHeader"
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
-                        @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
+                        :show-inactive-checkbox="true" @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
                             <USelect :model-value="filter.value as string" :items="[
                                 { label: 'Buy', value: 'buy' },
@@ -310,7 +310,10 @@ const filterableColumnsConfig = computed(() => [
     },
 ])
 
-const filters = useState<TradeFilter[]>('filters', () => [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }])
+const filters = computed({
+    get: () => userStore.tradeOptions.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => userStore.tradeOptions.filters = val
+})
 
 const addMeta = (defaultClass: string = 'w-[80px]') => {
     return {
@@ -752,19 +755,20 @@ onMounted(() => {
 
 function addFilter() {
     if (filters.value.length < 4) {
-        filters.value.push({ column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' })
+        filters.value.push({ column: 'symbol', operator: OPERATOR_EQUAL, value: '' })
     }
 }
 
 function removeFilter(idx: number) {
-    if (filters.value.length > 1) filters.value.splice(idx, 1)
+    filters.value.splice(idx, 1)
 }
 
 function resetFilters() {
     sortBy.value = ''
     sortDesc.value = false
     page.value = 1
-    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    filters.value = []
+    userStore.tradeOptions.showAdvancedFilters = false
     onApplyFilters()
 }
 
@@ -953,6 +957,14 @@ watch(
         onApplyFilters()
     },
     { deep: true }
+)
+
+// Appliquer les filtres quand showInactive change
+watch(
+    () => userStore.tradeOptions.showInactive,
+    () => {
+        onApplyFilters()
+    }
 )
 </script>
 

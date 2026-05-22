@@ -73,6 +73,7 @@ export interface TradeOptions {
     nbLines: number
     showInactive: boolean
     showAdvancedFilters: boolean
+    filters: TradeFilter[]
 }
 
 export interface DashBoardFilters {

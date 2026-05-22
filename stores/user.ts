@@ -175,7 +175,8 @@ export const useUserStore = defineStore(
                         accountIds: [] as number[],
                         nbLines: 10,
                         showInactive: false,
-                        showAdvancedFilters: false
+                        showAdvancedFilters: false,
+                        filters: [] as TradeFilter[]
                     }
                 }
                 return tradeOptionsPerDb.value[dbName]

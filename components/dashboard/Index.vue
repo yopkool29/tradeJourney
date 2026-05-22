@@ -16,6 +16,7 @@
                     :all-label="$t('components.dashboard.index.all_accounts')"
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
                     :filterable-columns-config="filterableColumnsConfig"
+                    :show-inactive-checkbox="false"
                     @add="addFilter"
                     @remove="removeFilter"
                     @apply="onApplyFilters"
@@ -227,17 +228,18 @@ const filters = computed({
 
 function addFilter() {
     if (filters.value.length < 4) {
-        const newFilters = [...filters.value, { column: 'profit', operator: OPERATOR_GREATER_THAN_OR_EQUAL, value: '' }]
+        const newFilters = [...filters.value, { column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
         filters.value = newFilters
     }
 }
 
 function removeFilter(idx: number) {
-    if (filters.value.length > 1) filters.value.splice(idx, 1)
+    filters.value.splice(idx, 1)
 }
 
 function resetFilters() {
-    filters.value = [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }]
+    filters.value = []
+    userStore.dashBoardFilters.showAdvancedFilters = false
     onApplyFilters()
 }
 

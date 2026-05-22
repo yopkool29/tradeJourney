@@ -23,6 +23,7 @@
                         :model-value="filter.value as string"
                         :placeholder="getPlaceholder(filter)"
                         @enter="emit('apply')"
+                        @clear="emit('apply')"
                         @update:model-value="(val) => onValueChange(idx, val)"
                     />
                 </slot>
