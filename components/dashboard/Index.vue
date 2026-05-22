@@ -20,22 +20,25 @@
                     @remove="removeFilter"
                     @apply="onApplyFilters"
                     @reset="resetFilters"
-                />
-            <div class="filter-actions-lg mt-4">
-                <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
-                    :placeholder="$t('components.dashboard.index.period')" class="select-standard" />
-                <UInput v-model="startDateStr" type="date" class="date-input" />
-                <UInput v-model="endDateStr" type="date" class="date-input" />
-            </div>
-            <!-- Ligne d'options avancées -->
-            <div class="mt-4">
-                <div class="form-row">
-                    <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
-                        }}</label>
-                    <USelect id="cumule-mode-select" v-model="userStore.dashBoardFilters.cumuleMode"
-                        :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full" />
-                </div>
-            </div>
+                >
+                    <template #after-accounts>
+                        <div class="filter-actions-lg">
+                            <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
+                                :placeholder="$t('components.dashboard.index.period')" class="select-standard" />
+                            <UInput v-model="startDateStr" type="date" class="date-input" />
+                            <UInput v-model="endDateStr" type="date" class="date-input" />
+                        </div>
+                        <!-- Ligne d'options avancées -->
+                        <div class="">
+                            <div class="form-row">
+                                <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
+                                    }}</label>
+                                <USelect id="cumule-mode-select" v-model="userStore.dashBoardFilters.cumuleMode"
+                                    :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full" />
+                            </div>
+                        </div>
+                    </template>
+                </CommonTradeFilters>
             </template>
         </UCard>
 

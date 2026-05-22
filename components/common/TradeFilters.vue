@@ -15,46 +15,54 @@
             />
             <UCheckbox v-model="localShowInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
         </div>
+        <slot name="after-accounts" />
     </div>
 
-    <UCollapsible v-model:open="isFiltersOpen" class="flex flex-col gap-y-4">
+    <UCollapsible v-model:open="isFiltersOpen" class="flex flex-col gap-y-4 items-start">
         <UButton
             class="group"
             :label="$t('components.trade.table.advanced_filters.title')"
-            color="neutral"
+            :color="buttonColor"
             variant="ghost"
             size="sm"
-            :class="'w-48'"
+            :class="buttonClass"
             trailing-icon="i-lucide-chevron-down"
             :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
         />
         <template #content>
-            <div class="flex flex-col gap-y-4">
+            <div class="flex flex-col gap-y-4 pr-2">
                 <CommonAdvancedFilters
                     v-model="localFilters"
                     :columns="filterableColumnsConfig"
                     :loading="filterLoading"
                     @add="emit('add')"
                     @remove="emit('remove', $event)"
-                    @apply="emit('apply')"
-                    @reset="emit('reset')"
                 >
                     <template #field-type="slotProps">
                         <slot name="field-type" v-bind="slotProps" />
                     </template>
                 </CommonAdvancedFilters>
-
-                <div v-if="showColumnVisibility" class="filter-actions justify-start">
-                    <ColumnVisibilityMenu
-                        :table="table"
-                        :label-columns-header="labelColumnsHeader"
-                        :exclude-columns="excludeColumns"
-                        :button-class="columnVisibilityButtonClass"
-                    />
-                </div>
             </div>
         </template>
     </UCollapsible>
+
+    <div v-if="showColumnVisibility" class="filter-actions justify-start mt-4">
+        <ColumnVisibilityMenu
+            :table="table"
+            :label-columns-header="labelColumnsHeader"
+            :exclude-columns="excludeColumns"
+            :button-class="columnVisibilityButtonClass"
+        />
+    </div>
+
+    <div class="filter-actions-lg mt-4">
+        <UButton icon="i-lucide-filter" :loading="filterLoading" color="primary" variant="solid" size="sm" @click="emit('apply')">
+            {{ $t('components.trade.table.advanced_filters.apply') }}
+        </UButton>
+        <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
+            {{ $t('components.trade.table.advanced_filters.reset') }}
+        </UButton>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -110,5 +118,26 @@ const localFilters = computed({
 const isFiltersOpen = computed({
     get: () => props.showAdvancedFilters,
     set: (val) => emit('update:showAdvancedFilters', val)
+})
+
+const hasActiveFilters = computed(() => {
+    return props.filters.some(filter => filter.value !== '' && filter.value !== null && filter.value !== undefined)
+})
+
+const isDark = useIsDark()
+
+const buttonColor = computed(() => {
+    if (hasActiveFilters.value) {
+        return isDark.value ? 'error' : 'neutral'
+    }
+    return 'neutral'
+})
+
+const buttonClass = computed(() => {
+    const classes = ['w-48']
+    if (hasActiveFilters.value && !isDark.value) {
+        classes.push('font-bold')
+    }
+    return classes.join(' ')
 })
 </script>

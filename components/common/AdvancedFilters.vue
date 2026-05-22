@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row gap-x-4 items-start">
+    <div class="flex flex-row gap-x-4 items-center justify-between">
 
         <div class="flex flex-col gap-2">
             <div v-for="(filter, idx) in modelValue" :key="idx" class="filter-actions-nowrap">
@@ -34,12 +34,6 @@
         <div class="filter-actions-lg">
             <UButton icon="i-heroicons-plus" color="primary" variant="outline" size="sm" @click="emit('add')">
                 {{ $t('components.trade.table.advanced_filters.add') }}
-            </UButton>
-            <UButton icon="i-lucide-filter" :loading="loading" color="primary" variant="solid" size="sm" @click="emit('apply')">
-                {{ $t('components.trade.table.advanced_filters.apply') }}
-            </UButton>
-            <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
-                {{ $t('components.trade.table.advanced_filters.reset') }}
             </UButton>
         </div>
 

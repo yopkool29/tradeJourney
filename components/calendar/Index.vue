@@ -3,7 +3,7 @@
         <!-- Filtres simplifiés : compte + mois -->
         <UCard class="card-container-xl">
             <template #default>
-                <div class="flex items-start">
+                <div class="flex items-start justify-between">
                 <div class="flex flex-col">
                     <CommonTradeFilters
                         :title="$t('components.calendar.index.accounts')"
@@ -23,12 +23,15 @@
                         @remove="removeFilter"
                         @apply="onApplyFilters"
                         @reset="resetFilters"
-                    />
-                    <div class="mt-4">
-                        <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
-                    </div>
+                    >
+                        <template #after-accounts>
+                            <div class="">
+                                <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
+                            </div>
+                        </template>
+                    </CommonTradeFilters>
                 </div>
-                <div class="flex flex-col items-start gap-2 ml-4">
+                <div class="flex flex-col items-start gap-2">
                     <PluginPageSlot slot-id="page-calendar" />
                     <div v-if="settings.showCalendarCalendar" class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
                     <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true" :year-controls="false"

@@ -3,7 +3,7 @@
         <!-- Filtres simplifiés : compte + mois -->
         <UCard class="card-container-xl">
             <template #default>
-                <div class="flex items-start">
+                <div class="flex items-start justify-between">
                     <div class="flex flex-col">
                         <CommonTradeFilters :title="$t('components.daily.index.accounts')" slot-id="page-daily"
                             :show-plugin-slot="false" v-model:account-ids="userStore.dailyHistoryFilters.accountIds"
@@ -14,17 +14,20 @@
                             :all-label="$t('components.daily.index.all_accounts')"
                             :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
                             :filterable-columns-config="filterableColumnsConfig" @add="addFilter" @remove="removeFilter"
-                            @apply="onApplyFilters" @reset="resetFilters" />
-                        <div class="filter-actions-lg mt-4">
-                            <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
-                            <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
-                                size="sm" @click="onExpand">
-                                {{ isExpanded ? $t('components.daily.index.collapse') :
-                                    $t('components.daily.index.expand') }}
-                            </UButton>
-                        </div>
+                            @apply="onApplyFilters" @reset="resetFilters">
+                            <template #after-accounts>
+                                <div class="filter-actions-lg">
+                                    <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
+                                    <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
+                                        size="sm" @click="onExpand">
+                                        {{ isExpanded ? $t('components.daily.index.collapse') :
+                                            $t('components.daily.index.expand') }}
+                                    </UButton>
+                                </div>
+                            </template>
+                        </CommonTradeFilters>
                     </div>
-                    <div class="flex flex-col items-start gap-2 ml-4">
+                    <div class="flex flex-col items-start gap-2">
                         <PluginPageSlot slot-id="page-daily" />
                         <div v-if="settings.showCalendarDaily"
                             class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
