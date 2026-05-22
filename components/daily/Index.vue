@@ -40,7 +40,7 @@
                             class="hidden md:flex border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
                             <UCalendar v-model="calendarValue" :month="calendarMonth" :month-controls="true"
                                 :year-controls="false" readonly size="lg"
-                                :ui="{ cellTrigger: 'calendar-cell-trigger' }"
+                                :ui="{ cellTrigger: 'calendar-cell-trigger', cell: 'w-9 h-7' }"
                                 @update:placeholder="onCalendarMonthChange">
                                 <template #day="{ day }">
                                     <div class="flex flex-col items-center justify-center w-full h-full rounded" :class="{
