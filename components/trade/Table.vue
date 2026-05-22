@@ -14,7 +14,7 @@
                         :filterable-columns-config="filterableColumnsConfig" :show-column-visibility="true"
                         :table="table" :label-columns-header="labelColumnsHeader"
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
-                        :show-inactive-checkbox="true" @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
+                        :show-inactive-checkbox="true" :tag-groups="tagGroups" @add="addFilter" @remove="removeFilter" @apply="onApplyFilters" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
                             <USelect :model-value="filter.value as string" :items="[
                                 { label: 'Buy', value: 'buy' },
@@ -226,6 +226,7 @@ const currentScreenshots = ref<Array<{ id?: number; url: string }>>([])
 // État pour gérer l'activation/désactivation groupée
 const showBulkActivateModal = ref(false)
 const showBulkDeactivateModal = ref(false)
+const { tagGroups } = useTags()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -307,6 +308,13 @@ const filterableColumnsConfig = computed(() => [
         value: 'profit',
         type: 'number' as const,
         defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.tags'),
+        value: 'tags',
+        type: 'number' as const,
+        operators: [OPERATOR_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
     },
 ])
 

@@ -36,6 +36,7 @@
                         v-model="localFilters"
                         :columns="filterableColumnsConfig"
                         :loading="filterLoading"
+                        :tag-groups="tagGroups"
                         @add="emit('add')"
                         @remove="emit('remove', $event)"
                         @apply="emit('apply')"
@@ -91,6 +92,7 @@ const props = defineProps<{
     columnVisibilityButtonClass?: string
     showAdvancedFilters: boolean
     showInactiveCheckbox?: boolean
+    tagGroups?: any[]
 }>()
 
 const emit = defineEmits<{

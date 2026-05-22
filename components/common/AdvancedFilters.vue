@@ -3,32 +3,42 @@
 
         <div class="flex flex-col gap-2">
             <div v-for="(filter, idx) in modelValue" :key="idx" class="filter-actions-nowrap">
-                <USelect
-                    :model-value="filter.column"
-                    :items="columns"
-                    class="min-w-[200px] select-none"
-                    @update:model-value="(val) => onColumnChange(idx, val)"
-                />
-                <USelect
-                    :model-value="filter.operator"
-                    :items="getOperatorOptions(filter.column)"
-                    class="w-20 select-none"
-                    @update:model-value="(val) => onOperatorChange(idx, val)"
-                />
-
-                <!-- Slot pour champ personnalisé -->
-                <slot :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => onValueChange(idx, val)">
-                    <!-- Champ par défaut -->
-                    <CommonFilterClear
-                        :model-value="filter.value as string"
-                        :placeholder="getPlaceholder(filter)"
-                        @enter="emit('apply')"
-                        @clear="emit('apply')"
-                        @update:model-value="(val) => onValueChange(idx, val)"
+                <div class="flex items-center gap-x-2">
+                    <USelect
+                        :model-value="filter.column"
+                        :items="columns"
+                        class="min-w-[200px] select-none"
+                        @update:model-value="(val) => onColumnChange(idx, val)"
                     />
-                </slot>
+                    <USelect
+                        :model-value="filter.operator"
+                        :items="getOperatorOptions(filter.column)"
+                        class="w-20 select-none"
+                        @update:model-value="(val) => onOperatorChange(idx, val)"
+                    />
 
-                <UButton v-if="modelValue.length > 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
+                    <!-- Slot spécifique pour les tags (priorité sur field-type) -->
+                    <CommonTagFilterInput
+                        v-if="filter.column === 'tags'"
+                        :model-value="filter.value as number"
+                        :tag-groups="tagGroups || []"
+                        @update:model-value="(val) => { onValueChange(idx, val); emit('apply') }"
+                    />
+
+                    <!-- Slot pour champ personnalisé (autres colonnes) -->
+                    <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => onValueChange(idx, val)">
+                        <!-- Champ par défaut -->
+                        <CommonFilterClear
+                            :model-value="filter.value as string"
+                            :placeholder="getPlaceholder(filter)"
+                            @enter="emit('apply')"
+                            @clear="emit('apply')"
+                            @update:model-value="(val) => onValueChange(idx, val)"
+                        />
+                    </slot>
+
+                    <UButton v-if="modelValue.length > 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
+                </div>
             </div>
         </div>
 
@@ -59,6 +69,7 @@ const props = defineProps<{
     modelValue: TradeFilter[]
     columns: FilterColumn[]
     loading?: boolean
+    tagGroups?: any[]
 }>()
 
 const emit = defineEmits<{

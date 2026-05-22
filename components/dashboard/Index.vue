@@ -17,6 +17,7 @@
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
                     :filterable-columns-config="filterableColumnsConfig"
                     :show-inactive-checkbox="false"
+                    :tag-groups="tagGroups"
                     @add="addFilter"
                     @remove="removeFilter"
                     @apply="onApplyFilters"
@@ -147,6 +148,7 @@ const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchDashboardData, accounts } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
+const { tagGroups } = useTags()
 const filterLoading = ref(false)
 const chartsReady = ref(false)
 const { t, locale } = useI18n()
@@ -218,6 +220,13 @@ const filterableColumnsConfig = computed(() => [
         value: 'profit',
         type: 'number' as const,
         defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.tags'),
+        value: 'tags',
+        type: 'number' as const,
+        operators: [OPERATOR_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
     },
 ])
 

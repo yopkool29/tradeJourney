@@ -67,6 +67,29 @@ export default defineEventHandler(async (event) => {
                             case OPERATOR_IN: prismaOperator = 'in'; break
                             default: prismaOperator = 'equals'
                         }
+                        // Gestion spéciale pour les tags (OR logic entre plusieurs tags)
+                        if (filter.column === 'tags' && filter.operator === OPERATOR_EQUAL) {
+                            let tagIds: number[] = []
+                            if (typeof filter.value === 'string') {
+                                tagIds = filter.value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id) && id > 0)
+                            } else if (typeof filter.value === 'number' && filter.value > 0) {
+                                tagIds = [filter.value]
+                            }
+
+                            if (tagIds.length > 0) {
+                                return {
+                                    tags: {
+                                        some: {
+                                            tagId: {
+                                                in: tagIds
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return undefined
+                        }
+
                         const type = getColumnType(filter.column)
                         let value: unknown = filter.value
                         if (type === 'number') value = Number(filter.value)

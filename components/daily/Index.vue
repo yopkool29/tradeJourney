@@ -13,7 +13,7 @@
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
                             :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
-                            :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" @add="addFilter" @remove="removeFilter"
+                            :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" :tag-groups="tagGroups" @add="addFilter" @remove="removeFilter"
                             @apply="onApplyFilters" @reset="resetFilters">
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
@@ -88,6 +88,7 @@ const showDialog = ref(false)
 const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
+const { tagGroups } = useTags()
 const filterLoading = ref(false)
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
@@ -160,6 +161,13 @@ const filterableColumnsConfig = computed(() => [
         value: 'profit',
         type: 'number' as const,
         defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.tags'),
+        value: 'tags',
+        type: 'number' as const,
+        operators: [OPERATOR_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
     },
 ])
 

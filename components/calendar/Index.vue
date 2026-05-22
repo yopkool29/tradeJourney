@@ -20,6 +20,7 @@
                         :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
                         :filterable-columns-config="filterableColumnsConfig"
                         :show-inactive-checkbox="false"
+                        :tag-groups="tagGroups"
                         @add="addFilter"
                         @remove="removeFilter"
                         @apply="onApplyFilters"
@@ -180,6 +181,7 @@ type WeekData = {
 
 const { accounts, fetchAccounts, fetchData } = useDailyHistory('calendarFilters')
 const { fetchDayTags } = useDayTags()
+const { tagGroups } = useTags()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -236,6 +238,13 @@ const filterableColumnsConfig = computed(() => [
         value: 'profit',
         type: 'number' as const,
         defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
+    },
+    {
+        label: t('components.trade.table.filters.tags'),
+        value: 'tags',
+        type: 'number' as const,
+        operators: [OPERATOR_EQUAL],
+        defaultOperator: OPERATOR_EQUAL
     },
 ])
 
