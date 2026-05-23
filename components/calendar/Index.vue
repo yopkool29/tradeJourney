@@ -112,7 +112,7 @@
         <!-- Modal pour afficher les trades d'une journée -->
         <CommonModalDefault v-model:open="showDayModal" :title="dayModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
-                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false"
+                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false"  :display-title="false"
                     v-model:show-table="dayModalShowTable" :group-date="selectedDayDate"
                     :group-trades="selectedDay.trades" />
                 <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
@@ -125,7 +125,7 @@
         <CommonModalDefault v-model:open="showWeekModal" :title="weekModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
                 <template v-for="day in selectedWeekDays" :key="day.dayNumber">
-                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false"
+                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false" :display-title="false"
                         v-model:show-table="weekModalShowTable[day.dayNumber]" :group-date="getDateFromDay(day)"
                         :group-trades="day.trades" />
                 </template>

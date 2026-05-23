@@ -3,7 +3,7 @@
         <template #header>
             <div class="flex justify-between items-start">
                 <div>
-                    <div class="flex items-center gap-4">
+                    <div v-if="displayTitle" class="flex items-center gap-4">
                         <div class="section-title-semibold">
                             {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
                         </div>
@@ -184,6 +184,11 @@ const props = defineProps({
         required: false,
         default: undefined,
     },
+    displayTitle: {
+        type: Boolean,
+        required: false,
+        default: true        
+    }
 })
 
 // Clé réactive pour forcer le re-rendu quand les settings de timezone changent
