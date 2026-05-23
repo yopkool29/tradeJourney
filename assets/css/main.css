@@ -43,19 +43,19 @@ body {
 }
 
 html.light-blue {
-    --ui-primary: #31a4b6;
-    /* Full teal palette for shade support */
-    --ui-color-primary-50: #f0fdfa;
-    --ui-color-primary-100: #ccfbf1;
-    --ui-color-primary-200: #99f6e4;
-    --ui-color-primary-300: #5eead4;
-    --ui-color-primary-400: #2dd4bf;
-    --ui-color-primary-500: #37cea6;
-    --ui-color-primary-600: #0d9488;
-    --ui-color-primary-700: #0f766e;
-    --ui-color-primary-800: #115e59;
-    --ui-color-primary-900: #134e4a;
-    --ui-color-primary-950: #042f2e;
+    --ui-primary: #6bbcc8;
+    /* Full blue-gray palette for shade support */
+    --ui-color-primary-50: #f0f9fc;
+    --ui-color-primary-100: #d6eff5;
+    --ui-color-primary-200: #ade0ea;
+    --ui-color-primary-300: #84d1df;
+    --ui-color-primary-400: #6bbcc8;
+    --ui-color-primary-500: #5aa3ad;
+    --ui-color-primary-600: #4a8a92;
+    --ui-color-primary-700: #3e7279;
+    --ui-color-primary-800: #355e64;
+    --ui-color-primary-900: #2e4e53;
+    --ui-color-primary-950: #1d3135;
 }
 
 /* dark-gold theme - both classes present */

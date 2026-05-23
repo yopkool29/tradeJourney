@@ -1,7 +1,7 @@
 <template>
 	<CommonModalDefault :open="true" :title="$t('components.settings.tags.title')" :ui="{ overlay: 'z-[70]', content: 'max-w-3xl z-[70]' }" @closed="emit('close')">
 		<template #content>
-			<SettingsTagsManager />
+			<SettingsTagsManager :display-title="false" />
 		</template>
 		<template #footer>
 			<div class="action-buttons">

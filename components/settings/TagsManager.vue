@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div class="header-layout mb-4">
-			<span class="section-title">{{ $t('components.settings.tags.title') }}</span>
+			<span v-if="displayTitle" class="section-title">{{ $t('components.settings.tags.title') }}</span>
 			<CommonModalDefault :ui="{ overlay: 'z-[300]', content: 'z-[301]' }" v-model:open="showAddGroup" :title="$t('components.settings.tags.add_group_modal')">
 				<template #trigger>
 					<UButton icon="i-lucide-plus" size="xs" @click="newGroup">{{
@@ -268,6 +268,14 @@ const newTagState = ref<CreateTagType>(getDefaultTag())
 const editSaveGroupStateId = ref<number | null>(null)
 const editTagStateId = ref<number | null>(null)
 const tagToDelete = ref<TagType | null>(null)
+
+const props = defineProps({
+    displayTitle: {
+        type: Boolean,
+        required: false,
+        default: true        
+    }
+})
 
 const onColorPicked = (color: string) => {
 	if (!color) return
