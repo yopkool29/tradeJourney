@@ -26,7 +26,7 @@
                                 <div class="filter-actions-lg">
                                     <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
                                     <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
-                                        size="sm" @click="onExpand">
+                                        size="sm" :loading="expandLoading" @click="onExpand">
                                         {{ isExpanded ? $t('components.daily.index.collapse') :
                                             $t('components.daily.index.expand') }}
                                     </UButton>
@@ -57,9 +57,9 @@
                 <template
                     v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())"
                     v-else :key="group.key">
-                    <DailyTradeGroup v-model:show-table="expandedGroups[group.key]" :group-date="group.day"
+                    <DailyTradeGroup :show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
-                        :index="index" />
+                        :index="index" @update:show-table="(val) => { expandedGroups.value = { ...expandedGroups.value, [group.key]: val } }" />
                 </template>
             </div>
         </div>
@@ -90,7 +90,8 @@ const filterLoading = ref(false)
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 
-const expandedGroups = ref<{ [key: string]: boolean }>({})
+const expandedGroups = shallowRef<{ [key: string]: boolean }>({})
+
 const isExpanded = computed({
     get: () => userStore.dailyHistoryFilters.isExpanded,
     set: (val) => userStore.dailyHistoryFilters.isExpanded = val
@@ -257,17 +258,23 @@ const filteredGroups = computed(() => {
     return Object.values(dayStats.value).filter((g) => g.trades.length > 0)
 })
 
-const onExpand = async () => {
-    filterLoading.value = true
+const expandLoading = ref(false)
+
+const onExpand = () => {
+    expandLoading.value = true
     setTimeout(() => {
-        isExpanded.value = !isExpanded.value
-        // Appliquer à tous les groupes
+        const newExpanded = !isExpanded.value
+        isExpanded.value = newExpanded
         const groups = filteredGroups.value
+        const newExpandedGroups: { [key: string]: boolean } = {}
         for (let i = 0; i < groups.length; i++) {
-            expandedGroups.value[groups[i].key] = isExpanded.value
+            newExpandedGroups[groups[i].key] = newExpanded
         }
-        filterLoading.value = false
-    }, 100)
+        expandedGroups.value = newExpandedGroups
+        requestAnimationFrame(() => {
+            expandLoading.value = false
+        })
+    })
 }
 
 // Fonction unique pour charger les données du mois
@@ -395,17 +402,17 @@ watch(selectedMonth, () => {
     loadMonthDataDebounced()
 })
 
-// Synchroniser expandedGroups avec isExpanded quand les groupes changent
-watch([filteredGroups, isExpanded], ([groups, expanded]) => {
-    if (expanded) {
-        groups.forEach(group => {
-            expandedGroups.value[group.key] = true
-        })
-    }
-}, { immediate: false })
 
 // Ouvrir le dialog automatiquement au premier chargement
+// et restaurer l'état replier/déplier depuis le store
 watch(filteredGroups, (groups) => {
+    if (groups.length > 0 && isExpanded.value) {
+        const restored: { [key: string]: boolean } = {}
+        for (let i = 0; i < groups.length; i++) {
+            restored[groups[i].key] = true
+        }
+        expandedGroups.value = restored
+    }
     if (isInitialLoad.value && groups.length > 0) {
         nextTick(() => {
             setDialogToFirstTradingDay()
