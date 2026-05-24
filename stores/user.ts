@@ -206,13 +206,19 @@ export const useUserStore = defineStore(
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
                         lastFilterColumn: 'symbol',
-                        last_results: [] as TradeExtendedType[]
+                        last_results: [] as TradeExtendedType[],
+                        dashboardChartOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'],
+                        dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
                     }
                 }
                 
                 // Ensure dates are Date objects (localStorage restores them as strings)
                 const filters = dashBoardFiltersPerDb.value[dbName]
                 if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
+                if (!filters.dashboardChartOrder || filters.dashboardChartOrder.length !== 4) {
+                    filters.dashboardChartOrder = ['pnlBar', 'cumulatedPnl', 'appt', 'winrate']
+                }
+                if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
                 filters.customStartDate = filters.customStartDate instanceof Date ? filters.customStartDate : new Date(filters.customStartDate)

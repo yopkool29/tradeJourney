@@ -77,6 +77,8 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate'
+
 export interface DashBoardFilters {
     accountIds: number[]
     period: string
@@ -90,6 +92,8 @@ export interface DashBoardFilters {
     filters: TradeFilter[]
     lastFilterColumn: string
     last_results: any[] // TradeExtendedType[] - avoid circular dependency
+    dashboardChartOrder: ChartKey[]
+    dashboardChartVisibility: Record<ChartKey, boolean>
 }
 
 export interface DailyHistoryFilters {

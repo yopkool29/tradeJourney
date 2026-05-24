@@ -51,7 +51,6 @@
 
         <div class="flex flex-col gap-4 max-w-5xl mb-8">
 
-
             <!-- Overview : Cards (Nuxt UI) -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 <div class="dashboard-card">
@@ -115,13 +114,13 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Graphiques -->
-        <div v-if="chartsReady" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <DashboardPnlBarChart />
-            <DashboardCumulatedPnlChart2 :starting-capital="startingCapital" />
-            <DashboardApptChart />
-            <DashboardWinrateChart />
+        <div v-if="chartsReady" class="mb-8">
+            <div class="flex justify-start mb-2">
+                <DashboardChartVisibilityMenu v-model="chartVisibility" />
+            </div>
+            <CommonDraggableGrid :items="chartItems" @update:order="onChartOrderChange" />
         </div>
 
         <!-- 4 Sections principales : ALL / PROFIT / LOSING / COMPARISON -->
@@ -140,12 +139,16 @@ import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
-import type { TradeFilter, FilterColumn } from '~/type'
+import type { TradeFilter, FilterColumn, ChartKey } from '~/type'
 import {
     OPERATOR_EQUAL,
     OPERATOR_NOT_EQUAL,
     OPERATOR_GREATER_THAN_OR_EQUAL,
 } from '~/utils'
+import DashboardPnlBarChart from './PnlBarChart.vue'
+import DashboardCumulatedPnlChart2 from './CumulatedPnlChart2.vue'
+import DashboardApptChart from './ApptChart.vue'
+import DashboardWinrateChart from './WinrateChart.vue'
 
 const { formatCurrency } = useUtils()
 
@@ -157,6 +160,40 @@ const { tagGroups } = useTags()
 const filterLoading = ref(false)
 const chartsReady = ref(false)
 const { t, locale } = useI18n()
+
+const chartVisibility = computed({
+    get: () => {
+        const saved = userStore.dashBoardFilters.dashboardChartVisibility
+        const defaultVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+        return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
+    },
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibility: val }
+    }
+})
+
+const chartOrder = computed((): ChartKey[] => userStore.dashBoardFilters.dashboardChartOrder || ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'])
+
+const chartItems = computed(() => {
+    const componentMap: Record<ChartKey, any> = {
+        pnlBar: DashboardPnlBarChart,
+        cumulatedPnl: DashboardCumulatedPnlChart2,
+        appt: DashboardApptChart,
+        winrate: DashboardWinrateChart
+    }
+
+    return chartOrder.value
+        .filter((id: ChartKey) => chartVisibility.value[id])
+        .map((id: ChartKey) => ({
+            id,
+            component: componentMap[id],
+            props: id === 'cumulatedPnl' ? { startingCapital: startingCapital.value } : undefined
+        }))
+})
+
+const onChartOrderChange = (newOrder: ChartKey[]) => {
+    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartOrder: newOrder }
+}
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {
     if (value === undefined || value === null) return '---'

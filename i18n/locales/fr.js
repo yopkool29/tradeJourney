@@ -554,6 +554,13 @@ export default {
             title: 'Confirmation de suppression',
         },
         dashboard: {
+            charts: {
+                pnl_bar: 'Graphique Barres PnL',
+                cumulated_pnl: 'PnL Cumulé',
+                appt: 'APPT',
+                winrate: 'Winrate',
+                visibility: 'Visibilité des graphiques',
+            },
             appt_chart: {
                 title: 'APPT',
                 enlarge: 'Agrandir',

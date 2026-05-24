@@ -544,6 +544,13 @@ export default {
             title: 'Delete confirmation',
         },
         dashboard: {
+            charts: {
+                pnl_bar: 'PnL Bar Chart',
+                cumulated_pnl: 'Cumulated PnL',
+                appt: 'APPT',
+                winrate: 'Winrate',
+                visibility: 'Chart Visibility',
+            },
             appt_chart: {
                 title: 'APPT',
                 enlarge: 'Enlarge',
