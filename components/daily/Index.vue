@@ -59,7 +59,7 @@
                     v-else :key="group.key">
                     <DailyTradeGroup :show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
-                        :index="index" @update:show-table="(val) => { expandedGroups.value = { ...expandedGroups.value, [group.key]: val } }" />
+                        :index="index" @update:show-table="(val) => { expandedGroups = { ...expandedGroups, [group.key]: val } }" />
                 </template>
             </div>
         </div>
@@ -97,7 +97,7 @@ const isExpanded = computed({
     set: (val) => userStore.dailyHistoryFilters.isExpanded = val
 })
 
-type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number }
+type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number; commission: number }
 type TradeGroups = { [key: string]: TradeGroup }
 
 const { accounts, lastResults, fetchAccounts, fetchData } = useDailyHistory()
