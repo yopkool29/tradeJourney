@@ -38,7 +38,7 @@ const chartConfig = [
 
 const localVisibility = ref<Record<string, boolean>>({ ...props.modelValue })
 const isUpdating = ref(false)
-const debounceTimeout = ref<NodeJS.Timeout | null>(null)
+let debounceTimeout: NodeJS.Timeout | null = null
 
 watch(() => props.modelValue, (newVal) => {
     localVisibility.value = { ...newVal }
@@ -48,11 +48,11 @@ const toggleChart = (chartId: string) => {
     localVisibility.value[chartId] = !localVisibility.value[chartId]
     isUpdating.value = true
 
-    if (debounceTimeout.value) {
-        clearTimeout(debounceTimeout.value)
+    if (debounceTimeout) {
+        clearTimeout(debounceTimeout)
     }
 
-    debounceTimeout.value = setTimeout(() => {
+    debounceTimeout = setTimeout(() => {
         emit('update:modelValue', { ...localVisibility.value })
         isUpdating.value = false
     }, 500)
