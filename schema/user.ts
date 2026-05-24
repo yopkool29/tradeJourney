@@ -31,6 +31,7 @@ export const SettingsContentSchema = z.object({
     autoDataSync: z.boolean().default(true),
     showQuickNav: z.boolean().default(false),
     reverseDaysOrder: z.boolean().default(false),
+    syncAccountSelection: z.boolean().default(false),
     ninjaTraderApiPort: z.number().default(8080),
     ninjaTraderApiDays: z.number().default(1),
     timezoneDisplay: z.enum(['CURRENT', 'LOCAL', 'UTC']).default('CURRENT'),

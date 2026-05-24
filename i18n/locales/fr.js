@@ -476,7 +476,7 @@ export default {
                 light: 'Passer en mode clair',
             },
             menu_items: {
-                dashboard: 'Tableau de bord',
+                dashboard: 'T. de bord',
                 trades: 'Trades',
                 settings: 'Paramètres',
                 test: 'Test',
@@ -886,6 +886,8 @@ export default {
                 display_section: 'Affichage',
                 reverse_days_order: 'Inverser l\'ordre des jours',
                 reverse_days_order_desc: 'Afficher les jours du début du mois vers la fin au lieu de la fin vers le début.',
+                sync_account_selection: 'Synchroniser la sélection de compte',
+                sync_account_selection_desc: 'Quand activé, sélectionner un compte sur une page (Dashboard, Journalier, Calendrier, Trades) applique la même sélection sur toutes les autres pages.',
                 chart_colors_section: 'Couleurs des graphiques',
                 chart_cumulated_pnl: 'Graphique P&L Cumulé',
                 chart_appt: 'Graphique APPT',

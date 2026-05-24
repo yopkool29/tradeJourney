@@ -21,26 +21,26 @@
                         <span class="text-sm font-medium text-primary">{{
                             currentDatabase.displayName }}</span>
                     </button>
-                    <nav v-if="userStore.user && currentDatabase" class="hidden xl:flex w-full items-center gap-x-2">
+                    <nav v-if="userStore.user && currentDatabase" class="hidden lg:flex w-full items-center gap-x-2">
                         <NuxtLink :to="menuItems[0].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[0].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[0].label }}</span>
+                            <span class="font-medium hidden xl:inline">{{ menuItems[0].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[1].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[1].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[1].label }}</span>
+                            <span class="font-medium hidden xl:inline">{{ menuItems[1].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[2].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[2].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[2].label }}</span>
+                            <span class="font-medium hidden xl:inline">{{ menuItems[2].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[3].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
                             <UIcon :name="menuItems[3].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[3].label }}</span>
+                            <span class="font-medium hidden xl:inline">{{ menuItems[3].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[4].to" class="header-desktop-link"
                             active-class="header-desktop-link-active">
@@ -96,16 +96,16 @@
                         <UIcon name="i-heroicons-arrow-left-on-rectangle" class="header-icon" />
                     </UButton>
                     <!-- Menu mobile simple -->
-                    <UButton color="neutral" variant="ghost" class="rounded-full xl:hidden"
+                    <UButton color="neutral" variant="ghost" class="rounded-full lg:hidden"
                         @click="mobileMenuOpen = !mobileMenuOpen">
                         <UIcon :name="mobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
                             class="header-icon" />
                     </UButton>
                     <!-- Overlay menu mobile -->
-                    <div v-if="mobileMenuOpen" class="fixed inset-0 z-50 bg-gray-900/50 xl:hidden"
+                    <div v-if="mobileMenuOpen" class="fixed inset-0 z-50 bg-gray-900/50 lg:hidden"
                         @click="mobileMenuOpen = false" />
                     <div v-if="mobileMenuOpen"
-                        class="fixed right-0 top-0 z-50 h-full w-64 bg-white dark:bg-gray-800 shadow-lg p-4 transform xl:hidden">
+                        class="fixed right-0 top-0 z-50 h-full w-64 bg-white dark:bg-gray-800 shadow-lg p-4 transform lg:hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-medium">{{ $t('components.app_header.menu') }}</h3>
                             <UButton color="neutral" variant="ghost" class="p-1 rounded-full"

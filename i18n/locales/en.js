@@ -873,6 +873,8 @@ export default {
                 display_section: 'Display',
                 reverse_days_order: 'Reverse days order',
                 reverse_days_order_desc: 'Display days from the beginning of the month to the end instead of end to beginning.',
+                sync_account_selection: 'Synchronize account selection',
+                sync_account_selection_desc: 'When enabled, selecting an account on any page (Dashboard, Daily, Calendar, Trades) will apply the same selection to all other pages.',
                 chart_colors_section: 'Chart Colors',
                 chart_cumulated_pnl: 'Cumulated P&L Chart',
                 chart_appt: 'APPT Chart',

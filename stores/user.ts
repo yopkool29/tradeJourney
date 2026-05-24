@@ -513,6 +513,37 @@ export const useUserStore = defineStore(
             )
         }
 
+        // Synchronise accountIds across all pages when syncAccountSelection is enabled
+        const arraysEqual = (a: number[], b: number[]) =>
+            a.length === b.length && a.every((v, i) => v === b[i])
+
+        const syncAccountIds = (sourceIds: number[]) => {
+            if (!arraysEqual(tradeOptions.value.accountIds, sourceIds))
+                tradeOptions.value.accountIds = [...sourceIds]
+            if (!arraysEqual(dashBoardFilters.value.accountIds, sourceIds))
+                dashBoardFilters.value.accountIds = [...sourceIds]
+            if (!arraysEqual(dailyHistoryFilters.value.accountIds, sourceIds))
+                dailyHistoryFilters.value.accountIds = [...sourceIds]
+            if (!arraysEqual(calendarFilters.value.accountIds, sourceIds))
+                calendarFilters.value.accountIds = [...sourceIds]
+        }
+
+        watch(() => tradeOptions.value.accountIds, (ids) => {
+            if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
+        }, { deep: true })
+
+        watch(() => dashBoardFilters.value.accountIds, (ids) => {
+            if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
+        }, { deep: true })
+
+        watch(() => dailyHistoryFilters.value.accountIds, (ids) => {
+            if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
+        }, { deep: true })
+
+        watch(() => calendarFilters.value.accountIds, (ids) => {
+            if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
+        }, { deep: true })
+
         return {
             noteAssocMode,
             isLogOpen,

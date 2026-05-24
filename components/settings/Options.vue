@@ -64,6 +64,13 @@
                                     :description="$t('components.settings.options.reverse_days_order_desc')"
                                 />
                             </UFormField>
+                            <UFormField name="syncAccountSelection" class="w-full">
+                                <UCheckbox
+                                    v-model="formState.syncAccountSelection"
+                                    :label="$t('components.settings.options.sync_account_selection')"
+                                    :description="$t('components.settings.options.sync_account_selection_desc')"
+                                />
+                            </UFormField>
 
                         </div>
                     </div>
@@ -573,6 +580,8 @@ function resetSettings() {
         showCalendarCalendar: defaultSettings.showCalendarCalendar,
         autoDataSync: defaultSettings.autoDataSync,
         showQuickNav: defaultSettings.showQuickNav,
+        reverseDaysOrder: defaultSettings.reverseDaysOrder,
+        syncAccountSelection: defaultSettings.syncAccountSelection,
         pnlThreshold: defaultSettings.pnlThreshold,
         ninjaTraderApiPort: defaultSettings.ninjaTraderApiPort,
         ninjaTraderApiDays: defaultSettings.ninjaTraderApiDays,
