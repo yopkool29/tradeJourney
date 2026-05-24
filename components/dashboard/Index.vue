@@ -120,7 +120,7 @@
             <div class="flex justify-start mb-2">
                 <DashboardChartVisibilityMenu v-model="chartVisibility" />
             </div>
-            <CommonDraggableGrid :items="chartItems" @update:order="onChartOrderChange" />
+            <CommonDraggableGrid :items="chartItems" :shared-props="{ loading: filterLoading }" @update:order="onChartOrderChange" />
         </div>
 
         <!-- 4 Sections principales : ALL / PROFIT / LOSING / COMPARISON -->
@@ -191,8 +191,8 @@ const chartItems = computed(() => {
         }))
 })
 
-const onChartOrderChange = (newOrder: ChartKey[]) => {
-    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartOrder: newOrder }
+const onChartOrderChange = (newOrder: string[]) => {
+    userStore.dashBoardFilters.dashboardChartOrder = newOrder as ChartKey[]
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {

@@ -15,7 +15,10 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
+        <div class="relative" :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
+            <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
+                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+            </div>
             <Line ref="lineChartRef" :key="`cumulated-chart-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" @click="isModalOpen = true" />
         </div>
     </UCard>
@@ -30,6 +33,7 @@ import { CommonModalChart } from '#components'
 
 const props = defineProps<{
     startingCapital?: number | null
+    loading?: boolean
 }>()
 
 const { formatCurrency } = useUtils()

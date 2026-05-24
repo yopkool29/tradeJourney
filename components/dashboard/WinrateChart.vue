@@ -17,7 +17,10 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
+        <div class="relative" :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: pointer;">
+            <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
+                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+            </div>
             <Bar
                 ref="barChartRef"
                 :key="`winrate-chart-${displayModeNet}`"
@@ -35,6 +38,10 @@ import type { ChartOptions } from 'chart.js'
 import { useUserStore } from '~/stores/user'
 import { generateWinrateChartData, getSmartLabelAlign, getSmartLabelAnchor } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
+
+const props = defineProps<{
+    loading?: boolean
+}>()
 
 const barChartRef = ref()
 const isModalOpen = ref(false)

@@ -6,7 +6,7 @@
             :data-id="item.id"
             class="transition-all duration-200 cursor-move"
         >
-            <component :is="item.component" v-bind="item.props" />
+            <component :is="item.component" v-bind="{ ...item.props, ...props.sharedProps }" />
         </div>
     </div>
 </template>
@@ -22,6 +22,7 @@ interface DraggableItem {
 
 const props = defineProps<{
     items: DraggableItem[]
+    sharedProps?: Record<string, any>
 }>()
 
 const emit = defineEmits<{

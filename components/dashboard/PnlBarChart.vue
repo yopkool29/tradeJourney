@@ -17,7 +17,10 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div class="w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: pointer;" @click="isModalOpen = true">
+        <div class="relative w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: pointer;" @click="isModalOpen = true">
+            <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
+                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+            </div>
             <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}`" :data="chartData" :options="chartOptions" />
         </div>
     </UCard>
@@ -29,6 +32,10 @@ import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from '
 import type { TooltipItem } from 'chart.js'
 import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
+
+const props = defineProps<{
+    loading?: boolean
+}>()
 
 const { displayModeNet } = useNetGrossDisplay()
 
