@@ -53,13 +53,13 @@
         </UCard>
 
         <!-- Grille calendrier mensuelle -->
-        <div class="flex flex-col-reverse xl:flex-row xl:gap-8 items-start min-w-4xl max-w-6xl">
+        <div class="flex flex-col-reverse xl:flex-row xl:gap-8 items-start max-w-6xl">
             <div class="w-full">
                 <div v-if="!filteredGroups.length" class="py-8 text-center text-secondary">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_history') }}</div>
                 </div>
-                <div v-else class="overflow-x-auto">
-                    <div class="min-w-[800px]">
+                <div v-else class="overflow-x-auto w-full">
+                    <div class="min-w-[950px]">
                         <!-- En-têtes des jours de la semaine -->
                         <div class="grid grid-cols-8 gap-2 mb-2">
                             <div v-for="day in weekDays" :key="day"
