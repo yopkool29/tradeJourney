@@ -16,7 +16,7 @@
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
                         :show-inactive-checkbox="true" :tag-groups="tagGroups"
                         v-model:last-filter-column="userStore.tradeOptions.lastFilterColumn"
-                        @apply="onApplyFilters" @reset="resetFilters">
+                        @apply="onApplyFiltersDebounced" @reset="resetFilters">
                         <template #field-type="{ filter, onValueChange }">
                             <USelect :model-value="filter.value as string" :items="[
                                 { label: 'Buy', value: 'buy' },
@@ -757,10 +757,12 @@ const fetchTradesWrapper = async (params = {}, limit = 1000) => {
     await fetchTrades(filtersArray, limit, userStore.tradeOptions.showInactive)
 }
 
+const onApplyFiltersDebounced = useDebounce(onApplyFilters, 200, { leading: true })
+
 onMounted(() => {
     fetchAccounts()
     fetchSymbols()
-    onApplyFilters()
+    onApplyFiltersDebounced()
 })
 
 
@@ -770,7 +772,7 @@ function resetFilters() {
     page.value = 1
     filters.value = []
     userStore.tradeOptions.showAdvancedFilters = false
-    onApplyFilters()
+    onApplyFiltersDebounced()
 }
 
 async function onApplyFilters() {
@@ -931,7 +933,7 @@ const emit = defineEmits<{
     delete: [rowid: number]
 }>()
 
-defineExpose({ applyFilters: onApplyFilters })
+defineExpose({ applyFilters: onApplyFiltersDebounced })
 
 // Protéger contre une page hors limite
 watch([page, pageCount], () => {
@@ -955,7 +957,7 @@ watch([() => userStore.tradeOptions.accountIds, accounts], ([currentIds, account
 watch(
     () => [...(userStore.tradeOptions.accountIds || [])],
     () => {
-        onApplyFilters()
+        onApplyFiltersDebounced()
     },
     { deep: true }
 )
@@ -964,7 +966,7 @@ watch(
 watch(
     () => userStore.tradeOptions.showInactive,
     () => {
-        onApplyFilters()
+        onApplyFiltersDebounced()
     }
 )
 </script>

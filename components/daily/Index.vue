@@ -69,7 +69,6 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
-import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -178,11 +177,11 @@ const filters = computed({
 function resetFilters() {
     filters.value = []
     userStore.dailyHistoryFilters.showAdvancedFilters = false
-    onFilter()
+    loadMonthDataDebounced()
 }
 
-async function onApplyFilters() {
-    await onFilter()
+function onApplyFilters() {
+    loadMonthDataDebounced()
 }
 
 // Valeurs appliquées par le bouton Filtrer
@@ -271,10 +270,6 @@ const onExpand = async () => {
     }, 100)
 }
 
-const onFilter = async () => {
-    await forceReactivity()
-}
-
 // Fonction unique pour charger les données du mois
 const loadMonthData = async () => {
     filterLoading.value = true
@@ -285,7 +280,7 @@ const loadMonthData = async () => {
 }
 
 // Debounce pour éviter les appels multiples
-const loadMonthDataDebounced = useDebounceFn(loadMonthData, 200)
+const loadMonthDataDebounced = useDebounce(loadMonthData, 200, { leading: true })
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
@@ -322,10 +317,6 @@ async function applyDaysTags(forceFetch: boolean = true) {
     }
 }
 
-const forceReactivity = async () => {
-    await loadMonthData()
-}
-
 // const mountStart = performance.now()
 
 onMounted(async () => {
@@ -352,7 +343,7 @@ onMounted(async () => {
 
         // Forcer la réactivité UNIQUEMENT après une reconnexion
         if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || userStore.dailyHistoryFilters.last_results.length > 0)) {
-            await forceReactivity()
+            await loadMonthData()
             userStore.clearDataRefresh()
         }
 
@@ -361,9 +352,6 @@ onMounted(async () => {
 
         filterLoading.value = false
         isInitialLoad.value = false
-
-        // const mountEnd = performance.now()
-        // console.log(`Daily Index mounted in ${mountEnd - mountStart}ms`)
     })
 })
 
@@ -381,8 +369,8 @@ watch([() => userStore.dailyHistoryFilters.accountIds as number[], accounts], ([
 // Appliquer les filtres quand les comptes changent
 watch(
     () => [...(userStore.dailyHistoryFilters.accountIds || [])],
-    async () => {
-        await forceReactivity()
+    () => {
+        loadMonthDataDebounced()
     },
     { deep: true }
 )
@@ -397,8 +385,8 @@ watchEffect(() => {
 // Appliquer les filtres quand showInactive change
 watch(
     () => userStore.dailyHistoryFilters.showInactive,
-    async () => {
-        await forceReactivity()
+    () => {
+        loadMonthDataDebounced()
     }
 )
 

@@ -19,7 +19,7 @@
                     :show-inactive-checkbox="false"
                     :tag-groups="tagGroups"
                     v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
-                    @apply="onApplyFilters"
+                    @apply="onApplyFiltersDebounced"
                     @reset="resetFilters"
                 >
                     <template #field-type="{ filter, onValueChange }">
@@ -278,12 +278,6 @@ const filters = computed({
 })
 
 
-function resetFilters() {
-    filters.value = []
-    userStore.dashBoardFilters.showAdvancedFilters = false
-    onApplyFilters()
-}
-
 // Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
     const selectedAccountIds = userStore.dashBoardFilters.accountIds
@@ -337,6 +331,30 @@ const endDateStr = computed({
     },
 })
 
+const onApplyFilters = async () => {
+    filterLoading.value = true
+    try {
+        await fetchDashboardData(
+            userStore.dashBoardFilters.startDate,
+            userStore.dashBoardFilters.endDate,
+            true,
+            userStore.dashBoardFilters.accountIds,
+            displayModeNet.value,
+            filters.value
+        )
+    } finally {
+        filterLoading.value = false
+    }
+}
+
+const onApplyFiltersDebounced = useDebounce(onApplyFilters, 200, { leading: true })
+
+function resetFilters() {
+    filters.value = []
+    userStore.dashBoardFilters.showAdvancedFilters = false
+    onApplyFiltersDebounced()
+}
+
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
@@ -364,22 +382,6 @@ onMounted(async () => {
 
     })
 })
-
-const onApplyFilters = async () => {
-    filterLoading.value = true
-    try {
-        await fetchDashboardData(
-            userStore.dashBoardFilters.startDate,
-            userStore.dashBoardFilters.endDate,
-            true,
-            userStore.dashBoardFilters.accountIds,
-            displayModeNet.value,
-            filters.value
-        )
-    } finally {
-        filterLoading.value = false
-    }
-}
 
 // Watcher sur la période
 watch(
@@ -414,7 +416,7 @@ watch([() => userStore.dashBoardFilters.accountIds, accounts], ([currentIds, acc
 watch(
     () => [...(userStore.dashBoardFilters.accountIds || [])],
     () => {
-        onApplyFilters()
+        onApplyFiltersDebounced()
     },
     { deep: true }
 )
@@ -423,7 +425,7 @@ watch(
 watch(
     () => displayModeNet.value,
     () => {
-        onApplyFilters()
+        onApplyFiltersDebounced()
     }
 )
 </script>

@@ -54,7 +54,6 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn, TradeFilterValue } from '~/type'
-import { useDebounceFn } from '@vueuse/core'
 const { log_debug } = useLogView()
 
 import {
@@ -115,10 +114,9 @@ const getPlaceholder = (filter: TradeFilter) => {
 }
 
 // Debounce l'application des filtres pour éviter trop de requêtes API
-const debouncedApply = useDebounceFn(() => {
+const debouncedApply = useDebounce(() => {
     emit('apply')
-    // log_debug("debouncedApply")
-}, 500)
+}, 500, { leading: true })
 
 const onColumnChange = (index: number, value: string) => {
     const newFilters = [...props.modelValue]

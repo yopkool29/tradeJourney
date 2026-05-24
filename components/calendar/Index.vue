@@ -141,7 +141,6 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
-import { useDebounceFn } from '@vueuse/core'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import { getWinrate } from '~/utils/tradeStats'
@@ -474,16 +473,17 @@ const calendarWeeks = computed(() => {
     return weeks
 })
 
-const onFilter = async () => {
-    filterLoading.value = true
-    await forceReactivity()
-}
-
-// Fonction debounced unique pour tous les changements de mois
-const handleMonthChangeDebounced = useDebounceFn(async () => {
+const loadCalendarData = async () => {
     filterLoading.value = true
     await applyCalendar(selectedMonth.value)
-}, 200)
+    filterLoading.value = false
+}
+
+const loadCalendarDataDebounced = useDebounce(loadCalendarData, 200, { leading: true })
+
+const onFilter = () => {
+    loadCalendarDataDebounced()
+}
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
@@ -502,10 +502,6 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
             ])
         }
     }
-}
-
-const forceReactivity = async () => {
-    await applyCalendar(selectedMonth.value)
 }
 
 onMounted(async () => {
@@ -530,7 +526,7 @@ onMounted(async () => {
         await applyCalendar(selectedMonth.value, needForceCalendar)
 
         if (userStore.shouldRefreshData() && userStore.calendarFilters.last_results.length > 0) {
-            await forceReactivity()
+            await applyCalendar(selectedMonth.value)
             userStore.clearDataRefresh()
         }
 
@@ -552,7 +548,7 @@ watch([() => userStore.calendarFilters.accountIds, accounts], ([currentIds, acco
 watch(
     () => [...(userStore.calendarFilters.accountIds || [])],
     () => {
-        forceReactivity()
+        loadCalendarDataDebounced()
     },
     { deep: true }
 )
@@ -561,7 +557,7 @@ watch(
 watch(selectedMonth, (newMonth) => {
     const [year, month] = newMonth.split('-').map(Number)
     calendarValue.value = new CalendarDate(year, month, 1)
-    handleMonthChangeDebounced()
+    loadCalendarDataDebounced()
 })
 
 // Rafraîchir les données quand les modales se ferment
@@ -570,7 +566,7 @@ watch([showDayModal, showWeekModal], ([newDay, newWeek], [oldDay, oldWeek]) => {
     const weekModalClosed = oldWeek === true && newWeek === false
 
     if (dayModalClosed || weekModalClosed) {
-        forceReactivity()
+        loadCalendarDataDebounced()
     }
 })
 

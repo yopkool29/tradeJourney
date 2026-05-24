@@ -1,5 +1,5 @@
 <template>
-    <UForm id="tradeFiltersForm" :state="{}" @submit="emit('apply')">
+    <UForm id="tradeFiltersForm" :state="{}" @submit="debouncedApply">
         <div class="filter-container">
             <div class="flex items-center justify-between">
                 <div class="section-label">{{ title }}</div>
@@ -71,7 +71,6 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn } from '~/type'
-import { useDebounceFn } from '@vueuse/core'
 const { log_debug } = useLogView()
 import { OPERATOR_EQUAL } from '~/utils'
 
@@ -128,10 +127,9 @@ const localFilters = computed({
 const maxFiltersCount = computed(() => props.maxFilters ?? 4)
 
 // Debounce l'application des filtres pour éviter trop de requêtes API
-const debouncedApply = useDebounceFn(() => {
+const debouncedApply = useDebounce(() => {
     emit('apply')
-    // log_debug("debouncedApply")
-}, 500)
+}, 500, { leading: true })
 
 const addFilter = () => {
     if (localFilters.value.length < maxFiltersCount.value) {
