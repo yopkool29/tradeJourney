@@ -21,12 +21,13 @@
 
         <UCollapsible v-model:open="isFiltersOpen" class="flex flex-col gap-y-3 items-start">
             <UButton
-                class="group"
+                class="group px-1"
                 :label="$t('components.trade.table.advanced_filters.title')"
                 :color="buttonColor"
                 variant="ghost"
                 size="sm"
                 :class="buttonClass"
+                leading-icon="i-lucide-filter"
                 trailing-icon="i-lucide-chevron-down"
                 :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
             />

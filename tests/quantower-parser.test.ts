@@ -4,7 +4,7 @@ import { readFileSync } from 'fs'
 import { ImportMode, formatDate } from '../utils/date-utils'
 
 // Chemin vers le fichier CSV Quantower
-const filePath = __dirname + '/../data/Trades.csv'
+const filePath = __dirname + '/../data/tests/quantower-trades.csv'
 
 // Lire le fichier CSV
 const csvContent = readFileSync(filePath, 'utf-8')

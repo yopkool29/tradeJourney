@@ -223,6 +223,7 @@ export function parseQuantowerExecutions(csvContent: string, timezone: string, i
                     openExec,
                     row,
                     Math.abs(parseNumber(row['Quantity'])),
+                    grossPL,
                     parseDate,
                     parseNumber,
                     parseCurrency
@@ -292,6 +293,7 @@ function createTrade(
     openExec: QuantowerRawExecution,
     closeExec: QuantowerRawExecution,
     quantity: number,
+    grossPL: number,
     parseDate: (dateStr: string) => Date,
     parseNumber: (numStr: string) => number,
     parseCurrency: (currencyStr: string) => number

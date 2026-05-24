@@ -4,7 +4,7 @@ import { readFileSync } from 'fs'
 import { ImportMode, formatDate } from '../utils/date-utils'
 
 // Chemin vers le fichier CSV d'exécution
-const filePath = __dirname + '/../data/NinjaTrader Grid 2026-02-10 02-39 .csv'
+const filePath = __dirname + '/../data/tests/ninjatrader-grid-2026-02-10.csv'
 
 // Lire le fichier CSV
 const csvContent = readFileSync(filePath, 'utf-8')

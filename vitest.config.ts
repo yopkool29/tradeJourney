@@ -8,8 +8,9 @@ export default defineVitestConfig({
         environmentOptions: {
             nuxt: {
                 rootDir: fileURLToPath(new URL('./', import.meta.url)),
-                domEnvironment: 'happy-dom'
+                domEnvironment: 'happy-dom',
             }
-        }
+        },
+        setupFiles: ['./tests/setup.ts']
     }
 })

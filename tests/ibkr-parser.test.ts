@@ -4,8 +4,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import { formatDate, ImportMode } from '../utils/date-utils'
 
-const filePath = path.resolve(__dirname, '../data/flex_results.csv')
-// const filePath = path.resolve(__dirname, '../data/flex_results2.csv')
+const filePath = path.resolve(__dirname, '../data/tests/ibkr-flex-results.csv')
 const csvContent = readFileSync(filePath, 'utf-8')
 
 // Parser le CSV IBKR avec timezone America/New_York (NASDAQ)
@@ -99,25 +98,14 @@ describe('parseIBKRTrades', () => {
     })
 
     it('should calculate profit correctly', () => {
-        // Vérifier que le profit est calculé (grossProfit - commission)
-        // Note: Les trades agrégés (extendId contient '_agg') utilisent la somme des profits IBKR
-        // et non un recalcul, donc on les ignore dans ce test
-        trades.filter(t => !t.extendId?.includes('_agg')).forEach(t => {
-            const grossProfit = t.type === 'buy'
-                ? (t.closePrice - t.openPrice) * t.lot
-                : (t.openPrice - t.closePrice) * t.lot
-            
-            const expectedProfit = grossProfit - t.commission
-            
-            // Tolérance de 0.01 pour les erreurs d'arrondi
-            expect(Math.abs(t.profit - expectedProfit)).toBeLessThan(0.01)
-        })
-        
-        // Pour les trades agrégés, vérifier simplement que le profit existe
-        const aggregatedTrades = trades.filter(t => t.extendId?.includes('_agg'))
-        aggregatedTrades.forEach(t => {
+        // Vérifier la cohérence interne : profit (brut) = netProfit + commission
+        // On ne recalcule pas depuis les prix car certains instruments (futures, options)
+        // utilisent un multiplicateur qui rendrait la formule simple incorrecte.
+        trades.forEach(t => {
             expect(typeof t.profit).toBe('number')
             expect(t.profit).not.toBeNaN()
+            const expectedNetProfit = parseFloat((t.profit - t.commission).toFixed(2))
+            expect(Math.abs((t.netProfit ?? 0) - expectedNetProfit)).toBeLessThan(0.01)
         })
     })
 
