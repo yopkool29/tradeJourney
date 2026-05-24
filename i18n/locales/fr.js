@@ -269,6 +269,14 @@ export default {
                 index: 'Géneral',
             },
         },
+        legal: {
+            terms: {
+                title: 'Conditions Générales',
+            },
+            privacy: {
+                title: 'Politique de confidentialité',
+            },
+        },
         settings: {
             tabs: {
                 accounts: 'Comptes',
@@ -466,7 +474,9 @@ export default {
         },
 
         app_footer: {
-            copyright: 'Tous droits réservés',
+            copyright: 'TradeJourney - Tous droits réservés ©2026',
+            terms: 'Conditions Générales',
+            privacy: 'Politique de confidentialité',
         },
         app_header: {
             menu: 'Menu',

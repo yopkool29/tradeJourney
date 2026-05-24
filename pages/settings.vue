@@ -7,7 +7,7 @@
         </div>
 
         <UTabs :orientation="isMobile ? 'vertical' : 'horizontal'" v-model="active" :items="items"
-            class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start'] }" />
+            class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start', 'w-full'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">
                 <component :is="items[items.findIndex((item) => item.value === active)].component"
@@ -29,7 +29,7 @@ const active = useState<string>(() => 'accounts')
 const whitelistedViews = ref<string[]>()
 
 const windowWidth = ref(0)
-const isMobile = computed(() => windowWidth.value < 640)
+const isMobile = computed(() => windowWidth.value < 1024)
 
 onMounted(() => {
     windowWidth.value = window.innerWidth

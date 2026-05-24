@@ -263,6 +263,14 @@ export default {
                 index: 'General',
             },
         },
+        legal: {
+            terms: {
+                title: 'Terms and Conditions',
+            },
+            privacy: {
+                title: 'Privacy Policy',
+            },
+        },
         settings: {
             tabs: {
                 accounts: 'Accounts',
@@ -337,7 +345,9 @@ export default {
     },
     components: {
         app_footer: {
-            copyright: 'All rights reserved',
+            copyright: 'TradeJourney - All rights reserved ©2026',
+            terms: 'Terms and Conditions',
+            privacy: 'Privacy Policy',
         },
         app_header: {
             menu: 'Menu',
