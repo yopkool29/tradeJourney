@@ -5,14 +5,13 @@
         </UButton>
         <template #content>
             <div class="p-2 space-y-2">
-                <div v-for="chart in chartConfig" :key="chart.id" class="flex items-center gap-2">
+                <label v-for="chart in chartConfig" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
                     <UCheckbox
                         :model-value="localVisibility[chart.id]"
-                        :disabled="isUpdating"
                         @update:model-value="toggleChart(chart.id)"
                     />
                     <span>{{ t(chart.label) }}</span>
-                </div>
+                </label>
             </div>
         </template>
     </UPopover>
@@ -37,24 +36,17 @@ const chartConfig = [
 ]
 
 const localVisibility = ref<Record<string, boolean>>({ ...props.modelValue })
-const isUpdating = ref(false)
-let debounceTimeout: NodeJS.Timeout | null = null
 
 watch(() => props.modelValue, (newVal) => {
     localVisibility.value = { ...newVal }
 }, { deep: true })
 
+const debouncedEmit = useDebounce(() => {
+    emit('update:modelValue', { ...localVisibility.value })
+}, 300, { leading: true })
+
 const toggleChart = (chartId: string) => {
     localVisibility.value[chartId] = !localVisibility.value[chartId]
-    isUpdating.value = true
-
-    if (debounceTimeout) {
-        clearTimeout(debounceTimeout)
-    }
-
-    debounceTimeout = setTimeout(() => {
-        emit('update:modelValue', { ...localVisibility.value })
-        isUpdating.value = false
-    }, 500)
+    debouncedEmit()
 }
 </script>
