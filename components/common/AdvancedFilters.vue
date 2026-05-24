@@ -22,17 +22,18 @@
                         v-if="filter.column === 'tags'"
                         :model-value="filter.value as number"
                         :tag-groups="tagGroups || []"
-                        @update:model-value="(val) => onValueChange(idx, val)"
+                        @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
 
                     <!-- Slot pour champ personnalisé (autres colonnes) -->
-                    <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => onValueChange(idx, val)">
+                    <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => { onValueChange(idx, val); debouncedApply() }">
                         <!-- Champ par défaut -->
                         <CommonFilterClear
                             :model-value="filter.value as string"
                             :placeholder="getPlaceholder(filter)"
-                            @enter="emit('apply')"
-                            @clear="emit('apply')"
+                            @enter="debouncedApply()"
+                            @clear="debouncedApply()"
+                            @blur="debouncedApply()"
                             @update:model-value="(val) => onValueChange(idx, val)"
                         />
                     </slot>
@@ -116,7 +117,7 @@ const getPlaceholder = (filter: TradeFilter) => {
 // Debounce l'application des filtres pour éviter trop de requêtes API
 const debouncedApply = useDebounce(() => {
     emit('apply')
-}, 500, { leading: true })
+}, 300, { leading: true })
 
 const onColumnChange = (index: number, value: string) => {
     const newFilters = [...props.modelValue]
@@ -142,6 +143,5 @@ const onValueChange = (index: number, value: TradeFilterValue) => {
     const newFilters = [...props.modelValue]
     newFilters[index].value = value
     emit('update:modelValue', newFilters)
-    debouncedApply()
 }
 </script>

@@ -41,7 +41,8 @@
                                 <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
                                     }}</label>
                                 <USelect id="cumule-mode-select" v-model="userStore.dashBoardFilters.cumuleMode"
-                                    :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full" />
+                                    :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full"
+                                    @update:model-value="onApplyFiltersDebounced" />
                             </div>
                         </div>
                     </template>

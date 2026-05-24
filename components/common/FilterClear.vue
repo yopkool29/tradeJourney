@@ -7,6 +7,7 @@
         :ui="{ trailing: 'pe-1' }"
         v-bind="$attrs"
         @keyup.enter="$emit('enter')"
+        @blur="$emit('blur')"
     >
         <template v-if="hasValue" #trailing>
             <UButton color="neutral" variant="link" size="sm" icon="i-lucide-circle-x" aria-label="Clear input" @click="clearInput" />
@@ -31,6 +32,7 @@ defineProps({
 const emit = defineEmits<{
     enter: []
     clear: []
+    blur: []
 }>()
 
 const clearInput = () => {
