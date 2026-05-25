@@ -5,24 +5,24 @@
             <CommonModalDelete
                 v-if="props.requireDeleteConfirmation"
                 :from="'note-editor'"
-                :title="$t('components.common.noteEditor.clear_note_title')"
+                :title="$t('components.trade.noteEditor.clear_note_title')"
                 :confirm-text="$t('common.actions.confirm')"
                 confirm-color="error"
                 @confirm="emit('delete')">
                 <template #trigger>
-                    <UTooltip :text="$t('components.common.noteEditor.clear_note_tooltip')">
-                        <UButton 
-                            icon="i-heroicons-trash" 
-                            size="xs" 
-                            color="error" 
+                    <UTooltip :text="$t('components.trade.noteEditor.clear_note_tooltip')">
+                        <UButton
+                            icon="i-heroicons-trash"
+                            size="xs"
+                            color="error"
                             variant="ghost"
                             class="opacity-70 hover:opacity-100"
                             @click.stop />
                     </UTooltip>
                 </template>
-                <template #content>{{ $t('components.common.noteEditor.clear_note_confirm') }}</template>
+                <template #content>{{ $t('components.trade.noteEditor.clear_note_confirm') }}</template>
             </CommonModalDelete>
-            <UTooltip v-else :text="$t('components.common.noteEditor.clear_note_tooltip')">
+            <UTooltip v-else :text="$t('components.trade.noteEditor.clear_note_tooltip')">
                 <UButton 
                     icon="i-heroicons-trash" 
                     size="xs" 

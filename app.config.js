@@ -57,7 +57,7 @@ export default defineAppConfig({
             variants: {
                 variant: {
                     subtle: {
-                        root: 'light:bg-gradient-to-b light:from-gray-50 light:to-gray-100 dark:bg-slate-900/50 border-gray-500 dark:border-slate-800'
+                        root: 'light:bg-gradient-to-br light:from-gray-100 light:to-gray-50 dark:bg-slate-900/50 border-gray-500 dark:border-slate-800'
                     }
                 }
             }

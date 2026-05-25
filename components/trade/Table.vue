@@ -942,15 +942,11 @@ watch([page, pageCount], () => {
     }
 })
 
-// Vérifier que les comptes sélectionnés existent toujours
-watch([() => userStore.tradeOptions.accountIds, accounts], ([currentIds, accountsList]) => {
-    if (!currentIds?.length) return
-
-    const validIds = currentIds.filter((id) => accountsList.some((account) => account.id === id))
-
-    if (validIds.length !== currentIds.length) {
-        userStore.tradeOptions.accountIds = validIds.length ? validIds : []
-    }
+usePageDataManager({
+    fetchFn: onApplyFilters,
+    accounts,
+    getAccountIds: () => userStore.tradeOptions.accountIds,
+    setAccountIds: (ids) => { userStore.tradeOptions.accountIds = ids },
 })
 
 // Appliquer les filtres quand les comptes changent

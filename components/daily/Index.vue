@@ -24,7 +24,7 @@
                             </template>
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
-                                    <UInput v-model="userStore.dailyHistoryFilters.selectedMonth" type="month" class="w-36" />
+                                    <UInput :model-value="selectedMonth" type="month" class="w-36" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
                                     <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
                                         size="sm" :loading="expandLoading" @click="onExpand">
                                         {{ isExpanded ? $t('components.daily.index.collapse') :
@@ -38,7 +38,7 @@
                         <PluginPageSlot slot-id="page-daily" />
                         <CommonPnLCalendar
                             v-model="calendarValue"
-                            v-model:month="calendarMonth"
+                            :month="calendarMonth"
                             :day-stats="dayStats"
                             :show="settings.showCalendarDaily"
                             @update:month="onCalendarMonthChange"
@@ -87,7 +87,6 @@ const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
 const { tagGroups } = useTags()
-const filterLoading = ref(false)
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 
@@ -110,6 +109,37 @@ const accountOptions = computed(() => {
             label: account.displayName,
         }
     })
+})
+
+const selectedMonth = computed({
+    get: () => userStore.dailyHistoryFilters.selectedMonth,
+    set: (value) => (userStore.dailyHistoryFilters.selectedMonth = value),
+})
+
+const displayMonth = ref(userStore.dailyHistoryFilters.selectedMonth)
+const displayResults = shallowRef<TradeExtendedType[]>(userStore.dailyHistoryFilters.last_results as TradeExtendedType[])
+
+const calendarMonth = computed(() => {
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    return { year, month }
+})
+
+const calendarValue = ref<any>(null)
+
+const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounced } = usePageDataManager({
+    fetchFn: async () => {
+        await applyDaysTags()
+        await applyCalendar(selectedMonth.value)
+    },
+    onAfterFetch: () => {
+        const monthChanged = selectedMonth.value !== displayMonth.value
+        displayResults.value = lastResults.value
+        displayMonth.value = selectedMonth.value
+        if (monthChanged) expandedGroups.value = {}
+    },
+    accounts,
+    getAccountIds: () => userStore.dailyHistoryFilters.accountIds,
+    setAccountIds: (ids) => { userStore.dailyHistoryFilters.accountIds = ids },
 })
 
 const { t, locale } = useI18n()
@@ -175,7 +205,6 @@ const filters = computed({
     set: (val) => userStore.dailyHistoryFilters.filters = val
 })
 
-
 function resetFilters() {
     filters.value = []
     userStore.dailyHistoryFilters.showAdvancedFilters = false
@@ -186,28 +215,11 @@ function onApplyFilters() {
     loadMonthDataDebounced()
 }
 
-// Valeurs appliquées par le bouton Filtrer
-const selectedMonth = computed({
-    get: () => userStore.dailyHistoryFilters.selectedMonth,
-    set: (value) => (userStore.dailyHistoryFilters.selectedMonth = value),
-})
-
-// Mois affiché : ne change qu'après le fetch pour éviter l'état vide
-const displayMonth = ref(userStore.dailyHistoryFilters.selectedMonth)
-
-const calendarValue = ref<any>(null)
-
-const calendarMonth = computed(() => {
-    const [year, month] = selectedMonth.value.split('-').map(Number)
-    return { year, month }
-})
-
 const getDaysStats = () => {
     // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
     refreshTrigger.value
 
-    // Utiliser lastResults (shallowRef) au lieu du store pour de meilleures perfs
-    const trades = lastResults.value as TradeExtendedType[]
+    const trades = displayResults.value as TradeExtendedType[]
 
     if (!displayMonth.value)
         return {}
@@ -281,24 +293,9 @@ const onExpand = () => {
     })
 }
 
-// Fonction unique pour charger les données du mois
-const loadMonthData = async () => {
-    filterLoading.value = true
-    const monthChanged = selectedMonth.value !== displayMonth.value
-    await applyDaysTags()
-    await applyCalendar(selectedMonth.value)
-    displayMonth.value = selectedMonth.value
-    if (monthChanged) expandedGroups.value = {}
-    filterLoading.value = false
-}
-
-// Debounce pour éviter les appels multiples
-const loadMonthDataDebounced = useDebounce(loadMonthData, 200, { leading: true })
-
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
-    userStore.dailyHistoryFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
-    selectedMonth.value = userStore.dailyHistoryFilters.selectedMonth
+    selectedMonth.value = `${month.year}-${month.month.toString().padStart(2, '0')}`
 }
 
 const setDialogToFirstTradingDay = () => {
@@ -368,17 +365,6 @@ onMounted(async () => {
     })
 })
 
-// Vérifier que les comptes sélectionnés existent toujours
-watch([() => userStore.dailyHistoryFilters.accountIds as number[], accounts], ([currentIds, accountsList]) => {
-    if (!currentIds?.length) return
-
-    const validIds = currentIds.filter((id) => accountsList.some((account) => account.id === id))
-
-    if (validIds.length !== currentIds.length) {
-        userStore.dailyHistoryFilters.accountIds = validIds.length ? validIds : []
-    }
-})
-
 // Appliquer les filtres quand les comptes changent
 watch(
     () => [...(userStore.dailyHistoryFilters.accountIds || [])],
@@ -387,13 +373,6 @@ watch(
     },
     { deep: true }
 )
-
-// Mettre à jour l'état de loading quand les données sont chargées
-watchEffect(() => {
-    if (filteredGroups.value) {
-        filterLoading.value = false
-    }
-})
 
 // Appliquer les filtres quand showInactive change
 watch(
@@ -407,7 +386,6 @@ watch(
 watch(selectedMonth, () => {
     loadMonthDataDebounced()
 })
-
 
 // Ouvrir le dialog automatiquement au premier chargement
 // et restaurer l'état replier/déplier depuis le store

@@ -33,7 +33,7 @@
                         </template>
                         <template #after-accounts>
                             <div class="">
-                                <UInput v-model="userStore.calendarFilters.selectedMonth" type="month" class="date-input" />
+                                <UInput :model-value="selectedMonth" type="month" class="date-input" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
                             </div>
                         </template>
                     </CommonTradeFilters>
@@ -42,7 +42,7 @@
                     <PluginPageSlot slot-id="page-calendar" />
                     <CommonPnLCalendar
                         v-model="calendarValue"
-                        v-model:month="calendarMonth"
+                        :month="calendarMonth"
                         :day-stats="dayStats"
                         :show="settings.showCalendarCalendar"
                         @update:month="onCalendarMonthChange"
@@ -159,7 +159,6 @@ const userStore = useUserStore()
 const { startLoading, stopLoading } = useGlobalLoading()
 const { displayModeNet } = useNetGrossDisplay()
 const settings = userStore.user?.settings_object as SettingsContentType
-const filterLoading = ref(false)
 const { t } = useI18n()
 
 type DayData = {
@@ -177,7 +176,7 @@ type WeekData = {
     total: number
 }
 
-const { accounts, fetchAccounts, fetchData } = useDailyHistory('calendarFilters')
+const { accounts, lastResults, fetchAccounts, fetchData } = useDailyHistory('calendarFilters')
 const { fetchDayTags } = useDayTags()
 const { tagGroups } = useTags()
 
@@ -188,6 +187,59 @@ const accountOptions = computed(() => {
             label: account.displayName,
         }
     })
+})
+
+const weekDays = computed(() => {
+    return [
+        t('common.weekdays.short.monday'),
+        t('common.weekdays.short.tuesday'),
+        t('common.weekdays.short.wednesday'),
+        t('common.weekdays.short.thursday'),
+        t('common.weekdays.short.friday'),
+        t('common.weekdays.short.saturday'),
+        t('common.weekdays.short.sunday'),
+    ]
+})
+
+const selectedMonth = computed({
+    get: () => userStore.calendarFilters.selectedMonth,
+    set: (value) => (userStore.calendarFilters.selectedMonth = value),
+})
+
+const displayMonth = ref(userStore.calendarFilters.selectedMonth)
+const displayResults = shallowRef<TradeExtendedType[]>(userStore.calendarFilters.last_results as TradeExtendedType[])
+
+const calendarMonth = computed(() => {
+    const [year, month] = displayMonth.value.split('-').map(Number)
+    return { year, month }
+})
+
+const selectedDayDate = computed(() => {
+    if (!selectedDay.value || !selectedMonth.value) return new Date()
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    return new Date(year, month - 1, selectedDay.value.dayNumber)
+})
+
+const dayModalTitle = computed(() => {
+    if (!selectedDay.value) return ''
+    const date = selectedDayDate.value
+    const locale = t('locale') as 'fr' | 'en' | 'us'
+    return formatDateLongString(date, locale, true)
+})
+
+const selectedWeekDays = computed(() => {
+    if (!selectedWeek.value) return []
+    return selectedWeek.value.days.filter(day => day.isCurrentMonth)
+})
+
+const weekModalTitle = computed(() => {
+    if (!selectedWeekDays.value.length) return ''
+    const firstDay = selectedWeekDays.value[0]
+    const lastDay = selectedWeekDays.value[selectedWeekDays.value.length - 1]
+    const locale = t('locale') as 'fr' | 'en' | 'us'
+    const firstDate = getDateFromDay(firstDay)
+    const lastDate = getDateFromDay(lastDay)
+    return `${formatDateLongString(firstDate, locale, false)} - ${formatDateLongString(lastDate, locale, false)}`
 })
 
 // Configuration des colonnes filtrables pour CommonAdvancedFilters
@@ -255,40 +307,32 @@ const filters = computed({
 function resetFilters() {
     filters.value = []
     userStore.calendarFilters.showAdvancedFilters = false
-    onFilter()
+    loadCalendarDataDebounced()
 }
 
-async function onApplyFilters() {
-    await onFilter()
+function onApplyFilters() {
+    loadCalendarDataDebounced()
 }
-
-const selectedMonth = computed({
-    get: () => userStore.calendarFilters.selectedMonth,
-    set: (value) => (userStore.calendarFilters.selectedMonth = value),
-})
-
-// Mois affiché : ne change qu'après le fetch pour éviter l'état vide
-const displayMonth = ref(userStore.calendarFilters.selectedMonth)
 
 const calendarValue = ref<CalendarDate | null>(null)
+
+const { filterLoading, loadDebounced: loadCalendarDataDebounced } = usePageDataManager({
+    fetchFn: () => applyCalendar(selectedMonth.value),
+    onAfterFetch: () => {
+        displayResults.value = lastResults.value
+        displayMonth.value = selectedMonth.value
+        const [year, month] = selectedMonth.value.split('-').map(Number)
+        calendarValue.value = new CalendarDate(year, month, 1)
+    },
+    accounts,
+    getAccountIds: () => userStore.calendarFilters.accountIds,
+    setAccountIds: (ids) => { userStore.calendarFilters.accountIds = ids },
+})
 
 // Modal pour afficher les trades d'une journée
 const showDayModal = ref(false)
 const selectedDay = ref<DayData | null>(null)
 const dayModalShowTable = ref(true)
-
-const selectedDayDate = computed(() => {
-    if (!selectedDay.value || !selectedMonth.value) return new Date()
-    const [year, month] = selectedMonth.value.split('-').map(Number)
-    return new Date(year, month - 1, selectedDay.value.dayNumber)
-})
-
-const dayModalTitle = computed(() => {
-    if (!selectedDay.value) return ''
-    const date = selectedDayDate.value
-    const locale = t('locale') as 'fr' | 'en' | 'us'
-    return formatDateLongString(date, locale, true)
-})
 
 const openDayModal = async (day: DayData) => {
     if (!day.isCurrentMonth || day.count === 0) return
@@ -308,21 +352,6 @@ const openDayModal = async (day: DayData) => {
 const showWeekModal = ref(false)
 const selectedWeek = ref<WeekData | null>(null)
 const weekModalShowTable = ref<Record<number, boolean>>({})
-
-const selectedWeekDays = computed(() => {
-    if (!selectedWeek.value) return []
-    return selectedWeek.value.days.filter(day => day.isCurrentMonth)
-})
-
-const weekModalTitle = computed(() => {
-    if (!selectedWeekDays.value.length) return ''
-    const firstDay = selectedWeekDays.value[0]
-    const lastDay = selectedWeekDays.value[selectedWeekDays.value.length - 1]
-    const locale = t('locale') as 'fr' | 'en' | 'us'
-    const firstDate = getDateFromDay(firstDay)
-    const lastDate = getDateFromDay(lastDay)
-    return `${formatDateLongString(firstDate, locale, false)} - ${formatDateLongString(lastDate, locale, false)}`
-})
 
 const getDateFromDay = (day: DayData): Date => {
     if (!selectedMonth.value) return new Date()
@@ -355,25 +384,8 @@ const openWeekModal = async (week: WeekData) => {
     stopLoading()
 }
 
-const calendarMonth = computed(() => {
-    const [year, month] = selectedMonth.value.split('-').map(Number)
-    return { year, month }
-})
-
-const weekDays = computed(() => {
-    return [
-        t('common.weekdays.short.monday'),
-        t('common.weekdays.short.tuesday'),
-        t('common.weekdays.short.wednesday'),
-        t('common.weekdays.short.thursday'),
-        t('common.weekdays.short.friday'),
-        t('common.weekdays.short.saturday'),
-        t('common.weekdays.short.sunday'),
-    ]
-})
-
 const getDaysStats = () => {
-    const trades: TradeExtendedType[] = userStore.calendarFilters.last_results
+    const trades = displayResults.value as TradeExtendedType[]
     if (!displayMonth.value) return {}
     const [year, month] = displayMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
@@ -476,23 +488,10 @@ const calendarWeeks = computed(() => {
     return weeks
 })
 
-const loadCalendarData = async () => {
-    filterLoading.value = true
-    await applyCalendar(selectedMonth.value)
-    displayMonth.value = selectedMonth.value
-    filterLoading.value = false
-}
-
-const loadCalendarDataDebounced = useDebounce(loadCalendarData, 200, { leading: true })
-
-const onFilter = () => {
-    loadCalendarDataDebounced()
-}
 
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
-    userStore.calendarFilters.selectedMonth = `${month.year}-${month.month.toString().padStart(2, '0')}`
-    selectedMonth.value = userStore.calendarFilters.selectedMonth
+    selectedMonth.value = `${month.year}-${month.month.toString().padStart(2, '0')}`
 }
 
 async function applyCalendar(val: string, forceFetch: boolean = true) {
@@ -539,16 +538,6 @@ onMounted(async () => {
     })
 })
 
-watch([() => userStore.calendarFilters.accountIds, accounts], ([currentIds, accountsList]) => {
-    if (!currentIds?.length) return
-
-    const validIds = currentIds.filter((id) => accountsList.some((account) => account.id === id))
-
-    if (validIds.length !== currentIds.length) {
-        userStore.calendarFilters.accountIds = validIds.length ? validIds : []
-    }
-})
-
 watch(
     () => [...(userStore.calendarFilters.accountIds || [])],
     () => {
@@ -557,10 +546,8 @@ watch(
     { deep: true }
 )
 
-// Synchroniser calendarValue et charger les données quand selectedMonth change
-watch(selectedMonth, (newMonth) => {
-    const [year, month] = newMonth.split('-').map(Number)
-    calendarValue.value = new CalendarDate(year, month, 1)
+// Charger les données quand selectedMonth change
+watch(selectedMonth, () => {
     loadCalendarDataDebounced()
 })
 
@@ -574,9 +561,4 @@ watch([showDayModal, showWeekModal], ([newDay, newWeek], [oldDay, oldWeek]) => {
     }
 })
 
-watchEffect(() => {
-    if (filteredGroups.value) {
-        filterLoading.value = false
-    }
-})
 </script>

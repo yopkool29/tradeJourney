@@ -158,7 +158,6 @@ const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchDashboardData, accounts } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups } = useTags()
-const filterLoading = ref(false)
 const chartsReady = ref(false)
 const { t, locale } = useI18n()
 
@@ -332,23 +331,19 @@ const endDateStr = computed({
     },
 })
 
-const onApplyFilters = async () => {
-    filterLoading.value = true
-    try {
-        await fetchDashboardData(
-            userStore.dashBoardFilters.startDate,
-            userStore.dashBoardFilters.endDate,
-            true,
-            userStore.dashBoardFilters.accountIds,
-            displayModeNet.value,
-            filters.value
-        )
-    } finally {
-        filterLoading.value = false
-    }
-}
-
-const onApplyFiltersDebounced = useDebounce(onApplyFilters, 200, { leading: true })
+const { filterLoading, load: onApplyFilters, loadDebounced: onApplyFiltersDebounced } = usePageDataManager({
+    fetchFn: () => fetchDashboardData(
+        userStore.dashBoardFilters.startDate,
+        userStore.dashBoardFilters.endDate,
+        true,
+        userStore.dashBoardFilters.accountIds,
+        displayModeNet.value,
+        filters.value
+    ),
+    accounts,
+    getAccountIds: () => userStore.dashBoardFilters.accountIds,
+    setAccountIds: (ids) => { userStore.dashBoardFilters.accountIds = ids },
+})
 
 function resetFilters() {
     filters.value = []
@@ -401,17 +396,6 @@ watch(
     },
     { immediate: true }
 )
-
-// Vérifier que les comptes sélectionnés existent toujours
-watch([() => userStore.dashBoardFilters.accountIds, accounts], ([currentIds, accountsList]) => {
-    if (!currentIds?.length) return
-
-    const validIds = currentIds.filter((id: number) => accountsList.some((account: AccountType) => account.id === id))
-
-    if (validIds.length !== currentIds.length) {
-        userStore.dashBoardFilters.accountIds = validIds.length ? validIds : []
-    }
-})
 
 // Appliquer les filtres quand les comptes changent
 watch(
