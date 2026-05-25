@@ -1,6 +1,7 @@
 import type { AccountType } from '~/schema/account'
 import type { TradeFilter } from '~/type'
 import type { TradeExtendedType } from '~/schema/trade'
+import { transformAdvancedFilters } from '~/utils/filter-utils'
 
 export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilters' = 'dailyHistoryFilters') => {
 
@@ -45,8 +46,7 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
 
         // Ajouter les filtres avancés (exclure ceux avec valeur vide)
         if (advancedFilters && advancedFilters.length > 0) {
-            const validFilters = advancedFilters.filter(f => f.value !== '' && f.value !== null && f.value !== undefined)
-            filtersForApi.push(...validFilters)
+            filtersForApi.push(...transformAdvancedFilters(advancedFilters))
         }
 
         const showInactive = storeKey === 'dailyHistoryFilters' ? userStore.dailyHistoryFilters.showInactive : false

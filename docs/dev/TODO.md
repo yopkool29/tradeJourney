@@ -1,4 +1,5 @@
 **Plugin**
 Ancre: (plus fin) + filtre (meme que celui de la recherche , par symbole)
 Graphique polygon
-option synchro selection des comptes
+Option synchro selection des comptes => ok
+Symbol => liste avec recherche

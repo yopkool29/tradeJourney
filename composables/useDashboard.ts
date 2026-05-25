@@ -1,5 +1,6 @@
 import type { AccountType } from '~/schema/account'
 import type { TradeFilter } from '~/type'
+import { transformAdvancedFilters } from '~/utils/filter-utils'
 import { 
     getPNL,
     getAPPT,
@@ -58,8 +59,7 @@ export const useDashboard = () => {
 
         // Ajouter les filtres avancés (exclure ceux avec valeur vide)
         if (advancedFilters && advancedFilters.length > 0) {
-            const validFilters = advancedFilters.filter(f => f.value !== '' && f.value !== null && f.value !== undefined)
-            filtersForApi.push(...validFilters)
+            filtersForApi.push(...transformAdvancedFilters(advancedFilters))
         }
 
         let trades = await fetchTrades(filtersForApi, -1)

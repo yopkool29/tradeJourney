@@ -182,7 +182,8 @@ import {
     OPERATOR_NOT_EQUAL,
     OPERATOR_GREATER_THAN_OR_EQUAL,
 } from '~/utils'
-import { formatDateWithUserTimezone, parseDateStringToTimestamp } from '~/utils/date-utils'
+import { formatDateWithUserTimezone } from '~/utils/date-utils'
+import { transformAdvancedFilters } from '~/utils/filter-utils'
 import type { Value } from '@prisma/client/runtime/library'
 import { defaultSettings } from '~/schema/user'
 
@@ -795,18 +796,7 @@ async function onApplyFilters() {
         }
 
         // Traite les valeurs des filtres
-        filtersForApi = filtersForApi.map((filter) => {
-            if (filter.column && filter.column.includes('Date') && typeof filter.value === 'string' && filter.value.trim() !== '') {
-                return { ...filter, value: parseDateStringToTimestamp(filter.value) }
-            } else if (filter.column === 'symbol' && typeof filter.value === 'string' && filter.value.trim() !== '') {
-                return { ...filter, value: filter.value.trim().toUpperCase() }
-            } else if (filter.column === 'type' && typeof filter.value === 'string' && filter.value.trim() !== '') {
-                return { ...filter, value: filter.value.trim().toLowerCase() as 'buy' | 'sell' }
-            } else if (filter.column === 'profit' && typeof filter.value === 'string' && filter.value.trim() !== '') {
-                return { ...filter, value: parseFloat(filter.value.trim()) }
-            }
-            return { ...filter }
-        })
+        filtersForApi = transformAdvancedFilters(filtersForApi)
 
         // Supprime les filtres vides
         filtersForApi = filtersForApi.filter((val) => {
