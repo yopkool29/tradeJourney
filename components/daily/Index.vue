@@ -351,6 +351,10 @@ onMounted(async () => {
         // Charger les données du calendrier si nécessaire
         await applyCalendar(selectedMonth.value, needForceCalendar)
 
+        displayResults.value = lastResults.value
+        
+        displayMonth.value = selectedMonth.value
+
         // Forcer la réactivité UNIQUEMENT après une reconnexion
         if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || userStore.dailyHistoryFilters.last_results.length > 0)) {
             await loadMonthData()

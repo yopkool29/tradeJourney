@@ -526,10 +526,17 @@ onMounted(async () => {
         calendarValue.value = new CalendarDate(year, month, 1)
 
         const needForceCalendar = userStore.calendarFilters.last_results.length === 0
+
+        // Charger les données du calendrier si nécessaire
         await applyCalendar(selectedMonth.value, needForceCalendar)
+
+        displayResults.value = lastResults.value
+
+        displayMonth.value = selectedMonth.value
 
         if (userStore.shouldRefreshData() && userStore.calendarFilters.last_results.length > 0) {
             await applyCalendar(selectedMonth.value)
+            displayResults.value = lastResults.value
             userStore.clearDataRefresh()
         }
 
