@@ -5,9 +5,10 @@ import type { TradeExtendedType } from '~/schema/trade'
 export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilters' = 'dailyHistoryFilters') => {
 
     const accounts = ref<AccountType[]>([])
-    // Utiliser shallowRef pour les trades - pas besoin de réactivité profonde sur chaque propriété de trade
     const lastResults = shallowRef<TradeExtendedType[]>([])
+
     const { fetchTrades } = useTrades()
+
     const userStore = useUserStore()
 
     const fetchAccounts = async () => {
