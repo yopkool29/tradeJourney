@@ -267,6 +267,9 @@ const selectedMonth = computed({
     set: (value) => (userStore.calendarFilters.selectedMonth = value),
 })
 
+// Mois affiché : ne change qu'après le fetch pour éviter l'état vide
+const displayMonth = ref(userStore.calendarFilters.selectedMonth)
+
 const calendarValue = ref<CalendarDate | null>(null)
 
 // Modal pour afficher les trades d'une journée
@@ -371,8 +374,8 @@ const weekDays = computed(() => {
 
 const getDaysStats = () => {
     const trades: TradeExtendedType[] = userStore.calendarFilters.last_results
-    if (!selectedMonth.value) return {}
-    const [year, month] = selectedMonth.value.split('-').map(Number)
+    if (!displayMonth.value) return {}
+    const [year, month] = displayMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
     const end = endOfMonth(start)
 
@@ -418,9 +421,9 @@ const filteredGroups = computed(() => {
 })
 
 const calendarWeeks = computed(() => {
-    if (!selectedMonth.value) return []
+    if (!displayMonth.value) return []
 
-    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const [year, month] = displayMonth.value.split('-').map(Number)
     const monthStart = new Date(year, month - 1, 1)
     const monthEnd = endOfMonth(monthStart)
 
@@ -476,6 +479,7 @@ const calendarWeeks = computed(() => {
 const loadCalendarData = async () => {
     filterLoading.value = true
     await applyCalendar(selectedMonth.value)
+    displayMonth.value = selectedMonth.value
     filterLoading.value = false
 }
 

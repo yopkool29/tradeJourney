@@ -55,8 +55,9 @@
                     </div>
                 </div>
                 <template
+                    v-else
                     v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())"
-                    v-else :key="group.key">
+                    :key="group.key">
                     <DailyTradeGroup :show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
                         :index="index" @update:show-table="(val) => { expandedGroups = { ...expandedGroups, [group.key]: val } }" />
@@ -191,6 +192,9 @@ const selectedMonth = computed({
     set: (value) => (userStore.dailyHistoryFilters.selectedMonth = value),
 })
 
+// Mois affiché : ne change qu'après le fetch pour éviter l'état vide
+const displayMonth = ref(userStore.dailyHistoryFilters.selectedMonth)
+
 const calendarValue = ref<any>(null)
 
 const calendarMonth = computed(() => {
@@ -205,10 +209,10 @@ const getDaysStats = () => {
     // Utiliser lastResults (shallowRef) au lieu du store pour de meilleures perfs
     const trades = lastResults.value as TradeExtendedType[]
 
-    if (!selectedMonth.value)
+    if (!displayMonth.value)
         return {}
 
-    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const [year, month] = displayMonth.value.split('-').map(Number)
     const start = new Date(year, month - 1, 1)
     const end = endOfMonth(start)
 
@@ -280,9 +284,11 @@ const onExpand = () => {
 // Fonction unique pour charger les données du mois
 const loadMonthData = async () => {
     filterLoading.value = true
-    expandedGroups.value = {}
+    const monthChanged = selectedMonth.value !== displayMonth.value
     await applyDaysTags()
     await applyCalendar(selectedMonth.value)
+    displayMonth.value = selectedMonth.value
+    if (monthChanged) expandedGroups.value = {}
     filterLoading.value = false
 }
 
