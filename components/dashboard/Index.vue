@@ -52,42 +52,42 @@
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.trades_count') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.trades_count_tooltip')" :ui="{ content: 'text-sm' }"
                         class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.tradesCount }}</span>
+                        <span class="dashboard-card-value">{{ dashBoardResult.tradesCount }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.cumulated_pnl') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
                         :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatCurrency(userStore.dashBoardResult.pnl) }}</span>
+                        <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.pnl) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.expectancy') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.expectancy_tooltip')" :ui="{ content: 'text-sm' }"
                         class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatCurrency(userStore.dashBoardResult.appt) }}</span>
+                        <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.appt) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.pl_ratio') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }"
                         class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.plRatio?.toFixed(2) }}</span>
+                        <span class="dashboard-card-value">{{ dashBoardResult.plRatio?.toFixed(2) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.win_rate') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }"
                         class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.winrate?.toFixed(2) }}%</span>
+                        <span class="dashboard-card-value">{{ dashBoardResult.winrate?.toFixed(2) }}%</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.profit_factor') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.profit_factor_tooltip')"
                         :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.profitFactor)
+                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.profitFactor)
                             }}</span>
                     </UTooltip>
                 </div>
@@ -95,7 +95,7 @@
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.recovery_factor') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.recovery_factor_tooltip')"
                         :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatValue(userStore.dashBoardResult.recoveryFactor)
+                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.recoveryFactor)
                             }}</span>
                     </UTooltip>
                 </div>
@@ -103,7 +103,7 @@
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.sharpe_ratio') }}:</span>
                     <UTooltip :text="$t('components.dashboard.index.sharpe_ratio_tooltip')" :ui="{ content: 'text-sm' }"
                         class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ userStore.dashBoardResult.sharpeRatio?.toFixed(2)
+                        <span class="dashboard-card-value">{{ dashBoardResult.sharpeRatio?.toFixed(2)
                             }}</span>
                     </UTooltip>
                 </div>
@@ -150,7 +150,7 @@ const { formatCurrency } = useUtils()
 
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
-const { fetchAccounts, fetchDashboardData, accounts } = useDashboard()
+const { fetchAccounts, fetchDashboardData, accounts, lastResults, dashBoardResult } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups } = useTags()
 const chartsReady = ref(false)
@@ -349,7 +349,7 @@ function resetFilters() {
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
-        userStore.dashBoardFilters.last_results = []
+        lastResults.value = []
     }
 
     nextTick(async () => {
@@ -360,7 +360,7 @@ onMounted(async () => {
 
         // Fetch les données seulement si le tableau est vide (première visite ou après déconnexion)
         // Cela évite le flash visuel lors du remount du composant
-        if (userStore.dashBoardFilters.last_results.length === 0) {
+        if (lastResults.value.length === 0) {
             await onApplyFilters()
         }
 

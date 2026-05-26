@@ -42,6 +42,7 @@ const { t } = useI18n()
 const lineChartRef = ref()
 const isModalOpen = ref(false)
 const userStore = useUserStore()
+const dataStore = useDataStore()
 const { displayModeNet } = useNetGrossDisplay()
 
 // Récupérer la configuration des graphiques
@@ -55,7 +56,7 @@ const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
-        userStore.dashBoardFilters.last_results,
+        dataStore.dashboardLastResults,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         displayModeNet.value
     )

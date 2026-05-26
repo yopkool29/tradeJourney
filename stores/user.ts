@@ -46,8 +46,7 @@ export const useUserStore = defineStore(
 
         // --- DB-specific state (internal storage per database) ---
         const customInputsPerDb = ref<Record<string, CustomInputs>>({})
-        const dayTagsPerDb = ref<Record<string, DayTagType[]>>({})
-        const tagGroupsPerDb = ref<Record<string, TagGroupType[]>>({})
+        // dayTagsPerDb and tagGroupsPerDb moved to useDataStore (non-persisted)
         const recentColorsPerDb = ref<Record<string, string[]>>({})
         const recentColors2PerDb = ref<Record<string, string[]>>({})
         const tradeOptionsPerDb = ref<Record<string, TradeOptions>>({})
@@ -103,37 +102,33 @@ export const useUserStore = defineStore(
             updateCustomInput(name, newItems, current.value)
         }
 
+        const dataStore = useDataStore()
+
         const dayTags = computed({
             get: () => {
                 const dbName = getCurrentDbName()
-                if (!dayTagsPerDb.value[dbName]) {
-                    dayTagsPerDb.value[dbName] = []
-                }
-                return dayTagsPerDb.value[dbName]
+                return dataStore.dayTagsPerDb[dbName] || []
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
-                dayTagsPerDb.value[dbName] = val
+                dataStore.dayTagsPerDb[dbName] = val
             }
         })
 
         const tagGroups = computed({
             get: () => {
                 const dbName = getCurrentDbName()
-                if (!tagGroupsPerDb.value[dbName]) {
-                    tagGroupsPerDb.value[dbName] = []
-                }
-                return tagGroupsPerDb.value[dbName]
+                return dataStore.tagGroupsPerDb[dbName] || []
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
-                tagGroupsPerDb.value[dbName] = val
+                dataStore.tagGroupsPerDb[dbName] = val
             }
         })
 
         const getTagById = (id: number) => {
             for (const group of tagGroups.value) {
-                const tag = group.tags.find(t => t.id === id)
+                const tag = group.tags.find((t: { id: number }) => t.id === id)
                 if (tag) return tag
             }
             return null
@@ -206,7 +201,6 @@ export const useUserStore = defineStore(
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
                         lastFilterColumn: 'symbol',
-                        last_results: [] as TradeExtendedType[],
                         dashboardChartOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'],
                         dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
                     }
@@ -237,7 +231,6 @@ export const useUserStore = defineStore(
                 const dbName = getCurrentDbName()
                 if (!dailyHistoryFiltersPerDb.value[dbName]) {
                     dailyHistoryFiltersPerDb.value[dbName] = {
-                        symbols: [] as SymbolType[],
                         accountIds: [] as number[],
                         selectedMonth: formatDateToYYYYMM(new Date()),
                         showInactive: false,
@@ -258,8 +251,7 @@ export const useUserStore = defineStore(
                             takeProfit: false,
                         }),
                         filters: [] as TradeFilter[],
-                        lastFilterColumn: 'symbol',
-                        last_results: [] as TradeExtendedType[]
+                        lastFilterColumn: 'symbol'
                     }
                 }
                 const dailyFilters = dailyHistoryFiltersPerDb.value[dbName]
@@ -282,8 +274,7 @@ export const useUserStore = defineStore(
                         showInactive: false,
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
-                        lastFilterColumn: 'symbol',
-                        last_results: [] as TradeExtendedType[]
+                        lastFilterColumn: 'symbol'
                     }
                 }
                 const calFilters = calendarFiltersPerDb.value[dbName]
@@ -314,6 +305,7 @@ export const useUserStore = defineStore(
                         avgTradeDuration: 0,
                         maxTradeDuration: 0,
                         expectancy: 0,
+                        totalCommission: 0,
                         totalProfit: 0,
                         winningTradesCount: 0,
                         winningContractsCount: 0,
@@ -322,6 +314,7 @@ export const useUserStore = defineStore(
                         stdDevWin: 0,
                         avgWinDuration: 0,
                         maxWinDuration: 0,
+                        winningTradesCommission: 0,
                         maxRunUp: 0,
                         maxRunUpDateFrom: null as Date | null,
                         maxRunUpDateTo: null as Date | null,
@@ -334,6 +327,7 @@ export const useUserStore = defineStore(
                         stdDevLoss: 0,
                         avgLossDuration: 0,
                         maxLossDuration: 0,
+                        losingTradesCommission: 0,
                         maxDrawdown: 0,
                         maxDrawdownDateFrom: null as Date | null,
                         maxDrawdownDateTo: null as Date | null,
@@ -434,9 +428,6 @@ export const useUserStore = defineStore(
 
         function clearUser() {
             user.value = null
-            dailyHistoryFilters.value.last_results = []
-            calendarFilters.value.last_results = []
-            dashBoardFilters.value.last_results = []
         }
 
         function shouldRefreshData() {
@@ -475,12 +466,9 @@ export const useUserStore = defineStore(
             customInputsPerDb.value = Object.fromEntries(
                 Object.entries(customInputsPerDb.value).filter(([key]) => key !== dbName)
             )
-            dayTagsPerDb.value = Object.fromEntries(
-                Object.entries(dayTagsPerDb.value).filter(([key]) => key !== dbName)
-            )
-            tagGroupsPerDb.value = Object.fromEntries(
-                Object.entries(tagGroupsPerDb.value).filter(([key]) => key !== dbName)
-            )
+            // dayTags and tagGroups cleaned via dataStore
+            delete dataStore.dayTagsPerDb[dbName]
+            delete dataStore.tagGroupsPerDb[dbName]
             recentColorsPerDb.value = Object.fromEntries(
                 Object.entries(recentColorsPerDb.value).filter(([key]) => key !== dbName)
             )
@@ -574,8 +562,7 @@ export const useUserStore = defineStore(
             customInputs,
             // Expose internal refs for persistence
             customInputsPerDb,
-            dayTagsPerDb,
-            tagGroupsPerDb,
+            // dayTagsPerDb and tagGroupsPerDb are now in useDataStore (non-persisted)
             recentColorsPerDb,
             recentColors2PerDb,
             tradeOptionsPerDb,
@@ -630,8 +617,7 @@ export const useUserStore = defineStore(
                 'lastViewedNoteIdPerDb',
                 // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
-                'dayTagsPerDb',
-                'tagGroupsPerDb',
+                // dayTagsPerDb and tagGroupsPerDb are now in useDataStore (non-persisted)
                 'recentColorsPerDb',
                 'recentColors2PerDb',
                 'tradeOptionsPerDb',

@@ -47,6 +47,7 @@ const barChartRef = ref()
 const isModalOpen = ref(false)
 const modalBarChartRef = ref()
 const userStore = useUserStore()
+const dataStore = useDataStore()
 const { displayModeNet } = useNetGrossDisplay()
 const { t } = useI18n()
 
@@ -71,7 +72,7 @@ const datalabelsSettings = computed(() => {
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateWinrateChartData(
-        userStore.dashBoardFilters.last_results,
+        dataStore.dashboardLastResults,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         3, // fenêtre de moyenne mobile
         displayModeNet.value

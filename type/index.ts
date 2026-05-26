@@ -91,13 +91,11 @@ export interface DashBoardFilters {
     showAdvancedFilters: boolean
     filters: TradeFilter[]
     lastFilterColumn: string
-    last_results: any[] // TradeExtendedType[] - avoid circular dependency
     dashboardChartOrder: ChartKey[]
     dashboardChartVisibility: Record<ChartKey, boolean>
 }
 
 export interface DailyHistoryFilters {
-    symbols: any[] // SymbolType[] - avoid circular dependency
     accountIds: number[]
     selectedMonth: string
     showInactive: boolean
@@ -106,7 +104,6 @@ export interface DailyHistoryFilters {
     columnVisibility: Record<string, boolean>
     filters: TradeFilter[]
     lastFilterColumn: string
-    last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
 export interface CalendarFilters {
@@ -116,7 +113,6 @@ export interface CalendarFilters {
     showAdvancedFilters: boolean
     filters: TradeFilter[]
     lastFilterColumn: string
-    last_results: any[] // TradeExtendedType[] - avoid circular dependency
 }
 
 export interface DashBoardResult {

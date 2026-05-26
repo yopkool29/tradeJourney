@@ -24,6 +24,7 @@ export const useDashboard = () => {
     const accounts = ref<AccountType[]>([])
     const { fetchTrades } = useTrades()
     const userStore = useUserStore()
+    const dataStore = useDataStore()
 
     const fetchAccounts = async () => {
         accounts.value = await $fetch('/api/account') as AccountType[]
@@ -70,77 +71,80 @@ export const useDashboard = () => {
             trades = trades.filter(t => Math.abs(t.netProfit || 0) >= pnlThreshold)
         }
 
-        userStore.dashBoardFilters.last_results = trades
+        // Stocker dans le store non-persistant (memoire uniquement)
+        dataStore.dashboardLastResults = trades
 
         // Métriques existantes - utiliser useNet pour basculer entre net et brut
-        userStore.dashBoardResult.pnl = getPNL(trades, 0, useNet)
-        userStore.dashBoardResult.appt = getAPPT(trades, true, 2, useNet)
-        userStore.dashBoardResult.plRatio = getPLRatio(trades, 2, useNet)
-        userStore.dashBoardResult.winrate = getWinrate(trades, 2, useNet)
-        userStore.dashBoardResult.profitFactor = getProfitFactor(trades, 2, useNet)
-        userStore.dashBoardResult.recoveryFactor = getRecoveryFactor(trades, 2, useNet)
-        userStore.dashBoardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
-        userStore.dashBoardResult.tradesCount = trades.length
+        dataStore.dashboardResult.pnl = getPNL(trades, 0, useNet)
+        dataStore.dashboardResult.appt = getAPPT(trades, true, 2, useNet)
+        dataStore.dashboardResult.plRatio = getPLRatio(trades, 2, useNet)
+        dataStore.dashboardResult.winrate = getWinrate(trades, 2, useNet)
+        dataStore.dashboardResult.profitFactor = getProfitFactor(trades, 2, useNet)
+        dataStore.dashboardResult.recoveryFactor = getRecoveryFactor(trades, 2, useNet)
+        dataStore.dashboardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
+        dataStore.dashboardResult.tradesCount = trades.length
 
         // ALL TRADES - Nouvelles métriques
-        userStore.dashBoardResult.grossPnl = getPNL(trades, 2, useNet)
-        userStore.dashBoardResult.totalContracts = getTotalContracts(trades)
-        userStore.dashBoardResult.avgTradeDuration = getAvgTradeDuration(trades, 2)
-        userStore.dashBoardResult.maxTradeDuration = getMaxTradeDuration(trades, 2)
-        userStore.dashBoardResult.expectancy = getExpectancy(trades, 2, useNet)
-        userStore.dashBoardResult.totalCommission = trades.reduce((sum, t) => sum + (t.commission || 0), 0)
+        dataStore.dashboardResult.grossPnl = getPNL(trades, 2, useNet)
+        dataStore.dashboardResult.totalContracts = getTotalContracts(trades)
+        dataStore.dashboardResult.avgTradeDuration = getAvgTradeDuration(trades, 2)
+        dataStore.dashboardResult.maxTradeDuration = getMaxTradeDuration(trades, 2)
+        dataStore.dashboardResult.expectancy = getExpectancy(trades, 2, useNet)
+        dataStore.dashboardResult.totalCommission = trades.reduce((sum, t) => sum + (t.commission || 0), 0)
 
         // PROFIT TRADES
         const winMetrics = getWinningTradesMetrics(trades, useNet)
-        userStore.dashBoardResult.totalProfit = winMetrics.totalProfit
-        userStore.dashBoardResult.winningTradesCount = winMetrics.count
-        userStore.dashBoardResult.winningContractsCount = winMetrics.totalContracts
-        userStore.dashBoardResult.largestWin = winMetrics.largest
-        userStore.dashBoardResult.avgWin = winMetrics.average
-        userStore.dashBoardResult.stdDevWin = winMetrics.stdDev
-        userStore.dashBoardResult.avgWinDuration = winMetrics.avgDuration
-        userStore.dashBoardResult.maxWinDuration = winMetrics.maxDuration
-        userStore.dashBoardResult.winningTradesCommission = winMetrics.totalCommission
+        dataStore.dashboardResult.totalProfit = winMetrics.totalProfit
+        dataStore.dashboardResult.winningTradesCount = winMetrics.count
+        dataStore.dashboardResult.winningContractsCount = winMetrics.totalContracts
+        dataStore.dashboardResult.largestWin = winMetrics.largest
+        dataStore.dashboardResult.avgWin = winMetrics.average
+        dataStore.dashboardResult.stdDevWin = winMetrics.stdDev
+        dataStore.dashboardResult.avgWinDuration = winMetrics.avgDuration
+        dataStore.dashboardResult.maxWinDuration = winMetrics.maxDuration
+        dataStore.dashboardResult.winningTradesCommission = winMetrics.totalCommission
 
         // Max Run-up avec dates
         const runUpData = getMaxRunUpWithDates(trades, useNet)
-        userStore.dashBoardResult.maxRunUp = runUpData.maxRunUp
-        userStore.dashBoardResult.maxRunUpDateFrom = runUpData.dateFrom
-        userStore.dashBoardResult.maxRunUpDateTo = runUpData.dateTo
+        dataStore.dashboardResult.maxRunUp = runUpData.maxRunUp
+        dataStore.dashboardResult.maxRunUpDateFrom = runUpData.dateFrom
+        dataStore.dashboardResult.maxRunUpDateTo = runUpData.dateTo
 
         // LOSING TRADES
         const lossMetrics = getLosingTradesMetrics(trades, useNet)
-        userStore.dashBoardResult.totalLoss = lossMetrics.totalLoss
-        userStore.dashBoardResult.losingTradesCount = lossMetrics.count
-        userStore.dashBoardResult.losingContractsCount = lossMetrics.totalContracts
-        userStore.dashBoardResult.largestLoss = lossMetrics.largest
-        userStore.dashBoardResult.avgLoss = lossMetrics.average
-        userStore.dashBoardResult.stdDevLoss = lossMetrics.stdDev
-        userStore.dashBoardResult.avgLossDuration = lossMetrics.avgDuration
-        userStore.dashBoardResult.maxLossDuration = lossMetrics.maxDuration
-        userStore.dashBoardResult.losingTradesCommission = lossMetrics.totalCommission
+        dataStore.dashboardResult.totalLoss = lossMetrics.totalLoss
+        dataStore.dashboardResult.losingTradesCount = lossMetrics.count
+        dataStore.dashboardResult.losingContractsCount = lossMetrics.totalContracts
+        dataStore.dashboardResult.largestLoss = lossMetrics.largest
+        dataStore.dashboardResult.avgLoss = lossMetrics.average
+        dataStore.dashboardResult.stdDevLoss = lossMetrics.stdDev
+        dataStore.dashboardResult.avgLossDuration = lossMetrics.avgDuration
+        dataStore.dashboardResult.maxLossDuration = lossMetrics.maxDuration
+        dataStore.dashboardResult.losingTradesCommission = lossMetrics.totalCommission
 
         // Max Drawdown avec dates
         const drawdownData = getMaxDrawdownWithDates(trades)
-        userStore.dashBoardResult.maxDrawdown = drawdownData.maxDrawdown
-        userStore.dashBoardResult.maxDrawdownDateFrom = drawdownData.dateFrom
-        userStore.dashBoardResult.maxDrawdownDateTo = drawdownData.dateTo
+        dataStore.dashboardResult.maxDrawdown = drawdownData.maxDrawdown
+        dataStore.dashboardResult.maxDrawdownDateFrom = drawdownData.dateFrom
+        dataStore.dashboardResult.maxDrawdownDateTo = drawdownData.dateTo
 
         // BREAKEVEN TRADES
         const breakevenMetrics = getBreakevenTradesMetrics(trades)
-        userStore.dashBoardResult.breakevenTradesCount = breakevenMetrics.count
-        userStore.dashBoardResult.breakevenContractsCount = breakevenMetrics.totalContracts
+        dataStore.dashboardResult.breakevenTradesCount = breakevenMetrics.count
+        dataStore.dashboardResult.breakevenContractsCount = breakevenMetrics.totalContracts
 
         // STREAKS (trades triés par closeDate pour un calcul correct)
         const sortedByClose = [...trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())
-        userStore.dashBoardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose)
-        userStore.dashBoardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose)
+        dataStore.dashboardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose)
+        dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose)
 
         return trades
     }
 
     return {
         accounts,
+        lastResults: computed(() => dataStore.dashboardLastResults),
+        dashBoardResult: computed(() => dataStore.dashboardResult),
         fetchAccounts,
         fetchDashboardData
     }

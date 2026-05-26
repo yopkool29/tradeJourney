@@ -6,7 +6,10 @@ import { transformAdvancedFilters } from '~/utils/filter-utils'
 export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilters' = 'dailyHistoryFilters') => {
 
     const accounts = ref<AccountType[]>([])
-    const lastResults = shallowRef<TradeExtendedType[]>([])
+    const dataStore = useDataStore()
+    const lastResults = storeKey === 'dailyHistoryFilters' 
+        ? computed(() => dataStore.dailyHistoryLastResults) 
+        : computed(() => dataStore.calendarLastResults)
 
     const { fetchTrades } = useTrades()
 
@@ -53,9 +56,12 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
 
         const trades = await fetchTrades(filtersForApi, 1000, showInactive)
 
-        // Stocker dans shallowRef (pas de réactivité profonde) et sync avec store
-        lastResults.value = trades
-        userStore[storeKey].last_results = trades
+        // Stocker dans useDataStore (non-persiste, memoire uniquement)
+        if (storeKey === 'dailyHistoryFilters') {
+            dataStore.dailyHistoryLastResults = trades
+        } else {
+            dataStore.calendarLastResults = trades
+        }
 
         return trades
     }

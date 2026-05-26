@@ -3,20 +3,23 @@ import type { SymbolType, CreateSymbolType, UpdateSymbolType } from '~/schema/sy
 import { SymbolSchema } from '~/schema/symbol'
 
 export const useSymbols = () => {
-    const user = useUserStore()
-    const symbols = ref<SymbolType[]>(user.dailyHistoryFilters.symbols || [])
+    const dataStore = useDataStore()
+    const userStore = useUserStore()
+    const { currentDatabase } = useDatabase()
+    const dbName = computed(() => currentDatabase.value?.name || 'default')
+    const symbols = ref<SymbolType[]>(dataStore.symbolsPerDb[dbName.value] || [])
     const digitFromSymbolCache: Record<string, number> = {}
 
     const fetchSymbols = async (): Promise<SymbolType[]> => {
         const result = await $fetch<SymbolType[]>('/api/config-symbols')
         symbols.value = z.array(SymbolSchema).parse(result)
-        user.dailyHistoryFilters.symbols = [...symbols.value] // copy to store
+        dataStore.symbolsPerDb[dbName.value] = [...symbols.value] // copy to store
         return symbols.value
     }
 
     const getDigitFromSymbol = (symbol: string, fromCache = false) => {
         if (fromCache) {
-            symbols.value = user.dailyHistoryFilters.symbols
+            symbols.value = dataStore.symbolsPerDb[dbName.value] || []
         }
         if (symbol in digitFromSymbolCache) {
             return digitFromSymbolCache[symbol]
@@ -36,7 +39,7 @@ export const useSymbols = () => {
         const result = await $fetch<SymbolType[]>('/api/config-symbols/active')
 
         symbols.value = z.array(SymbolSchema).parse(result)
-        user.dailyHistoryFilters.symbols = [...symbols.value]
+        dataStore.symbolsPerDb[dbName.value] = [...symbols.value]
 
         return symbols.value
     }
