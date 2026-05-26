@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-3">
         <div>
             <USelect
                 :model-value="modelValue"
@@ -18,19 +18,24 @@
                 </div>
             </USelect>
         </div>
-        <div>
-        <UInputTags
-            v-if="modelValue?.length"
-            :model-value="selectedLabels"
-            readonly
-            class="mr-8"
-            @update:model-value="onTagsChange"
-        />
+        <div v-if="modelValue?.length && items?.length" class="flex flex-wrap gap-2 mx-4">
+            <UBadge
+                v-for="label in selectedLabels"
+                :key="label"
+                variant="subtle"
+                color="neutral"
+                class="cursor-pointer hover:opacity-70 transition-opacity"
+                @click="onTagsChange(selectedLabels.filter(l => l !== label))"
+            >
+                {{ label }}
+                <UIcon name="i-heroicons-x-mark" class="w-3 h-3 ml-1" />
+            </UBadge>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+
 interface SelectItem {
     label: string
     value: number
@@ -67,4 +72,5 @@ const onTagsChange = (labels: string[]) => {
         .filter((id): id is number => id !== undefined)
     emit('update:modelValue', ids)
 }
+
 </script>

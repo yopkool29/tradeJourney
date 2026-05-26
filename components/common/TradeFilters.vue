@@ -60,7 +60,7 @@
                 {{ $t('components.trade.table.advanced_filters.apply') }}
             </UButton>
             <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
-                {{ $t('components.trade.table.advanced_filters.reset') }}
+                {{ $t('components.trade.table.advanced_filters.clear') }}
             </UButton>
         </div>
     </UForm>

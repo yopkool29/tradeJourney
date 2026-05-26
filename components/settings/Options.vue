@@ -374,7 +374,7 @@
                 </div>
                 <div class="flex action-buttons mt-8">
                     <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="primary" variant="link" @click="goBack" />
-                    <UButton type="button" color="neutral" @click="resetSettings">{{ $t('components.settings.options.reset_button') }}</UButton>
+                    <UButton type="button" color="neutral" @click="resetSettings">{{ $t('common.actions.reset') }}</UButton>
                 </div>
             </UForm>
         </div>

@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import type { AccountType } from '~/schema/account'
 
 type PageDataManagerOptions = {
-	fetchFn: () => Promise<void>
+	fetchFn: () => Promise<unknown>
 	onBeforeFetch?: () => void | Promise<void>
 	onAfterFetch?: () => void | Promise<void>
 	accounts?: Ref<AccountType[]>

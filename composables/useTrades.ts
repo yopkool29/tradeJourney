@@ -15,7 +15,9 @@ export const useTrades = () => {
                 showInactive: showInactive.toString(),
                 limit: limit.toString()
             }
-            log_info(JSON.stringify({ filters: params, showInactive, limit }, null, 2))
+
+            // log_info(JSON.stringify({ filters: params, showInactive, limit }, null, 2))
+
             const result = await $fetch('/api/trades', { query })
 
             trades.value = z.array(TradeExtendedShema).parse(result)

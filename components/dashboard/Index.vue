@@ -24,8 +24,8 @@
                 >
                     <template #after-accounts>
                         <div class="filter-actions-lg">
-                            <USelect v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
-                                :placeholder="$t('components.dashboard.index.period')" class="select-standard" />
+                            <USelect class="w-auto select-none select-standard" :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }" v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
+                                :placeholder="$t('components.dashboard.index.period')"/>
                             <UInput v-model="startDateStr" type="date" class="date-input" />
                             <UInput v-model="endDateStr" type="date" class="date-input" />
                         </div>

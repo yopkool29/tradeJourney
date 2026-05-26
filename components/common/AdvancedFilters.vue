@@ -45,7 +45,7 @@
                         class="min-w-[120px]"
                         @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
-
+                    
                     <!-- Slot pour champ personnalisé (autres colonnes) -->
                     <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => { onValueChange(idx, val); debouncedApply() }">
                         <!-- Champ par défaut -->

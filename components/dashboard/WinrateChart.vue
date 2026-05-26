@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
-import type { ChartOptions } from 'chart.js'
+import type { ChartData, ChartOptions } from 'chart.js'
 import { useUserStore } from '~/stores/user'
 import { generateWinrateChartData, getSmartLabelAlign, getSmartLabelAnchor } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
@@ -80,19 +80,19 @@ const chartData = computed(() => {
     // Personnaliser les couleurs et options pour chaque dataset
     if (data.datasets && data.datasets.length > 1) {
         // Barres winrate
-        data.datasets[1].backgroundColor = barColor.value
+        data.datasets[1].backgroundColor = barColor.value ?? ''
         data.datasets[1].borderRadius = chartConfigOptions.borderRadius
         data.datasets[1].barPercentage = chartConfigOptions.barPercentage
 
         // Ligne moyenne mobile
-        data.datasets[0].borderColor = movingAverageColor.value
-        data.datasets[0].backgroundColor = movingAverageColor.value
-        data.datasets[0].pointBackgroundColor = movingAverageColor.value
+        data.datasets[0].borderColor = movingAverageColor.value ?? ''
+        data.datasets[0].backgroundColor = movingAverageColor.value ?? ''
+        data.datasets[0].pointBackgroundColor = movingAverageColor.value ?? ''
         data.datasets[0].pointRadius = chartConfigOptions.pointRadius
         data.datasets[0].label = t('components.dashboard.index.mobile_avg_label')
     }
 
-    return data
+    return data as ChartData<'bar'>
 })
 
 // Options du graphique avec les paramètres de la configuration
@@ -175,6 +175,6 @@ const chartDisplayOptions = computed(
                 },
             },
             backgroundColor: isDark.value ? '#18181b' : '#fff',
-        }) as ChartOptions
+        }) as ChartOptions<"bar">
 )
 </script>
