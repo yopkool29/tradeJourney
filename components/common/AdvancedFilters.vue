@@ -7,21 +7,42 @@
                     <USelect
                         :model-value="filter.column"
                         :items="columns"
-                        class="min-w-[200px] select-none"
+                        size="md"
+                        class="w-auto select-none"
+                        :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
                         @update:model-value="(val) => onColumnChange(idx, val)"
                     />
                     <USelect
                         :model-value="filter.operator"
                         :items="getOperatorOptions(filter.column)"
-                        class="w-20 select-none"
+                        class="w-auto select-none"
+                        :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
                         @update:model-value="(val) => onOperatorChange(idx, val)"
+                    />
+
+                    <!-- Slot spécifique pour les symboles -->
+                    <CommonSymbolFilterInput
+                        v-if="filter.column === 'symbol'"
+                        :model-value="filter.value as string | string[]"
+                        :multiple="filter.operator === OPERATOR_IN"
+                        @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
 
                     <!-- Slot spécifique pour les tags (priorité sur field-type) -->
                     <CommonTagFilterInput
-                        v-if="filter.column === 'tags'"
+                        v-else-if="filter.column === 'tags'"
                         :model-value="filter.value as number"
                         :tag-groups="tagGroups || []"
+                        @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
+                    />
+
+                    <!-- Slot spécifique pour le type (buy/sell) -->
+                    <USelect
+                        v-else-if="filter.column === 'type'"
+                        :model-value="filter.value as string"
+                        :items="typeItems"
+                        placeholder="Buy/Sell"
+                        class="min-w-[120px]"
                         @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
 
@@ -64,6 +85,7 @@ import {
     OPERATOR_GREATER_THAN_OR_EQUAL,
     OPERATOR_LESS_THAN,
     OPERATOR_LESS_THAN_OR_EQUAL,
+    OPERATOR_IN,
     getDatePlaceholderFormat,
 } from '~/utils'
 
@@ -89,6 +111,7 @@ const allOperatorOptions = [
     { label: '>=', value: OPERATOR_GREATER_THAN_OR_EQUAL },
     { label: '<=', value: OPERATOR_LESS_THAN_OR_EQUAL },
     { label: '!=', value: OPERATOR_NOT_EQUAL },
+    { label: '[ ... ]', value: OPERATOR_IN },
 ]
 
 const getOperatorOptions = (columnName: string | undefined) => {
@@ -103,6 +126,11 @@ const getOperatorOptions = (columnName: string | undefined) => {
 }
 
 const { t } = useI18n()
+
+const typeItems = [
+    { label: 'Buy', value: 'buy' },
+    { label: 'Sell', value: 'sell' },
+]
 
 const getPlaceholder = (filter: TradeFilter) => {
     const column = props.columns.find((c) => c.value === filter.column)
@@ -134,7 +162,11 @@ const onColumnChange = (index: number, value: string) => {
 
 const onOperatorChange = (index: number, value: string) => {
     const newFilters = [...props.modelValue]
-    newFilters[index].operator = value
+    const filter = { ...newFilters[index], operator: value }
+    if (filter.column === 'symbol') {
+        filter.value = value === OPERATOR_IN ? [] : ''
+    }
+    newFilters[index] = filter
     emit('update:modelValue', newFilters)
     debouncedApply()
 }

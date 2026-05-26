@@ -1175,6 +1175,7 @@ export default {
                     closePrice: 'Close Price',
                     profit: 'Profit',
                     tags: 'Tags',
+                    symbol_placeholder: 'Search ...',
                     select_tag: 'Select tag',
                     no_tags: 'No tags available',
                     selected: 'Selected',

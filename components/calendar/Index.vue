@@ -25,12 +25,6 @@
                         @apply="onApplyFilters"
                         @reset="resetFilters"
                     >
-                        <template #field-type="{ filter, onValueChange }">
-                            <USelect :model-value="filter.value as string" :items="[
-                                { label: 'Buy', value: 'buy' },
-                                { label: 'Sell', value: 'sell' },
-                            ]" placeholder="Buy/Sell" class="min-w-[200px]" @update:model-value="onValueChange" />
-                        </template>
                         <template #after-accounts>
                             <div class="">
                                 <UInput :model-value="selectedMonth" type="month" class="date-input" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
@@ -151,6 +145,7 @@ import {
     OPERATOR_EQUAL,
     OPERATOR_NOT_EQUAL,
     OPERATOR_GREATER_THAN_OR_EQUAL,
+    OPERATOR_IN,
 } from '~/utils'
 
 const { formatCurrency } = useUtils()
@@ -257,7 +252,7 @@ const filterableColumnsConfig = computed(() => [
     {
         label: t('components.trade.table.filters.symbol'),
         value: 'symbol',
-        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL, OPERATOR_IN],
         defaultOperator: OPERATOR_EQUAL
     },
     {

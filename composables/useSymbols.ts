@@ -4,7 +4,7 @@ import { SymbolSchema } from '~/schema/symbol'
 
 export const useSymbols = () => {
     const user = useUserStore()
-    const symbols = ref<SymbolType[]>([])
+    const symbols = ref<SymbolType[]>(user.dailyHistoryFilters.symbols || [])
     const digitFromSymbolCache: Record<string, number> = {}
 
     const fetchSymbols = async (): Promise<SymbolType[]> => {
@@ -36,6 +36,7 @@ export const useSymbols = () => {
         const result = await $fetch<SymbolType[]>('/api/config-symbols/active')
 
         symbols.value = z.array(SymbolSchema).parse(result)
+        user.dailyHistoryFilters.symbols = [...symbols.value]
 
         return symbols.value
     }

@@ -23,7 +23,7 @@ export type {
     ErrorMessage
 }
 
-export type TradeFilterValue = number | string | [number, number, number] | number[] | undefined
+export type TradeFilterValue = number | string | [number, number, number] | number[] | string[] | undefined
 
 export type TradeFilter = { column: string, operator: string, value: TradeFilterValue }
 

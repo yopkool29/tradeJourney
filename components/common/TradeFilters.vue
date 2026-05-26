@@ -41,11 +41,7 @@
                         @add="addFilter"
                         @remove="removeFilter($event)"
                         @apply="emit('apply')"
-                    >
-                        <template #field-type="slotProps">
-                            <slot name="field-type" v-bind="slotProps" />
-                        </template>
-                    </CommonAdvancedFilters>
+                    />
                 </div>
             </template>
         </UCollapsible>
