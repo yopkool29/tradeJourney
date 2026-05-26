@@ -38,7 +38,7 @@ export const usePageDataManager = (options: PageDataManagerOptions) => {
 		}
 	}
 
-	const loadDebounced = useDebounce(load, debounceMs, { leading: true })
+	const loadDebounced = useDebounce(load, debounceMs)
 
 	if (accounts && getAccountIds && setAccountIds) {
 		watch([accounts], ([accountsList]) => {
