@@ -399,7 +399,7 @@ export const useUserStore = defineStore(
         }
 
         const setLogMessage = (message: string) => {
-            logMessage.value = message
+            logMessage.value = message.length > 8192 ? message.slice(-8192) : message
         }
 
         const setLastViewedNoteId = (id: number | null) => {
@@ -601,7 +601,6 @@ export const useUserStore = defineStore(
         persist: {
             storage: import.meta.client ? localStorage : false,
             paths: [
-                // Global state
                 'user',
                 'isLogOpen',
                 'logOpenFirstInit',
@@ -610,14 +609,11 @@ export const useUserStore = defineStore(
                 'logDebug2',
                 'fixdebug',
                 'needsDataRefresh',
-                'quickNavHistory',
                 'conversionType',
                 'displayModeNet',
                 'noteAssocMode',
                 'lastViewedNoteIdPerDb',
-                // Internal DB-specific storage (refs only, not computed)
                 'customInputsPerDb',
-                // dayTagsPerDb and tagGroupsPerDb are now in useDataStore (non-persisted)
                 'recentColorsPerDb',
                 'recentColors2PerDb',
                 'tradeOptionsPerDb',
