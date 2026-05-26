@@ -310,8 +310,8 @@ const filterableColumnsConfig = computed(() => [
         label: t('components.trade.table.filters.tags'),
         value: 'tags',
         type: 'number' as const,
-        operators: [OPERATOR_EQUAL],
-        defaultOperator: OPERATOR_EQUAL
+        operators: [OPERATOR_IN],
+        defaultOperator: OPERATOR_IN
     },
 ])
 

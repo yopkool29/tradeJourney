@@ -1,28 +1,31 @@
 <template>
     <div class="flex flex-col gap-1">
-        <USelect
-            :model-value="modelValue"
-            :items="items"
-            :placeholder="placeholder"
-            multiple
-            :class="selectClass"
-            :content="{ align: 'center', position: 'popper' }"
-            @update:model-value="$emit('update:modelValue', $event)"
-        >
-            <div>
-                <span v-if="!modelValue?.length">{{ allLabel }}</span>
-                <span v-else>{{ selectedLabel }}</span>
-            </div>
-        </USelect>
-        <div v-if="modelValue?.length" class="flex items-center gap-1 flex-wrap">
-            <template v-for="id in displayedIds" :key="id">
-                <UBadge color="primary" variant="soft" size="sm">
-                    {{ getLabelForId(id) }}
-                </UBadge>
-            </template>
-            <span v-if="modelValue.length > maxBadges" class="text-xs text-gray-500 dark:text-gray-400">
-                +{{ modelValue.length - maxBadges }}
-            </span>
+        <div>
+            <USelect
+                :model-value="modelValue"
+                :items="items"
+                :placeholder="modelValue?.length ? '' : placeholder"
+                multiple
+                size="md"
+                class="w-auto select-none"
+                :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
+                :content="{ align: 'center', position: 'popper' }"
+                @update:model-value="$emit('update:modelValue', $event)"
+            >
+                <div>
+                    <span v-if="!modelValue?.length">{{ allLabel }}</span>
+                    <span v-else>{{ selectedLabel }}</span>
+                </div>
+            </USelect>
+        </div>
+        <div>
+        <UInputTags
+            v-if="modelValue?.length"
+            :model-value="selectedLabels"
+            readonly
+            class="mr-8"
+            @update:model-value="onTagsChange"
+        />
         </div>
     </div>
 </template>
@@ -40,18 +43,28 @@ const props = defineProps<{
     allLabel: string
     selectedLabel: string
     selectClass?: string
-    maxBadges?: number
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
     'update:modelValue': [value: number[]]
 }>()
 
-const maxBadges = computed(() => props.maxBadges ?? 3)
+const selectedLabels = computed(() =>
+    (props.modelValue ?? []).map(id => props.items.find(i => i.value === id)?.label ?? String(id))
+)
 
-const displayedIds = computed(() => props.modelValue?.slice(0, maxBadges.value) ?? [])
+watch(() => props.items, (items) => {
+    if (!items?.length) return
+    const validIds = (props.modelValue ?? []).filter(id => items.some(i => i.value === id))
+    if (validIds.length !== (props.modelValue ?? []).length) {
+        emit('update:modelValue', validIds)
+    }
+}, { immediate: true })
 
-const getLabelForId = (id: number) => {
-    return props.items.find(item => item.value === id)?.label ?? String(id)
+const onTagsChange = (labels: string[]) => {
+    const ids = labels
+        .map(label => props.items.find(i => i.label === label)?.value)
+        .filter((id): id is number => id !== undefined)
+    emit('update:modelValue', ids)
 }
 </script>

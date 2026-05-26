@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
                             default: prismaOperator = 'equals'
                         }
                         // Gestion spéciale pour les tags (OR logic entre plusieurs tags)
-                        if (filter.column === 'tags' && filter.operator === OPERATOR_EQUAL) {
+                        if (filter.column === 'tags' && (filter.operator === OPERATOR_EQUAL || filter.operator === OPERATOR_IN)) {
                             let tagIds: number[] = []
                             if (typeof filter.value === 'string') {
                                 tagIds = filter.value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id) && id > 0)

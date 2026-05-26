@@ -5,6 +5,7 @@ import { TradeExtendedShema, TradeSchema } from '~/schema/trade'
 export const useTrades = () => {
     const trades = ref<TradeExtendedType[]>([])
     const loading = ref(false)
+    const { log_info } = useLogView()
 
     const fetchTrades = async (params = {}, limit = 1000, showInactive = false): Promise<TradeExtendedType[]> => {
         loading.value = true
@@ -14,6 +15,7 @@ export const useTrades = () => {
                 showInactive: showInactive.toString(),
                 limit: limit.toString()
             }
+            log_info(JSON.stringify({ filters: params, showInactive, limit }, null, 2))
             const result = await $fetch('/api/trades', { query })
 
             trades.value = z.array(TradeExtendedShema).parse(result)
