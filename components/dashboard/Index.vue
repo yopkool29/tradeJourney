@@ -358,10 +358,10 @@ onMounted(async () => {
 
         await fetchAccounts()
 
-        // Fetch les données seulement si le tableau est vide (première visite ou après déconnexion)
-        // Cela évite le flash visuel lors du remount du composant
-        if (lastResults.value.length === 0) {
+        // Fetch les données seulement si le tableau est vide, ou si un refresh est requis (ex: changement de DB)
+        if (lastResults.value.length === 0 || userStore.shouldRefreshData()) {
             await onApplyFilters()
+            userStore.clearDataRefresh()
         }
 
         // Activer le rendu des graphiques après un court délai pour ne pas bloquer le rendu initial
@@ -408,4 +408,5 @@ watch(
         onApplyFiltersDebounced()
     }
 )
+
 </script>

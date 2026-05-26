@@ -553,6 +553,14 @@ watch(selectedMonth, () => {
     loadCalendarDataDebounced()
 })
 
+// Relancer le fetch quand la base de données change
+const { currentDatabase } = useDatabase()
+watch(currentDatabase, (newDb, oldDb) => {
+    if (newDb && oldDb && newDb.id !== oldDb.id) {
+        loadCalendarDataDebounced()
+    }
+})
+
 // Rafraîchir les données quand les modales se ferment
 watch([showDayModal, showWeekModal], ([newDay, newWeek], [oldDay, oldWeek]) => {
     const dayModalClosed = oldDay === true && newDay === false

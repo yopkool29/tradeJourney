@@ -386,6 +386,14 @@ watch(selectedMonth, () => {
     loadMonthDataDebounced()
 })
 
+// Relancer le fetch quand la base de données change
+const { currentDatabase } = useDatabase()
+watch(currentDatabase, (newDb, oldDb) => {
+    if (newDb && oldDb && newDb.id !== oldDb.id) {
+        loadMonthData()
+    }
+})
+
 // Ouvrir le dialog automatiquement au premier chargement
 // et restaurer l'état replier/déplier depuis le store
 watch(filteredGroups, (groups) => {
