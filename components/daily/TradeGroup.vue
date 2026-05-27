@@ -8,11 +8,11 @@
                             {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
                         </div>
                         <div v-if="totalScreenshots > 0" class="stat-item items-center gap-1">
-                            <UIcon name="i-heroicons-photo" class="w-5 h-5 text-primary-600" />
+                            <UIcon name="i-heroicons-photo" class="w-4 h-4 text-primary-500" />
                             <!-- <span class="stat-value text-sm">{{ totalScreenshots }}</span> -->
                         </div>
                         <div v-if="hasDetailedNote" class="stat-item items-center">
-                            <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-primary-600" />
+                            <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-primary-500" />
                         </div>
                     </div>
                     <div class="tag-container-lg items-center mb-2 text-sm">

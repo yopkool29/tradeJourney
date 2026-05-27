@@ -164,6 +164,8 @@ type DayData = {
     commission?: number
     winrate: number
     trades: TradeExtendedType[]
+    screenshotCount: number
+    hasDetailedNote: boolean
 }
 
 type WeekData = {
@@ -449,6 +451,18 @@ const calendarWeeks = computed(() => {
         const dayData = dayStats.value[dayKey]
         const isCurrentMonth = day.getMonth() === month - 1
 
+        // Calculate screenshot count and detailed note presence for the day
+        const trades = dayData?.trades || []
+        const screenshotCount = trades.reduce((total, trade) => {
+            const screenshots = trade.screenshots?.length || 0
+            const hasScreenshotUrl = trade.screenshotUrl ? 1 : 0
+            return total + screenshots + hasScreenshotUrl
+        }, 0)
+        const hasDetailedNote = trades.some(trade => {
+            const detailedNote = (trade.metadata as Record<string, unknown>)?.detailedNote as string
+            return detailedNote && detailedNote.length > 0
+        })
+
         const dayInfo: DayData = {
             dayNumber: day.getDate(),
             isCurrentMonth,
@@ -456,7 +470,9 @@ const calendarWeeks = computed(() => {
             pnl: dayData?.pnl || 0,
             commission: dayData?.commission || 0,
             winrate: dayData?.trades ? getWinrate(dayData.trades, 0) : 0,
-            trades: dayData?.trades || [],
+            trades: trades,
+            screenshotCount,
+            hasDetailedNote,
         }
 
         currentWeek.push(dayInfo)

@@ -207,8 +207,8 @@
                     </div>
 
                     <!-- Screenshots -->
-                    <div v-if="row.original.screenshots?.length > 0 || row.original.screenshotUrl" class="flex gap-2 items-center">
-                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300 mr-2">Screenshots:</span>
+                    <div v-if="row.original.screenshots?.length > 0 || row.original.screenshotUrl" class="flex items-center">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Screenshots:</span>
                         <UButton icon="i-heroicons-photo" size="xs" color="neutral" variant="ghost"
                             @click="emit('open-screenshots', row.original)">
                             {{ row.original.screenshots?.length || 1 }}
