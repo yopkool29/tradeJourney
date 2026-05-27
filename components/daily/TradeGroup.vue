@@ -3,31 +3,38 @@
         <template #header>
             <div class="flex justify-between items-start">
                 <div>
-                    <div v-if="displayTitle" class="flex items-center gap-4">
+                    <div v-if="displayTitle" class="flex items-center gap-2">
                         <div class="section-title-semibold">
                             {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
                         </div>
+                        <div v-if="totalScreenshots > 0" class="stat-item items-center gap-1">
+                            <UIcon name="i-heroicons-photo" class="w-5 h-5 text-primary-600" />
+                            <!-- <span class="stat-value text-sm">{{ totalScreenshots }}</span> -->
+                        </div>
+                        <div v-if="hasDetailedNote" class="stat-item items-center">
+                            <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-primary-600" />
+                        </div>
                     </div>
                     <div class="tag-container-lg items-center mb-2 text-sm">
-                        <div class="stat-item">
+                        <div class="stat-item items-center">
                             <span class="stat-label">{{ $t('components.daily.trade_group.trades') }}:</span>
                             <span class="stat-value">{{ groupTrades.length }}</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item items-center">
                             <span class="stat-label">{{ $t('components.daily.trade_group.win') }}:</span>
                             <span class="stat-value">{{ winLoss.wins }}</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item items-center">
                             <span class="stat-label">{{ $t('components.daily.trade_group.loss') }}:</span>
                             <span class="stat-value">{{ winLoss.losses }}</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item items-center">
                             <span class="stat-label">{{ $t('components.daily.trade_group.winrate') }}:</span>
                             <span class="stat-value">{{ winrate }}%</span>
                         </div>
-                        <div class="stat-item gap-2">
+                        <div class="stat-item gap-x-1 items-center">
                             <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
-                            <span class="stat-value text-lg" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
+                            <span class="stat-value text-lg leading-none" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
                                 {{ formatCurrency(pnl) }}
                                 <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{
                                     formatCurrency(totalCommission) }}]</span>
@@ -257,6 +264,23 @@ const winrate = computed(() => tradeStats.value.winrate)
 const pnl = computed(() => tradeStats.value.pnl)
 const totalCommission = computed(() => tradeStats.value.totalCommission)
 const intradayChartData = computed(() => tradeStats.value.intradayChartData)
+
+// Nombre total de screenshots pour tous les trades du groupe
+const totalScreenshots = computed(() => {
+    return props.groupTrades.reduce((total, trade) => {
+        const screenshots = trade.screenshots?.length || 0
+        const hasScreenshotUrl = trade.screenshotUrl ? 1 : 0
+        return total + screenshots + hasScreenshotUrl
+    }, 0)
+})
+
+// Indique si au moins un trade a une note détaillée
+const hasDetailedNote = computed(() => {
+    return props.groupTrades.some(trade => {
+        const detailedNote = (trade.metadata as Record<string, unknown>)?.detailedNote as string
+        return detailedNote && detailedNote.length > 0
+    })
+})
 
 // Données du tableau calculées uniquement lorsque le collapsible est ouvert
 const tableData = computed<TradeExtendedType[]>(() => {

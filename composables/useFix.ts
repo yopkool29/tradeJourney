@@ -63,7 +63,7 @@ export const useFix = () => {
             if (result.nonImageFiles?.length > 0) {
                 log_info(`Non-images trouvés: ${result.nonImageFiles.join(', ')}`)
             }
-            log_info(`Référencés: notes=${result.stats.referencedFromNotes}, trades=${result.stats.referencedFromTrades} (total=${result.stats.referencedFiles}) | Orphelins: ${result.stats.orphanFiles}`)
+            log_info(`Référencés: notes=${result.stats.referencedFromNotes}, trades=${result.stats.referencedFromTrades}, detailedNotes=${result.stats.referencedFromDetailedNotes} (total=${result.stats.referencedFiles}) | Orphelins: ${result.stats.orphanFiles}`)
             if (result.orphanFiles?.length > 0) {
                 log_info(`Orphelins: ${result.orphanFiles.slice(0, 10).join(', ')}${result.orphanFiles.length > 10 ? '...' : ''}`)
             }

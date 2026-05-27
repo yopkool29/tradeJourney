@@ -36,14 +36,15 @@ export default defineEventHandler(async (event) => {
             select: { content: true }
         })
 
-        // Get all trades with screenshots
+        // Get all trades with screenshots and detailed notes
         const trades = await prisma.trade.findMany({
-            select: { screenshots: true }
+            select: { screenshots: true, metadata: true }
         })
 
         // Build sets of referenced filenames separately
         const noteFiles = new Set<string>()
         const tradeFiles = new Set<string>()
+        const detailedNoteFiles = new Set<string>()
 
         // Extract filenames from notes content
         for (const note of notes) {
@@ -55,28 +56,43 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        // Extract filenames from trade screenshots (handle various formats)
+        // Extract filenames from trade screenshots and detailed notes (handle various formats)
         for (const trade of trades) {
-            if (!trade.screenshots) continue
-            for (const screenshot of trade.screenshots) {
-                if (screenshot.url) {
-                    // Try nt_ pattern first
-                    let match = screenshot.url.match(/(?:tmp_)?nt_\d+_\d+_[a-z0-9]+\.png/)
-                    if (match) {
-                        tradeFiles.add(match[0])
-                    } else {
-                        // Try generic screenshot filename pattern
-                        match = screenshot.url.match(/screenshots\/([^\s&/)]+\.png)/)
+            // Check screenshots
+            if (trade.screenshots) {
+                for (const screenshot of trade.screenshots) {
+                    if (screenshot.url) {
+                        // Try nt_ pattern first
+                        let match = screenshot.url.match(/(?:tmp_)?nt_\d+_\d+_[a-z0-9]+\.png/)
                         if (match) {
-                            tradeFiles.add(match[1])
+                            tradeFiles.add(match[0])
+                        } else {
+                            // Try generic screenshot filename pattern
+                            match = screenshot.url.match(/screenshots\/([^\s&/)]+\.png)/)
+                            if (match) {
+                                tradeFiles.add(match[1])
+                            }
                         }
+                    }
+                }
+            }
+
+            // Check detailed notes in metadata
+            if (trade.metadata) {
+                const metadata = trade.metadata as Record<string, unknown>
+                const detailedNote = metadata.detailedNote as string
+                if (detailedNote) {
+                    // Match nt_XXX_YYYY.png and tmp_nt_XXX_YYYY.png patterns in detailed notes
+                    const matches = detailedNote.match(/(?:tmp_)?nt_\d+_\d+_[a-z0-9]+\.png/g)
+                    if (matches) {
+                        matches.forEach(m => detailedNoteFiles.add(m))
                     }
                 }
             }
         }
 
         // Merge all referenced files
-        const referencedFiles = new Set<string>([...noteFiles, ...tradeFiles])
+        const referencedFiles = new Set<string>([...noteFiles, ...tradeFiles, ...detailedNoteFiles])
 
         // Find orphan images (check all image files)
         const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'])
@@ -115,6 +131,7 @@ export default defineEventHandler(async (event) => {
                 referencedFiles: referencedFiles.size,
                 referencedFromNotes: noteFiles.size,
                 referencedFromTrades: tradeFiles.size,
+                referencedFromDetailedNotes: detailedNoteFiles.size,
                 orphanFiles: orphanFiles.length,
                 nonImageFiles: nonImageFiles.length,
                 deleted: deleted.length
