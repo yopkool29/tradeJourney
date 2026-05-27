@@ -6,15 +6,15 @@
                 <div class="flex items-start justify-between">
                     <div class="flex flex-col">
                         <CommonTradeFilters :title="$t('components.daily.index.accounts')" slot-id="page-daily"
-                            :show-plugin-slot="false" v-model:account-ids="userStore.dailyHistoryFilters.accountIds"
-                            v-model:show-inactive="userStore.dailyHistoryFilters.showInactive" v-model:filters="filters"
-                            v-model:show-advanced-filters="userStore.dailyHistoryFilters.showAdvancedFilters"
+                            :show-plugin-slot="false" v-model:account-ids="userStore.dailyFilters.accountIds"
+                            v-model:show-inactive="userStore.dailyFilters.showInactive" v-model:filters="filters"
+                            v-model:show-advanced-filters="userStore.dailyFilters.showAdvancedFilters"
                             :filter-loading="filterLoading" :account-options="accountOptions"
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
-                            :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyHistoryFilters.accountIds?.length })"
+                            :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyFilters.accountIds?.length })"
                             :filterable-columns-config="filterableColumnsConfig" :show-inactive-checkbox="true" :tag-groups="tagGroups"
-                            v-model:last-filter-column="userStore.dailyHistoryFilters.lastFilterColumn"
+                            v-model:last-filter-column="userStore.dailyFilters.lastFilterColumn"
                             @apply="onApplyFilters" @reset="resetFilters">
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
@@ -88,14 +88,14 @@ const refreshTrigger = ref(0)
 const expandedGroups = shallowRef<{ [key: string]: boolean }>({})
 
 const isExpanded = computed({
-    get: () => userStore.dailyHistoryFilters.isExpanded,
-    set: (val) => userStore.dailyHistoryFilters.isExpanded = val
+    get: () => userStore.dailyFilters.isExpanded,
+    set: (val) => userStore.dailyFilters.isExpanded = val
 })
 
 type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number; commission: number }
 type TradeGroups = { [key: string]: TradeGroup }
 
-const { accounts, lastResults, fetchAccounts, fetchData } = useDailyHistory()
+const { accounts, dailyLastTrades, fetchAccounts, fetchData, clearLastTrades } = useDailyHistory()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -107,12 +107,13 @@ const accountOptions = computed(() => {
 })
 
 const selectedMonth = computed({
-    get: () => userStore.dailyHistoryFilters.selectedMonth,
-    set: (value) => (userStore.dailyHistoryFilters.selectedMonth = value),
+    get: () => userStore.dailyFilters.selectedMonth,
+    set: (value) => (userStore.dailyFilters.selectedMonth = value),
 })
 
-const displayMonth = ref(userStore.dailyHistoryFilters.selectedMonth)
-const displayResults = shallowRef<TradeExtendedType[]>(userStore.dailyHistoryFilters.last_results as TradeExtendedType[])
+const displayMonth = ref(userStore.dailyFilters.selectedMonth)
+const dataStore = useDataStore()
+const displayResults = shallowRef<TradeExtendedType[]>(dailyLastTrades.value)
 
 const calendarMonth = computed(() => {
     const [year, month] = selectedMonth.value.split('-').map(Number)
@@ -128,13 +129,13 @@ const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounce
     },
     onAfterFetch: () => {
         const monthChanged = selectedMonth.value !== displayMonth.value
-        displayResults.value = lastResults.value
+        displayResults.value = dailyLastTrades.value
         displayMonth.value = selectedMonth.value
         if (monthChanged) expandedGroups.value = {}
     },
     accounts,
-    getAccountIds: () => userStore.dailyHistoryFilters.accountIds,
-    setAccountIds: (ids) => { userStore.dailyHistoryFilters.accountIds = ids },
+    getAccountIds: () => userStore.dailyFilters.accountIds,
+    setAccountIds: (ids) => { userStore.dailyFilters.accountIds = ids },
 })
 
 const { t, locale } = useI18n()
@@ -196,13 +197,13 @@ const filterableColumnsConfig = computed(() => [
 ])
 
 const filters = computed({
-    get: () => userStore.dailyHistoryFilters.filters || [],
-    set: (val) => userStore.dailyHistoryFilters.filters = val
+    get: () => userStore.dailyFilters.filters || [],
+    set: (val) => userStore.dailyFilters.filters = val
 })
 
 function resetFilters() {
     filters.value = []
-    userStore.dailyHistoryFilters.showAdvancedFilters = false
+    userStore.dailyFilters.showAdvancedFilters = false
     loadMonthDataDebounced()
 }
 
@@ -224,7 +225,7 @@ const getDaysStats = () => {
     const end = endOfMonth(start)
 
     // Extraire accountIds en Set pour O(1) lookup
-    const accountIds = userStore.dailyHistoryFilters.accountIds
+    const accountIds = userStore.dailyFilters.accountIds
     const accountIdSet = new Set(accountIds)
     const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
 
@@ -311,7 +312,7 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const startDate = startOfMonth(selectedMonth.value)
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
-            await fetchData(startDate, endDate, true, userStore.dailyHistoryFilters.accountIds, filters.value)
+            await fetchData(startDate, endDate, true, userStore.dailyFilters.accountIds, filters.value)
         }
     }
 }
@@ -327,7 +328,7 @@ async function applyDaysTags(forceFetch: boolean = true) {
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync)
-        userStore.dailyHistoryFilters.last_results = []
+        clearLastTrades()
 
     // Charger les données en arrière-plan sans bloquer le rendu
     nextTick(async () => {
@@ -338,7 +339,7 @@ onMounted(async () => {
         await fetchAccounts()
 
         // Déterminer si on doit forcer le chargement des données
-        const needForceCalendar = userStore.dailyHistoryFilters.last_results.length === 0
+        const needForceCalendar = dailyLastTrades.value.length === 0
 
         // Toujours charger les dayTags pour le mois sélectionné
         await applyDaysTags(true)
@@ -346,12 +347,12 @@ onMounted(async () => {
         // Charger les données du calendrier si nécessaire
         await applyCalendar(selectedMonth.value, needForceCalendar)
 
-        displayResults.value = lastResults.value
+        displayResults.value = dailyLastTrades.value
         
         displayMonth.value = selectedMonth.value
 
         // Forcer la réactivité UNIQUEMENT après une reconnexion
-        if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || userStore.dailyHistoryFilters.last_results.length > 0)) {
+        if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || dataStore.dailyLastTrades.length > 0)) {
             await loadMonthData()
             userStore.clearDataRefresh()
         }
@@ -366,7 +367,7 @@ onMounted(async () => {
 
 // Appliquer les filtres quand les comptes changent
 watch(
-    () => [...(userStore.dailyHistoryFilters.accountIds || [])],
+    () => [...(userStore.dailyFilters.accountIds || [])],
     () => {
         loadMonthDataDebounced()
     },
@@ -375,7 +376,7 @@ watch(
 
 // Appliquer les filtres quand showInactive change
 watch(
-    () => userStore.dailyHistoryFilters.showInactive,
+    () => userStore.dailyFilters.showInactive,
     () => {
         loadMonthDataDebounced()
     }

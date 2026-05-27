@@ -65,7 +65,8 @@
 
 <script setup lang="ts">
 const userStore = useUserStore()
-const result = computed(() => userStore.dashBoardResult)
+
+const { dashBoardResult : result} = useDashboard()
 
 const winningPercentage = computed(() => {
     const total = result.value.tradesCount

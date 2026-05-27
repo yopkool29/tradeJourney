@@ -171,7 +171,7 @@ type WeekData = {
     total: number
 }
 
-const { accounts, lastResults, fetchAccounts, fetchData } = useDailyHistory('calendarFilters')
+const { accounts, calendarLastTrades, fetchAccounts, fetchData, clearLastTrades } = useDailyHistory('calendarFilters')
 const { fetchDayTags } = useDayTags()
 const { tagGroups } = useTags()
 
@@ -202,7 +202,8 @@ const selectedMonth = computed({
 })
 
 const displayMonth = ref(userStore.calendarFilters.selectedMonth)
-const displayResults = shallowRef<TradeExtendedType[]>(userStore.calendarFilters.last_results as TradeExtendedType[])
+const dataStore = useDataStore()
+const displayResults = shallowRef<TradeExtendedType[]>(calendarLastTrades.value)
 
 const calendarMonth = computed(() => {
     const [year, month] = displayMonth.value.split('-').map(Number)
@@ -314,7 +315,7 @@ const calendarValue = ref<CalendarDate | null>(null)
 const { filterLoading, loadDebounced: loadCalendarDataDebounced } = usePageDataManager({
     fetchFn: () => applyCalendar(selectedMonth.value),
     onAfterFetch: () => {
-        displayResults.value = lastResults.value
+        displayResults.value = calendarLastTrades.value
         displayMonth.value = selectedMonth.value
         const [year, month] = selectedMonth.value.split('-').map(Number)
         calendarValue.value = new CalendarDate(year, month, 1)
@@ -505,8 +506,9 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
-        userStore.calendarFilters.last_results = []
+        clearLastTrades()
     }
+
     nextTick(async () => {
         if (settings?.autoDataSync)
             filterLoading.value = true
@@ -520,18 +522,18 @@ onMounted(async () => {
         const [year, month] = selectedMonth.value.split('-').map(Number)
         calendarValue.value = new CalendarDate(year, month, 1)
 
-        const needForceCalendar = userStore.calendarFilters.last_results.length === 0
+        const needForceCalendar = calendarLastTrades.value.length === 0
 
         // Charger les données du calendrier si nécessaire
         await applyCalendar(selectedMonth.value, needForceCalendar)
 
-        displayResults.value = lastResults.value
+        displayResults.value = calendarLastTrades.value
 
         displayMonth.value = selectedMonth.value
 
-        if (userStore.shouldRefreshData() && userStore.calendarFilters.last_results.length > 0) {
+        if (userStore.shouldRefreshData() && calendarLastTrades.value.length > 0) {
             await applyCalendar(selectedMonth.value)
-            displayResults.value = lastResults.value
+            displayResults.value = calendarLastTrades.value
             userStore.clearDataRefresh()
         }
 

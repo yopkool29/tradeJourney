@@ -9,7 +9,8 @@ export const useDataStore = defineStore(
 	'dataStore',
 	() => {
 		// Dashboard data (non-persisted)
-		const dashboardLastResults = ref<TradeExtendedType[]>([])
+		const lastTrades = ref<TradeExtendedType[]>([])
+		
 		const dashboardResult = ref<DashBoardResult>({
 			pnl: 0, appt: 0, plRatio: 0, winrate: 0, profitFactor: 0, recoveryFactor: 0, sharpeRatio: 0,
 			tradesCount: 0, grossPnl: 0, totalContracts: 0, avgTradeDuration: 0, maxTradeDuration: 0,
@@ -23,8 +24,8 @@ export const useDataStore = defineStore(
 		})
 
 		// Daily history data (non-persisted) - current DB only
-		const dailyHistoryLastResults = ref<TradeExtendedType[]>([])
-		const calendarLastResults = ref<TradeExtendedType[]>([])
+		const dailyLastTrades = ref<TradeExtendedType[]>([])
+		const calendarLastTrades = ref<TradeExtendedType[]>([])
 
 		// Day tags (non-persisted) - keyed by dbName
 		const dayTagsPerDb = ref<Record<string, DayTagType[]>>({})
@@ -39,10 +40,10 @@ export const useDataStore = defineStore(
 		const tagGroupsPerDb = ref<Record<string, TagGroupType[]>>({})
 
 		return {
-			dashboardLastResults,
+			lastTrades,
 			dashboardResult,
-			dailyHistoryLastResults,
-			calendarLastResults,
+			dailyLastTrades,
+			calendarLastTrades,
 			dayTagsPerDb,
 			dashBoardResultPerDb,
 			symbolsPerDb,

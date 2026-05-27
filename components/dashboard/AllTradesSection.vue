@@ -66,6 +66,6 @@ import { formatDurationMinutes } from '~/utils/date-utils'
 
 const { formatCurrency } = useUtils()
 
-const userStore = useUserStore()
-const result = computed(() => userStore.dashBoardResult)
+const { dashBoardResult : result} = useDashboard()
+
 </script>

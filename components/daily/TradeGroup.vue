@@ -260,7 +260,7 @@ const intradayChartData = computed(() => tradeStats.value.intradayChartData)
 
 // Données du tableau calculées uniquement lorsque le collapsible est ouvert
 const tableData = computed<TradeExtendedType[]>(() => {
-    if (userStore.dailyHistoryFilters.showInactive) {
+    if (userStore.dailyFilters.showInactive) {
         return props.groupTrades
     }
     return activeTrades.value

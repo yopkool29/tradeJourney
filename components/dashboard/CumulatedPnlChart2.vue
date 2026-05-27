@@ -56,7 +56,7 @@ const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
-        dataStore.dashboardLastResults,
+        dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         displayModeNet.value
     )

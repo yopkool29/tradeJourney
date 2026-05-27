@@ -30,7 +30,7 @@ export const useDashboard = () => {
         accounts.value = await $fetch('/api/account') as AccountType[]
     }
 
-    const fetchDashboardData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true, advancedFilters: TradeFilter[] = []) => {
+    const fetchData = async (startDate: Date | null, endDate: Date | null, includeEndDay: boolean, accountIds: number[] = [], useNet: boolean = true, advancedFilters: TradeFilter[] = []) => {
         const _startDate = startDate ? startDate.getTime() : null
         const _endDate = endDate ? endDate.getTime() : null
 
@@ -72,7 +72,7 @@ export const useDashboard = () => {
         }
 
         // Stocker dans le store non-persistant (memoire uniquement)
-        dataStore.dashboardLastResults = trades
+        dataStore.lastTrades = trades
 
         // Métriques existantes - utiliser useNet pour basculer entre net et brut
         dataStore.dashboardResult.pnl = getPNL(trades, 0, useNet)
@@ -141,11 +141,16 @@ export const useDashboard = () => {
         return trades
     }
 
+    const clearLastTrades = () => {
+        dataStore.lastTrades = []
+    }
+
     return {
         accounts,
-        lastResults: computed(() => dataStore.dashboardLastResults),
+        dashBoardLastTrades: computed(() => dataStore.lastTrades),
         dashBoardResult: computed(() => dataStore.dashboardResult),
         fetchAccounts,
-        fetchDashboardData
+        fetchData,
+        clearLastTrades
     }
 }

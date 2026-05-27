@@ -3,17 +3,16 @@ import type { TradeFilter } from '~/type'
 import type { TradeExtendedType } from '~/schema/trade'
 import { transformAdvancedFilters } from '~/utils/filter-utils'
 
-export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilters' = 'dailyHistoryFilters') => {
+export const useDailyHistory = (storeKey: 'dailyFilters' | 'calendarFilters' = 'dailyFilters') => {
 
     const accounts = ref<AccountType[]>([])
-    const dataStore = useDataStore()
-    const lastResults = storeKey === 'dailyHistoryFilters' 
-        ? computed(() => dataStore.dailyHistoryLastResults) 
-        : computed(() => dataStore.calendarLastResults)
-
+   
     const { fetchTrades } = useTrades()
-
+    const dataStore = useDataStore()
     const userStore = useUserStore()
+
+    const dailyLastTrades = computed(() => dataStore.dailyLastTrades)
+    const calendarLastTrades = computed(() => dataStore.calendarLastTrades)
 
     const fetchAccounts = async () => {
         accounts.value = await $fetch('/api/account') as AccountType[]
@@ -52,24 +51,34 @@ export const useDailyHistory = (storeKey: 'dailyHistoryFilters' | 'calendarFilte
             filtersForApi.push(...transformAdvancedFilters(advancedFilters))
         }
 
-        const showInactive = storeKey === 'dailyHistoryFilters' ? userStore.dailyHistoryFilters.showInactive : false
+        const showInactive = storeKey === 'dailyFilters' ? userStore.dailyFilters.showInactive : false
 
         const trades = await fetchTrades(filtersForApi, 1000, showInactive)
 
         // Stocker dans useDataStore (non-persiste, memoire uniquement)
-        if (storeKey === 'dailyHistoryFilters') {
-            dataStore.dailyHistoryLastResults = trades
+        if (storeKey === 'dailyFilters') {
+            dataStore.dailyLastTrades = trades
         } else {
-            dataStore.calendarLastResults = trades
+            dataStore.calendarLastTrades = trades
         }
 
         return trades
     }
 
+    const clearLastTrades = () => {
+        if (storeKey === 'dailyFilters') {
+            dataStore.dailyLastTrades = []
+        } else {
+            dataStore.calendarLastTrades = []
+        }
+    }
+
     return {
         accounts,
-        lastResults,
+        dailyLastTrades,
+        calendarLastTrades,
         fetchAccounts,
-        fetchData
+        fetchData,
+        clearLastTrades
     }
 }

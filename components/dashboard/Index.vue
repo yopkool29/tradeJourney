@@ -150,7 +150,7 @@ const { formatCurrency } = useUtils()
 
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
-const { fetchAccounts, fetchDashboardData, accounts, lastResults, dashBoardResult } = useDashboard()
+const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult, clearLastTrades } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups } = useTags()
 const chartsReady = ref(false)
@@ -327,7 +327,7 @@ const endDateStr = computed({
 })
 
 const { filterLoading, load: onApplyFilters, loadDebounced: onApplyFiltersDebounced } = usePageDataManager({
-    fetchFn: () => fetchDashboardData(
+    fetchFn: () => fetchData(
         userStore.dashBoardFilters.startDate,
         userStore.dashBoardFilters.endDate,
         true,
@@ -349,7 +349,7 @@ function resetFilters() {
 onMounted(async () => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
-        lastResults.value = []
+        clearLastTrades()
     }
 
     nextTick(async () => {
@@ -359,7 +359,7 @@ onMounted(async () => {
         await fetchAccounts()
 
         // Fetch les données seulement si le tableau est vide, ou si un refresh est requis (ex: changement de DB)
-        if (lastResults.value.length === 0 || userStore.shouldRefreshData()) {
+        if (dashBoardLastTrades.value.length === 0 || userStore.shouldRefreshData()) {
             await onApplyFilters()
             userStore.clearDataRefresh()
         }

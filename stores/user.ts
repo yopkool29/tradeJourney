@@ -10,7 +10,7 @@ import type {
     CustomInputs,
     TradeOptions,
     DashBoardFilters,
-    DailyHistoryFilters,
+    DailyFilters,
     CalendarFilters,
     DashBoardResult,
 } from '~/type'
@@ -51,7 +51,7 @@ export const useUserStore = defineStore(
         const recentColors2PerDb = ref<Record<string, string[]>>({})
         const tradeOptionsPerDb = ref<Record<string, TradeOptions>>({})
         const dashBoardFiltersPerDb = ref<Record<string, DashBoardFilters>>({})
-        const dailyHistoryFiltersPerDb = ref<Record<string, DailyHistoryFilters>>({})
+        const dailyFiltersPerDb = ref<Record<string, DailyFilters>>({})
         const calendarFiltersPerDb = ref<Record<string, CalendarFilters>>({})
         const dashBoardResultPerDb = ref<Record<string, DashBoardResult>>({})
         const columnVisibilityPerDb = ref<Record<string, Record<string, boolean>>>({})
@@ -226,11 +226,11 @@ export const useUserStore = defineStore(
             }
         })
 
-        const dailyHistoryFilters = computed({
+        const dailyFilters = computed({
             get: () => {
                 const dbName = getCurrentDbName()
-                if (!dailyHistoryFiltersPerDb.value[dbName]) {
-                    dailyHistoryFiltersPerDb.value[dbName] = {
+                if (!dailyFiltersPerDb.value[dbName]) {
+                    dailyFiltersPerDb.value[dbName] = {
                         accountIds: [] as number[],
                         selectedMonth: formatDateToYYYYMM(new Date()),
                         showInactive: false,
@@ -254,13 +254,13 @@ export const useUserStore = defineStore(
                         lastFilterColumn: 'symbol'
                     }
                 }
-                const dailyFilters = dailyHistoryFiltersPerDb.value[dbName]
+                const dailyFilters = dailyFiltersPerDb.value[dbName]
                 if (!dailyFilters.lastFilterColumn) dailyFilters.lastFilterColumn = 'symbol'
                 return dailyFilters
             },
             set: (val) => {
                 const dbName = getCurrentDbName()
-                dailyHistoryFiltersPerDb.value[dbName] = val
+                dailyFiltersPerDb.value[dbName] = val
             }
         })
 
@@ -481,8 +481,8 @@ export const useUserStore = defineStore(
             dashBoardFiltersPerDb.value = Object.fromEntries(
                 Object.entries(dashBoardFiltersPerDb.value).filter(([key]) => key !== dbName)
             )
-            dailyHistoryFiltersPerDb.value = Object.fromEntries(
-                Object.entries(dailyHistoryFiltersPerDb.value).filter(([key]) => key !== dbName)
+            dailyFiltersPerDb.value = Object.fromEntries(
+                Object.entries(dailyFiltersPerDb.value).filter(([key]) => key !== dbName)
             )
             calendarFiltersPerDb.value = Object.fromEntries(
                 Object.entries(calendarFiltersPerDb.value).filter(([key]) => key !== dbName)
@@ -510,8 +510,8 @@ export const useUserStore = defineStore(
                 tradeOptions.value.accountIds = [...sourceIds]
             if (!arraysEqual(dashBoardFilters.value.accountIds, sourceIds))
                 dashBoardFilters.value.accountIds = [...sourceIds]
-            if (!arraysEqual(dailyHistoryFilters.value.accountIds, sourceIds))
-                dailyHistoryFilters.value.accountIds = [...sourceIds]
+            if (!arraysEqual(dailyFilters.value.accountIds, sourceIds))
+                dailyFilters.value.accountIds = [...sourceIds]
             if (!arraysEqual(calendarFilters.value.accountIds, sourceIds))
                 calendarFilters.value.accountIds = [...sourceIds]
         }
@@ -524,7 +524,7 @@ export const useUserStore = defineStore(
             if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
         }, { deep: true })
 
-        watch(() => dailyHistoryFilters.value.accountIds, (ids) => {
+        watch(() => dailyFilters.value.accountIds, (ids) => {
             if (user.value?.settings_object?.syncAccountSelection) syncAccountIds(ids)
         }, { deep: true })
 
@@ -553,7 +553,7 @@ export const useUserStore = defineStore(
             getTagById,
             tradeOptions,
             dashBoardFilters,
-            dailyHistoryFilters,
+            dailyFilters,
             calendarFilters,
             dashBoardResult,
             columnVisibility,
@@ -567,7 +567,7 @@ export const useUserStore = defineStore(
             recentColors2PerDb,
             tradeOptionsPerDb,
             dashBoardFiltersPerDb,
-            dailyHistoryFiltersPerDb,
+            dailyFiltersPerDb,
             calendarFiltersPerDb,
             dashBoardResultPerDb,
             columnVisibilityPerDb,
@@ -618,7 +618,7 @@ export const useUserStore = defineStore(
                 'recentColors2PerDb',
                 'tradeOptionsPerDb',
                 'dashBoardFiltersPerDb',
-                'dailyHistoryFiltersPerDb',
+                'dailyFiltersPerDb',
                 'calendarFiltersPerDb',
                 'dashBoardResultPerDb',
                 'columnVisibilityPerDb',

@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
-import type { ChartData, ChartOptions } from 'chart.js'
+import type { ChartData, ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
 import { useUserStore } from '~/stores/user'
 import { generateWinrateChartData, getSmartLabelAlign, getSmartLabelAnchor } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
@@ -72,7 +72,7 @@ const datalabelsSettings = computed(() => {
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateWinrateChartData(
-        dataStore.dashboardLastResults,
+        dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         3, // fenêtre de moyenne mobile
         displayModeNet.value
@@ -135,7 +135,7 @@ const chartDisplayOptions = computed(
                     trigger: 'axis',
                     callbacks: {
                         label: function (context: TooltipItem<keyof ChartTypeRegistry>) {
-                            const value = context.parsed.y
+                            const value = context.parsed.y!
                             const label = context.dataset.label || ''
                             const date = context.label || ''
                             return [

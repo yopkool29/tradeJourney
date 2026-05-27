@@ -10,7 +10,7 @@
             />
         </div>
         <UTable ref="table" :key="`${locale}-${timezoneKey}`"
-            v-model:column-visibility="userStore.dailyHistoryFilters.columnVisibility"
+            v-model:column-visibility="userStore.dailyFilters.columnVisibility"
             v-model:expanded="expanded"
             :columns="columns"
             :data="tableData"

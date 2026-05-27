@@ -58,7 +58,7 @@ const { profitColor, lossColor, breakevenColor } = useTypeColors()
 const dataStore = useDataStore()
 
 const chartData = computed(() => {
-    const trades: TradeExtendedType[] = dataStore.dashboardLastResults
+    const trades: TradeExtendedType[] = dataStore.lastTrades
     const sortedTrades = [...trades].sort((a, b) => {
         const aClose = a.closeDate ? new Date(a.closeDate).getTime() : 0
         const bClose = b.closeDate ? new Date(b.closeDate).getTime() : 0

@@ -86,8 +86,9 @@ import { formatDurationMinutes, formatDateWithUserTimezone } from '~/utils/date-
 const { formatCurrency } = useUtils()
 
 const { locale } = useI18n()
+
 const userStore = useUserStore()
-const result = computed(() => userStore.dashBoardResult)
+const { dashBoardResult : result} = useDashboard()
 
 const maxRunUpDisplayDates = computed(() => {
     const from = result.value.maxRunUpDateFrom ? new Date(result.value.maxRunUpDateFrom) : null

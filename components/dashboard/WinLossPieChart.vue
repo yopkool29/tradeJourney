@@ -10,7 +10,7 @@ import { defaultSettings } from '~/schema/user'
 
 Chart.register(ArcElement, Tooltip, Legend)
 
-const userStore = useUserStore()
+const userStore = useDataStore()
 const { t } = useI18n()
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
 let chartInstance: Chart | null = null
@@ -18,7 +18,7 @@ let chartInstance: Chart | null = null
 const { profitColor, lossColor, breakevenColor } = useTypeColors()
 
 const chartData = computed(() => {
-    const result = userStore.dashBoardResult
+    const result = userStore.dashboardResult
     
     return {
         labels: [t('components.dashboard.all_trades.winning'), t('components.dashboard.all_trades.breakeven'), t('components.dashboard.all_trades.losing')],

@@ -95,7 +95,7 @@ export interface DashBoardFilters {
     dashboardChartVisibility: Record<ChartKey, boolean>
 }
 
-export interface DailyHistoryFilters {
+export interface DailyFilters {
     accountIds: number[]
     selectedMonth: string
     showInactive: boolean

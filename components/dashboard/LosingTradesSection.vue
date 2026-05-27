@@ -82,7 +82,7 @@ const { formatCurrency } = useUtils()
 
 const { locale } = useI18n()
 const userStore = useUserStore()
-const result = computed(() => userStore.dashBoardResult)
+const { dashBoardResult : result} = useDashboard()
 
 const maxDrawdownDisplayDates = computed(() => {
     const from = result.value.maxDrawdownDateFrom ? new Date(result.value.maxDrawdownDateFrom) : null
