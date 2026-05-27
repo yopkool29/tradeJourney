@@ -599,8 +599,8 @@ export const useUserStore = defineStore(
     },
     {
         persist: {
-            storage: import.meta.client ? localStorage : false,
-            paths: [
+            storage: import.meta.client ? localStorage : undefined,
+            pick: [
                 'user',
                 'isLogOpen',
                 'logOpenFirstInit',

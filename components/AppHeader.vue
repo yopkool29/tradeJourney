@@ -88,7 +88,7 @@
                     <UDropdownMenu :items="themeItems">
                         <UButton variant="ghost" class="p-2 rounded-full flex items-center gap-2">
                             <UIcon :name="themeIcon" class="header-icon" />
-                            <span class="hidden md:inline text-sm">{{ colorMode.value }}</span>
+                            <span class="hidden md:inline text-sm">{{ themeLabel }}</span>
                         </UButton>
                     </UDropdownMenu>
                     <UButton v-if="userStore.user" color="primary" variant="ghost" class="ml-2 hidden md:inline-flex"
@@ -254,6 +254,15 @@ const themeIcon = computed(() => {
         default: return 'i-heroicons-sun'
     }
 })
+
+const themeLabels: Record<string, string> = {
+    'light': 'Light',
+    'light-blue': 'Light Blue',
+    'dark': 'Dark',
+    'dark-gold': 'Dark Gold',
+}
+
+const themeLabel = computed(() => themeLabels[colorMode.value] ?? colorMode.value)
 
 const themeItems = computed(() => [
     [{

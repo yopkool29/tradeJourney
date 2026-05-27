@@ -968,7 +968,7 @@ export default {
                 tag_dark_fg_reverse_label: 'Dark foreground reverse',
                 result: 'Result',
                 delete_group: 'Delete group',
-                delete_tag: 'Delete tag',
+                delete_tag: 'Delete',
                 confirm_delete_group:
                     'Are you sure you want to delete the group "{name}"?',
                 confirm_delete_tag:

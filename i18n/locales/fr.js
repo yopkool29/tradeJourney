@@ -983,8 +983,8 @@ export default {
                 tag_dark_fg_reverse_label:
                     'Inverser la couleur du texte en mode sombre',
                 result: 'Résultat',
-                delete_group: 'Supprimer le groupe',
-                delete_tag: 'Supprimer le tag',
+                delete_group: 'Supprimer',
+                delete_tag: 'Supprimer',
                 confirm_delete_group:
                     'Êtes-vous sûr de vouloir supprimer le groupe "{name}" ?',
                 confirm_delete_tag:
