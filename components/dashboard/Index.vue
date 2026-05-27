@@ -111,11 +111,18 @@
         </div>
         
         <!-- Graphiques -->
-        <div v-if="chartsReady" class="mb-8">
+        <div class="mb-8">
             <div class="flex justify-start mb-2">
                 <DashboardChartVisibilityMenu v-model="chartVisibility" />
             </div>
-            <CommonDraggableGrid :items="chartItems" :shared-props="{ loading: filterLoading }" @update:order="onChartOrderChange" />
+            <!-- Loading skeleton - shown while loading or waiting for charts to be ready -->
+            <div v-if="(filterLoading && dashBoardLastTrades.length === 0) || !chartsCanRender" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div v-for="n in visibleChartCount" :key="n" class="h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse flex items-center justify-center">
+                    <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+                </div>
+            </div>
+            <!-- Charts - only rendered when data exists AND browser is ready to avoid blocking -->
+            <CommonDraggableGrid v-else :items="chartItems" :shared-props="{ loading: filterLoading }" @update:order="onChartOrderChange" />
         </div>
 
         <!-- 4 Sections principales : ALL / PROFIT / LOSING / COMPARISON -->
@@ -154,6 +161,7 @@ const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups } = useTags()
 const chartsReady = ref(false)
+const chartsCanRender = ref(false)
 const { t, locale } = useI18n()
 
 const chartVisibility = computed({
@@ -184,6 +192,10 @@ const chartItems = computed(() => {
             component: componentMap[id],
             props: id === 'cumulatedPnl' ? { startingCapital: startingCapital.value } : undefined
         }))
+})
+
+const visibleChartCount = computed(() => {
+    return chartOrder.value.filter((id: ChartKey) => chartVisibility.value[id]).length
 })
 
 const onChartOrderChange = (newOrder: string[]) => {
@@ -364,12 +376,15 @@ onMounted(async () => {
             userStore.clearDataRefresh()
         }
 
-        // Activer le rendu des graphiques après un court délai pour ne pas bloquer le rendu initial
-        setTimeout(() => {
-            chartsReady.value = true
-        }, 50)
-
         filterLoading.value = false
+
+        // Laisser le browser respirer avant d'initialiser Chart.js (évite le blocage au premier affichage)
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                chartsCanRender.value = true
+                chartsReady.value = true
+            }, 100)
+        })
 
     })
 })

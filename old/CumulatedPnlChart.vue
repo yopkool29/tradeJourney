@@ -30,9 +30,8 @@
 
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
-import type { ChartOptions, TooltipItem, ChartTypeRegistry } from 'chart.js'
+import type { ChartOptions, TooltipItem } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
-import { CommonModalChart } from '#components'
 import { defaultSettings } from '~/schema/user'
 
 const { formatCurrency } = useUtils()
@@ -40,9 +39,9 @@ const { formatCurrency } = useUtils()
 const { t } = useI18n()
 
 
-const barChartRef = ref()
 const isModalOpen = ref(false)
 const userStore = useUserStore()
+const dataStore = useDataStore()
 
 // Récupérer la configuration des graphiques
 const appConfig = useAppConfig()
@@ -65,7 +64,7 @@ const datalabelsSettings = computed(() => {
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
-        userStore.dashBoardFilters.last_results,
+        dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year'
     )
 
@@ -132,7 +131,7 @@ const chartDisplayOptions = computed(
                         duration: 200,
                     },
                     callbacks: {
-                        label: function (context: TooltipItem<keyof ChartTypeRegistry>) {
+                        label: function (context: TooltipItem<'bar'>) {
                             const value = context.parsed.y
                             const label = context.dataset.label || ''
                             const date = context.label || ''
@@ -178,7 +177,7 @@ const chartDisplayOptions = computed(
                 },
             },
             backgroundColor: isDark.value ? '#18181b' : '#fff',
-        }) as ChartOptions
+        }) as ChartOptions<'bar'>
 )
 
 </script>

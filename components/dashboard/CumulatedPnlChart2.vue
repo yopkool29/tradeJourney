@@ -29,7 +29,6 @@ import { Line } from 'vue-chartjs'
 import type { ChartOptions, TooltipItem, ChartTypeRegistry, ChartDataset } from 'chart.js'
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 import { colorToRgba } from '~/utils/color-utils'
-import { CommonModalChart } from '#components'
 
 const props = defineProps<{
     startingCapital?: number | null
@@ -39,7 +38,6 @@ const props = defineProps<{
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
 
-const lineChartRef = ref()
 const isModalOpen = ref(false)
 const userStore = useUserStore()
 const dataStore = useDataStore()

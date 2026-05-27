@@ -41,12 +41,11 @@ watch(() => props.modelValue, (newVal) => {
     localVisibility.value = { ...newVal }
 }, { deep: true })
 
-const debouncedEmit = useDebounce(() => {
-    emit('update:modelValue', { ...localVisibility.value })
-}, 300, { leading: true })
-
 const toggleChart = (chartId: string) => {
     localVisibility.value[chartId] = !localVisibility.value[chartId]
-    debouncedEmit()
+    // Petit délai pour laisser l'UI respirer avant l'initialisation Chart.js
+    setTimeout(() => {
+        emit('update:modelValue', { ...localVisibility.value })
+    }, 50)
 }
 </script>

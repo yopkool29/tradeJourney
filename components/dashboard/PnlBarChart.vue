@@ -45,9 +45,7 @@ const { locale } = useI18n()
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 const userStore = useUserStore()
-const barChartRef = ref()
 const isModalOpen = ref(false)
-
 const appConfig = useAppConfig()
 const chartConfigOptions = appConfig.charts.options
 

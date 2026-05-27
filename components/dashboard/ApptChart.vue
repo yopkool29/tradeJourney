@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.appt_chart.enlarged_title')">
                     <template #content>
-                        <Bar ref="modalBarChartRef" :key="`appt-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Chart ref="modalBarChartRef" :key="`appt-chart-modal-${displayModeNet}`" type="bar" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
                     </template>
                 </CommonModalChart>
             </div>
@@ -21,9 +21,10 @@
             <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
                 <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
             </div>
-            <Bar
+            <Chart
                 ref="barChartRef"
                 :key="`appt-chart-${displayModeNet}`"
+                type="bar"
                 :data="chartData"
                 :options="chartDisplayOptions"
                 @click="isModalOpen = true"
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { Bar } from 'vue-chartjs'
+import { Chart } from 'vue-chartjs'
 import type { Context } from 'chartjs-plugin-datalabels'
 import { useUserStore } from '~/stores/user'
 import { generateApptChartData } from '~/utils/dashboard'
@@ -46,9 +47,7 @@ const props = defineProps<{
 
 const { formatCurrency } = useUtils()
 
-const barChartRef = ref()
 const isModalOpen = ref(false)
-const modalBarChartRef = ref()
 const userStore = useUserStore()
 const dataStore = useDataStore()
 const { displayModeNet } = useNetGrossDisplay()
@@ -108,7 +107,7 @@ const chartDisplayOptions = computed(() => ({
         duration: 200,
     },
     hover: {
-        mode: 'nearest',
+        mode: 'nearest' as const,
         intersect: false,
     },
     responsiveAnimationDuration: 0,
@@ -136,7 +135,7 @@ const chartDisplayOptions = computed(() => ({
             },
             callbacks: {
                 label: function (context: TooltipItem<keyof ChartTypeRegistry>) {
-                    const value = context.parsed.y
+                    const value = context.parsed.y!
                     const label = context.dataset.label || ''
                     const date = context.label || ''
                     return [
@@ -170,7 +169,7 @@ const chartDisplayOptions = computed(() => ({
             beginAtZero: false,
             grid: { color: isDark.value ? '#444' : '#e5e7eb' },
             ticks: {
-                callback: (value) => formatCurrency(Number(value)),
+                callback: (value: any) => formatCurrency(Number(value)),
             },
         },
         x: {

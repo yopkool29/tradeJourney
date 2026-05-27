@@ -35,12 +35,10 @@ import type { ChartOptions, ChartData, TooltipItem, ChartTypeRegistry } from 'ch
 import { generatePlRatioChartData, getSmartLabelAlign, getSmartLabelAnchor } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
 import { useUserStore } from '~/stores/user'
-import { useI18n } from '~/composables/useI18n'
 const barChartRef = ref()
 const isModalOpen = ref(false)
 const modalBarChartRef = ref()
 const userStore = useUserStore()
-const { t } = useI18n()
 
 // Récupérer la configuration des graphiques
 const appConfig = useAppConfig()
@@ -73,6 +71,8 @@ const chartData = computed((): ChartData => {
         // Configuration pour la ligne de moyenne mobile (premier dataset)
         data.datasets[0].borderColor = movingAverageColor.value
         data.datasets[0].pointBackgroundColor = movingAverageColor.value
+        data.datasets[0].pointBorderColor = movingAverageColor.value
+        data.datasets[0].pointBorderWidth = 0
         data.datasets[0].pointRadius = chartConfigOptions.pointRadius
         data.datasets[0].label = t('components.dashboard.index.mobile_avg_label')
 
