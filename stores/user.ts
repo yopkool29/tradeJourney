@@ -191,7 +191,7 @@ export const useUserStore = defineStore(
                 if (!dashBoardFiltersPerDb.value[dbName]) {
                     dashBoardFiltersPerDb.value[dbName] = {
                         accountIds: [] as number[],
-                        period: 'last_month_until_now',
+                        period: 'last_three_months_until_now',
                         startDate: new Date(),
                         endDate: new Date(),
                         customStartDate: new Date(),
