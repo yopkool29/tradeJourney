@@ -224,7 +224,8 @@ export type NoteTagIdsType = z.infer<typeof NoteTagIdsSchema>
 
 export const TradeExtendedShema = TradeSchema.extend({
     tags: z.array(TagSchema),
-    account_displayName: z.string()
+    account_displayName: z.string(),
+    uniqueId: z.string().optional()
 })
 
 export type TradeExtendedType = z.infer<typeof TradeExtendedShema>

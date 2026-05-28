@@ -13,8 +13,11 @@
                     :all-label="allLabel"
                     :selected-label="selectedLabel"
                     select-class="select-standard"
-                />
-                <UCheckbox v-if="showInactiveCheckbox !== false" v-model="localShowInactive" class="mt-2" :label="$t('components.trade.table.show_inactive')" />
+                >
+                    <template #before-badges>
+                        <UCheckbox v-if="showInactiveCheckbox !== false" v-model="localShowInactive" :label="$t('components.trade.table.show_inactive')" />
+                    </template>
+                </CommonAccountSelect>
             </div>
             <slot name="after-accounts" />
         </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-        <div>
+        <div class='flex flex-col md:flex-row items-start gap-4'>
             <USelect
                 :model-value="modelValue"
                 :items="items"
@@ -17,6 +17,7 @@
                     <span v-else>{{ selectedLabel }}</span>
                 </div>
             </USelect>
+            <slot name="before-badges" />
         </div>
         <div v-if="modelValue?.length && items?.length" class="flex flex-wrap gap-2 mx-4">
             <UBadge

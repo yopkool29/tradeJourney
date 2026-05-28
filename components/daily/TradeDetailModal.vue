@@ -1,5 +1,5 @@
 <template>
-    <CommonModalDefault v-model:open="isOpen" :title="$t('components.daily.trade_group.trade_details')"
+    <CommonModalDefault v-model:open="isOpen" :hideDescription="false" :description="trade?.uniqueId || ''" :title="$t('components.daily.trade_group.trade_details')"
         :ui="{ content: 'max-w-2xl' }">
         <template #content>
             <div v-if="trade" class="space-y-4">

@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { parseNTExecutions } from '../server/utils/nt-parser'
 import { readFileSync } from 'fs'
 import { ImportMode, formatDate } from '../utils/date-utils'
+import { generateUniqueId } from '../schema/trade'
 
 // Chemin vers le fichier CSV d'exécution
+// const filePath = __dirname + '/../data/tests/NinjaTrader Grid 2026-05-28 12-35.csv'
 const filePath = __dirname + '/../data/tests/ninjatrader-grid-2026-02-10.csv'
 
 // Lire le fichier CSV
@@ -30,7 +32,11 @@ for (let i = 0; i < Math.min(trades.length, 20); i++) { // Limiter à 20 trades 
     const openTime = trade.openDate.toLocaleTimeString('fr-FR');
     const closeTime = trade.closeDate.toLocaleTimeString('fr-FR');
     
+    // Simuler le uniqueId généré (accountId=1, importName=NT)
+    const uniqueId = generateUniqueId('NT', 1, trade.symbol, trade.openDate, trade.closeDate, trade.extendId)
     console.log(`\nTrade #${i + 1}:`);
+    console.log(`  extendId: ${trade.extendId}`);
+    console.log(`  uniqueId: ${uniqueId}`);
     console.log(`  Symbol: ${trade.symbol}`);
     console.log(`  Type: ${trade.type}`);
     console.log(`  Lot: ${trade.lot}`);

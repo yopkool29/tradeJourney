@@ -1,17 +1,21 @@
 <template>
-    <UCard class="card-container-2xl">
-        <template #header>
-            <div class="header-layout">
-                <span class="section-title">{{ $t('components.settings.tradingSymbols.title') }}</span>
-                <SymbolCreateModal @created="onSymbolCreated" @error="onSymbolError" />
-            </div>
+    <SettingsSection
+        :title="$t('components.settings.tradingSymbols.title')"
+        :show-refresh="true"
+        :loading="isLoading"
+        @refresh="fetchSymbols"
+    >
+        <template #actions>
+            <SymbolCreateModal @created="onSymbolCreated" @error="onSymbolError" />
         </template>
-        <div class="p-4">
-            <p class="text-secondary mb-6">
-                {{ $t('components.settings.tradingSymbols.description') }}
-            </p>
 
+        <template #alert>
             <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
+        </template>
+
+        <p class="text-secondary mb-6">
+            {{ $t('components.settings.tradingSymbols.description') }}
+        </p>
 
             <!-- Filtres avancés -->
             <CommonAdvancedFilters
@@ -37,9 +41,9 @@
                 </template>
             </CommonAdvancedFilters>
 
-            <!-- Liste des symboles -->
-            <div v-if="symbols.length" class="mt-6">
-                <UTable :key="locale" :data="paginatedSymbols" :columns="columns" class="w-full">
+        <!-- Liste des symboles -->
+        <div v-if="symbols.length" class="mt-6">
+            <UTable :key="locale" :data="paginatedSymbols" :columns="columns" class="w-full">
                     <template #symbol-cell="{ row }">
                         <span class="font-medium">{{ row.original.symbol }}</span>
                     </template>
@@ -114,12 +118,11 @@
                     />
                 </div>
             </div>
-            <div v-else class="p-8 text-center text-secondary">
-                <p class="text-lg mb-2">{{ $t('components.settings.tradingSymbols.no_symbols') }}</p>
-                <p class="text-sm">{{ $t('components.settings.tradingSymbols.no_symbols_description') }}</p>
-            </div>
+        <div v-else class="p-8 text-center text-secondary">
+            <p class="text-lg mb-2">{{ $t('components.settings.tradingSymbols.no_symbols') }}</p>
+            <p class="text-sm">{{ $t('components.settings.tradingSymbols.no_symbols_description') }}</p>
         </div>
-    </UCard>
+    </SettingsSection>
 </template>
 
 <script setup lang="ts">
@@ -157,7 +160,18 @@ const columns = computed(() => {
     ]
 })
 
-const { fetchSymbols, createSymbol, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
+const { fetchSymbols: fetchSymbolsBase, createSymbol, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
+
+const isLoading = ref(false)
+
+const fetchSymbols = async () => {
+    isLoading.value = true
+    try {
+        return await fetchSymbolsBase()
+    } finally {
+        isLoading.value = false
+    }
+}
 
 const getAliasDisplay = (symbol: SymbolType) => {
     const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'aliases')?.value

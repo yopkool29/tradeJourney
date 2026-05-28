@@ -69,6 +69,7 @@ export function aggregateSimilarTrades(
 
     const aggregatedTrades: TradesImport[] = [];
     let currentGroup: TradesImport[] = [sortedTrades[0]];
+    let aggCounter = 0; // Compteur d'agrégation
 
     for (let i = 1; i < sortedTrades.length; i++) {
         const currentTrade = sortedTrades[i];
@@ -90,14 +91,24 @@ export function aggregateSimilarTrades(
             currentGroup.push(currentTrade);
         } else {
             // Agréger le groupe actuel et commencer un nouveau groupe
-            aggregatedTrades.push(aggregateTradeGroup(currentGroup));
+            if (currentGroup.length > 1) {
+                aggCounter++;
+                aggregatedTrades.push(aggregateTradeGroup(currentGroup, aggCounter));
+            } else {
+                aggregatedTrades.push(currentGroup[0]);
+            }
             currentGroup = [currentTrade];
         }
     }
 
     // Agréger le dernier groupe
     if (currentGroup.length > 0) {
-        aggregatedTrades.push(aggregateTradeGroup(currentGroup));
+        if (currentGroup.length > 1) {
+            aggCounter++;
+            aggregatedTrades.push(aggregateTradeGroup(currentGroup, aggCounter));
+        } else {
+            aggregatedTrades.push(currentGroup[0]);
+        }
     }
 
     return aggregatedTrades;
@@ -106,9 +117,10 @@ export function aggregateSimilarTrades(
 /**
  * Agrège un groupe de trades similaires en un seul trade
  * @param tradeGroup Groupe de trades à agréger
+ * @param aggCounter Numéro de séquence de l'agrégation
  * @returns Trade agrégé
  */
-function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
+function aggregateTradeGroup(tradeGroup: TradesImport[], aggCounter: number): TradesImport {
     // Debug - afficher les trades qui sont agrégés
     // if (tradeGroup.length > 1) {
     //     console.log(`\nAgrégation de ${tradeGroup.length} trades:`);
@@ -116,7 +128,6 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
     //         console.log(`  ID: ${t.extendId}, Symbol: ${t.symbol}, Type: ${t.type}, Lot: ${t.lot}, Open: ${t.openDate.toLocaleTimeString('fr-FR')} @ ${t.openPrice}, Close: ${t.closeDate.toLocaleTimeString('fr-FR')} @ ${t.closePrice}`);
     //     });
     // }
-    if (tradeGroup.length === 1) return tradeGroup[0];
 
     const firstTrade = tradeGroup[0];
 
@@ -158,8 +169,12 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
 
     const netProfit = totalProfit - totalCommission;
 
+    // Générer un extendId pour le trade agrégé : juste _agg_{compteur} (pas de numéro de trade car agrégé)
+    const aggregatedExtendId = `_agg_${aggCounter}`;
+
     // Créer le trade agrégé
     return {
+        extendId: aggregatedExtendId || firstTrade.extendId,
         openDate: earliestOpenDate,
         closeDate: latestCloseDate,
         symbol: firstTrade.symbol,
@@ -170,8 +185,11 @@ function aggregateTradeGroup(tradeGroup: TradesImport[]): TradesImport {
         profit: totalProfit,  // Profit BRUT
         netProfit: netProfit,  // Profit NET
         profit_points,
+        stopLoss: 0,
+        takeProfit: 0,
         commission: totalCommission,
-        exchange: totalExchange
+        exchange: 0,
+        screenshotUrl: null
     };
 }
 
@@ -194,6 +212,9 @@ export function parseNTExecutions(csvContent: string, timezone: string, importMo
         return parseFloat(numStr.replace(/\./g, '').replace(',', '.')) || 0;
     };
 
+    // Track daily counters per account - reset to 1 each day
+    const dailyCounters = new Map<string, { currentDate: string; counter: number }>();
+
     for (const row of rows) {
         const accountName = row['Account'];
         if (!accountName || accountName.includes("Sim")) {
@@ -214,7 +235,6 @@ export function parseNTExecutions(csvContent: string, timezone: string, importMo
         };
 
         const trades = accountTrades.get(accountName)!;
-        const tradeId = row['Trade number']
         const type = row['Market pos.'].toLowerCase() === 'long' ? 'buy' : 'sell' as const;
         const symbol = row['Instrument'].split(' ')[0];
         const quantity = parseNumber(row['Qty']);
@@ -226,13 +246,28 @@ export function parseNTExecutions(csvContent: string, timezone: string, importMo
         const date1 = parseDate(row['Entry time'])
         const date2 = parseDate(row['Exit time'])
 
+        // Get date string for daily counter tracking
+        const tradeDate = DateTime.fromJSDate(date1).toISODate() || ''
+
+        // Check if we need to reset counter for new day
+        let accountCounter = dailyCounters.get(accountName)
+        if (!accountCounter || accountCounter.currentDate !== tradeDate) {
+            accountCounter = { currentDate: tradeDate, counter: 1 }
+            dailyCounters.set(accountName, accountCounter)
+        } else {
+            accountCounter.counter++
+        }
+
+        // Generate extendId with daily counter (resets to 1 each day)
+        const extendId = `-${accountCounter.counter}`
+
         let nb_points = type === 'buy' ? closePrice - openPrice : openPrice - closePrice
         nb_points = parseFloat(nb_points.toFixed(2))
 
         const netProfit = profit - commission;
 
         const trade: TradesImport = {
-            extendId: "-" + tradeId,
+            extendId,
             openDate: date1,
             closeDate: date2,
             symbol,

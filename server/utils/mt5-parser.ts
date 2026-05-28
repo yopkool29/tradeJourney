@@ -71,6 +71,11 @@ export function parseMT5Xls(
     if (positionsRowIdx === -1 || ordersRowIdx === -1 || ordersRowIdx <= positionsRowIdx)
         return null;
     const trades: TradesImport[] = [];
+    
+    // Track daily counter per account - reset to 1 each day
+    let currentDateStr = '';
+    let dailyCounter = 0;
+    
     for (let i = positionsRowIdx + 2; i < ordersRowIdx; i++) {
         const row = rows[i];
         if (!row || typeof row[0] !== 'string' || row[0].trim() === '') break;
@@ -101,9 +106,28 @@ export function parseMT5Xls(
         const grossProfit = round(profitFromMT5 - commissionValue, 2);
         const netProfit = round(profitFromMT5, 2);
 
+        // Parse dates
+        const parsedOpenDate = parseMT5Date(openTime, effectiveImportMode, effectiveTimezone);
+        const parsedCloseDate = parseMT5Date(closeTime, effectiveImportMode, effectiveTimezone);
+        
+        // Get date string for daily counter tracking
+        const tradeDate = DateTime.fromJSDate(parsedOpenDate).toISODate() || ''
+        
+        // Check if we need to reset counter for new day
+        if (tradeDate !== currentDateStr) {
+            currentDateStr = tradeDate;
+            dailyCounter = 1;
+        } else {
+            dailyCounter++;
+        }
+        
+        // Generate extendId with daily counter (resets to 1 each day)
+        const extendId = `-${dailyCounter}`;
+
         const trade: TradesImport = {
-            openDate: parseMT5Date(openTime, effectiveImportMode, effectiveTimezone),
-            closeDate: parseMT5Date(closeTime, effectiveImportMode, effectiveTimezone),
+            extendId,
+            openDate: parsedOpenDate,
+            closeDate: parsedCloseDate,
             symbol: symbol.trim(),
             type: (type || '').toLowerCase() as 'buy' | 'sell',
             lot: parseFloat((volume || '0').toString().replace(',', '.')),
