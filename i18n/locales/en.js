@@ -182,6 +182,7 @@ export default {
             convert: 'Convert',
             save: 'Save',
             save_and_close: 'Save & Close',
+            refresh: 'Refresh',
             cancel: 'Cancel',
             delete: 'Delete',
             confirm: 'Confirm',
@@ -457,7 +458,6 @@ export default {
             },
             list: {
                 title: 'Available Backups',
-                refresh: 'Refresh',
                 empty: {
                     title: 'No backups available',
                     description: 'Create your first backup to get started',

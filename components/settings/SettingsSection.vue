@@ -10,9 +10,12 @@
 						icon="i-lucide-refresh-cw"
 						size="xs"
 						variant="ghost"
+						color="neutral"
 						:loading="loading"
 						@click="onRefresh"
-					/>
+						>
+						{{ $t('common.actions.refresh') }}
+					</UButton>
 				</div>
 			</div>
 		</template>

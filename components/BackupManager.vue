@@ -60,7 +60,7 @@
                         <template #leading>
                             <UIcon name="i-heroicons-arrow-path" class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
                         </template>
-                        {{ $t('components.backup_manager.list.refresh') }}
+                        {{ $t('common.actions.refresh') }}
                     </UButton>
                 </div>
             </template>

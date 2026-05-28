@@ -188,6 +188,7 @@ export default {
             convert: 'Convertir',
             save: 'Enregistrer',
             save_and_close: 'Enregistrer & Quitter',
+            refresh: 'Actualiser',
             cancel: 'Annuler',
             delete: 'Supprimer',
             confirm: 'Confirmer',
@@ -432,7 +433,6 @@ export default {
             },
             list: {
                 title: 'Sauvegardes disponibles',
-                refresh: 'Actualiser',
                 empty: {
                     title: 'Aucune sauvegarde disponible',
                     description:
