@@ -1038,7 +1038,7 @@ export default {
 
                 account: {
                     label: 'Account',
-                    help: 'Account on which the position was executed',
+                    help: 'Account on which the trade was executed',
                     placeholder: 'Select an account',
                 },
                 openDate: {
@@ -1114,6 +1114,7 @@ export default {
                 clear_note_confirm: 'Are you sure you want to clear this note?',
                 fullscreen: 'Fullscreen',
                 exit_fullscreen: 'Exit fullscreen',
+                image_viewer_title: 'Image viewer',
             },
             notePicker: {
                 title: 'Select a note to associate',
@@ -1134,7 +1135,7 @@ export default {
                     all: 'All accounts',
                     selected: '{count} account(s) selected',
                 },
-                show_inactive: 'Show inactive trades',
+                show_inactive: 'Inactive trades',
                 detailed_note: 'Detailed note',
                 show_detailed_note: 'Detailed notes',
                 advanced_filters: {

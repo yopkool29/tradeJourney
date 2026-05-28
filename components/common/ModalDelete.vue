@@ -1,5 +1,6 @@
 <template>
-    <UModal v-model:open="open" :dismissible="true" :title="modalTitle" :description="modalTitle">
+    <UModal v-model:open="open" :dismissible="true" :title="modalTitle" :description="modalDescription"
+        :ui="{ description: props.hideDescription ? 'sr-only' : undefined }">
         <slot name="trigger" />
 
         <template #body>
@@ -45,6 +46,14 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    description: {
+        type: String,
+        default: '',
+    },
+    hideDescription: {
+        type: Boolean,
+        default: true,
+    },
     confirmText: {
         type: String,
         default: '',
@@ -73,6 +82,7 @@ const emit = defineEmits<{
 
 // Computed properties pour les textes traduits
 const modalTitle = computed(() => (props.title ? props.title : t('components.modal_delete.title')))
+const modalDescription = computed(() => (props.description ? props.description : modalTitle.value))
 const modalConfirmText = computed(() => (props.confirmText ? props.confirmText : t('common.actions.confirm')))
 const modalCancelText = computed(() => (props.cancelText ? props.cancelText : t('common.actions.cancel')))
 

@@ -1,5 +1,11 @@
 <template>
-    <UModal v-model:open="open" description="Screenshots" :ui="{ content: 'md:max-w-full' }">
+    <UModal v-model:open="open" :ui="{ content: 'md:max-w-full' }">
+        <template #title>
+            <span class="sr-only">{{ $t('components.trade.noteEditor.image_viewer_title', 'Visionneuse d\'images') }}</span>
+        </template>
+        <template #description>
+            <span class="sr-only">{{ screenshots.length }} {{ screenshots.length > 1 ? 'images' : 'image' }}</span>
+        </template>
         <template #body>
             <div class="mb-4 text-left ml-10 text-sm text-gray-600 dark:text-gray-400">
                 {{ screenshots.length }} {{ screenshots.length > 1 ? 'images' : 'image' }}

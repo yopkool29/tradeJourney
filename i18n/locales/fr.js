@@ -1056,7 +1056,7 @@ export default {
 
                 account: {
                     label: 'Compte',
-                    help: 'Compte sur lequel a été effectuée la position',
+                    help: 'Compte sur lequel a été effectuée le trade',
                     placeholder: 'Sélectionnez un compte',
                 },
                 openDate: {
@@ -1134,6 +1134,7 @@ export default {
                 clear_note_confirm: 'Êtes-vous sûr de vouloir effacer cette note ?',
                 fullscreen: 'Plein écran',
                 exit_fullscreen: 'Quitter le plein écran',
+                image_viewer_title: 'Visionneuse d\'images',
             },
             notePicker: {
                 title: 'Sélectionner une note à associer',
@@ -1154,7 +1155,7 @@ export default {
                     all: 'Tous les comptes',
                     selected: '{count} compte(s) sélectionné(s)',
                 },
-                show_inactive: 'Montrer les trades inactifs',
+                show_inactive: 'Trades inactifs',
                 detailed_note: 'Note détaillée',
                 show_detailed_note: 'Notes détaillées',
                 advanced_filters: {

@@ -1,5 +1,10 @@
 <template>
-    <UModal v-model:open="open" :dismissible="dismissible" :title="title" :description="description || undefined" :class="class" :ui="ui">
+    <UModal v-model:open="open" :dismissible="dismissible" :description="modalDescription" :class="class"
+        :ui="{ ...ui, description: hideDescription ? 'sr-only' : undefined }">
+        <template #title>
+            <span v-if="!title" class="sr-only">{{ $t('common.modal.default_title', 'Dialog') }}</span>
+            <template v-else>{{ title }}</template>
+        </template>
 
         <slot name="trigger" />
 
@@ -14,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
     title: {
         type: String,
         default: '',
@@ -22,6 +27,10 @@ defineProps({
     description: {
         type: String,
         default: '',
+    },
+    hideDescription: {
+        type: Boolean,
+        default: true,
     },
     class: {
         type: String,
@@ -36,6 +45,8 @@ defineProps({
         default: true,
     }
 })
+
+const modalDescription = computed(() => (props.description ? props.description : props.title))
 
 const open = defineModel<boolean>('open')
 
