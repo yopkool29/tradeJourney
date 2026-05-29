@@ -37,11 +37,11 @@ export default defineEventHandler(async (event) => {
 
     return new Promise((resolve, reject) => {
         form.parse(event.node.req, async (err, fields, files) => {
-            if (err) return reject({ statusCode: 400, message: "Erreur lors de l'upload." })
+            if (err) return reject({ statusCode: 400, message: "Error during upload." })
 
             const tradeId = fields.tradeId?.[0]
             if (!tradeId) {
-                return reject({ statusCode: 400, message: 'tradeId manquant.' })
+                return reject({ statusCode: 400, message: 'Missing tradeId.' })
             }
 
             // Get database connection
@@ -53,13 +53,13 @@ export default defineEventHandler(async (event) => {
             })
 
             if (!trade) {
-                return reject({ statusCode: 404, message: 'Trade non trouvé' })
+                return reject({ statusCode: 404, message: 'Trade not found' })
             }
 
             // Gérer les fichiers (peut être un seul ou plusieurs)
             let screenshots = files.screenshots
             if (!screenshots) {
-                return reject({ statusCode: 400, message: 'Aucun fichier fourni.' })
+                return reject({ statusCode: 400, message: 'No file provided.' })
             }
 
             // Traiter les fichiers et mettre à jour la base de données
@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
             // Plusieurs fichiers
             for (const file of screenshots) {
                 if (file.size > MAX_FILE_SIZE) {
-                    throw { statusCode: 400, statusMessage: 'Fichier trop volumineux' }
+                    throw { statusCode: 400, statusMessage: 'File too large' }
                 }
                 const filename = path.basename(file.newFilename || file.filepath)
                 screenshotUrls.push(`screenshots/${filename}`)

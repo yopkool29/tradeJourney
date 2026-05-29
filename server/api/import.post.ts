@@ -126,7 +126,7 @@ const processTrades = async (
     instrumentType: InstrumentType = InstrumentType.Any
 ) => {
     if (!parsedTrades) {
-        throw { statusCode: 400, message: 'Fichier invalide.' }
+        throw { statusCode: 400, message: 'Invalid file.' }
     }
 
     // Extraire userId et dbName depuis le contexte
@@ -306,7 +306,7 @@ export default defineEventHandler(async (event) => {
         }
         form.parse(event.node.req, async (err, fields, files) => {
             if (err)
-                return reject({ statusCode: 400, message: "Erreur lors de l'upload." })
+                return reject({ statusCode: 400, message: "Error during upload." })
 
             try {
                 const reportType = fields.reportType![0];
@@ -314,7 +314,7 @@ export default defineEventHandler(async (event) => {
                 const timezone = fields.timezone?.[0];
 
                 if (!timezone || !isTimezoneInput(timezone)) {
-                    throw { statusCode: 400, message: `Format de timezone invalide ou manquant: ${timezone}` };
+                    throw { statusCode: 400, message: `Invalid or missing timezone format: ${timezone}` };
                 }
                 const keepExistingTrades = fields.keepExistingTrades![0] === 'true';
                 const instrumentType = (fields.instrumentType?.[0] || InstrumentType.Any) as InstrumentType;
@@ -329,14 +329,14 @@ export default defineEventHandler(async (event) => {
                 const realFile = Array.isArray(fileList) ? fileList[0] : fileList;
 
                 if (!realFile?.filepath)
-                    throw { statusCode: 400, message: 'Fichier manquant.' };
+                    throw { statusCode: 400, message: 'Missing file.' };
 
                 if (!existsSync(realFile.filepath)) {
-                    throw { statusCode: 400, message: 'Fichier temporaire introuvable.' };
+                    throw { statusCode: 400, message: 'Temporary file not found.' };
                 }
 
                 if (realFile.size > MAX_FILE_SIZE) {
-                    throw { statusCode: 400, statusMessage: 'Fichier trop volumineux' }
+                    throw { statusCode: 400, statusMessage: 'File too large' }
                 }
 
                 let countUpdated = 0
@@ -354,7 +354,7 @@ export default defineEventHandler(async (event) => {
                     const mt5Trades = parseMT5Xls(rows, timezone, importMode, accountTimezones)
 
                     if (!mt5Trades) {
-                        throw { statusCode: 400, message: 'Format de fichier MT5 invalide. Impossible de trouver les informations du compte.' };
+                        throw { statusCode: 400, message: 'Invalid MT5 file format. Could not find account information.' };
                     }
 
                     // Traiter les trades MT5
@@ -383,8 +383,8 @@ export default defineEventHandler(async (event) => {
                             await updateSymbols(event, accountTrades.trades, 10, 2);
                             // await updateFuturesTradesProfit(accountTrades.trades);
                         } catch (error) {
-                            console.error(`Erreur lors du traitement du compte ${accountTrades.accountInfo.name}:`, error)
-                            // On continue avec les autres comptes même en cas d'erreur
+                            console.error(`Error processing account ${accountTrades.accountInfo.name}:`, error)
+                            // Continue with other accounts even on error
                             countDiscard += accountTrades.trades.length
                         }
                     }
@@ -403,8 +403,8 @@ export default defineEventHandler(async (event) => {
                             // Mettre à jour les symboles pour ce compte
                             await updateSymbols(event, accountTrades.trades, 5, 2);
                         } catch (error) {
-                            console.error(`Erreur lors du traitement du compte ${accountTrades.accountInfo.name}:`, error)
-                            // On continue avec les autres comptes même en cas d'erreur
+                            console.error(`Error processing account ${accountTrades.accountInfo.name}:`, error)
+                            // Continue with other accounts even on error
                             countDiscard += accountTrades.trades.length
                         }
                     }
@@ -423,8 +423,8 @@ export default defineEventHandler(async (event) => {
                             // Mettre à jour les symboles pour ce compte
                             await updateSymbols(event, accountTrades.trades, 1, 3);
                         } catch (error) {
-                            console.error(`Erreur lors du traitement du compte ${accountTrades.accountInfo.name}:`, error)
-                            // On continue avec les autres comptes même en cas d'erreur
+                            console.error(`Error processing account ${accountTrades.accountInfo.name}:`, error)
+                            // Continue with other accounts even on error
                             countDiscard += accountTrades.trades.length
                         }
                     }
@@ -449,8 +449,8 @@ export default defineEventHandler(async (event) => {
                             // Mettre à jour les symboles pour ce compte
                             await updateSymbols(event, accountTrades.trades, 1, 3);
                         } catch (error) {
-                            console.error(`Erreur lors du traitement du compte ${accountTrades.accountInfo.name}:`, error)
-                            // On continue avec les autres comptes même en cas d'erreur
+                            console.error(`Error processing account ${accountTrades.accountInfo.name}:`, error)
+                            // Continue with other accounts even on error
                             countDiscard += accountTrades.trades.length
                         }
                     }
@@ -458,7 +458,7 @@ export default defineEventHandler(async (event) => {
 
                 resolve({
                     success: true,
-                    message: `Importation réussie - ${countUpdated} trades mis à jour, ${countDiscard} ignorés`,
+                    message: `Import successful - ${countUpdated} trades updated, ${countDiscard} ignored`,
                     countUpdated,
                     countDiscard
                 })

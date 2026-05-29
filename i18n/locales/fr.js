@@ -634,6 +634,7 @@ export default {
                 cumulated_label: 'Cumulé',
                 mobile_avg_label: 'Moyenne mobile',
                 quick_metrics: 'Métriques rapides',
+                set_history_range: 'Définir la plage de l\'historique',
             },
             all_trades: {
                 title: 'TOUS LES TRADES',

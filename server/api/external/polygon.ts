@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     throw createError({
       statusCode: 500,
-      message: 'Erreur Polygon API'
+      message: 'Polygon API error'
     } as ErrorResponse)
   }
 })

@@ -213,7 +213,7 @@ export default defineEventHandler(async (event) => {
 
         throw createAppError({
             statusCode: 500,
-            message: 'Erreur lors de la récupération des trades',
+            message: 'Error while retrieving trades',
             tag: 'api.trades.get.error',
             error
         })

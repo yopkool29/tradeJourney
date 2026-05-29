@@ -101,15 +101,15 @@ export default defineEventHandler(async (event) => {
 				notes: dryRun ? noteDetails : undefined
 			},
 			message: dryRun
-				? `${tradesUpdated} trade(s) et ${notesUpdated} note(s) à migrer`
-				: `${tradesUpdated} trade(s) et ${notesUpdated} note(s) migré(s)`
+				? `${tradesUpdated} trade(s) and ${notesUpdated} note(s) to migrate`
+				: `${tradesUpdated} trade(s) and ${notesUpdated} note(s) migrated`
 		}
 	} catch (error: unknown) {
-		console.error('Erreur lors de la migration des URLs:', error)
+		console.error('Error while migrating URLs:', error)
 		const err = error as { message?: string }
 		throw createAppError({
 			statusCode: 500,
-			message: err.message || 'Erreur lors de la migration des URLs',
+			message: err.message || 'Error while migrating URLs',
 			error
 		})
 	}

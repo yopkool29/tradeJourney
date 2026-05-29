@@ -623,6 +623,7 @@ export default {
                 cumulated_label: 'Cumulated',
                 mobile_avg_label: 'Mobile Average',
                 quick_metrics: 'Quick Metrics',
+                set_history_range: 'Set history date range',
             },
             all_trades: {
                 title: 'ALL TRADES',

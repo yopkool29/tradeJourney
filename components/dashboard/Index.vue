@@ -28,6 +28,10 @@
                                 :placeholder="$t('components.dashboard.index.period')"/>
                             <UInput v-model="startDateStr" type="date" class="date-input" />
                             <UInput v-model="endDateStr" type="date" class="date-input" />
+                            <UButton icon="i-lucide-calendar-clock" size="xs" variant="ghost" color="neutral"
+                                :title="$t('components.dashboard.index.set_history_range')"
+                                :loading="fetchingDateRange"
+                                @click="setHistoryDateRange" />
                         </div>
                         <!-- Ligne d'options avancées -->
                         <div class="">
@@ -337,6 +341,32 @@ const endDateStr = computed({
         }
     },
 })
+
+const fetchingDateRange = ref(false)
+
+const setHistoryDateRange = async () => {
+    fetchingDateRange.value = true
+    try {
+        const result = await $fetch('/api/trades/date-range', {
+            query: {
+                accountIds: JSON.stringify(userStore.dashBoardFilters.accountIds)
+            }
+        })
+
+        if (result.minDate && result.maxDate) {
+            userStore.dashBoardFilters.startDate = new Date(result.minDate)
+            userStore.dashBoardFilters.endDate = new Date(result.maxDate)
+            userStore.dashBoardFilters.customStartDate = new Date(result.minDate)
+            userStore.dashBoardFilters.customEndDate = new Date(result.maxDate)
+            userStore.dashBoardFilters.period = 'custom'
+            await onApplyFiltersDebounced()
+        }
+    } catch (error) {
+        console.error('Error fetching date range:', error)
+    } finally {
+        fetchingDateRange.value = false
+    }
+}
 
 const { filterLoading, load: onApplyFilters, loadDebounced: onApplyFiltersDebounced } = usePageDataManager({
     fetchFn: () => fetchData(

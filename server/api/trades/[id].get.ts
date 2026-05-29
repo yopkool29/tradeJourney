@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
         const id = parseInt(event.context.params?.id || '')
         
         if (isNaN(id)) {
-            throw createAppError({ statusCode: 400, message: 'ID invalide' })
+            throw createAppError({ statusCode: 400, message: 'Invalid trade ID' })
         }
 
         // Récupérer le trade

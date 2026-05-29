@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
             return {
                 success: true,
                 updated: 0,
-                message: 'Aucune commission négative trouvée'
+                message: 'No negative commissions found'
             }
         }
 
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
             return {
                 success: true,
                 updated: 0,
-                message: 'Aucune commission négative trouvée'
+                message: 'No negative commissions found'
             }
         }
 
@@ -59,14 +59,14 @@ export default defineEventHandler(async (event) => {
         return {
             success: true,
             updated: updatedCount,
-            message: `${updatedCount} trade(s) corrigé(s)`
+            message: `${updatedCount} trade(s) corrected`
         }
     } catch (error: unknown) {
-        console.error('Erreur lors de la correction des commissions:', error)
+        console.error('Error while correcting commissions:', error)
         const err = error as { message?: string }
         throw createAppError({
             statusCode: 500,
-            message: err.message || 'Erreur lors de la correction des commissions',
+            message: err.message || 'Error while correcting commissions',
             error
         })
     }
