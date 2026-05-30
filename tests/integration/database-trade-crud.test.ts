@@ -1,78 +1,28 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { CreateTradeType, TradeType } from '~/schema/trade'
 import type { CreateAccountType, AccountType } from '~/schema/account'
-import type { Database } from '~/composables/useDatabase'
 import { InstrumentType } from '~/type'
 import {
-	checkServerRunning,
-	loginTestUser,
-	generateTestDbName,
-	cleanupOldTestDatabases,
 	deleteTestDatabase,
 	updateSessionCookie,
 	BASE_URL,
 	TEST_USER_PASSWORD
 } from './utils/test-helpers'
+import { acquireTestDatabase, releaseTestDatabase } from './utils/test-database'
 
 describe('Database Integration - Trade CRUD', () => {
-    let testDbName: string
     let testDbId: number
     let testAccount: AccountType | null = null
     let createdTrade: TradeType | null = null
 
     beforeAll(async () => {
-        // Check if server is running
-        await checkServerRunning()
-
-        // Login test user via API and capture session cookie
-        const loginResult = await loginTestUser()
-
-        // Initialize user store with logged in user
-        const userStore = useUserStore()
-        
-        userStore.setUser(loginResult)
-
-        // Cleanup: Delete any leftover test databases from previous runs
-        await cleanupOldTestDatabases()
-    })
+        const db = await acquireTestDatabase()
+        testDbId = db.id
+    }, 30000)
 
     afterAll(async () => {
-        // Guaranteed cleanup of test database even if tests fail
-        await deleteTestDatabase(testDbId)
+        await releaseTestDatabase(testDbId)
     })
-
-    it('should create a test database', async () => {
-        const { createDatabase } = useDatabase()
-
-        testDbName = generateTestDbName()
-        const result = await createDatabase(testDbName, `Test DB ${testDbName}`) as Database
-
-        expect(result).toBeDefined()
-        expect(result.name).toBe(testDbName)
-        expect(result.id).toBeDefined()
-
-        testDbId = result.id
-
-        // Select database and capture the updated JWT cookie
-        const selectResp = await $fetch.raw(`${BASE_URL}/api/database/select`, {
-            method: 'POST',
-            body: { databaseId: testDbId }
-        })
-
-        const newCookie = selectResp.headers.get('set-cookie')
-        if (newCookie) {
-            updateSessionCookie(newCookie.split(';')[0])
-            console.log('Updated session cookie with database ID')
-        }
-
-        // Wait for schema initialization to complete (this can take 10-20 seconds)
-        console.log('Waiting for database schema to be ready...')
-        await new Promise(r => setTimeout(r, 15000))
-
-        // Now fetch tags manually
-        const { fetchGroups } = useTags()
-        await fetchGroups()
-    }, 30000)
 
     it('should create a test account', async () => {
         const { createAccount } = useAccount()
