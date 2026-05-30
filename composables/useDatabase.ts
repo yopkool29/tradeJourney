@@ -1,4 +1,4 @@
-interface Database {
+export interface Database {
     id: number
     name: string
     displayName: string
@@ -59,22 +59,23 @@ export const useDatabase = () => {
         }
     }
 
-    const selectDatabase = async (databaseId: number) => {
+    const selectDatabase = async (databaseId: number, skipTags = false) => {
         try {
             const data = await $fetch('/api/database/select', {
                 method: 'POST',
                 body: { databaseId }
             })
-            
+
             currentDatabase.value = data
 
             reloadActivePlugins()
-            
-            // Charger les tags de la nouvelle base de données
-            const { fetchGroups } = useTags()
 
-            await fetchGroups()
-            
+            // Charger les tags de la nouvelle base de données (sauf si skipTags=true)
+            if (!skipTags) {
+                const { fetchGroups } = useTags()
+                await fetchGroups()
+            }
+
             return data
         } catch (error) {
             console.error('Failed to select database:', error)

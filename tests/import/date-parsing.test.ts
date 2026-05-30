@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseISO8601Date, ImportMode } from '../utils/date-utils'
+import { parseISO8601Date, ImportMode } from '../../utils/date-utils'
 
 describe('parseISO8601Date - Standard CSV Date Parsing', () => {
     // Date de test : 2026-01-27T07:00:00.000Z (7h UTC)

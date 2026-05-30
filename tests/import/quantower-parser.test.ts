@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { parseQuantowerExecutions } from '../server/utils/quantower-parser'
+import { parseQuantowerExecutions } from '../../server/utils/quantower-parser'
 import { readFileSync } from 'fs'
-import { ImportMode, formatDate } from '../utils/date-utils'
+import { ImportMode, formatDate } from '../../utils/date-utils'
 
 // Chemin vers le fichier CSV Quantower
-const filePath = __dirname + '/../data/tests/quantower-trades.csv'
+const filePath = __dirname + '/../../data/tests/quantower-trades.csv'
 
 // Lire le fichier CSV
 const csvContent = readFileSync(filePath, 'utf-8')

@@ -180,6 +180,12 @@
                     <!-- Actions - aligné avec Symbole -->
                     <div class="flex gap-2 items-center" style="margin-left: 80px;">
                         <span class="text-sm font-semibold text-gray-900 dark:text-white mr-2" :class="{ 'opacity-50': !row.original.active }">→</span>
+                        <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
+                            :text="$t('components.common.actions.clear_notes_tags')">
+                            <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
+                                :disabled="row.original.active === false"
+                                @click="emit('clear-tags', row.original)" />
+                        </UTooltip>
                         <UTooltip :text="$t('components.daily.trade_group.view_details')">
                             <UButton icon="i-heroicons-eye" size="xs" color="neutral" variant="ghost"
                                 :disabled="row.original.active === false"
@@ -192,12 +198,6 @@
                             <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
                                 :disabled="row.original.active === false"
                                 @click="emit('open-tag-modal', row.original)" />
-                        </UTooltip>
-                        <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
-                            :text="$t('components.common.actions.clear_notes_tags')">
-                            <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
-                                :disabled="row.original.active === false"
-                                @click="emit('clear-tags', row.original)" />
                         </UTooltip>
                         <UTooltip :text="$t('components.trade.noteEditor.label')">
                             <UButton icon="i-heroicons-document-text" color="primary" variant="ghost" size="xs"

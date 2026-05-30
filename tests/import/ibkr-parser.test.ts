@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { parseIBKRTrades } from '../server/utils/ibkr-parser'
+import { parseIBKRTrades } from '../../server/utils/ibkr-parser'
 import { readFileSync } from 'fs'
 import path from 'path'
-import { formatDate, ImportMode } from '../utils/date-utils'
+import { formatDate, ImportMode } from '../../utils/date-utils'
 
-const filePath = path.resolve(__dirname, '../data/tests/ibkr-flex-results.csv')
+const filePath = path.resolve(__dirname, '../../data/tests/ibkr-flex-results.csv')
 const csvContent = readFileSync(filePath, 'utf-8')
 
 // Parser le CSV IBKR avec timezone America/New_York (NASDAQ)

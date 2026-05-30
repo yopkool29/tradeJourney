@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { parseMT5Xls } from '../server/utils/mt5-parser'
-import type { MT5XlsRawRow } from '../server/utils/mt5-parser'
+import { parseMT5Xls } from '../../server/utils/mt5-parser'
+import type { MT5XlsRawRow } from '../../server/utils/mt5-parser'
 import * as XLSX from 'xlsx'
 import path from 'path'
-import { formatDate, ImportMode } from '../utils/date-utils';
+import { formatDate, ImportMode } from '../../utils/date-utils';
 
-const filePath = path.resolve(__dirname, '../data/tests/mt5-report-3000078208.xlsx')
+const filePath = path.resolve(__dirname, '../../data/tests/mt5-report-3000078208.xlsx')
 const workbook = XLSX.readFile(filePath)
 const sheetName = workbook.SheetNames[0]
 const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 }) as MT5XlsRawRow[]

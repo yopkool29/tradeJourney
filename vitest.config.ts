@@ -9,6 +9,9 @@ export default defineVitestConfig({
             nuxt: {
                 rootDir: fileURLToPath(new URL('./', import.meta.url)),
                 domEnvironment: 'happy-dom',
+                mock: {
+                    localStorage: true
+                }
             }
         },
         setupFiles: ['./tests/setup.ts']
