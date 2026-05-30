@@ -1,6 +1,6 @@
 <template>
     <CommonModalDefault v-model:open="isOpen" :hideDescription="false" :description="trade?.uniqueId || ''" :title="$t('components.daily.trade_group.trade_details')"
-        :ui="{ content: 'max-w-2xl' }">
+        :ui="{ content: 'max-w-6xl' }">
         <template #content>
             <div v-if="trade" class="space-y-4">
                 <div class="grid grid-cols-3 gap-4">
