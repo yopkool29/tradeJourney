@@ -223,7 +223,7 @@ const currentScreenshots = ref<Array<{ id?: number; url: string }>>([])
 // État pour gérer l'activation/désactivation groupée
 const showBulkActivateModal = ref(false)
 const showBulkDeactivateModal = ref(false)
-const { tagGroups } = useTags()
+const { tagGroups, fetchGroups } = useTags()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -756,6 +756,7 @@ const onApplyFiltersDebounced = useDebounce(onApplyFilters, 200, { leading: true
 
 onMounted(() => {
     fetchAccounts()
+    fetchGroups()
     onApplyFiltersDebounced()
 })
 

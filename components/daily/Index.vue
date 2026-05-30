@@ -81,7 +81,7 @@ const showDialog = ref(false)
 const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
-const { tagGroups } = useTags()
+const { tagGroups, fetchGroups } = useTags()
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 
@@ -337,6 +337,7 @@ onMounted(async () => {
 
         await fetchSymbols()
         await fetchAccounts()
+        await fetchGroups()
 
         // Déterminer si on doit forcer le chargement des données
         const needForceCalendar = dailyLastTrades.value.length === 0

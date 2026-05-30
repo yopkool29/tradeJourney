@@ -23,7 +23,8 @@ export const useTrades = () => {
             trades.value = z.array(TradeExtendedShema).parse(result)
 
             return trades.value
-        } catch {
+        } catch (error) {
+            console.error('fetchTrades error:', error)
             return []
         } finally {
             loading.value = false

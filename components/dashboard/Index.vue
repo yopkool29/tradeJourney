@@ -163,7 +163,7 @@ const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult, clearLastTrades } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
-const { tagGroups } = useTags()
+const { tagGroups, fetchGroups } = useTags()
 const chartsReady = ref(false)
 const chartsCanRender = ref(false)
 const { t, locale } = useI18n()
@@ -398,7 +398,10 @@ onMounted(async () => {
         if (settings?.autoDataSync)
             filterLoading.value = true
 
-        await fetchAccounts()
+        await Promise.all([
+            fetchAccounts(),
+            fetchGroups()
+        ])
 
         // Fetch les données seulement si le tableau est vide, ou si un refresh est requis (ex: changement de DB)
         if (dashBoardLastTrades.value.length === 0 || userStore.shouldRefreshData()) {

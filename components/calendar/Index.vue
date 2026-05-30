@@ -175,7 +175,7 @@ type WeekData = {
 
 const { accounts, calendarLastTrades, fetchAccounts, fetchData, clearLastTrades } = useDailyHistory('calendarFilters')
 const { fetchDayTags } = useDayTags()
-const { tagGroups } = useTags()
+const { tagGroups, fetchGroups } = useTags()
 
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
@@ -531,7 +531,8 @@ onMounted(async () => {
 
         await Promise.all([
             fetchAccounts(),
-            fetchDayTags(selectedMonth.value)
+            fetchDayTags(selectedMonth.value),
+            fetchGroups()
         ])
 
         // Initialiser calendarValue avec le mois sélectionné

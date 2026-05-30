@@ -18,16 +18,16 @@ export default defineEventHandler(async (event) => {
         const result = await prisma.trade.aggregate({
             where,
             _min: {
-                openDate: true
+                closeDate: true
             },
             _max: {
-                openDate: true
+                closeDate: true
             }
         })
 
         return {
-            minDate: result._min.openDate,
-            maxDate: result._max.openDate
+            minDate: result._min.closeDate,
+            maxDate: result._max.closeDate
         }
     } catch (error) {
         throw createAppError({

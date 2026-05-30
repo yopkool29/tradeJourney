@@ -224,21 +224,24 @@ const processTrades = async (
                 console.log(`✓ Trade created: ${parsedTrade.symbol} ${parsedTrade.type} ${parsedTrade.lot} @ ${parsedTrade.openDate.toISOString()}`)
                 countUpdated++
             } else {
-                // Trade existe déjà : remplacer les tags par ceux de l'import
-                // Supprimer tous les tags existants du trade
-                await dataDb.tradeTagAssociation.deleteMany({
-                    where: { tradeId: existingTrade.id }
-                })
-
-                // Créer les nouveaux tags (si spécifiés)
-                if (tradeTagIds.length > 0) {
-                    await dataDb.tradeTagAssociation.createMany({
-                        data: tradeTagIds.map(tagId => ({
-                            tradeId: existingTrade.id,
-                            tagId
-                        })),
-                        skipDuplicates: true
+                // Trade existe déjà
+                if (!keepExistingTrades) {
+                    // Seulement si on n'ecrase pas les trades existants, on remplace les tags
+                    // Supprimer tous les tags existants du trade
+                    await dataDb.tradeTagAssociation.deleteMany({
+                        where: { tradeId: existingTrade.id }
                     })
+
+                    // Créer les nouveaux tags (si spécifiés)
+                    if (tradeTagIds.length > 0) {
+                        await dataDb.tradeTagAssociation.createMany({
+                            data: tradeTagIds.map(tagId => ({
+                                tradeId: existingTrade.id,
+                                tagId
+                            })),
+                            skipDuplicates: true
+                        })
+                    }
                 }
                 console.log(`⊗ Trade already exists (discarded): ${parsedTrade.symbol} ${parsedTrade.type} ${parsedTrade.lot} @ ${parsedTrade.openDate.toISOString()}`)
                 countDiscard++

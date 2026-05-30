@@ -223,8 +223,8 @@ export const NoteTagIdsSchema = NoteTagIdsBaseSchema.refine(
 export type NoteTagIdsType = z.infer<typeof NoteTagIdsSchema>
 
 export const TradeExtendedShema = TradeSchema.extend({
-    tags: z.array(TagSchema),
-    account_displayName: z.string(),
+    tags: z.array(TagSchema).optional().default([]),
+    account_displayName: z.string().optional().default(''),
     uniqueId: z.string().optional()
 })
 
