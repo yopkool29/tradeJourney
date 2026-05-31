@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
         const parsed = UpdateTradeSchema.parse(body)
 
         // Extraire l'ID et isoler les données à mettre à jour
-        const { id: _, screenshots, metadata: incomingMetadata, detailedNote, ...restData } = parsed
+        const { id: _, screenshots, metadata: incomingMetadata, detailedNote, accountId, ...restData } = parsed
 
         // Merge metadata with existing values to avoid overwriting option fields
         const existingMetadata: Record<string, unknown> = existing.metadata
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
         }
 
         type PrismaUpdateInput = typeof restData & {
-            metadata?: Record<string, unknown> | null;
+            metadata?: any;
             screenshots?: {
                 deleteMany: Record<string, unknown>;
                 create?: Array<{ url: string }>;
@@ -129,7 +129,8 @@ export default defineEventHandler(async (event) => {
         // Mise à jour partielle du trade (seulement s'il est actif)
         const trade = await prisma.trade.update({
             where: { id, active: true },
-            data: updateData
+            data: updateData,
+            include: { screenshots: true }
         }).catch((error) => {
             if (error.code === 'P2025') {
                 throw createAppError({

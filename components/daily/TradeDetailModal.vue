@@ -133,25 +133,22 @@
                         </UBadge>
                     </div>
                 </div>
+                <div v-if="allScreenshots.length > 0" @click.stop>
+                    <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots')
+                        }}</span>
+                    <ScreenshotManager
+                        :model-value="allScreenshots as any"
+                        :readonly="true"
+                        :max-image-width="128"
+                        :max-image-height="128"
+                    />
+                </div>
                 <div v-if="detailedNote">
                     <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
                     <CommonNoteEditor
                         :model-value="detailedNote"
                         :readonly="true"
                     />
-                </div>
-                <div v-if="allScreenshots.length > 0">
-                    <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots')
-                        }}</span>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        <UTooltip :text="allScreenshots.length > 1
-                                ? $t('components.common.columns.screenshots.multiple', { count: allScreenshots.length })
-                                : $t('components.common.columns.screenshots.single')">
-                            <UButton variant="ghost" color="neutral" icon="i-heroicons-photo"
-                                class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors duration-200"
-                                @click="openScreenshotsModal(allScreenshots, 0)" />
-                        </UTooltip>
-                    </div>
                 </div>
             </div>
         </template>

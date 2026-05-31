@@ -25,7 +25,7 @@
 
                 <div class="screenshot-container">
                     <UFormField :label="$t('components.trade.tagModal.screenshots')" name="screenshots" class="text-base">
-                        <ScreenshotManager v-model="screenshots" :max-screenshots="3" :max-image-width="144" :max-image-height="96" />
+                        <ScreenshotManager v-model="screenshots" :max-image-width="144" :max-image-height="96" />
                     </UFormField>
                 </div>
             </UForm>

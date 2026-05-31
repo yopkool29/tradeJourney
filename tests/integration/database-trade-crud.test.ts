@@ -113,7 +113,9 @@ describe('Database Integration - Trade CRUD', () => {
             id: createdTrade.id,
             note: 'Updated note from integration test',
             profit: 150.0,
-            netProfit: 145.0
+            netProfit: 145.0,
+            detailedNote: 'Detailed analysis of the trade setup and execution',
+            screenshots: [{ url: 'https://example.com/test-screenshot.png' }]
         })
 
         expect(updatedTrade).toBeDefined()
@@ -121,6 +123,9 @@ describe('Database Integration - Trade CRUD', () => {
         expect(updatedTrade.note).toBe('Updated note from integration test')
         expect(updatedTrade.profit).toBe(150.0)
         expect(updatedTrade.netProfit).toBe(145.0)
+        expect(updatedTrade.screenshots).toBeDefined()
+        expect(updatedTrade.screenshots!.length).toBe(1)
+        expect(updatedTrade.screenshots![0].url).toBe('https://example.com/test-screenshot.png')
     })
 
     it('should fetch trades list and find our trade', async () => {
@@ -133,6 +138,10 @@ describe('Database Integration - Trade CRUD', () => {
 
         const foundTrade = trades.find(t => t.symbol === 'TEST_SYMBOL' && t.note === 'Updated note from integration test')
         expect(foundTrade).toBeDefined()
+        expect((foundTrade!.metadata as Record<string, unknown>)?.detailedNote).toBe('Detailed analysis of the trade setup and execution')
+        expect(foundTrade!.screenshots).toBeDefined()
+        expect(foundTrade!.screenshots!.length).toBe(1)
+        expect(foundTrade!.screenshots![0].url).toBe('https://example.com/test-screenshot.png')
     })
 
     it('should delete the trade', async () => {

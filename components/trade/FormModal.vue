@@ -103,7 +103,7 @@
                     </div>
                     <div class="screenshot-container">
                         <UFormField :label="$t('components.trade.formModal.screenshots.label')" name="screenshots" class="text-base">
-                            <ScreenshotManager v-model="screenshots" :max-screenshots="3" :max-image-width="320" :max-image-height="96" />
+                            <ScreenshotManager v-model="screenshots" :max-image-width="320" :max-image-height="96" />
                         </UFormField>
                     </div>
                 </UForm>

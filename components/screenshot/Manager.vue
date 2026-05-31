@@ -1,21 +1,21 @@
 <template>
     <div class="flex flex-col gap-y-2">
         <!-- Instructions -->
-        <div class="text-sm text-gray-600 font-semibold">
+        <div v-if="!readonly" class="text-sm text-gray-600 font-semibold">
             <p>{{ $t('components.screenshot.manager.instructions') }}</p>
-            <p class="mt-1">{{ $t('components.screenshot.manager.formats', { max: maxScreenshots }) }}</p>
+            <p class="mt-1">{{ $t('components.screenshot.manager.formats', { max: effectiveMaxScreenshots }) }}</p>
         </div>
 
-        <div class="flex gap-2">
+        <div v-if="!readonly" class="flex gap-2">
             <!-- Bouton pour coller depuis le presse-papiers -->
             <UButton
                 type="button"
                 color="primary"
                 variant="outline"
                 icon="i-heroicons-clipboard"
-                :disabled="screenshots.length >= maxScreenshots"
+                :disabled="screenshots.length >= effectiveMaxScreenshots"
                 :title="
-                    screenshots.length >= maxScreenshots ? $t('components.screenshot.manager.max_reached', { max: maxScreenshots }) : $t('components.screenshot.manager.paste_title')
+                    screenshots.length >= effectiveMaxScreenshots ? $t('components.screenshot.manager.max_reached', { max: effectiveMaxScreenshots }) : $t('components.screenshot.manager.paste_title')
                 "
                 class="flex-1 sm:flex-none"
                 @click="pasteFromClipboard"
@@ -29,7 +29,7 @@
                 type="file"
                 accept="image/*"
                 multiple
-                :disabled="screenshots.length >= maxScreenshots"
+                :disabled="screenshots.length >= effectiveMaxScreenshots"
                 class="flex-1"
                 @change="handleFileUpload"
             >
@@ -40,15 +40,15 @@
         </div>
 
         <!-- Info sur le nombre d'images -->
-        <div class="text-xs text-gray-500 mt-1">
-            {{ $t('components.screenshot.manager.image_count', { current: screenshots.length, max: maxScreenshots }) }}
-            <span v-if="screenshots.length >= maxScreenshots" class="text-amber-600 font-medium">{{ $t('components.screenshot.manager.max_reached_alert') }}</span>
+        <div v-if="!readonly" class="text-xs text-gray-500 mt-1">
+            {{ $t('components.screenshot.manager.image_count', { current: screenshots.length, max: effectiveMaxScreenshots }) }}
+            <span v-if="screenshots.length >= effectiveMaxScreenshots" class="text-amber-600 font-medium">{{ $t('components.screenshot.manager.max_reached_alert') }}</span>
         </div>
 
         <div class="flex flex-col gap-y-4">
             <!-- Affichage des fichiers sélectionnés (nouveaux et existants) -->
             <div v-if="screenshots.length > 0" class="mt-4">
-                <p class="text-sm font-medium mb-2">{{ $t('components.screenshot.manager.images_label', { current: screenshots.length, max: maxScreenshots }) }}</p>
+                <p class="text-sm font-medium mb-2">{{ $t('components.screenshot.manager.images_label', { current: screenshots.length, max: effectiveMaxScreenshots }) }}</p>
                 <div class="flex flex-wrap gap-3">
                     <div v-for="(screenshot, index) in screenshots" :key="index" class="relative">
                         <template v-if="screenshot.isNew">
@@ -70,6 +70,7 @@
                             />
                         </template>
                         <UButton
+                            v-if="!readonly"
                             class="absolute -top-2 -right-2 bg-orange-500 rounded-full w-6 h-6"
                             type="button"
                             icon="i-heroicons-trash"
@@ -115,12 +116,13 @@ const props = withDefaults(
         maxScreenshots?: number
         maxImageWidth?: number
         maxImageHeight?: number
+        readonly?: boolean
     }>(),
     {
         modelValue: () => [],
-        maxScreenshots: 3,
         maxImageWidth: 96,
         maxImageHeight: 96,
+        readonly: false,
     }
 )
 
@@ -130,6 +132,9 @@ const emit = defineEmits<{
 
 const { success: toastSuccess, error: toastError, warning: toastWarning } = useAppToast()
 
+const config = useRuntimeConfig()
+const effectiveMaxScreenshots = computed(() => props.maxScreenshots ?? config.public.maxScreenshots ?? 3)
+
 // Gestion de l'aperçu de l'image
 const isPreviewOpen = ref(false)
 const previewImageUrl = ref<ScreenshotItem | null>(null)
@@ -138,8 +143,8 @@ const previewImageUrl = ref<ScreenshotItem | null>(null)
 const pasteFromClipboard = async () => {
     try {
         // Vérifier si on peut ajouter plus d'images
-        if (screenshots.value.length >= props.maxScreenshots) {
-            toastWarning('Limite atteinte', `Vous ne pouvez pas ajouter plus de ${props.maxScreenshots} images`)
+        if (sharedScreenshots.value.length >= effectiveMaxScreenshots.value) {
+            toastWarning('Limite atteinte', `Vous ne pouvez pas ajouter plus de ${effectiveMaxScreenshots.value} images`)
             return
         }
 
@@ -156,14 +161,11 @@ const pasteFromClipboard = async () => {
 
                 // Ajouter le fichier à la liste des screenshots
                 const url = URL.createObjectURL(file)
-                screenshots.value.push({
+                sharedScreenshots.value.push({
                     url,
                     file,
                     isNew: true,
                 })
-
-                // Émettre la mise à jour
-                emit('update:modelValue', [...screenshots.value])
 
                 toastSuccess(t('components.screenshot.manager.toast_success_title'), t('components.screenshot.manager.toast_success_desc'))
 
@@ -193,8 +195,13 @@ onBeforeUnmount(() => {
 })
 
 const openPreview = (screenshot: ScreenshotItem) => {
-    previewImageUrl.value = screenshot
-    isPreviewOpen.value = true
+    if (previewImageUrl.value?.url === screenshot.url && isPreviewOpen.value) {
+        previewImageUrl.value = null
+        isPreviewOpen.value = false
+    } else {
+        previewImageUrl.value = screenshot
+        isPreviewOpen.value = true
+    }
 }
 
 // Vérifier si l'API Clipboard est disponible
@@ -204,11 +211,22 @@ onMounted(() => {
 })
 
 // Initialiser le composable avec état partagé
-const { screenshots, handleFileUpload, removeScreenshot, cleanup, maxScreenshots } = useSharedScreenshots(props.maxScreenshots)
+const { screenshots: sharedScreenshots, handleFileUpload, removeScreenshot, cleanup } = useSharedScreenshots(effectiveMaxScreenshots.value)
+
+// In readonly mode, display screenshots from modelValue; otherwise use shared state
+const screenshots = computed((): ScreenshotItem[] => {
+    if (props.readonly) {
+        return (props.modelValue || []).map(s => ({
+            ...s,
+            isNew: s.isNew ?? false,
+        }))
+    }
+    return sharedScreenshots.value
+})
 
 // Synchroniser les changements avec le v-model
 watch(
-    screenshots,
+    sharedScreenshots,
     (newVal) => {
         emit('update:modelValue', newVal)
     },

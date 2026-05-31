@@ -119,6 +119,7 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
+            maxScreenshots: 9,
             maxFileSize: 10 * 1024 * 1024, // 10MB
             debugMode: process.env.DEBUG_MODE === 'true',
             polygonApiKey: process.env.POLYGON_API_KEY,
