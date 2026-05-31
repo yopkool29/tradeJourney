@@ -86,7 +86,10 @@ export const TradeSchema = z.object({
 
     profit_points: z.number().default(0),
 
-    instrumentType: z.nativeEnum(InstrumentType).optional().default(InstrumentType.Any),
+    instrumentType: z.preprocess(
+        val => typeof val === 'string' ? val.toLowerCase() : val,
+        z.nativeEnum(InstrumentType).optional().default(InstrumentType.Any)
+    ),
 
     // Champs optionnels avec valeurs par défaut
     stopLoss: z.number().optional().default(0),
@@ -225,7 +228,8 @@ export type NoteTagIdsType = z.infer<typeof NoteTagIdsSchema>
 export const TradeExtendedShema = TradeSchema.extend({
     tags: z.array(TagSchema).optional().default([]),
     account_displayName: z.string().optional().default(''),
-    uniqueId: z.string().optional()
+    uniqueId: z.string().optional(),
+    importName: z.string().nullable().optional()
 })
 
 export type TradeExtendedType = z.infer<typeof TradeExtendedShema>

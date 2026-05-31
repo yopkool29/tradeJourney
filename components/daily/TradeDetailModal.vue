@@ -1,8 +1,8 @@
 <template>
     <CommonModalDefault v-model:open="isOpen" :hideDescription="false" :description="trade?.uniqueId || ''" :title="$t('components.daily.trade_group.trade_details')"
-        :ui="{ content: 'max-w-6xl' }">
+        :ui="{ content: (detailedNote || allScreenshots.length > 0) ? 'max-w-6xl' : 'max-w-3xl' }">
         <template #content>
-            <div v-if="trade" class="space-y-4">
+            <div v-if="trade" class="space-y-4" @click="isOpen = false">
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.symbol')
@@ -19,10 +19,12 @@
                         </UBadge>
                     </div>
                     <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.profit')
-                            }}</span>
-                        <span class="font-semibold" :class="trade.profit >= 0 ? 'profit-text' : 'loss-text'">
-                            {{ formatCurrency(trade.profit) }}
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.profit') }}</span>
+                        <span class="font-semibold" :class="trade.netProfit >= 0 ? 'profit-text' : 'loss-text'">
+                            {{ formatCurrency(trade.netProfit) }}
+                        </span>
+                        <span class="text-secondary-xs text-gray-500 ml-1">
+                            ({{ $t('components.common.columns.headers.grossProfit') }}: {{ formatCurrency(trade.profit) }}, {{ $t('components.common.columns.headers.commission') }}: {{ formatCurrency(trade.commission) }})
                         </span>
                     </div>
                     <div>
@@ -117,14 +119,11 @@
                 </div>
                 <div v-if="trade.note">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.note') }}</span>
-                    <p class="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm">{{ trade.note }}</p>
-                </div>
-                <div v-if="detailedNote">
-                    <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
-                    <CommonNoteEditor
-                        :model-value="detailedNote"
-                        :readonly="true"
-                    />
+                    <UTooltip :text="trade.note" class="mt-1 inline-block">
+                        <UBadge color="neutral" class="whitespace-normal">
+                            <span class="break-words">{{ trade.note }}</span>
+                        </UBadge>
+                    </UTooltip>
                 </div>
                 <div v-if="tradeTags.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.tags') }}</span>
@@ -133,6 +132,13 @@
                             {{ tag.name }}
                         </UBadge>
                     </div>
+                </div>
+                <div v-if="detailedNote">
+                    <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
+                    <CommonNoteEditor
+                        :model-value="detailedNote"
+                        :readonly="true"
+                    />
                 </div>
                 <div v-if="allScreenshots.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots')

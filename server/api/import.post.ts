@@ -320,7 +320,8 @@ export default defineEventHandler(async (event) => {
                     throw { statusCode: 400, message: `Invalid or missing timezone format: ${timezone}` };
                 }
                 const keepExistingTrades = fields.keepExistingTrades![0] === 'true';
-                const instrumentType = (fields.instrumentType?.[0] || InstrumentType.Any) as InstrumentType;
+                const instrumentTypeRaw = fields.instrumentType?.[0] || 'Any'
+                const instrumentType = (instrumentTypeRaw.toLowerCase() as InstrumentType) || InstrumentType.Any
 
                 // Parser les tags depuis le FormData
                 const dayTagIdsStr = fields.dayTagIds?.[0]

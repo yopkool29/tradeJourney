@@ -16,7 +16,8 @@
             :data="tableData"
             :empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.trade.table.no_trades.title') }"
             :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
-            class="trade-table">
+            class="trade-table custom-table-hover"
+            @select="(row) => row.original.active !== false && emit('open-detail-modal', row.original)">
             <template #actionToggle-cell="{ row }">
                 <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
                     <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
@@ -275,6 +276,13 @@ const userStore = useUserStore()
 const { tradeTypeColors } = useTypeColors()
 const { getDigitFromSymbol } = useSymbols()
 const { getTagById } = useTags()
+const colorMode = useColorMode()
+
+const tableRowHoverColor = computed(() => {
+	const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || { light: '#f3f4f6', dark: '#374151', 'light-blue': '#e0f2fe', 'dark-gold': '#4b3621' }
+	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
+	return colors[theme] || colors.light
+})
 
 const getTradeTagsById = (trade: TradeExtendedType) => {
     if (!trade.tags?.length) return []
@@ -314,3 +322,15 @@ const expanded = computed(() => {
 })
 </script>
 
+<style scoped>
+.custom-table-hover :deep(tbody tr:hover) {
+	background-color: v-bind('tableRowHoverColor');
+	cursor: pointer;
+}
+.custom-table-hover :deep(tbody tr:has(td[colspan])) {
+	cursor: default;
+}
+.custom-table-hover :deep(tbody tr:has(td[colspan]):hover) {
+	background-color: transparent;
+}
+</style>
