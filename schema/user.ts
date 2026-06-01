@@ -114,7 +114,7 @@ export const SettingsContentSchema = z.object({
         pnlBarChart: {
             profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)', 'light-blue': 'rgba(34, 197, 94, 0.8)', 'dark-gold': 'rgba(34, 197, 94, 0.8)' },
             loss: { light: 'rgba(239, 68, 68, 0.8)', dark: 'rgba(239, 68, 68, 0.8)', 'light-blue': 'rgba(239, 68, 68, 0.8)', 'dark-gold': 'rgba(239, 68, 68, 0.8)' },
-            breakeven: { light: 'rgba(156, 163, 175, 0.8)', dark: 'rgba(156, 163, 175, 0.8)', 'light-blue': 'rgba(156, 163, 175, 0.8)', 'dark-gold': 'rgba(156, 163, 175, 0.8)' },
+            breakeven: { light: 'rgba(251, 191, 36, 0.8)', dark: 'rgba(251, 191, 36, 0.8)', 'light-blue': 'rgba(251, 191, 36, 0.8)', 'dark-gold': 'rgba(251, 191, 36, 0.8)' },
         },
         tradeTypeBadges: {
             buy: { light: '#10b981', dark: '#21c65e', 'light-blue': '#10b981', 'dark-gold': '#21c65e' },

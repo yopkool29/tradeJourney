@@ -6,6 +6,7 @@
         
         <div class="space-y-4">
             <!-- Pie Chart -->
+            
             <div class="flex justify-center">
                 <DashboardWinLossPieChart />
             </div>
@@ -22,7 +23,7 @@
                 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-gray-400"></div>
+                        <div class="w-3 h-3 rounded-full" :class="$colorMode.value === 'dark' ? 'bg-amber-400' : 'bg-gray-400'"></div>
                         <span class="text-secondary">{{ $t('components.dashboard.comparison.breakeven_trades') }}</span>
                     </div>
                     <span class="font-semibold">{{ breakevenPercentage }}%</span>

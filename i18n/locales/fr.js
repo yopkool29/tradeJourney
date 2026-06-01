@@ -649,7 +649,7 @@ export default {
                 total_pnl: 'PnL Total',
                 winning: 'Gagnants',
                 losing: 'Perdants',
-                breakeven: 'Nuls'                
+                breakeven: 'Equilibré'                
             },
             profit_trades: {
                 title: 'TRADES GAGNANTS',
@@ -686,7 +686,7 @@ export default {
             comparison: {
                 title: 'GAGNANTS VS PERDANTS',
                 winning_trades: 'Trades Gagnants',
-                breakeven_trades: 'Trades Breakeven',
+                breakeven_trades: 'Trades à l\'équilibre',
                 losing_trades: 'Trades Perdants',
                 profit_factor: 'Facteur de Profit',
                 pl_ratio: 'Ratio P/L',

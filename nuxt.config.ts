@@ -123,7 +123,6 @@ export default defineNuxtConfig({
             maxFileSize: 10 * 1024 * 1024, // 10MB
             debugMode: process.env.DEBUG_MODE === 'true',
             polygonApiKey: process.env.POLYGON_API_KEY,
-            ninjaTraderApiEnable: process.env.NINJATRADER_API_ENABLE === 'true',
             quantowerEnable: process.env.QUANTOWER_ENABLE === 'true',
             appTagVersion: process.env.APP_VERSION,
             enableRouteLogger: false,

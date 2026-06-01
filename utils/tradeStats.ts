@@ -336,7 +336,7 @@ export const getLosingTradesMetrics = (trades: { profit: number; netProfit: numb
 }
 
 /**
- * Calcule les métriques des trades breakeven
+ * Calcule les métriques des trades à l'équilibre
  */
 export const getBreakevenTradesMetrics = (trades: { profit: number; netProfit: number; lot: number }[], useNet = true) => {
     const breakevens = trades.filter(t => (useNet ? t.netProfit : t.profit) === 0)
