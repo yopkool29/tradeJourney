@@ -152,10 +152,10 @@ import {
     OPERATOR_GREATER_THAN_OR_EQUAL,
     OPERATOR_IN,
 } from '~/utils'
-import DashboardPnlBarChart from './PnlBarChart.vue'
-import DashboardCumulatedPnlChart2 from './CumulatedPnlChart2.vue'
+import DashboardPnlBarChart from './charts/PnlBarChart.vue'
+import DashboardCumulatedPnlChart2 from './charts/CumulatedPnlChart2.vue'
 import DashboardApptChart from './ApptChart.vue'
-import DashboardWinrateChart from './WinrateChart.vue'
+import DashboardWinrateChart from './charts/WinrateChart.vue'
 
 const { formatCurrency } = useUtils()
 
@@ -347,7 +347,7 @@ const fetchingDateRange = ref(false)
 const setHistoryDateRange = async () => {
     fetchingDateRange.value = true
     try {
-        const result = await $fetch('/api/trades/date-range', {
+        const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
                 accountIds: JSON.stringify(userStore.dashBoardFilters.accountIds)
             }

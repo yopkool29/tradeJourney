@@ -5,8 +5,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ChartOptions } from 'chart.js'
 import { Chart, ArcElement, Tooltip, Legend } from 'chart.js'
-import { getBodyTextColor } from '@/utils/color-utils'
+import { getBodyTextColor } from '~/utils/color-utils'
 
 Chart.register(ArcElement, Tooltip, Legend)
 
@@ -26,20 +27,21 @@ const totalTrades = computed(() => {
 
 const chartData = computed(() => {
     const result = userStore.dashboardResult
- 
+    const labels = [t('components.dashboard.all_trades.winning'), t('components.dashboard.all_trades.losing')]
+    const data = [result.winningTradesCount, result.losingTradesCount]
+    const backgroundColor = [profitColor.value, lossColor.value]
+
+    if (result.breakevenTradesCount) {
+        labels.push(t('components.dashboard.all_trades.breakeven'))
+        data.push(result.breakevenTradesCount)
+        backgroundColor.push(breakevenColor.value)
+    }
+
     return {
-        labels: [t('components.dashboard.all_trades.winning'), t('components.dashboard.all_trades.breakeven'), t('components.dashboard.all_trades.losing')],
+        labels,
         datasets: [{
-            data: [
-                result.winningTradesCount,
-                result.breakevenTradesCount || "",
-                result.losingTradesCount
-            ],
-            backgroundColor: [
-                profitColor.value,
-                breakevenColor.value,
-                lossColor.value
-            ],
+            data,
+            backgroundColor,
             borderWidth: 2,
             borderColor: borderColor.value,
             hoverOffset: 4
@@ -91,7 +93,7 @@ const dataLabelsPlugin = {
             const value = Number(chartData.value.datasets[0].data[index])
             if (!value || value === 0) return
 
-            const center = arc.getCenterPoint()
+            const center = (arc as ArcElement).getCenterPoint(false)
             ctx.fillText(value.toString(), center.x, center.y)
         })
 
@@ -130,7 +132,7 @@ const updateChart = () => {
                         }
                     }
                 }
-            },
+            } as ChartOptions<'doughnut'>,
             plugins: [centerTextPlugin, dataLabelsPlugin]
         })
     }

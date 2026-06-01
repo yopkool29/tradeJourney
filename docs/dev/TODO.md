@@ -4,3 +4,4 @@ Graphique polygon
 Option synchro selection des comptes => ok
 
 Ajouter swap
+Tester ApexCharts
