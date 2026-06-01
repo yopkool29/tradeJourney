@@ -152,6 +152,7 @@ import {
     OPERATOR_GREATER_THAN_OR_EQUAL,
     OPERATOR_IN,
 } from '~/utils'
+import DashboardPnlBarChartApex from './charts2/PnlBarChartApex.vue'
 import DashboardPnlBarChart from './charts/PnlBarChart.vue'
 import DashboardCumulatedPnlChart2 from './charts/CumulatedPnlChart2.vue'
 import DashboardApptChart from './ApptChart.vue'
@@ -183,7 +184,7 @@ const chartOrder = computed((): ChartKey[] => userStore.dashBoardFilters.dashboa
 
 const chartItems = computed(() => {
     const componentMap: Record<ChartKey, any> = {
-        pnlBar: DashboardPnlBarChart,
+        pnlBar: DashboardPnlBarChartApex,
         cumulatedPnl: DashboardCumulatedPnlChart2,
         appt: DashboardApptChart,
         winrate: DashboardWinrateChart
