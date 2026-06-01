@@ -136,4 +136,13 @@ const actions = [
         }
     }
 ]
+
+definePageMeta({
+	middleware: (to, from) => {
+		const config = useRuntimeConfig()
+		if (!config.public.debugMode) {
+			return navigateTo('/login')
+		}
+	},
+})
 </script>

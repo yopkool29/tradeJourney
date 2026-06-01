@@ -65,6 +65,8 @@
 </template>
 
 <script setup lang="ts">
+import DashboardWinLossPieChart from './charts/WinLossPieChart.vue'
+
 const userStore = useUserStore()
 
 const { dashBoardResult : result} = useDashboard()

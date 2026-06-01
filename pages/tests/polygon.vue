@@ -32,16 +32,6 @@ const ExitTime = '2025-10-15T14:00:00Z'
 
 const isDark = useIsDark()
 
-// Protection de la page - redirection avant le rendu
-definePageMeta({
-    middleware: (to, from) => {
-        const config = useRuntimeConfig()
-        if (!config.public.debugMode) {
-            return navigateTo('/')
-        }
-    }
-})
-
 let chart: ReturnType<typeof createChart> | null = null
 let candlestickSeries: ISeriesApi<'Candlestick'> | null = null
 let tradeLine: ISeriesApi<'Line'> | null = null
@@ -360,6 +350,16 @@ onMounted(() => {
 watch(() => colorMode.value, () => {
     updateChartColors()
 })
+
+definePageMeta({
+	middleware: (to, from) => {
+		const config = useRuntimeConfig()
+		if (!config.public.debugMode) {
+			return navigateTo('/login')
+		}
+	},
+})
+
 </script>
 
 <style scoped>

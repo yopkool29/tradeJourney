@@ -12,22 +12,24 @@
 				</button>
 				<CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.pnl_bar_chart.enlarged_title')">
 					<template #content>
-						<apexchart
-							ref="chartModalRef"
-							:key="`pnl-chart-modal-${displayModeNet}`"
-							type="bar"
-							:options="modalChartOptions"
-							:series="chartSeries"
-							style="width: 100%; height: 100%"
-						/>
+						<div style="width: 100%; height: 100%; cursor:crosshair">
+							<apexchart
+								ref="chartModalRef"
+								:key="`pnl-chart-modal-${displayModeNet}-${colorMode.value}`"
+								type="bar"
+								:options="modalChartOptions"
+								:series="chartSeries"
+								width="100%"
+								height="100%"
+							/>
+						</div>
 					</template>
 				</CommonModalChart>
 			</div>
 		</template>
 		<div
-			ref="chartContainerRef"
-			class="relative w-full"
-			:style="{ height: `${canvasHeight}px`, cursor: 'pointer' }"
+			class="relative w-full overflow-hidden"
+			:style="{ height: `${canvasHeight}px`, cursor: 'crosshair' }"
 			@click="isModalOpen = true"
 		>
 			<div
@@ -38,11 +40,12 @@
 			</div>
 			<apexchart
 				ref="chartRef"
-				:key="`pnl-chart-${displayModeNet}`"
+				:key="`pnl-chart-${displayModeNet}-${colorMode.value}`"
 				type="bar"
 				:options="chartOptions"
 				:series="chartSeries"
-				style="width: 100%; height: 100%"
+				width="100%"
+				:height="canvasHeight"
 			/>
 		</div>
 	</UCard>
@@ -67,32 +70,9 @@ const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 const { profitColor, lossColor, breakevenColor } = useTypeColors()
 const dataStore = useDataStore()
 const colorMode = useColorMode()
+const isDarkMode = useIsDark()
 
-const chartRef = ref<any>(null)
 const chartModalRef = ref<any>(null)
-const chartContainerRef = ref<HTMLDivElement | null>(null)
-
-let resizeObserver: ResizeObserver | null = null
-
-onMounted(() => {
-	if (!chartContainerRef.value) return
-	resizeObserver = new ResizeObserver((entries) => {
-		const entry = entries[0]
-		if (!entry) return
-		const { width, height } = entry.contentRect
-		chartRef.value?.chart?.updateOptions({
-			chart: { width, height }
-		}, false, false)
-	})
-	resizeObserver.observe(chartContainerRef.value)
-})
-
-onUnmounted(() => {
-	if (resizeObserver) {
-		resizeObserver.disconnect()
-		resizeObserver = null
-	}
-})
 
 const chartInfo = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades
@@ -108,17 +88,21 @@ const chartInfo = computed(() => {
 	const maxTrades = appConfig.charts?.options?.pnlBarChart?.maxTrades || 50
 	const displayTrades = sortedTrades.slice(-maxTrades)
 	const labels = displayTrades.map((_, index) => `#${index + 1}`)
-	const data = displayTrades.map(trade => displayModeNet.value ? trade.netProfit : trade.profit)
-	const colors = displayTrades.map(trade => {
+	const data = displayTrades.map((trade, index) => {
 		const value = displayModeNet.value ? trade.netProfit : trade.profit
-		return value > 0 ? profitColor.value :
+		const color = value > 0 ? profitColor.value :
 			value < 0 ? lossColor.value :
 				breakevenColor.value
+		return {
+			x: labels[index],
+			y: value,
+			fillColor: color,
+		}
 	})
-	return { displayTrades, data, colors, labels }
+	return { displayTrades, data, labels }
 })
 
-const chartSeries = computed<{ name: string; data: number[] }[]>(() => [
+const chartSeries = computed<{ name: string; data: any[] }[]>(() => [
 	{
 		name: 'P&L',
 		data: chartInfo.value.data,
@@ -126,57 +110,79 @@ const chartSeries = computed<{ name: string; data: number[] }[]>(() => [
 ])
 
 const baseOptions = computed(() => {
-	const isDark = colorMode.value === 'dark'
+	const isDark = isDarkMode.value
 	return {
 		chart: {
 			type: 'bar' as const,
 			toolbar: { show: false },
-			animations: { enabled: true, speed: 200 },
+			animations: { enabled: true, speed: 50 },
 			background: 'transparent',
+			redrawOnParentResize: true,
+			redrawOnWindowResize: true,
+			zoom: { enabled: false },
+			panning: { enabled: false },
 		},
 		plotOptions: {
 			bar: {
-				distributed: true,
 				borderRadius: chartConfigOptions.borderRadius,
 				borderRadiusApplication: 'end',
 				columnWidth: '85%',
 			},
 		},
-		colors: chartInfo.value.colors,
 		dataLabels: { enabled: false },
 		legend: { show: false },
 		xaxis: {
-			categories: chartInfo.value.labels,
 			tickAmount: Math.min(10, chartInfo.value.labels.length),
 			labels: {
 				rotateAlways: true,
 				style: { colors: isDark ? '#9ca3af' : '#4b5563', fontSize: '10px' },
 				hideOverlappingLabels: true,
-				trim: true,
-				maxHeight: 40,
-				offsetY: 4,
+				trim: false,
+				maxHeight: 28,
+				offsetY: 2,
 			},
 			axisBorder: { show: true },
-			axisTicks: { show: true },
+			axisTicks: { show: false },
 			tooltip: { enabled: true },
 			floating: false,
 		},
-		yaxis: {
-			labels: {
-				formatter: (value: number) => formatCurrency(value),
-			},
-		},
+		yaxis: (() => {
+			const values = chartInfo.value.data.map(d => d.y)
+			const dataMin = values.length > 0 ? Math.min(...values) : 0
+			const dataMax = values.length > 0 ? Math.max(...values) : 0
+			const range = Math.abs(dataMax - dataMin) || 1
+			const magnitude = Math.pow(10, Math.floor(Math.log10(range)))
+			const step = magnitude >= 100 ? 100 : magnitude >= 10 ? 10 : 5
+			const yMin = dataMin < 0 ? Math.floor((dataMin * 1.05) / step) * step : 0
+			const yMax = dataMax > 0 ? Math.ceil((dataMax * 1.05) / step) * step : 0
+			return {
+				min: yMin,
+				max: yMax,
+				forceNiceScale: false,
+				tickAmount: 5,
+				labels: {
+					formatter: (value: number) => formatCurrency(value),
+				},
+			}
+		})(),
 		grid: {
 			borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-			padding: { left: 5, right: 0, bottom: 10 },
+			padding: { top: -10, left: 5, right: 0, bottom: 0 },
 		},
 		theme: {
 			mode: (isDark ? 'dark' : 'light') as 'light' | 'dark',
 		},
 		tooltip: {
+			theme: isDark ? 'dark' : 'light',
+			style: {
+				background: isDark ? '#1f2937' : '#ffffff',
+				fontSize: '13px',
+			},
 			custom: ({ dataPointIndex }: { dataPointIndex: number }) => {
 				const trade = chartInfo.value.displayTrades[dataPointIndex]
-				const value = chartInfo.value.data[dataPointIndex] ?? 0
+				const point = chartInfo.value.data[dataPointIndex]
+				const value = point?.y ?? 0
+				const label = chartInfo.value.labels[dataPointIndex] ?? ''
 				let date = ''
 				if (trade?.closeDate) {
 					date = formatDateWithUserTimezone(
@@ -191,10 +197,7 @@ const baseOptions = computed(() => {
 					`P&L: ${formatCurrency(value)}`,
 					trade?.account_displayName ? trade.account_displayName : '',
 				].filter(Boolean)
-				const bg = isDark ? '#1f2937' : '#ffffff'
-				const color = isDark ? '#f3f4f6' : '#111827'
-				const border = isDark ? '#374151' : '#e5e7eb'
-				return `<div style="background:${bg};color:${color};border:0px solid ${border};padding:8px 12px;border-radius: 1px;font-size:13px;line-height:1.5;">${rows.join('<br>')}</div>`
+				return `<div style="padding:8px 12px;font-size:13px;line-height:1.6;"><div style="font-weight:600;margin-bottom:2px;">${label}</div>${rows.join('<br>')}</div>`
 			},
 		},
 	}
@@ -202,17 +205,9 @@ const baseOptions = computed(() => {
 
 const chartOptions = computed(() => ({
 	...baseOptions.value,
-	chart: { ...baseOptions.value.chart, height: canvasHeight.value },
 }))
 
 const modalChartOptions = computed(() => ({
 	...baseOptions.value,
-	chart: { ...baseOptions.value.chart, height: 450 },
 }))
 </script>
-
-<style>
-.apexcharts-tooltip {
-	transition: all 0.3s ease !important;
-}
-</style>
