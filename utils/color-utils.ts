@@ -51,6 +51,11 @@ export const colorToRgba = (color: string, alpha: number = 1): string => {
   return `rgba(0, 0, 0, ${alpha})`
 }
 
+export const getBodyTextColor = (): string => {
+	if (typeof document === 'undefined') return '#111827'
+	return getComputedStyle(document.body).color
+}
+
 export const normalizeColorToHex = (color: string): string => {
   // Already hex
   if (color.startsWith('#')) {

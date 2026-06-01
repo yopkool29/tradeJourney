@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { Chart, ArcElement, Tooltip, Legend } from 'chart.js'
+import { getBodyTextColor } from '@/utils/color-utils'
 
 Chart.register(ArcElement, Tooltip, Legend)
 
@@ -51,7 +52,10 @@ const getChartFontFamily = (chart: Chart) => {
     return parent ? getComputedStyle(parent).fontFamily : 'sans-serif'
 }
 
-const labelColor = computed(() => isDark.value ? '#ffffff' : '#111827')
+const labelColor = computed(() => {
+    isDark.value
+    return getBodyTextColor()
+})
 
 const centerTextPlugin = {
     id: 'centerText',
