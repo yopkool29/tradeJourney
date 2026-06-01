@@ -14,7 +14,7 @@ export default defineAppConfig({
                 format: (value) => value + '%', // Formattage des valeurs
             },
             pnlBarChart: {
-                maxTrades: 150, // Nombre maximum de trades à afficher dans le graphique P&L History
+                maxTrades: 100, // Nombre maximum de trades à afficher dans le graphique P&L History
             },
         },
     },

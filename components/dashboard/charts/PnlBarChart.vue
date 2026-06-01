@@ -17,7 +17,7 @@
                 </CommonModalChart>
             </div>
         </template>
-        <div class="relative w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: pointer;" @click="isModalOpen = true">
+        <div class="relative w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: crosshair;" @click="isModalOpen = true">
             <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
                 <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
             </div>
