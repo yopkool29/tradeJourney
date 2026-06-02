@@ -1,169 +1,95 @@
 # 📊 TradeJourney - Trading Journal
 
-**TradeJourney** is a modern trading journal web application developed with Nuxt 3, allowing traders to track, analyze, and optimize their trading performance.
+**TradeJourney** is a modern trading journal web application built with Nuxt 4, allowing traders to track, analyze, and optimize their trading performance — fully local, nothing leaves your machine.
 
-![TradeJourney Dashboard](./docs/images/preview.png)
-*TradeJourney main dashboard*
+> 🚀 This project is actively evolving. New features and improvements are added regularly.
 
 ## ✨ Features
 
-- 📈 **Trade Tracking**: Detailed recording of all your trades with profit/loss
-- 📥 **Import**: Import trades from Metatrader 5 / NinjaTrader 8 / Quantower
-- 📊 **Advanced Analytics**: Performance charts and statistics
-- 🏷️ **Tag System**: Organize and categorize your trades by day or individually
-- 📝 **Daily Notes**: Trading journal with rich text editor
-- 📸 **Screenshots**: Attach images to your trades
-- 🌓 **Dark/Light Mode**: Adaptable interface with dark and light themes
-- 🌍 **Multilingual**: English and French support
-- 📱 **Responsive**: Mobile and desktop compatible
-- 💾 **Backup/Restore**: Data backup and restoration
+- 📈 **Trade Tracking**: Detailed recording of all your trades with P&L
+- 📥 **Multi-Source Import**: MT5 (XLSX), NinjaTrader 8, Interactive Brokers, Quantower, Standard CSV, and live API connections
+- 📊 **Advanced Analytics**: Performance charts (P&L, APPT, Win Rate, P/L Ratio, Sharpe Ratio, Profit Factor, Recovery Factor)
+- 🗓️ **Trading Calendar**: Visualize profitable and losing days at a glance
+- 📋 **Daily View**: Review trades, notes, and tags for any day
+- 🏷️ **Tag System**: Organize trades by strategy, setup, or market context
+- 📝 **Daily Notes**: Rich-text trading journal per day
+- 📸 **Screenshots**: Attach chart images to your trades
+- 🌓 **Dark/Light Mode**: Adaptable interface
+- 🌍 **Multilingual**: English and French
+- 📱 **Responsive**: Mobile and desktop
+- 💾 **Backup/Restore**: Full database backup and restore
+- 🔌 **Plugins**: Extend functionality without modifying core code
+- 🏦 **Multi-Account**: Manage multiple trading accounts with starting capital tracking
 
-<!-- 🖼️ FEATURE SCREENSHOTS -->
+<!-- 🖼️ SCREENSHOTS -->
 
-### Adding and Editing Trades
+![TradeJourney Dashboard](./docs/images/preview.png)
 
-![Trade Editing](./docs/images/tradeEdition.png)
-*Trade adding and editing interface*
-
-The trade entry interface allows you to:
-- Enter essential trade details (symbol, type, date, price)
-- Attach chart screenshots for future reference
-- Actually, you can also import your trades from Metatrader 5 & NinjaTrader 8 & Quantower
-
-### Tag Management
-
-![Tag Management](./docs/images/tagsEdition.png)
-*Tag management interface*
-
-The tag system allows you to:
-- Categorize your trades by strategy, emotion, or outcome
-- Customize colors for quick visual identification
-- Apply tags to entire days or specific trades
-
-### Light/Dark Mode
-
-![Light Mode](./docs/images/modeLight.png)
-*Light mode interface*
+> 📖 See the full documentation with screenshots and guides at [docs.tradejourney.app](https://docs.tradejourney.app)
 
 ## 🛠️ Technologies
 
 - **Frontend**: Nuxt 3, Vue 3, TypeScript
 - **UI**: Nuxt UI, TailwindCSS
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: PostgreSQL with multi-schema isolation
+- **ORM**: Prisma
 - **Charts**: Chart.js
 
-## 🚀 Installation and Deployment
+## 🚀 Getting Started
 
-### Prerequisites
+### Docker (recommended)
 
-- Node.js 20.x or higher
-- pnpm (recommended) or npm
-- PostgreSQL 16+ (for local development) or Docker
-
-### Local Installation
-
-1. **Clone the repository**
 ```bash
 git clone https://github.com/yopkool29/tradeJourney.git
 cd tradejourney
-```
-
-2. **Create a .env file**
-```bash
 cp .env.example .env
+docker compose up -d --build
 ```
 
-3. **Install dependencies**
+### Local (npm)
+
 ```bash
-pnpm install
-# or
+# Start PostgreSQL
+docker compose -f ./docker-compose.dev.yml up -d
+```
+
+```bash
+git clone https://github.com/yopkool29/tradeJourney.git
+cd tradejourney
 npm install
-```
-
-4. **Database configuration**
-```bash
-# Generate Prisma clients for both databases
-npx prisma generate --schema=./prisma/auth/schema.prisma
-npx prisma generate --schema=./prisma/data/schema.prisma
-
-# Create migrations (first time setup only)
-npx prisma migrate dev --schema=./prisma/auth/schema.prisma --name init
-npx prisma migrate dev --schema=./prisma/data/schema.prisma --name init
-
-# Or deploy existing migrations
-npx prisma migrate deploy --schema=./prisma/auth/schema.prisma
-npx prisma migrate deploy --schema=./prisma/data/schema.prisma
-
-# Create admin user (will also create default data database)
-npx tsx scripts/create-user.ts
-```
-
-5. **Run in development mode**
-```bash
-pnpm dev
-# or
+./scripts/reinit.sh
 npm run dev
 ```
 
-The application will be accessible at `http://localhost:3000`
-
-### Production Deployment
-
-**Build and run locally:**
-```bash
-pnpm run build
-pnpm run start
-```
-
-**With Docker:**
-```bash
-export $(grep -v '^#' .env.production | xargs)
-docker compose up -d --build
-```
+> 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://docs.tradejourney.app/getting-started/installation)
 
 ### 🔑 Default Login
 
 - **Email**: `admin@mail.fr`
 - **Password**: `admin`
 
-### 🐳 Docker Deployment
-
-```bash
-# Load environment variables and start
-export $(grep -v '^#' .env.production | xargs)
-docker compose up -d --build
-```
-
-The application will be accessible at http://localhost:3000
-
-## 🧪 Tests
-
-```bash
-# Run all tests
-npx vitest run tests
-
-# Specific tests
-npx vitest run tests/mt5-parser.test.ts
-npx vitest run tests/nt-parser.test.ts
-npx vitest run tests/quantower-parser.test.ts
-```
-
 ## 📊 Features
 
 ### Trade Management
-- Automatic import from Metatrader 5 / NinjaTrader 8 / Quantower
-- Automatic P&L calculation
-- Multiple screenshots attachment per trade
+- Manual trade entry and editing
+- Import from MT5 (XLSX), NinjaTrader 8, Interactive Brokers, Quantower
+- Standard CSV import
+- Live API import (NinjaTrader addon, IBKR Flex Query) and cloud storage server
+- Multiple screenshots and rich text notes per trade (Milkdown editor)
+- Custom trading symbols with aliases
 
 ### Analysis and Statistics
-- Performance charts by week / month
-- Metrics (Sharpe ratio, drawdown, etc.)
+- **Interactive Charts**: P&L History, Cumulated P&L, Win Rate, APPT — draggable and customizable
+- **Key Metrics**: P/L Ratio, Profit Factor, Recovery Factor, Expectancy ...
+- **Net vs Gross P&L toggle**
+- **Advanced Filters**: Symbol, type, date, lot, profit, tags
+- **Detailed Sections**: All trades, Winning, Losing, and comparison views
 
 ### Tag System
-- Customizable tags by group
+- Customizable tag groups
 - Colors and descriptions
-- Advanced trade filtering
-- Daily tags for market context
+- Advanced trade filtering by tags
+- Daily / Trade tags for market context and journaling
 
 ## 🤝 Contributing
 
@@ -177,6 +103,8 @@ npx vitest run tests/quantower-parser.test.ts
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE.txt) file for details.
 I reserve the right to deploy the project on a server.
+
+> ☁️ A managed cloud version may be offered in the future for those who prefer a hosted solution.
 
 ## 🆘 Support
 

@@ -15,6 +15,7 @@
     "lint": "eslint \"**/*.{js,ts,vue}\" --ignore-pattern \"temp/**\" --rule '@typescript-eslint/no-unused-vars: off'",
     "build:plugin": "PLUGIN=$npm_config_plugin npx vite build --config plugins-dev/vite.config.plugin.ts",
     "count": "find . -type f \\( -name \"*.vue\" -o -name \"*.ts\" -o -name \"*.js\" -o -name \"*.prisma\" -o -name \"*.py\" \\) -not -path \"*/node_modules/*\" -not -path \"*/generated/*\" -not -path \"*/.nuxt/*\" -not -path \"*/.output/*\" -not -path \"*/.vscode/*\" -not -path \"*/temp/*\" -not -path \"*/.venv/*\" | xargs wc -l",
+    "size": "find . -type f \\( -name \"*.vue\" -o -name \"*.ts\" -o -name \"*.js\" -o -name \"*.prisma\" -o -name \"*.py\" \\) -not -path \"*/node_modules/*\" -not -path \"*/generated/*\" -not -path \"*/.nuxt/*\" -not -path \"*/.output/*\" -not -path \"*/.vscode/*\" -not -path \"*/temp/*\" -not -path \"*/.venv/*\" -exec du -ck {} + | grep total$",
     "migrate:images": "npx tsx scripts/migrate-image-urls.ts"
   },
   "dependencies": {
