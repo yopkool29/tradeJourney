@@ -434,7 +434,7 @@ const loadNotes = async () => {
             const lastId = userStore.lastViewedNoteId
             const lastNote = lastId ? noteDates.value.find((n: NoteType) => n.id === lastId) : null
             const noteToSelect =
-                lastNote ?? noteDates.value.sort((a: NoteType, b: NoteType) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+                lastNote ?? [...noteDates.value].sort((a: NoteType, b: NoteType) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
             selectNote(noteToSelect)
         }
     } catch (err) {

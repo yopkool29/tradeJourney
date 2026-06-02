@@ -25,7 +25,7 @@
 
 ![TradeJourney Dashboard](./docs/images/preview.png)
 
-> 📖 See the full documentation with screenshots and guides at [docs.tradejourney.app](https://docs.tradejourney.app)
+> 📖 See the full documentation with screenshots and guides at [doc.tradejourney.app](https://doc.tradejourney.app)
 
 ## 🛠️ Technologies
 
@@ -61,7 +61,7 @@ npm install
 npm run dev
 ```
 
-> 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://docs.tradejourney.app/getting-started/installation)
+> 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://doc.tradejourney.app/en/getting-started/installation)
 
 ### 🔑 Default Login
 
