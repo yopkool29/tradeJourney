@@ -23,7 +23,10 @@
 
 <!-- 🖼️ SCREENSHOTS -->
 
-![TradeJourney Dashboard](./docs/images/preview.png)
+| Dark Mode | Light Mode |
+|-----------|------------|
+| ![Dark](./docs/images/preview-d.png) | ![Light](./docs/images/preview-l.png) |
+
 
 > 📖 See the full documentation with screenshots and guides at [doc.tradejourney.app](https://doc.tradejourney.app)
 
