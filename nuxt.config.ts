@@ -149,23 +149,6 @@ export default defineNuxtConfig({
     //     },
     // },
 
-    ui: {
-        primary: 'blue',
-        gray: 'slate',
-        icons: ['heroicons'],
-        table: {
-            default: {
-                emptyState: {
-                    icon: 'i-heroicons-document-text',
-                    label: 'Aucune donnée'
-                }
-            }
-        },
-        strategy: 'override',
-        defaultLocale: 'fr',
-        locales: ['fr']
-    },
-
     css: ['~/assets/css/main.css', '~/assets/css/milkdown-global.scss'],
 
     colorMode: {

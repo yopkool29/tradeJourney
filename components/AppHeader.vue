@@ -60,15 +60,21 @@
                         </div>
                     </nav>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <!-- GitHub Button -->
                     <a href="https://github.com/yopkool29/tradeJourney" target="_blank" rel="noopener noreferrer"
-                        class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         title="GitHub">
                         <span class="w-5 h-5 flex-shrink-0">
                             <img src="/img/social/github.svg" alt="GitHub"
                                 class="w-full h-full object-cover rounded-sm dark:invert" />
                         </span>
+                    </a>
+                    <!-- Documentation Button -->
+                    <a :href="`https://doc.tradejourney.app/${locale}`" target="_blank" rel="noopener noreferrer"
+                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        :title="$t('components.app_header.documentation')">
+                        <UIcon name="i-heroicons-book-open" class="w-5 h-5" />
                     </a>
                     <!-- Language Switcher Button -->
                     <button
@@ -166,6 +172,13 @@
                                         class="w-full h-full object-cover rounded-sm dark:invert" />
                                 </span>
                                 GitHub
+                            </a>
+
+                            <!-- Documentation Link -->
+                            <a :href="`https://doc.tradejourney.app/${locale}`" target="_blank"
+                                rel="noopener noreferrer" class="header-mobile-link">
+                                <UIcon name="i-heroicons-book-open" class="header-menu-icon" />
+                                {{ $t('components.app_header.documentation') }}
                             </a>
 
                             <!-- Language Switcher -->

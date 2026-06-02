@@ -481,6 +481,7 @@ export default {
         app_header: {
             menu: 'Menu',
             logout: 'Déconnexion',
+            documentation: 'Documentation',
             theme: {
                 dark: 'Passer en mode sombre',
                 light: 'Passer en mode clair',

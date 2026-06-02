@@ -353,6 +353,7 @@ export default {
         app_header: {
             menu: 'Menu',
             logout: 'Log out',
+            documentation: 'Documentation',
             theme: {
                 dark: 'Switch to dark mode',
                 light: 'Switch to light mode',

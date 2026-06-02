@@ -12,6 +12,10 @@
                     class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-300 transition-colors">
                     <UIcon name="i-lucide-github" class="w-6 h-6" />
                 </a>
+                <a :href="`https://doc.tradejourney.app/${locale}`" target="_blank" rel="noopener noreferrer"
+                    class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-300 transition-colors">
+                    <UIcon name="i-heroicons-book-open" class="w-6 h-6" />
+                </a>
             </div>
 
             <!-- Legal links -->
@@ -30,4 +34,5 @@
 </template>
 
 <script setup lang="ts">
+const { locale } = useI18n()
 </script>

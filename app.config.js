@@ -19,6 +19,11 @@ export default defineAppConfig({
         },
     },
     ui: {
+        colors: {
+            // primary: 'green',
+            primary: 'emerald',
+            neutral: 'slate',
+        },
         formField: {
             slots: {
                 error: 'font-semibold text-red-500',
