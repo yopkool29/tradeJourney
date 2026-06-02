@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.appt_chart.enlarged_title')">
                     <template #content>
-                        <Chart ref="modalBarChartRef" :key="`appt-chart-modal-${displayModeNet}`" type="bar" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Chart ref="modalBarChartRef" :key="`appt-chart-modal-${displayModeNet}`" type="bar" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%; cursor: crosshair" />
                     </template>
                 </CommonModalChart>
             </div>

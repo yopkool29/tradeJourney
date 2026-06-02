@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.pnl_bar_chart.enlarged_title')">
                     <template #content>
-                        <Bar :key="`pnl-chart-modal-${displayModeNet}`" :data="chartData" :options="chartOptions" style="width: 100%; height: 100%" />
+                        <Bar :key="`pnl-chart-modal-${displayModeNet}`" :data="chartData" :options="chartOptions" style="width: 100%; height: 100%; cursor: crosshair" />
                     </template>
                 </CommonModalChart>
             </div>

@@ -12,7 +12,7 @@
                 </button>
                 <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.winrate_chart.enlarged_title')">
                     <template #content>
-                        <Bar ref="modalBarChartRef" :key="`winrate-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Bar ref="modalBarChartRef" :key="`winrate-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%; cursor: crosshair" />
                     </template>
                 </CommonModalChart>
             </div>

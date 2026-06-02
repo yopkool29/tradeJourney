@@ -154,7 +154,7 @@ import {
 } from '~/utils'
 import DashboardPnlBarChart from './charts/PnlBarChart.vue'
 import DashboardCumulatedPnlChart from './charts/CumulatedPnlChart2.vue'
-import DashboardApptChart from './ApptChart.vue'
+import DashboardApptChart from './charts/ApptChart.vue'
 import DashboardWinrateChart from './charts/WinrateChart.vue'
 
 const { formatCurrency } = useUtils()

@@ -10,7 +10,7 @@
                 <CommonModalChart v-model="isModalOpen"
                     :title="$t('components.dashboard.cumulated_pnl_chart.enlarged_title')">
                     <template #content>
-                        <Line :key="`cumulated-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%" />
+                        <Line :key="`cumulated-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%; cursor: crosshair;" />
                     </template>
                 </CommonModalChart>
             </div>
