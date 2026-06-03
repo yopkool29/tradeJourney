@@ -102,12 +102,10 @@ interface ExportData {
  * @param dbName - Database name to include in the backup filename
  * @returns Path to the created backup file
  */
-export async function createBackup(userId: number, dbName: string): Promise<string> {
+export async function createBackup(userId: number, dbName: string, appVersion?: string): Promise<string> {
     try {
         // Get the correct Prisma client for this user's schema
         const prisma = await getDataDb(userId, dbName)
-
-        const config = useRuntimeConfig()
 
         await validateSchemaExists(userId, dbName)
 
@@ -117,8 +115,8 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
 
         const exportId = randomUUID()
         const formattedDate = formatDateForFilename()
-        const appVersion = config.public.appTagVersion
-        const exportName = `backup-${dbName}-${appVersion}-${formattedDate}-${exportId.slice(0, 8)}.zip`
+        const resolvedAppVersion = appVersion ?? useRuntimeConfig().public.appTagVersion
+        const exportName = `backup-${dbName}-${resolvedAppVersion}-${formattedDate}-${exportId.slice(0, 8)}.zip`
         const exportPath = join(userExportDir, exportName)
         const tempDir = join(userExportDir, 'temp', exportId)
 
@@ -317,12 +315,12 @@ export async function createBackup(userId: number, dbName: string): Promise<stri
  * @param dbName Database name
  */
 export async function restoreBackup(backupPath: string, userId: number, dbName: string = 'default'): Promise<void> {
+    const tempDir = join(EXPORT_BASE_DIR, 'restore', randomUUID())
     try {
         if (!existsSync(backupPath)) {
             throw new Error('Backup file not found')
         }
 
-        const tempDir = join(EXPORT_BASE_DIR, 'restore', randomUUID())
         await mkdir(tempDir, { recursive: true })
 
         // Extract backup
@@ -644,15 +642,17 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
             await migrateScreenshotsDir(uploadDir)
         }
 
-        // Cleanup
-        console.log('Removing temp directory', tempDir)
-        await rm(tempDir, { recursive: true, force: true })
-
     } catch (err) {
         throw createAppError({
             statusCode: 500,
             message: 'Restore failed',
             error: err instanceof Error ? err.message : 'Unknown error during restore'
         })
+    } finally {
+        // Cleanup
+        if (existsSync(tempDir)) {
+            console.log('Removing temp directory', tempDir)
+            await rm(tempDir, { recursive: true, force: true })
+        }
     }
 }

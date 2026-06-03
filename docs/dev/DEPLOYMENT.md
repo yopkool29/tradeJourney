@@ -220,7 +220,7 @@ pnpm prisma studio --schema=prisma/auth/schema.prisma
 
 ```bash
 # Run all tests
-pnpm test
+pnpm run test
 
 # Run a specific test file
 pnpm test tests/mt5-parser.test.ts
@@ -376,6 +376,9 @@ npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name --dry-run
 
 # Run the actual migration
 npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name
+
+# Backup all
+npx tsx scripts/backup-all.ts 1
 ```
 
 **Or run in one command:**
