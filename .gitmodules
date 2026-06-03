@@ -1,3 +1,3 @@
 [submodule "pnltracker-private-tools"]
-	path = tradeJourney-private-tools
+	path = pnltracker-private-tools
 	url = https://github.com/yopkool29/pnltracker-private-tools.git
