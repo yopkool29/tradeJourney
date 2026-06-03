@@ -38,7 +38,7 @@
                 <div class="flex flex-col gap-y-3 mx-4">
                     <CommonAdvancedFilters
                         v-model="localFilters"
-                        :columns="filterableColumnsConfig"
+                        :columns="columnsConfig"
                         :loading="filterLoading"
                         :tag-groups="tagGroups"
                         @add="addFilter"
@@ -72,7 +72,13 @@
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn } from '~/type'
 const { log_debug } = useLogView()
-import { OPERATOR_EQUAL } from '~/utils'
+const { t } = useI18n()
+import {
+	OPERATOR_EQUAL,
+	OPERATOR_NOT_EQUAL,
+	OPERATOR_GREATER_THAN_OR_EQUAL,
+	OPERATOR_IN,
+} from '~/utils'
 
 const props = defineProps<{
     title: string
@@ -85,7 +91,7 @@ const props = defineProps<{
     placeholder: string
     allLabel: string
     selectedLabel: string
-    filterableColumnsConfig: FilterColumn[]
+    filterableColumnsConfig?: FilterColumn[]
     showColumnVisibility?: boolean
     showPluginSlot?: boolean
     table?: any
@@ -120,9 +126,67 @@ const localShowInactive = computed({
 })
 
 const localFilters = computed({
-    get: () => props.filters,
-    set: (val) => emit('update:filters', val)
+	get: () => props.filters,
+	set: (val) => emit('update:filters', val)
 })
+
+// Default filterable columns config for trade-related filters
+const defaultFilterableColumnsConfig = computed<FilterColumn[]>(() => [
+	{
+		label: t('components.trade.table.filters.openDate'),
+		value: 'openDate',
+		type: 'date' as const,
+	},
+	{
+		label: t('components.trade.table.filters.closeDate'),
+		value: 'closeDate',
+		type: 'date' as const,
+	},
+	{
+		label: t('components.trade.table.filters.symbol'),
+		value: 'symbol',
+		operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL, OPERATOR_IN],
+		defaultOperator: OPERATOR_EQUAL,
+	},
+	{
+		label: t('components.trade.table.filters.type'),
+		value: 'type',
+		type: 'select' as const,
+		operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
+		defaultOperator: OPERATOR_EQUAL,
+		defaultValue: 'buy',
+	},
+	{
+		label: t('components.trade.table.filters.lot'),
+		value: 'lot',
+		type: 'number' as const,
+	},
+	{
+		label: t('components.trade.table.filters.openPrice'),
+		value: 'openPrice',
+		type: 'number' as const,
+	},
+	{
+		label: t('components.trade.table.filters.closePrice'),
+		value: 'closePrice',
+		type: 'number' as const,
+	},
+	{
+		label: t('components.trade.table.filters.profit'),
+		value: 'profit',
+		type: 'number' as const,
+		defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL,
+	},
+	{
+		label: t('components.trade.table.filters.tags'),
+		value: 'tags',
+		type: 'number' as const,
+		operators: [OPERATOR_IN],
+		defaultOperator: OPERATOR_IN,
+	},
+])
+
+const columnsConfig = computed(() => props.filterableColumnsConfig ?? defaultFilterableColumnsConfig.value)
 
 const maxFiltersCount = computed(() => props.maxFilters ?? 4)
 

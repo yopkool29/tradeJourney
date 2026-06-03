@@ -15,7 +15,6 @@
                     :placeholder="$t('components.dashboard.index.select_accounts')"
                     :all-label="$t('components.dashboard.index.all_accounts')"
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
-                    :filterable-columns-config="filterableColumnsConfig"
                     :show-inactive-checkbox="false"
                     :tag-groups="tagGroups"
                     v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
@@ -145,13 +144,8 @@ import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
-import type { TradeFilter, FilterColumn, ChartKey } from '~/type'
-import {
-    OPERATOR_EQUAL,
-    OPERATOR_NOT_EQUAL,
-    OPERATOR_GREATER_THAN_OR_EQUAL,
-    OPERATOR_IN,
-} from '~/utils'
+import type { TradeFilter, ChartKey } from '~/type'
+import { OPERATOR_EQUAL } from '~/utils'
 import DashboardPnlBarChart from './charts/PnlBarChart.vue'
 import DashboardCumulatedPnlChart from './charts/CumulatedPnlChart2.vue'
 import DashboardApptChart from './charts/ApptChart.vue'
@@ -226,62 +220,6 @@ const accountOptions = computed(() => {
         }
     })
 })
-
-// Configuration des colonnes filtrables pour CommonAdvancedFilters
-const filterableColumnsConfig = computed(() => [
-    {
-        label: t('components.trade.table.filters.openDate'),
-        value: 'openDate',
-        type: 'date' as const
-    },
-    {
-        label: t('components.trade.table.filters.closeDate'),
-        value: 'closeDate',
-        type: 'date' as const
-    },
-    {
-        label: t('components.trade.table.filters.symbol'),
-        value: 'symbol',
-        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL, OPERATOR_IN],
-        defaultOperator: OPERATOR_EQUAL
-    },
-    {
-        label: t('components.trade.table.filters.type'),
-        value: 'type',
-        type: 'select' as const,
-        operators: [OPERATOR_EQUAL, OPERATOR_NOT_EQUAL],
-        defaultOperator: OPERATOR_EQUAL,
-        defaultValue: 'buy'
-    },
-    {
-        label: t('components.trade.table.filters.lot'),
-        value: 'lot',
-        type: 'number' as const
-    },
-    {
-        label: t('components.trade.table.filters.openPrice'),
-        value: 'openPrice',
-        type: 'number' as const
-    },
-    {
-        label: t('components.trade.table.filters.closePrice'),
-        value: 'closePrice',
-        type: 'number' as const
-    },
-    {
-        label: t('components.trade.table.filters.profit'),
-        value: 'profit',
-        type: 'number' as const,
-        defaultOperator: OPERATOR_GREATER_THAN_OR_EQUAL
-    },
-    {
-        label: t('components.trade.table.filters.tags'),
-        value: 'tags',
-        type: 'number' as const,
-        operators: [OPERATOR_IN],
-        defaultOperator: OPERATOR_IN
-    },
-])
 
 const filters = computed({
     get: () => userStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],

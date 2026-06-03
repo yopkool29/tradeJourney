@@ -39,3 +39,25 @@ watch(localItems, () => {
     emit('update:order', newOrder)
 }, { deep: true })
 </script>
+
+<style scoped>
+:deep(.sortable-ghost) {
+    opacity: 0.5;
+    outline: 2px dashed var(--color-primary-500, #3b82f6);
+    outline-offset: -2px;
+    border-radius: 0.5rem;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(59, 130, 246, 0.05) 10px,
+        rgba(59, 130, 246, 0.05) 20px
+    );
+}
+
+:deep(.sortable-drag) {
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+</style>
