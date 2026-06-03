@@ -11,7 +11,7 @@ if (typeof globalThis.__filename === 'undefined') {
 }
 
 // Now load and start the Nitro server
-console.log('🚀 Starting TradeJourney server...')
+console.log('🚀 Starting PnlTracker server...')
 console.log(`📱 Web interface: http://localhost:${process.env.EXTERNAL_PORT || 3000}`)
 console.log(`🔗 Internal port: 3000`)
 console.log(`🐳 Running in Docker container`)
