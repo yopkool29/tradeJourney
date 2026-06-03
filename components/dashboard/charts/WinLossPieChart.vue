@@ -122,7 +122,6 @@ const updateChart = () => {
                     tooltip: {
                         callbacks: {
                             label: (context) => {
-                                console.log(context)
                                 const label = context.label || ''
                                 const value = context.parsed as number || 0
                                 const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0)

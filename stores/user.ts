@@ -202,10 +202,13 @@ export const useUserStore = defineStore(
                         filters: [] as TradeFilter[],
                         lastFilterColumn: 'symbol',
                         dashboardChartOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'],
-                        dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+                        dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true },
+                        dashboardSectionOrder: ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison'],
+                        dashboardSectionVisibility: { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true },
+                        dashboardItemOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
                     }
                 }
-                
+
                 // Ensure dates are Date objects (localStorage restores them as strings)
                 const filters = dashBoardFiltersPerDb.value[dbName]
                 if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
@@ -213,6 +216,15 @@ export const useUserStore = defineStore(
                     filters.dashboardChartOrder = ['pnlBar', 'cumulatedPnl', 'appt', 'winrate']
                 }
                 if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+                if (!filters.dashboardSectionOrder || filters.dashboardSectionOrder.length !== 4) {
+                    filters.dashboardSectionOrder = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
+                }
+                if (!filters.dashboardSectionVisibility) {
+                    filters.dashboardSectionVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+                }
+                if (!filters.dashboardItemOrder || filters.dashboardItemOrder.length === 0) {
+                    filters.dashboardItemOrder = ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
+                }
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
                 filters.customStartDate = filters.customStartDate instanceof Date ? filters.customStartDate : new Date(filters.customStartDate)

@@ -113,27 +113,27 @@
             </div>
         </div>
         
-        <!-- Graphiques -->
+        <!-- Dashboard items : graphiques + sections dans une seule zone draggable -->
         <div class="mb-8">
             <div class="flex justify-start mb-2">
-                <DashboardChartVisibilityMenu v-model="chartVisibility" />
+                <DashboardVisibilityMenu
+                    v-model:chart-visibility="chartVisibility"
+                    v-model:section-visibility="sectionVisibility"
+                />
             </div>
-            <!-- Loading skeleton - shown while loading or waiting for charts to be ready -->
-            <div v-if="(filterLoading && dashBoardLastTrades.length === 0) || !chartsCanRender" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div v-for="n in visibleChartCount" :key="n" class="h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse flex items-center justify-center">
+            <!-- Loading skeleton -->
+            <div v-if="(filterLoading && dashBoardLastTrades.length === 0) || !chartsCanRender" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grid-flow-dense">
+                <div v-for="n in visibleItemCount" :key="n" class="h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse flex items-center justify-center">
                     <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
                 </div>
             </div>
-            <!-- Charts - only rendered when data exists AND browser is ready to avoid blocking -->
-            <CommonDraggableGrid v-else :items="chartItems" :shared-props="{ loading: filterLoading }" @update:order="onChartOrderChange" />
-        </div>
-
-        <!-- 4 Sections principales : ALL / PROFIT / LOSING / COMPARISON -->
-        <div v-if="chartsReady" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <DashboardAllTradesSection />
-            <DashboardProfitTradesSection />
-            <DashboardLosingTradesSection />
-            <DashboardWinLossComparisonSection />
+            <CommonDraggableGrid
+                v-else
+                :items="dashboardItems"
+                :shared-props="{ loading: filterLoading }"
+                grid-class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grid-flow-dense"
+                @update:order="onItemOrderChange"
+            />
         </div>
     </div>
 </template>
@@ -144,12 +144,16 @@ import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
-import type { TradeFilter, ChartKey } from '~/type'
+import type { TradeFilter, ChartKey, SectionKey } from '~/type'
 import { OPERATOR_EQUAL } from '~/utils'
 import DashboardPnlBarChart from './charts/PnlBarChart.vue'
 import DashboardCumulatedPnlChart from './charts/CumulatedPnlChart2.vue'
 import DashboardApptChart from './charts/ApptChart.vue'
 import DashboardWinrateChart from './charts/WinrateChart.vue'
+import DashboardAllTradesSection from './AllTradesSection.vue'
+import DashboardProfitTradesSection from './ProfitTradesSection.vue'
+import DashboardLosingTradesSection from './LosingTradesSection.vue'
+import DashboardWinLossComparisonSection from './WinLossComparisonSection.vue'
 
 const { formatCurrency } = useUtils()
 
@@ -173,31 +177,78 @@ const chartVisibility = computed({
     }
 })
 
-const chartOrder = computed((): ChartKey[] => userStore.dashBoardFilters.dashboardChartOrder || ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'])
+const sectionVisibility = computed({
+    get: () => {
+        const saved = userStore.dashBoardFilters.dashboardSectionVisibility
+        const defaultVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+        return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
+    },
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibility: val }
+    }
+})
 
-const chartItems = computed(() => {
-    const componentMap: Record<ChartKey, any> = {
+const itemOrder = computed(() => userStore.dashBoardFilters.dashboardItemOrder || ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison'])
+
+const dashboardItems = computed(() => {
+    const chartComponentMap: Record<ChartKey, any> = {
         pnlBar: DashboardPnlBarChart,
         cumulatedPnl: DashboardCumulatedPnlChart,
         appt: DashboardApptChart,
         winrate: DashboardWinrateChart
     }
+    const sectionComponentMap: Record<SectionKey, any> = {
+        allTrades: DashboardAllTradesSection,
+        profitTrades: DashboardProfitTradesSection,
+        losingTrades: DashboardLosingTradesSection,
+        winLossComparison: DashboardWinLossComparisonSection
+    }
 
-    return chartOrder.value
-        .filter((id: ChartKey) => chartVisibility.value[id])
-        .map((id: ChartKey) => ({
-            id,
-            component: componentMap[id],
-            props: id === 'cumulatedPnl' ? { startingCapital: startingCapital.value } : undefined
-        }))
+    const items: any[] = []
+    for (const id of itemOrder.value) {
+        if (id in chartComponentMap && chartVisibility.value[id]) {
+            items.push({
+                id,
+                component: markRaw(chartComponentMap[id as ChartKey]),
+                props: id === 'cumulatedPnl' ? { startingCapital: startingCapital.value } : undefined,
+                class: 'col-span-1 md:col-span-2'
+            })
+        } else if (id in sectionComponentMap && sectionVisibility.value[id]) {
+            items.push({
+                id,
+                component: markRaw(sectionComponentMap[id as SectionKey]),
+                props: {},
+                class: 'col-span-1'
+            })
+        }
+    }
+    return items
 })
 
-const visibleChartCount = computed(() => {
-    return chartOrder.value.filter((id: ChartKey) => chartVisibility.value[id]).length
+const visibleItemCount = computed(() => {
+    return itemOrder.value.filter(id => {
+        if (id in chartVisibility.value) return chartVisibility.value[id]
+        if (id in sectionVisibility.value) return sectionVisibility.value[id]
+        return false
+    }).length
 })
 
-const onChartOrderChange = (newOrder: string[]) => {
-    userStore.dashBoardFilters.dashboardChartOrder = newOrder as ChartKey[]
+const onItemOrderChange = (newVisibleOrder: string[]) => {
+    const oldOrder = itemOrder.value
+    const visibleSet = new Set(newVisibleOrder)
+    const newOrder: string[] = []
+    let visibleIdx = 0
+    for (const id of oldOrder) {
+        if (visibleSet.has(id)) {
+            newOrder.push(newVisibleOrder[visibleIdx++])
+        } else {
+            newOrder.push(id)
+        }
+    }
+    while (visibleIdx < newVisibleOrder.length) {
+        newOrder.push(newVisibleOrder[visibleIdx++])
+    }
+    userStore.dashBoardFilters.dashboardItemOrder = newOrder
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {

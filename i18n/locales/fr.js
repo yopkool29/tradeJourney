@@ -565,6 +565,17 @@ export default {
             title: 'Confirmation de suppression',
         },
         dashboard: {
+            visibility: {
+                title: 'Visibilité',
+                charts: 'Graphiques',
+                sections: 'Sections statistiques',
+            },
+            sections: {
+                all_trades: 'Tous les trades',
+                profit_trades: 'Trades gagnants',
+                losing_trades: 'Trades perdants',
+                win_loss_comparison: 'Gagnants vs perdants',
+            },
             charts: {
                 pnl_bar: 'Graphique Barres PnL',
                 cumulated_pnl: 'PnL Cumulé',

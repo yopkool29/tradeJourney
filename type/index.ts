@@ -78,6 +78,7 @@ export interface TradeOptions {
 }
 
 export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate'
+export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison'
 
 export interface DashBoardFilters {
     accountIds: number[]
@@ -93,6 +94,9 @@ export interface DashBoardFilters {
     lastFilterColumn: string
     dashboardChartOrder: ChartKey[]
     dashboardChartVisibility: Record<ChartKey, boolean>
+    dashboardSectionOrder: SectionKey[]
+    dashboardSectionVisibility: Record<SectionKey, boolean>
+    dashboardItemOrder: string[]
 }
 
 export interface DailyFilters {

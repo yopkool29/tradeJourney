@@ -555,6 +555,17 @@ export default {
             title: 'Delete confirmation',
         },
         dashboard: {
+            visibility: {
+                title: 'Visibility',
+                charts: 'Charts',
+                sections: 'Statistics Sections',
+            },
+            sections: {
+                all_trades: 'All Trades',
+                profit_trades: 'Winning Trades',
+                losing_trades: 'Losing Trades',
+                win_loss_comparison: 'Winning vs Losing',
+            },
             charts: {
                 pnl_bar: 'PnL Bar Chart',
                 cumulated_pnl: 'Cumulated PnL',
