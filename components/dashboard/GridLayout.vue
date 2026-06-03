@@ -30,10 +30,16 @@
             class="rounded-lg overflow-hidden"
         >
             <div
-                class="h-full w-full"
+                class="h-full w-full relative"
                 @mousedown="onMouseDown"
                 @click.capture="onContentClick"
             >
+                <UIcon
+                    v-if="isDraggable"
+                    name="i-lucide-grip"
+                    class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 pointer-events-none z-10"
+                    size="xs"
+                />
                 <component
                     :is="components[item.i]"
                     v-bind="{
