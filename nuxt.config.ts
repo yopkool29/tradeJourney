@@ -90,11 +90,11 @@ export default defineNuxtConfig({
 
     app: {
         head: {
-            title: 'TradeJourney - Journal de Trading',
+            title: 'PnlTracker - Journal de Trading',
             meta: [
                 { charset: 'utf-8' },
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-                { name: 'description', content: 'TradeJourney - Votre journal de trading pour suivre et analyser vos performances' }
+                { name: 'description', content: 'PnlTracker - Votre journal de trading pour suivre et analyser vos performances' }
             ],
             link: [
                 { rel: 'icon', type: 'image/svg+xml', href: '/img/favicon.svg' }

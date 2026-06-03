@@ -57,7 +57,7 @@ COPY schema ./schema
 COPY scripts ./scripts
 COPY server ./server
 COPY stores ./stores
-COPY tradeJourney-tools ./tradeJourney-tools
+COPY pnltracker-tools ./pnltracker-tools
 COPY utils ./utils
 COPY type ./type
 
@@ -105,10 +105,10 @@ COPY --from=builder /app/server /app/server
 COPY --from=builder /app/generated/prisma-data ./generated/prisma-data
 
 # Copier les outils Python
-COPY --from=builder /app/tradeJourney-tools/python /app/tradeJourney-tools/python
+COPY --from=builder /app/pnltracker-tools/python /app/pnltracker-tools/python
 
 # Installer les dépendances Python avec uv
-WORKDIR /app/tradeJourney-tools/python
+WORKDIR /app/pnltracker-tools/python
 RUN uv sync
 
 WORKDIR /app

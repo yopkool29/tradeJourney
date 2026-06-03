@@ -17,7 +17,7 @@ const plugin = {
 		sdk.ui.registerModal({
 			id: 'hello-plugin-modal',
 			title: 'Hello depuis le plugin !',
-			message: 'Ce plugin a été chargé dynamiquement sans rebuild de TradeJourney.',
+			message: 'Ce plugin a été chargé dynamiquement sans rebuild de PnlTracker.',
 			closeLabel: 'Fermer',
 			closeColor: 'primary',
 			closeVariant: 'solid',

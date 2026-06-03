@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Installation - TradeJourney
-description: Guide d'installation de TradeJourney
+title: Installation - PnlTracker
+description: Guide d'installation de PnlTracker
 ---
 
-# 🚀 Installation de TradeJourney
+# 🚀 Installation de PnlTracker
 
-Guide complet pour installer et configurer TradeJourney sur votre machine.
+Guide complet pour installer et configurer PnlTracker sur votre machine.
 
 ## Prérequis
 
@@ -26,8 +26,8 @@ La méthode la plus simple pour démarrer rapidement.
 ### 1. Cloner le repository
 
 ```bash
-git clone https://github.com/yourusername/tradeJourney.git
-cd tradeJourney
+git clone https://github.com/yopkool29/pnltracker.git
+cd pnltracker
 ```
 
 ### 2. Configurer l'environnement
@@ -93,8 +93,8 @@ npm --version
 
 ```bash
 # Cloner le repository
-git clone https://github.com/yourusername/tradeJourney.git
-cd tradeJourney
+git clone https://github.com/yourusername/pnltracker.git
+cd pnltracker
 
 # Installer les dépendances
 npm install
@@ -163,7 +163,7 @@ ENABLE_API_LOGGER=false     # Logger les requêtes API
 
 ### Configurer le port
 
-Par défaut, TradeJourney utilise le port 3000. Pour changer :
+Par défaut, PnlTracker utilise le port 3000. Pour changer :
 
 ```bash
 # Dans .env
@@ -237,7 +237,7 @@ echo "Backup créé dans $BACKUP_DIR"
 ```bash
 # Créer un volume Docker pour les données
 docker-compose down
-docker run --rm -v tradejourney_data:/data -v $(pwd)/backup:/backup alpine tar czf /backup/data-backup.tar.gz /data
+docker run --rm -v pnltracker_data:/data -v $(pwd)/backup:/backup alpine tar czf /backup/data-backup.tar.gz /data
 ```
 
 ### Restaurer une sauvegarde
@@ -385,7 +385,7 @@ Pour un déploiement sécurisé :
 ```nginx
 server {
     listen 443 ssl;
-    server_name tradejourney.yourdomain.com;
+    server_name pnltracker.yourdomain.com;
 
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
@@ -402,7 +402,7 @@ server {
 
 ## 📱 Accès mobile
 
-TradeJourney est responsive et fonctionne sur mobile :
+PnlTracker est responsive et fonctionne sur mobile :
 
 1. Assurez-vous que votre appareil est sur le même réseau
 2. Trouvez l'IP de votre machine : `ip addr` ou `ifconfig`
@@ -415,8 +415,8 @@ Pour un accès permanent, configurez un nom de domaine local ou utilisez un VPN.
 ## 🆘 Besoin d'aide ?
 
 - 📖 [Documentation complète](/documentation)
-- 💬 [GitHub Issues](https://github.com/yourusername/tradeJourney/issues)
-- 📧 Email : contact@tradejourney.com
+- 💬 [GitHub Issues](https://github.com/yourusername/pnltracker/issues)
+- 📧 Email : contact@pnltracker.app
 - 💡 [FAQ](/documentation#faq)
 
 ---

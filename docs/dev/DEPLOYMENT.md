@@ -1,6 +1,6 @@
-# TradeJourney Deployment
+# PnlTracker Deployment
 
-This document explains the different deployment modes of TradeJourney with PostgreSQL.
+This document explains the different deployment modes of PnlTracker with PostgreSQL.
 
 ## 📋 Table of Contents
 
@@ -199,10 +199,10 @@ docker compose up -d --build
 
 ```bash
 # Database backup
-docker compose exec postgres pg_dump -U tradejourney tradejourney > backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose exec postgres pg_dump -U pnltracker pnltracker > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restoration
-docker compose exec -T postgres psql -U tradejourney tradejourney < backup_20260124_180000.sql
+docker compose exec -T postgres psql -U pnltracker pnltracker < backup_20260124_180000.sql
 ```
 
 ---
@@ -267,7 +267,7 @@ docker volume prune
 
 ```sql
 -- Database size
-SELECT pg_size_pretty(pg_database_size('tradejourney'));
+SELECT pg_size_pretty(pg_database_size('pnltracker'));
 
 -- Size per schema
 SELECT 
@@ -358,7 +358,7 @@ Simply **restart the server** (or wait for the next user connection) for the mig
 > ```bash
 > # For a specific schema
 > sed 's/SCHEMA_PLACEHOLDER/user_1_db_main/g' scripts/migrations/XXX-description.sql | \
->   docker compose exec -T postgres psql -U tradejourney -d tradejourney
+>   docker compose exec -T postgres psql -U pnltracker -d pnltracker
 > ```
 
 #### Image URL Migration

@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Documentation - TradeJourney
-description: Guide complet d'utilisation de TradeJourney
+title: Documentation - PnlTracker
+description: Guide complet d'utilisation de PnlTracker
 ---
 
-# 📖 Documentation TradeJourney
+# 📖 Documentation PnlTracker
 
-Guide complet pour utiliser TradeJourney et analyser vos performances de trading.
+Guide complet pour utiliser PnlTracker et analyser vos performances de trading.
 
 ## Table des matières
 
@@ -32,7 +32,7 @@ Guide complet pour utiliser TradeJourney et analyser vos performances de trading
 
 ### Créer une base de données
 
-TradeJourney utilise SQLite pour stocker vos données localement :
+PnlTracker utilise SQLite pour stocker vos données localement :
 
 1. Cliquez sur **"Nouvelle base de données"**
 2. Donnez un nom à votre base (ex: "Trading 2024")
@@ -44,13 +44,13 @@ Vous pouvez gérer plusieurs bases de données pour séparer différentes pério
 
 ## 📥 Import de trades {#import}
 
-TradeJourney supporte plusieurs formats d'import pour faciliter l'intégration avec votre plateforme de trading.
+PnlTracker supporte plusieurs formats d'import pour faciliter l'intégration avec votre plateforme de trading.
 
 ### Import depuis MT5 (MetaTrader 5)
 
 1. Dans MT5, allez dans **Historique des comptes**
 2. Clic droit → **Rapport** → **Enregistrer en HTML**
-3. Dans TradeJourney : **Import** → **MT5**
+3. Dans PnlTracker : **Import** → **MT5"
 4. Sélectionnez le fichier HTML
 5. Configurez le fuseau horaire
 6. Cliquez sur **Importer**
@@ -62,7 +62,7 @@ TradeJourney supporte plusieurs formats d'import pour faciliter l'intégration a
 ### Import depuis NinjaTrader
 
 1. Exportez vos trades depuis NinjaTrader
-2. Dans TradeJourney : **Import** → **NinjaTrader**
+2. Dans PnlTracker : **Import** → **NinjaTrader"
 3. Sélectionnez le fichier
 4. Vérifiez la correspondance des colonnes
 5. Importez
@@ -83,7 +83,7 @@ Pour les autres plateformes, utilisez l'import CSV :
    - `commission` : Commission (positif)
    - `swap` : Frais de swap
 
-2. Dans TradeJourney : **Import** → **CSV**
+2. Dans PnlTracker : **Import** → **CSV"
 3. Mappez les colonnes
 4. Importez
 
@@ -96,7 +96,7 @@ GBPUSD,2024-01-16T10:00:00Z,2024-01-16T15:30:00Z,sell,0.2,1.2650,1.2630,40.00,5.
 
 ### Gestion des fuseaux horaires
 
-TradeJourney gère automatiquement les fuseaux horaires :
+PnlTracker gère automatiquement les fuseaux horaires :
 
 - **Mode UTC** : Les dates sont converties en UTC
 - **Mode Local** : Les dates sont conservées en heure locale
@@ -315,7 +315,7 @@ cp data/your-database.db backup/your-database-backup.db
 
 ### Variables d'environnement
 
-Configurez TradeJourney via le fichier `.env` :
+Configurez PnlTracker via le fichier `.env` :
 
 ```bash
 # Port de l'application
@@ -353,8 +353,8 @@ A: Oui, via l'import CSV personnalisé. Utilisez le symbole complet de l'option.
 **Q: Comment supprimer des trades ?**  
 A: Ouvrez le trade dans le calendrier et cliquez sur "Supprimer".
 
-**Q: Puis-je utiliser TradeJourney hors ligne ?**  
-A: Oui, TradeJourney fonctionne entièrement en local.
+**Q: Puis-je utiliser PnlTracker hors ligne ?**  
+A: Oui, PnlTracker fonctionne entièrement en local.
 
 **Q: Les données sont-elles sécurisées ?**  
 A: Oui, toutes les données restent sur votre machine. Rien n'est envoyé vers des serveurs externes.
@@ -366,8 +366,8 @@ A: Oui, toutes les données restent sur votre machine. Rien n'est envoyé vers d
 Besoin d'aide ?
 
 - 📖 [Guide d'installation](/installation)
-- 💬 [GitHub Issues](https://github.com/yourusername/tradeJourney/issues)
-- 📧 Email : contact@tradejourney.com
+- 💬 [GitHub Issues](https://github.com/yourusername/pnltracker/issues)
+- 📧 Email : contact@pnltracker.app
 
 ---
 

@@ -175,7 +175,7 @@ export const createUserDatabase = async (
             await authDb.$executeRawUnsafe(`GRANT USAGE, CREATE ON SCHEMA "${schemaName}" TO "${roleName}"`)
 
             // Grant the role to the main PostgreSQL user so it can SET ROLE
-            const mainUser = process.env.POSTGRES_USER || 'tradejourney'
+            const mainUser = process.env.POSTGRES_USER || 'pnltracker'
             await authDb.$executeRawUnsafe(`GRANT "${roleName}" TO ${mainUser}`)
 
             // IMPORTANT: Revoke direct access from main user to enforce role-based isolation

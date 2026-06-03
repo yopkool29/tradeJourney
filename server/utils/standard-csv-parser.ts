@@ -9,7 +9,7 @@ export interface AccountTradesWithImportName extends AccountTrades {
 }
 
 /**
- * Parse un fichier CSV au format standard TradeJourney
+ * Parse un fichier CSV au format standard PnlTracker
  * @param csvContent - Contenu du fichier CSV
  * @param timezone - Timezone par défaut
  * @param importMode - Mode d'import ('local' ou 'utc')

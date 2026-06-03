@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-tradejourney}
+      POSTGRES_DB: ${POSTGRES_DB:-pnltracker}
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
@@ -33,9 +33,9 @@ services:
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB:-tradejourney}
-      - POSTGRES_URL_AUTH=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tradejourney}?schema=public
-      - POSTGRES_URL_TEMPLATE=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tradejourney}
+      - POSTGRES_DB=${POSTGRES_DB:-pnltracker}
+      - POSTGRES_URL_AUTH=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pnltracker}?schema=public
+      - POSTGRES_URL_TEMPLATE=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pnltracker}
       - JWT_SECRET=${JWT_SECRET}
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - POLYGON_API_KEY=${POLYGON_API_KEY:-}
@@ -44,8 +44,8 @@ services:
 
 volumes:
   pg_data:
-    name: tradejourney_pg_data
+    name: pnltracker_pg_data
     driver: local
   uploads:
-    name: tradejourney_uploads
+    name: pnltracker_uploads
     driver: local

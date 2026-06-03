@@ -245,7 +245,7 @@ export default {
     },
     pages: {
         index: {
-            title: 'TradeJourney',
+            title: 'PnlTracker',
             subtitle: 'Suivez vos performances, analysez vos trades',
             journal_title: 'Votre journal de trading personnel',
             journal_description:
@@ -307,7 +307,7 @@ export default {
             },
         },
         login: {
-            title: 'TradeJourney',
+            title: 'PnlTracker',
             subtitle: 'Connectez-vous pour accéder à votre journal de trading',
             heading: 'Connexion',
             email: {
@@ -474,7 +474,7 @@ export default {
         },
 
         app_footer: {
-            copyright: 'TradeJourney - Tous droits réservés ©2026',
+            copyright: 'PnlTracker - Tous droits réservés ©2026',
             terms: 'Conditions Générales',
             privacy: 'Politique de confidentialité',
         },
@@ -740,7 +740,7 @@ export default {
                 file_ninja: 'Fichier CSV NinjaTrader',
                 file_quantower: 'Fichier CSV Quantower',
                 file_ibkr: 'Fichier CSV Interactive Brokers',
-                file_standard: 'Fichier CSV Standard TradeJourney',
+                file_standard: 'Fichier CSV Standard PnlTracker',
                 file_standard_live: 'Fichier CSV depuis serveur cloud',
                 timezone: 'Fuseau horaire du rapport',
                 keep_existing_trades: 'Conserver les trades existants des journées importées (import incrémental : seuls les nouveaux trades sont ajoutés, les tags des trades existants sont remplacés)',
@@ -832,7 +832,7 @@ export default {
         settings: {
             tools: {
                 title: 'Outils de conversion',
-                description: 'Convertissez vos fichiers CSV vers le format standard TradeJourney',
+                description: 'Convertissez vos fichiers CSV vers le format standard PnlTracker',
                 csv_converter: {
                     title: 'Convertisseur CSV',
                     conversion_type: 'Type de conversion',

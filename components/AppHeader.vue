@@ -6,7 +6,7 @@
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
                         <NuxtLink to="/" class="relative">
-                            <AppLogo :width="120" :height="36" />
+                            <AppLogo :width="150" />
                             <span v-if="isDevMode"
                                 class="absolute -bottom-3 -right-1 text-[10px] font-bold text-blue-500 dark:text-red-500 uppercase tracking-wide">
                                 dev
@@ -62,7 +62,7 @@
                 </div>
                 <div class="flex items-center">
                     <!-- GitHub Button -->
-                    <a href="https://github.com/yopkool29/tradeJourney" target="_blank" rel="noopener noreferrer"
+                    <a href="https://github.com/yopkool29/pnltracker" target="_blank" rel="noopener noreferrer"
                         class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         title="GitHub">
                         <span class="w-5 h-5 flex-shrink-0">
@@ -71,7 +71,7 @@
                         </span>
                     </a>
                     <!-- Documentation Button -->
-                    <a :href="`https://doc.tradejourney.app/${locale}`" target="_blank" rel="noopener noreferrer"
+                    <a :href="`https://doc.pnltracker.app/${locale}`" target="_blank" rel="noopener noreferrer"
                         class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         :title="$t('components.app_header.documentation')">
                         <UIcon name="i-heroicons-book-open" class="w-5 h-5" />
@@ -165,7 +165,7 @@
                             </li>
 
                             <!-- GitHub Link -->
-                            <a href="https://github.com/yopkool29/tradeJourney" target="_blank"
+                            <a href="https://github.com/yopkool29/pnltracker" target="_blank"
                                 rel="noopener noreferrer" class="header-mobile-link">
                                 <span class="w-5 h-5 flex-shrink-0 mr-3">
                                     <img src="/img/social/github.svg" alt="GitHub"
@@ -175,7 +175,7 @@
                             </a>
 
                             <!-- Documentation Link -->
-                            <a :href="`https://doc.tradejourney.app/${locale}`" target="_blank"
+                            <a :href="`https://doc.pnltracker.app/${locale}`" target="_blank"
                                 rel="noopener noreferrer" class="header-mobile-link">
                                 <UIcon name="i-heroicons-book-open" class="header-menu-icon" />
                                 {{ $t('components.app_header.documentation') }}

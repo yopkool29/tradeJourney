@@ -21,6 +21,6 @@ Dockerfile
 Dockerfile-pnpm
 plugins-dev
 
-# Ne pas ignorer tradeJourney-tools mais ignorer son .venv
-!tradeJourney-tools
-tradeJourney-tools/python/.venv
+# Ne pas ignorer pnltracker-tools mais ignorer son .venv
+!pnltracker-tools
+pnltracker-tools/python/.venv

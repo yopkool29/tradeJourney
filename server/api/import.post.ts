@@ -433,7 +433,7 @@ export default defineEventHandler(async (event) => {
                         }
                     }
                 } else if (reportType === 'standard') {
-                    // Traitement du format CSV standard TradeJourney
+                    // Traitement du format CSV standard PnlTracker
                     const csvBuffer = readFileSync(realFile.filepath)
 
                     const csvContent = csvBuffer.includes(0x00)

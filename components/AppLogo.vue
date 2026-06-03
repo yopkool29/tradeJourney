@@ -1,7 +1,7 @@
 <template>
     <div class="app-logo">
-        <img v-if="!isDark" src="/img/logo.svg" alt="TradeJourney Logo" :width="width" :height="height" />
-        <img v-else src="/img/logo-dark.svg" alt="TradeJourney Logo" :width="width" :height="height" />
+        <img v-if="!isDark" src="/img/logo.svg" alt="PnlTracker Logo" :width="width" :height="height" />
+        <img v-else src="/img/logo-dark.svg" alt="PnlTracker Logo" :width="width" :height="height" />
     </div>
 </template>
 

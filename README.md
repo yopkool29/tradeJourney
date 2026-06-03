@@ -1,6 +1,6 @@
-# 📊 TradeJourney - Trading Journal
+# 📊 PnlTracker - Trading Journal
 
-**TradeJourney** is a modern trading journal web application built with Nuxt 4, allowing traders to track, analyze, and optimize their trading performance — fully local, nothing leaves your machine.
+**PnlTracker** is a modern trading journal web application built with Nuxt 4, allowing traders to track, analyze, and optimize their trading performance — fully local, nothing leaves your machine.
 
 > 🚀 This project is actively evolving. New features and improvements are added regularly.
 
@@ -28,7 +28,7 @@
 | ![Dark](./docs/images/preview-d.png) | ![Light](./docs/images/preview-l.png) |
 
 
-> 📖 See the full documentation with screenshots and guides at [doc.tradejourney.app](https://doc.tradejourney.app)
+> 📖 See the full documentation with screenshots and guides at [doc.pnltracker.app](https://doc.pnltracker.app)
 
 ## 🛠️ Technologies
 
@@ -43,8 +43,8 @@
 ### Docker (recommended)
 
 ```bash
-git clone https://github.com/yopkool29/tradeJourney.git
-cd tradejourney
+git clone https://github.com/yopkool29/pnltracker.git
+cd pnltracker
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -57,14 +57,14 @@ docker compose -f ./docker-compose.dev.yml up -d
 ```
 
 ```bash
-git clone https://github.com/yopkool29/tradeJourney.git
-cd tradejourney
+git clone https://github.com/yopkool29/pnltracker.git
+cd pnltracker
 npm install
 ./scripts/reinit.sh
 npm run dev
 ```
 
-> 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://doc.tradejourney.app/en/getting-started/installation)
+> 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://doc.pnltracker.app/en/getting-started/installation)
 
 ### 🔑 Default Login
 
@@ -111,4 +111,4 @@ I reserve the right to deploy the project on a server.
 
 ## 🆘 Support
 
-- 🐛 Issues: [GitHub Issues](https://github.com/yopkool29/tradeJourney/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/yopkool29/pnltracker/issues)

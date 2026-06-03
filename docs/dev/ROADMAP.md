@@ -20,7 +20,7 @@ En général, dans un footer on trouve :
 - Langue / Language selector
 - Liens vers blog ou communauté
 
-Pour **TradeJourney** (app locale/self-hosted), je suggérerais :
+Pour **PnlTracker** (app locale/self-hosted), je suggérerais :
 - **Version** (ex: v1.2.3)
 - **Documentation** (si tu en as une)
 - **Support/Contact** (email ou Discord)

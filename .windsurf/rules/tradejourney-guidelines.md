@@ -1,7 +1,7 @@
 ---
 trigger: always_on
 ---
-# TradeJourney Guidelines
+# PnlTracker Guidelines
 
 ## Quick Reference
 

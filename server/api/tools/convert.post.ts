@@ -105,12 +105,12 @@ export default defineEventHandler(async (event) => {
                         })
                 }
 
-                const scriptPath = join(process.cwd(), 'tradeJourney-tools/python', scriptName)
+                const scriptPath = join(process.cwd(), 'pnltracker-tools/python', scriptName)
 
                 // Execute Python script with uv
                 try {
                     await execa('uv', ['run', 'python', scriptPath, ...scriptArgs], {
-                        cwd: join(process.cwd(), 'tradeJourney-tools/python'),
+                        cwd: join(process.cwd(), 'pnltracker-tools/python'),
                     })
                 } catch (execError: unknown) {
                     console.error('Python script execution error:', execError)

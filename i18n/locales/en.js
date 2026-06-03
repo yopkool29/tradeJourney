@@ -239,7 +239,7 @@ export default {
     },
     pages: {
         index: {
-            title: 'TradeJourney',
+            title: 'PnlTracker',
             subtitle: 'Track your performance, analyze your trades',
             journal_title: 'Your personal trading journal',
             journal_description:
@@ -301,7 +301,7 @@ export default {
             },
         },
         login: {
-            title: 'TradeJourney',
+            title: 'PnlTracker',
             subtitle: 'Connect to access your trading journal',
             heading: 'Login',
             email: {
@@ -346,7 +346,7 @@ export default {
     },
     components: {
         app_footer: {
-            copyright: 'TradeJourney - All rights reserved ©2026',
+            copyright: 'PnlTracker - All rights reserved ©2026',
             terms: 'Terms and Conditions',
             privacy: 'Privacy Policy',
         },
@@ -729,7 +729,7 @@ export default {
                 file_ninja: 'NinjaTrader CSV File',
                 file_quantower: 'Quantower CSV File',
                 file_ibkr: 'Interactive Brokers CSV File',
-                file_standard: 'TradeJourney Standard CSV File',
+                file_standard: 'PnlTracker Standard CSV File',
                 file_standard_live: 'CSV File from Cloud Server',
                 timezone: 'Report timezone',
                 keep_existing_trades: 'Keep existing trades from imported days (incremental import: only new trades are added, existing trade tags are replaced)',
@@ -820,7 +820,7 @@ export default {
         settings: {
             tools: {
                 title: 'Conversion Tools',
-                description: 'Convert your CSV files to TradeJourney standard format',
+                description: 'Convert your CSV files to PnlTracker standard format',
                 csv_converter: {
                     title: 'CSV Converter',
                     conversion_type: 'Conversion Type',

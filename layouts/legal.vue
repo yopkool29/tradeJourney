@@ -3,7 +3,7 @@
         <header class="w-full py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="container mx-auto px-4">
                 <NuxtLink to="/">
-                    <AppLogo :width="120" :height="36" />
+                   <AppLogo :width="150" />
                 </NuxtLink>
             </div>
         </header>

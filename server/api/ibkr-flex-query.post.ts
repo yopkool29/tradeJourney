@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
             const response = await fetch(`${baseUrl}/SendRequest?${params.toString()}`, {
                 method: 'GET',
                 headers: {
-                    'User-Agent': 'TradeJourney-FlexQuery/1.0',
+                    'User-Agent': 'PnlTracker-FlexQuery/1.0',
                 }
             })
 
@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
             const response = await fetch(`${baseUrl}/GetStatement?${params.toString()}`, {
                 method: 'GET',
                 headers: {
-                    'User-Agent': 'TradeJourney-FlexQuery/1.0',
+                    'User-Agent': 'PnlTracker-FlexQuery/1.0',
                 },
                 redirect: 'follow'
             })
