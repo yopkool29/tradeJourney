@@ -3,6 +3,39 @@ import { getPNL, getAPPT, getWinrate, movingAverage, getPLRatio as calculatePLRa
 import type { TradeType } from '~/schema/trade'
 import { formatDateString } from '~/utils/date-utils'
 
+export const defaultDashboardGridLayout = [
+	{ x: 0, y: 0, w: 6, h: 5, i: 'pnlBar' },
+	{ x: 6, y: 0, w: 6, h: 5, i: 'cumulatedPnl' },
+	{ x: 0, y: 5, w: 6, h: 5, i: 'appt' },
+	{ x: 6, y: 5, w: 6, h: 5, i: 'winrate' },
+	{ x: 0, y: 10, w: 3, h: 10, i: 'allTrades' },
+	{ x: 3, y: 10, w: 3, h: 10, i: 'profitTrades' },
+	{ x: 6, y: 10, w: 3, h: 10, i: 'losingTrades' },
+	{ x: 9, y: 10, w: 3, h: 10, i: 'winLossComparison' },
+]
+
+export const defaultDashboardGridLayoutMd = [
+	{ x: 0, y: 0, w: 6, h: 5, i: 'pnlBar' },
+	{ x: 0, y: 5, w: 6, h: 5, i: 'cumulatedPnl' },
+	{ x: 0, y: 10, w: 6, h: 5, i: 'appt' },
+	{ x: 0, y: 15, w: 6, h: 5, i: 'winrate' },
+	{ x: 0, y: 20, w: 3, h: 10, i: 'allTrades' },
+	{ x: 3, y: 20, w: 3, h: 10, i: 'profitTrades' },
+	{ x: 0, y: 30, w: 3, h: 10, i: 'losingTrades' },
+	{ x: 3, y: 30, w: 3, h: 10, i: 'winLossComparison' },
+]
+
+export const defaultDashboardGridLayoutSm = [
+	{ x: 0, y: 0, w: 3, h: 5, i: 'pnlBar' },
+	{ x: 0, y: 5, w: 3, h: 5, i: 'cumulatedPnl' },
+	{ x: 0, y: 10, w: 3, h: 5, i: 'appt' },
+	{ x: 0, y: 15, w: 3, h: 5, i: 'winrate' },
+	{ x: 0, y: 20, w: 3, h: 10, i: 'allTrades' },
+	{ x: 0, y: 30, w: 3, h: 10, i: 'profitTrades' },
+	{ x: 0, y: 40, w: 3, h: 10, i: 'losingTrades' },
+	{ x: 0, y: 50, w: 3, h: 10, i: 'winLossComparison' },
+]
+
 export const getWeekNumber = (date: Date): number => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
     const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000

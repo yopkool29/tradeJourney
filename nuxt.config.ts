@@ -30,6 +30,11 @@ export default defineNuxtConfig({
     },
 
     vite: {
+        resolve: {
+            alias: {
+                'element-resize-detector': '~/shims/element-resize-detector.js'
+            }
+        },
         server: {
             allowedHosts: [
                 '.ngrok-free.dev',

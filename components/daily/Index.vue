@@ -19,6 +19,10 @@
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
                                     <UInput :model-value="selectedMonth" type="month" class="w-36" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
+                                    <UButton icon="i-lucide-calendar-clock" size="xs" variant="ghost" color="neutral"
+                                        :title="$t('components.dashboard.index.set_history_range')"
+                                        :loading="fetchingDateRange"
+                                        @click="setHistoryDateRange" />
                                     <UButton :icon="isExpanded ? 'i-lucide-minimize-2' : 'i-lucide-expand'" color="primary"
                                         size="sm" :loading="expandLoading" @click="onExpand">
                                         {{ isExpanded ? $t('components.daily.index.collapse') :
@@ -104,6 +108,30 @@ const selectedMonth = computed({
     get: () => userStore.dailyFilters.selectedMonth,
     set: (value) => (userStore.dailyFilters.selectedMonth = value),
 })
+
+const fetchingDateRange = ref(false)
+
+const setHistoryDateRange = async () => {
+    fetchingDateRange.value = true
+    try {
+        const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
+            query: {
+                accountIds: JSON.stringify(userStore.dailyFilters.accountIds)
+            }
+        })
+
+        if (result.maxDate) {
+            const date = new Date(result.maxDate)
+            const year = date.getFullYear()
+            const month = (date.getMonth() + 1).toString().padStart(2, '0')
+            selectedMonth.value = `${year}-${month}`
+        }
+    } catch (error) {
+        console.error('Error fetching date range:', error)
+    } finally {
+        fetchingDateRange.value = false
+    }
+}
 
 const displayMonth = ref(userStore.dailyFilters.selectedMonth)
 const dataStore = useDataStore()

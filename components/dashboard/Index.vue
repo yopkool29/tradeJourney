@@ -113,38 +113,49 @@
             </div>
         </div>
         
-        <!-- Dashboard items : graphiques + sections dans une seule zone draggable -->
+        <!-- Dashboard items : graphiques + sections -->
         <div class="mb-8">
-            <div class="flex justify-start mb-2">
+            <div class="flex justify-start gap-2 mb-2">
                 <DashboardVisibilityMenu
                     v-model:chart-visibility="chartVisibility"
                     v-model:section-visibility="sectionVisibility"
                 />
+                <UButton
+                    icon="i-lucide-list-restart"
+                    size="sm"
+                    variant="ghost"
+                    color="neutral"
+                    :title="$t('components.dashboard.index.reset_layout')"
+                    @click="onResetLayout"
+                />
+                <UButton
+                    :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
+                    size="sm"
+                    variant="ghost"
+                    color="neutral"
+                    :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
+                    @click="isGridDraggable = !isGridDraggable"
+                />
             </div>
-            <!-- Loading skeleton -->
-            <div v-if="(filterLoading && dashBoardLastTrades.length === 0) || !chartsCanRender" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grid-flow-dense">
-                <div v-for="n in visibleItemCount" :key="n" class="h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse flex items-center justify-center">
-                    <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
-                </div>
-            </div>
-            <CommonDraggableGrid
-                v-else
-                :items="dashboardItems"
+            <DashboardGridLayout
+                :layout="gridLayout"
+                :components="gridComponents"
                 :shared-props="{ loading: filterLoading }"
-                grid-class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grid-flow-dense"
-                @update:order="onItemOrderChange"
+                :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
+                :is-draggable="isGridDraggable"
+                @update:layout="onGridLayoutChange"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { periodOptions, getPeriodDates } from '~/utils/dashboard'
+import { periodOptions, getPeriodDates, defaultDashboardGridLayout } from '~/utils/dashboard'
 import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
-import type { TradeFilter, ChartKey, SectionKey } from '~/type'
+import type { TradeFilter, ChartKey, SectionKey, DashboardGridItem } from '~/type'
 import { OPERATOR_EQUAL } from '~/utils'
 import DashboardPnlBarChart from './charts/PnlBarChart.vue'
 import DashboardCumulatedPnlChart from './charts/CumulatedPnlChart2.vue'
@@ -188,9 +199,16 @@ const sectionVisibility = computed({
     }
 })
 
-const itemOrder = computed(() => userStore.dashBoardFilters.dashboardItemOrder || ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison'])
+const gridLayout = computed(() => {
+    const allLayout = userStore.dashBoardFilters.dashboardGridLayout || []
+    return allLayout.filter(item => {
+        if (item.i in chartVisibility.value) return chartVisibility.value[item.i]
+        if (item.i in sectionVisibility.value) return sectionVisibility.value[item.i]
+        return false
+    })
+})
 
-const dashboardItems = computed(() => {
+const gridComponents = computed(() => {
     const chartComponentMap: Record<ChartKey, any> = {
         pnlBar: DashboardPnlBarChart,
         cumulatedPnl: DashboardCumulatedPnlChart,
@@ -203,52 +221,21 @@ const dashboardItems = computed(() => {
         losingTrades: DashboardLosingTradesSection,
         winLossComparison: DashboardWinLossComparisonSection
     }
-
-    const items: any[] = []
-    for (const id of itemOrder.value) {
-        if (id in chartComponentMap && chartVisibility.value[id]) {
-            items.push({
-                id,
-                component: markRaw(chartComponentMap[id as ChartKey]),
-                props: id === 'cumulatedPnl' ? { startingCapital: startingCapital.value } : undefined,
-                class: 'col-span-1 md:col-span-2'
-            })
-        } else if (id in sectionComponentMap && sectionVisibility.value[id]) {
-            items.push({
-                id,
-                component: markRaw(sectionComponentMap[id as SectionKey]),
-                props: {},
-                class: 'col-span-1'
-            })
-        }
-    }
-    return items
+    return { ...chartComponentMap, ...sectionComponentMap }
 })
 
-const visibleItemCount = computed(() => {
-    return itemOrder.value.filter(id => {
-        if (id in chartVisibility.value) return chartVisibility.value[id]
-        if (id in sectionVisibility.value) return sectionVisibility.value[id]
+const onGridLayoutChange = (newLayout: DashboardGridItem[]) => {
+    const currentLayout = userStore.dashBoardFilters.dashboardGridLayout || []
+    const hiddenItems = currentLayout.filter(item => {
+        if (item.i in chartVisibility.value) return !chartVisibility.value[item.i]
+        if (item.i in sectionVisibility.value) return !sectionVisibility.value[item.i]
         return false
-    }).length
-})
+    })
+    userStore.dashBoardFilters.dashboardGridLayout = [...newLayout, ...hiddenItems]
+}
 
-const onItemOrderChange = (newVisibleOrder: string[]) => {
-    const oldOrder = itemOrder.value
-    const visibleSet = new Set(newVisibleOrder)
-    const newOrder: string[] = []
-    let visibleIdx = 0
-    for (const id of oldOrder) {
-        if (visibleSet.has(id)) {
-            newOrder.push(newVisibleOrder[visibleIdx++])
-        } else {
-            newOrder.push(id)
-        }
-    }
-    while (visibleIdx < newVisibleOrder.length) {
-        newOrder.push(newVisibleOrder[visibleIdx++])
-    }
-    userStore.dashBoardFilters.dashboardItemOrder = newOrder
+const onResetLayout = () => {
+    userStore.dashBoardFilters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {
@@ -357,6 +344,8 @@ const setHistoryDateRange = async () => {
     }
 }
 
+const isGridDraggable = ref(false)
+
 const { filterLoading, load: onApplyFilters, loadDebounced: onApplyFiltersDebounced } = usePageDataManager({
     fetchFn: () => fetchData(
         userStore.dashBoardFilters.startDate,
@@ -384,8 +373,7 @@ onMounted(async () => {
     }
 
     nextTick(async () => {
-        if (settings?.autoDataSync)
-            filterLoading.value = true
+        filterLoading.value = true
 
         await Promise.all([
             fetchAccounts(),

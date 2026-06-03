@@ -156,7 +156,7 @@ const isOpen = () => {
 }
 
 const onDebug1 = () => {
-    debug('logDebug1')
+    error('logDebug1')
 }
 
 const onDebug2 = () => {

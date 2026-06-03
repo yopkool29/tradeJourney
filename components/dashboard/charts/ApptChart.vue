@@ -1,4 +1,5 @@
 <template>
+    <div class="relative">
     <UCard class="h-full" :ui="{ header: 'p-0' }">
         <template #header>
             <div class="flex items-center gap-2 w-full">
@@ -18,12 +19,9 @@
             </div>
         </template>
         <div class="relative" :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: crosshair;">
-            <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
-                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
-            </div>
             <Chart
                 ref="barChartRef"
-                :key="`appt-chart-${displayModeNet}`"
+                :key="`appt-chart-${displayModeNet}-${props.layoutKey ?? 0}`"
                 type="bar"
                 :data="chartData"
                 :options="chartDisplayOptions"
@@ -31,6 +29,14 @@
             />
         </div>
     </UCard>
+
+    <!-- Loading overlay covering entire card including header -->
+    <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-10 rounded"></div>
+    <!-- Transparent spinner centered on top -->
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-20">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+    </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +49,7 @@ import { defaultSettings } from '~/schema/user'
 
 const props = defineProps<{
     loading?: boolean
+    layoutKey?: number
 }>()
 
 const { formatCurrency } = useUtils()

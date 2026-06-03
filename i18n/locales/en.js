@@ -636,6 +636,9 @@ export default {
                 mobile_avg_label: 'Mobile Average',
                 quick_metrics: 'Quick Metrics',
                 set_history_range: 'Set history date range',
+                reset_layout: 'Reset Layout',
+                unlock_layout: 'Unlock layout',
+                lock_layout: 'Lock layout',
             },
             all_trades: {
                 title: 'ALL TRADES',

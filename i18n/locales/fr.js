@@ -647,6 +647,9 @@ export default {
                 mobile_avg_label: 'Moyenne mobile',
                 quick_metrics: 'Métriques rapides',
                 set_history_range: 'Définir la plage de l\'historique',
+                reset_layout: 'Réinitialiser la grille',
+                unlock_layout: 'Déverrouiller la grille',
+                lock_layout: 'Verrouiller la grille',
             },
             all_trades: {
                 title: 'TOUS LES TRADES',

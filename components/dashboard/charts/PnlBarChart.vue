@@ -1,4 +1,5 @@
 <template>
+    <div class="relative">
     <UCard class="h-full" :ui="{ header: 'p-0' }">
         <template #header>
             <div class="flex items-center gap-2 w-full">
@@ -18,12 +19,17 @@
             </div>
         </template>
         <div class="relative w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: crosshair;" @click="isModalOpen = true">
-            <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10 rounded">
-                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
-            </div>
-            <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}`" :data="chartData" :options="chartOptions" />
+            <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}-${props.layoutKey ?? 0}`" :data="chartData" :options="chartOptions" />
         </div>
     </UCard>
+
+    <!-- Loading overlay covering entire card including header -->
+    <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-10 rounded"></div>
+    <!-- Transparent spinner centered on top -->
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-20">
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+    </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +41,7 @@ import { formatDateWithUserTimezone } from '~/utils/date-utils'
 
 const props = defineProps<{
     loading?: boolean
+    layoutKey?: number
 }>()
 
 const { displayModeNet } = useNetGrossDisplay()

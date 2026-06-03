@@ -1,0 +1,194 @@
+<template>
+    <div class="relative">
+        <grid-layout
+            v-model:layout="localLayout"
+            :col-num="12"
+            :row-height="50"
+            :is-draggable="isDraggable"
+            :is-resizable="false"
+            :vertical-compact="true"
+            :use-css-transforms="true"
+            :is-bounded="true"
+            :responsive="true"
+            :use-style-cursor="false"
+            :breakpoints="{ lg: 768, md: 530, sm: 0 }"
+            :cols="{ lg: 12, md: 6, sm: 3 }"
+            :responsive-layouts="responsiveLayouts"
+            :class="{ 'layout-ready': layoutReady }"
+            @layout-updated="onLayoutUpdated"
+            @layout-ready="onLayoutReady"
+            @breakpoint-changed="onBreakpointChanged"
+        >
+        <grid-item
+            v-for="item in localLayout"
+            :key="item.i"
+            :x="item.x"
+            :y="item.y"
+            :w="item.w"
+            :h="item.h"
+            :i="item.i"
+            class="rounded-lg overflow-hidden"
+        >
+            <div
+                class="h-full w-full"
+                @mousedown="onMouseDown"
+                @click.capture="onContentClick"
+            >
+                <component
+                    :is="components[item.i]"
+                    v-bind="{
+                        ...(sharedProps || {}),
+                        ...(componentProps?.[item.i] || {}),
+                        layoutKey: layoutUpdateKey
+                    }"
+                />
+            </div>
+        </grid-item>
+        </grid-layout>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { GridLayout, GridItem } from 'vue-grid-layout-v3'
+import { defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
+
+interface GridLayoutItem {
+    x: number
+    y: number
+    w: number
+    h: number
+    i: string
+}
+
+const props = defineProps<{
+    layout: GridLayoutItem[]
+    components: Record<string, any>
+    sharedProps?: Record<string, any>
+    componentProps?: Record<string, Record<string, any>>
+    isDraggable?: boolean
+}>()
+
+const emit = defineEmits<{
+    'update:layout': [layout: GridLayoutItem[]]
+}>()
+
+const localLayout = ref([...props.layout])
+
+watch(() => props.layout, (newLayout) => {
+    localLayout.value = [...newLayout]
+})
+
+// Prevent initial flash: disable CSS transitions until the layout has calculated positions once
+const layoutReady = ref(false)
+const layoutUpdateKey = ref(0)
+
+const onLayoutReady = () => {
+    layoutReady.value = true
+    nextTick(() => {
+        setTimeout(() => {
+            layoutUpdateKey.value++
+        }, 50)
+    })
+}
+
+const currentBreakpoint = ref('lg')
+
+const onBreakpointChanged = (newBreakpoint: string, newLayout: GridLayoutItem[]) => {
+    currentBreakpoint.value = newBreakpoint
+    localLayout.value = [...newLayout]
+}
+
+const onLayoutUpdated = (newLayout: GridLayoutItem[]) => {
+    if (currentBreakpoint.value === 'lg') {
+        emit('update:layout', newLayout)
+    }
+}
+
+const responsiveLayouts = computed(() => {
+    const lg = props.layout.map(item => ({ ...item }))
+    const md = defaultDashboardGridLayoutMd.map(item => ({ ...item }))
+    const sm = defaultDashboardGridLayoutSm.map(item => ({ ...item }))
+
+    return { lg, md, sm }
+})
+
+// Prevent click events on child components after a drag + disable text selection during drag
+const mouseStart = ref<{ x: number; y: number } | null>(null)
+const isRealClick = ref(true)
+const isDragging = ref(false)
+
+const onDocumentMouseMove = (e: MouseEvent) => {
+    if (!mouseStart.value) return
+    const dx = Math.abs(e.clientX - mouseStart.value.x)
+    const dy = Math.abs(e.clientY - mouseStart.value.y)
+    if (dx > 5 || dy > 5) {
+        isRealClick.value = false
+        if (!isDragging.value) {
+            isDragging.value = true
+            document.body.style.userSelect = 'none'
+        }
+    }
+}
+
+const onDocumentMouseUp = () => {
+    document.removeEventListener('mousemove', onDocumentMouseMove)
+    document.removeEventListener('mouseup', onDocumentMouseUp)
+    mouseStart.value = null
+    if (isDragging.value) {
+        isDragging.value = false
+        document.body.style.userSelect = ''
+    }
+}
+
+const onMouseDown = (e: MouseEvent) => {
+    if (!props.isDraggable) return
+    mouseStart.value = { x: e.clientX, y: e.clientY }
+    isRealClick.value = true
+    document.addEventListener('mousemove', onDocumentMouseMove)
+    document.addEventListener('mouseup', onDocumentMouseUp)
+}
+
+const onContentClick = (e: MouseEvent) => {
+    if (!props.isDraggable) return
+    if (!isRealClick.value) {
+        e.stopPropagation()
+        e.preventDefault()
+        isRealClick.value = true
+    }
+}
+</script>
+
+<style scoped>
+:deep(.vue-grid-layout) {
+    position: relative;
+    transition: height 200ms ease;
+}
+
+:deep(.vue-grid-item) {
+    transition: none;
+}
+
+:deep(.vue-grid-item.no-touch) {
+    touch-action: none;
+}
+
+.layout-ready :deep(.vue-grid-item) {
+    transition: all 200ms ease;
+    transition-property: left, top;
+}
+
+:deep(.vue-grid-item.vue-grid-placeholder) {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: 2px dashed var(--color-primary-500, #3b82f6) !important;
+    border-radius: 0.5rem;
+    opacity: 0.5;
+}
+
+:deep(.vue-grid-item > .vue-resizable-handle) {
+    display: none;
+}
+
+:deep(.vue-grid-item.vue-draggable-dragging) {
+    cursor: grabbing !important;
+}
+</style>

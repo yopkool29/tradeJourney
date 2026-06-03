@@ -38,7 +38,11 @@ export const usePageDataManager = (options: PageDataManagerOptions) => {
 		}
 	}
 
-	const loadDebounced = useDebounce(load, debounceMs)
+	const debouncedLoad = useDebounce(load, debounceMs)
+	const loadDebounced = (...args: Parameters<typeof debouncedLoad>) => {
+		filterLoading.value = true
+		return debouncedLoad(...args)
+	}
 
 	if (accounts && getAccountIds && setAccountIds) {
 		watch([accounts], ([accountsList]) => {

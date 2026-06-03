@@ -15,6 +15,7 @@ import type {
     DashBoardResult,
 } from '~/type'
 import { formatDateToYYYYMM } from '~/utils/date-utils'
+import { defaultDashboardGridLayout } from '~/utils/dashboard'
 
 export const useUserStore = defineStore(
     'userStore',
@@ -201,29 +202,21 @@ export const useUserStore = defineStore(
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
                         lastFilterColumn: 'symbol',
-                        dashboardChartOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate'],
                         dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true },
-                        dashboardSectionOrder: ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison'],
                         dashboardSectionVisibility: { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true },
-                        dashboardItemOrder: ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
+                        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item }))
                     }
                 }
 
                 // Ensure dates are Date objects (localStorage restores them as strings)
                 const filters = dashBoardFiltersPerDb.value[dbName]
                 if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
-                if (!filters.dashboardChartOrder || filters.dashboardChartOrder.length !== 4) {
-                    filters.dashboardChartOrder = ['pnlBar', 'cumulatedPnl', 'appt', 'winrate']
-                }
                 if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
-                if (!filters.dashboardSectionOrder || filters.dashboardSectionOrder.length !== 4) {
-                    filters.dashboardSectionOrder = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
-                }
                 if (!filters.dashboardSectionVisibility) {
                     filters.dashboardSectionVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
                 }
-                if (!filters.dashboardItemOrder || filters.dashboardItemOrder.length === 0) {
-                    filters.dashboardItemOrder = ['pnlBar', 'cumulatedPnl', 'appt', 'winrate', 'allTrades', 'profitTrades', 'losingTrades', 'winLossComparison']
+                if (!filters.dashboardGridLayout || filters.dashboardGridLayout.length === 0) {
+                    filters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
                 }
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
