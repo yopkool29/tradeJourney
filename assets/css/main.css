@@ -562,3 +562,14 @@ select {
 .trade-table tbody tr[data-expanded="true"] + tr td:first-child {
     @apply border-l-2 border-l-primary;
 }
+
+/* Reduce sub-pixel blur on ECharts tooltips */
+.echarts-custom-tooltip {
+    z-index: 999999999 !important;
+    font-size: 14px !important;
+    line-height: 24px !important;
+}
+
+canvas { 
+    border: 0 !important;
+}

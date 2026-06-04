@@ -201,11 +201,18 @@ const gridLayout = computed(() => {
     return visible
 })
 
+const appConfig = useAppConfig()
+const useChartjs = computed(() => appConfig.charts.chartjs === true)
+
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, any> = {
+    const chartComponentMap: Record<ChartKey, any> = useChartjs.value ? {
+        pnlBar: resolveComponent('DashboardChartsPnlBarChart'),
+        cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
+        appt: resolveComponent('DashboardChartsApptChart'),
+        winrate: resolveComponent('DashboardChartsWinrateChart'),
+    } : {
         pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
         cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
-        // cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
         appt: resolveComponent('DashboardChartsApptChartEcharts'),
         winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
     }

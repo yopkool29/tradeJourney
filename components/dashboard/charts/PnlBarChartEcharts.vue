@@ -54,7 +54,7 @@ const chartOption = computed(() => {
 		grid: { left: 60, right: 16, top: 12, bottom: 28 },
 		tooltip: {
 			...base.tooltip,
-			axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
+			axisPointer: { type: 'line' as const, snap: true, lineStyle: { type: 'dashed' } },
 			formatter: (params: any) => {
 				const p = Array.isArray(params) ? params[0] : params
 				const trade = trades[p.dataIndex]

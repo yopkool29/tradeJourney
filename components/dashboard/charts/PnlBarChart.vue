@@ -1,35 +1,14 @@
 <template>
-    <div class="relative">
-    <UCard class="h-full" :ui="{ header: 'p-0' }">
-        <template #header>
-            <div class="flex items-center gap-2 w-full">
-                <span class="font-semibold">{{ $t('components.dashboard.pnl_bar_chart.title') }}</span>
-                <button
-                    class="ml-auto px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
-                    :title="$t('components.dashboard.pnl_bar_chart.enlarge')"
-                    @click="isModalOpen = true"
-                >
-                    <UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
-                </button>
-                <CommonModalChart v-model="isModalOpen" :title="$t('components.dashboard.pnl_bar_chart.enlarged_title')">
-                    <template #content>
-                        <Bar :key="`pnl-chart-modal-${displayModeNet}`" :data="chartData" :options="chartOptions" style="width: 100%; height: 100%; cursor: crosshair" />
-                    </template>
-                </CommonModalChart>
-            </div>
+    <DashboardChartsBaseChartjsCard :title="$t('components.dashboard.pnl_bar_chart.title')"
+        :enlarged-title="$t('components.dashboard.pnl_bar_chart.enlarged_title')" :canvas-height="canvasHeight"
+        :loading="loading">
+        <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}-${props.layoutKey ?? 0}`" :data="chartData"
+            :options="chartOptions" />
+        <template #modal>
+            <Bar :key="`pnl-chart-modal-${displayModeNet}`" :data="chartData" :options="chartOptions"
+                style="width: 100%; height: 100%; cursor: crosshair" />
         </template>
-        <div class="relative w-full" :style="{ height: `${canvasHeight}px` }" style="cursor: crosshair;" @click="isModalOpen = true">
-            <Bar ref="barChartRef" :key="`pnl-chart-${displayModeNet}-${props.layoutKey ?? 0}`" :data="chartData" :options="chartOptions" />
-        </div>
-    </UCard>
-
-    <!-- Loading overlay covering entire card including header -->
-    <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-10 rounded"></div>
-    <!-- Transparent spinner centered on top -->
-    <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-20">
-        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
-    </div>
-    </div>
+    </DashboardChartsBaseChartjsCard>
 </template>
 
 <script setup lang="ts">
@@ -45,20 +24,19 @@ const props = defineProps<{
 }>()
 
 const { displayModeNet } = useNetGrossDisplay()
-
 const { formatCurrency } = useUtils()
 const { locale } = useI18n()
 
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 const userStore = useUserStore()
-const isModalOpen = ref(false)
 const appConfig = useAppConfig()
-const chartConfigOptions = appConfig.charts.options
+const { profitColor, lossColor, isDark } = useTypeColors('pnlBarChart')
 
+const chartConfigOptions = appConfig.charts.options
 const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
-const { profitColor, lossColor, breakevenColor } = useTypeColors()
+const { profitColor: profitColor2, lossColor: lossColor2, breakevenColor } = useTypeColors()
 
 const dataStore = useDataStore()
 
@@ -75,10 +53,10 @@ const chartData = computed(() => {
     })
     const appConfig = useAppConfig()
     const maxTrades = appConfig.charts?.options?.pnlBarChart?.maxTrades || 50
-    
+
     // Afficher les derniers trades du plus ancien (gauche) au plus récent (droite)
     const displayTrades = sortedTrades.slice(-maxTrades)
-    
+
     return {
         labels: displayTrades.map((_, index) => `#${index + 1}`),
         datasets: [{
@@ -87,15 +65,15 @@ const chartData = computed(() => {
             trades: displayTrades, // Stocker les trades pour accès dans le tooltip
             backgroundColor: displayTrades.map(trade => {
                 const value = displayModeNet.value ? trade.netProfit : trade.profit
-                return value > 0 ? profitColor.value : 
-                       value < 0 ? lossColor.value : 
-                       breakevenColor.value
+                return value > 0 ? profitColor.value :
+                    value < 0 ? lossColor.value :
+                        breakevenColor.value
             }),
             borderColor: displayTrades.map(trade => {
                 const value = displayModeNet.value ? trade.netProfit : trade.profit
-                return value > 0 ? profitColor.value.replace('0.8', '1') : 
-                       value < 0 ? lossColor.value.replace('0.8', '1') : 
-                       breakevenColor.value.replace('0.8', '1')
+                return value > 0 ? profitColor.value.replace('0.8', '1') :
+                    value < 0 ? lossColor.value.replace('0.8', '1') :
+                        breakevenColor.value.replace('0.8', '1')
             }),
             borderWidth: 1,
             borderRadius: chartConfigOptions.borderRadius
@@ -109,9 +87,29 @@ const chartOptions = computed(() => ({
     animation: {
         duration: 200
     },
+    interaction: {
+        mode: 'index' as const,
+        intersect: false,
+    },
     plugins: {
         legend: {
             display: false
+        },
+        crosshair: {
+            line: {
+                color: isDark.value ? '#888' : '#222',
+                width: 1,
+            },
+            sync: {
+                enabled: true,
+                group: 1,
+            },
+            zoom: {
+                enabled: false,
+            },
+            snap: {
+                enabled: true,
+            },
         },
         tooltip: {
             callbacks: {

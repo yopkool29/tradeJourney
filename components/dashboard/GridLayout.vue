@@ -1,54 +1,24 @@
 <template>
     <div class="relative">
-        <grid-layout
-            v-model:layout="localLayout"
-            :col-num="12"
-            :row-height="50"
-            :is-draggable="isDraggable"
-            :is-resizable="false"
-            :vertical-compact="true"
-            :use-css-transforms="true"
-            :is-bounded="true"
-            :responsive="true"
-            :use-style-cursor="false"
-            :breakpoints="{ lg: 768, md: 530, sm: 0 }"
-            :cols="{ lg: 12, md: 6, sm: 3 }"
-            :responsive-layouts="responsiveLayouts"
-            :class="{ 'layout-ready': layoutReady }"
-            @layout-ready="onLayoutReady"
-            @breakpoint-changed="onBreakpointChanged"
-        >
-        <grid-item
-            v-for="item in localLayout"
-            :key="item.i"
-            :x="item.x"
-            :y="item.y"
-            :w="item.w"
-            :h="item.h"
-            :i="item.i"
-            class="rounded-lg overflow-hidden"
-        >
-            <div
-                class="h-full w-full relative"
-                @mousedown="onMouseDown"
-                @click.capture="onContentClick"
-            >
-                <UIcon
-                    v-if="isDraggable"
-                    name="i-lucide-grip"
-                    class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 pointer-events-none z-10"
-                    size="xs"
-                />
-                <component
-                    :is="components[item.i]"
-                    v-bind="{
+        <grid-layout v-model:layout="localLayout" :col-num="12" :row-height="50" :is-draggable="isDraggable"
+            :is-resizable="false" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
+            :responsive="true" :use-style-cursor="false" :breakpoints="{ lg: 768, md: 530, sm: 0 }"
+            :cols="{ lg: 12, md: 6, sm: 3 }" :responsive-layouts="responsiveLayouts"
+            :class="{ 'layout-ready': layoutReady }" @layout-ready="onLayoutReady"
+            @breakpoint-changed="onBreakpointChanged">
+            <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
+                :i="item.i" class="rounded-lg overflow-hidden">
+                <div class="h-full w-full relative" @mousedown="onMouseDown" @click.capture="onContentClick">
+                    <UIcon v-if="isDraggable" name="i-lucide-grip"
+                        class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 pointer-events-none z-10"
+                        size="xs" />
+                    <component :is="components[item.i]" v-bind="{
                         ...(sharedProps || {}),
                         ...(componentProps?.[item.i] || {}),
                         layoutKey: layoutUpdateKey
-                    }"
-                />
-            </div>
-        </grid-item>
+                    }" />
+                </div>
+            </grid-item>
         </grid-layout>
     </div>
 </template>

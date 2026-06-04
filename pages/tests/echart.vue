@@ -1,28 +1,14 @@
 <template>
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="text-2xl font-bold mb-6">Test ApexCharts PnL Bar Chart</h1>
-		<!-- <div class="w-full" style="height: 400px;">
-			<PnlBarChartApex />
-		</div> -->
-		<h2 class="text-xl font-bold mt-8 mb-4">Raw ApexChart</h2>
-		<div class="w-full overflow-hidden">
-			<apexchart
-				type="bar"
-				:options="rawChartOptions"
-				:series="rawChartSeries"
-				width="100%"
-				height="400px"
-			/>
-		</div>
+	<div class="p-8">
+		<DashboardChartsPnlBarChartEcharts :loading="false" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import PnlBarChartApex from '~/components/dashboard/charts2/PnlBarChartApex.vue'
 
 const dataStore = useDataStore()
 
-// Données fictives pour tester le chart
+// Mock trades pour le test
 dataStore.lastTrades = [
 	{ id: 1, openDate: '2025-01-01', closeDate: '2025-01-02', symbol: 'EURUSD', type: 'buy', lot: 1, openPrice: 1.05, closePrice: 1.06, profit: 100, netProfit: 90, accountId: 1, active: true, commission: 0, swap: 0 },
 	{ id: 2, openDate: '2025-01-03', closeDate: '2025-01-04', symbol: 'GBPUSD', type: 'sell', lot: 1, openPrice: 1.25, closePrice: 1.24, profit: -50, netProfit: -60, accountId: 1, active: true, commission: 0, swap: 0 },
@@ -36,48 +22,8 @@ dataStore.lastTrades = [
 	{ id: 10, openDate: '2025-01-19', closeDate: '2025-01-20', symbol: 'EURCHF', type: 'sell', lot: 1, openPrice: 0.95, closePrice: 0.96, profit: -60, netProfit: -70, accountId: 1, active: true, commission: 0, swap: 0 },
 ] as any
 
-const canvasHeight = 400
-
-const rawChartSeries = ref([{
-	name: 'P&L',
-	data: [
-		{ x: '#1', y: 100, fillColor: '#22c55e' },
-		{ x: '#2', y: -50, fillColor: '#ef4444' },
-		{ x: '#3', y: 200, fillColor: '#22c55e' },
-		{ x: '#4', y: -30, fillColor: '#ef4444' },
-		{ x: '#5', y: 150, fillColor: '#22c55e' },
-		{ x: '#6', y: -80, fillColor: '#ef4444' },
-		{ x: '#7', y: 300, fillColor: '#22c55e' },
-		{ x: '#8', y: 120, fillColor: '#22c55e' },
-		{ x: '#9', y: -40, fillColor: '#ef4444' },
-		{ x: '#10', y: -60, fillColor: '#ef4444' },
-	]
-}])
-
-const rawChartOptions = ref({
-	chart: {
-		type: 'bar',
-		height: 200,
-		animations: { enabled: false },
-	},
-	plotOptions: {
-		bar: {
-			borderRadius: 4,
-			borderRadiusApplication: 'end',
-			columnWidth: '85%',
-		}
-	},
-	dataLabels: { enabled: false },
-	legend: { show: false },
-	xaxis: {
-		labels: { style: { fontSize: '10px' } },
-	},
-	grid: {
-		padding: { bottom: 10 }
-	}
-})
-
 definePageMeta({
+	layout: 'test',
 	middleware: (to, from) => {
 		const config = useRuntimeConfig()
 		if (!config.public.debugMode) {

@@ -5,7 +5,7 @@ export const useEchartsChart = () => {
 
 	const getBaseChartOption = (isDark: boolean) => {
 		const { axisColor, textColor } = getEchartsAxisColors(isDark)
-		const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors(true)
+		const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
 
 		return {
 			...getEchartsBaseOption(),
@@ -13,7 +13,10 @@ export const useEchartsChart = () => {
 				trigger: 'axis' as const,
 				backgroundColor,
 				borderColor,
-				textStyle: { color: tooltipTextColor },
+				textStyle: { color: tooltipTextColor, fontSize: 13 },
+				appendTo: 'parent',
+				className: 'echarts-custom-tooltip',
+				axisPointer: { snap: true },
 			},
 			grid: { left: 70, right: 16, top: 12, bottom: 28 },
 			xAxis: {

@@ -17,7 +17,7 @@ export const hexToRgba = (hex: string, alpha: number = 1): string => {
 
 export const rgbaToHex = (rgba: string): string => {
   // Extract RGB values from rgba string
-  const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+  const match = rgba.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/)
   
   if (!match) {
     return '#000000'

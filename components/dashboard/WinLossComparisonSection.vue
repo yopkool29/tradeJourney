@@ -8,7 +8,7 @@
             <!-- Pie Chart -->
             
             <div class="flex justify-center">
-                <DashboardChartsWinLossPieChart />
+                <component :is="pieChartComponent" />
             </div>
             
             <!-- Légende avec pourcentages -->
@@ -65,9 +65,16 @@
 </template>
 
 <script setup lang="ts">
+const appConfig = useAppConfig()
+const pieChartComponent = computed(() =>
+    appConfig.charts.chartjs === true
+        ? resolveComponent('DashboardChartsWinLossPieChart')
+        : resolveComponent('DashboardChartsWinLossPieChartEcharts')
+)
+
 const userStore = useUserStore()
 
-const { dashBoardResult : result} = useDashboard()
+const { dashBoardResult: result } = useDashboard()
 
 const winningPercentage = computed(() => {
     const total = result.value.tradesCount

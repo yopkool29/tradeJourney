@@ -23,7 +23,7 @@ const chartData = computed(() => ({
                 profitColor.value,
                 breakevenColor.value,
             ],
-            hoverOffset: 4,
+            hoverOffset: 0,
             borderWidth: 0,
             circumference: 360, // 180 degrés pour un demi-cercle
             rotation: -90, // Commencer à minuit
@@ -61,10 +61,12 @@ const chartOptions = computed(() => ({
         legend: { display: false },
         tooltip: { enabled: false },
         datalabels: {
-            display: false, // Désactiver les datalabels si présents
+            display: false,
         },
     },
     animation: false,
+    transitions: { active: { animation: { duration: 0 } } },
+    hover: { mode: null },
 })) as ChartOptions
 
 const handleResize = () => {

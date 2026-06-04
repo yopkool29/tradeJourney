@@ -1,6 +1,7 @@
 export default defineAppConfig({
 	// Configuration des graphiques
 	charts: {
+		chartjs: false,
 		options: {
 			canvasHeight: 200,
 			// Options communes pour tous les graphiques

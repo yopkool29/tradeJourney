@@ -133,7 +133,7 @@ export default defineNuxtConfig({
             enableRouteLogger: false,
             enableApiLogger: process.env.DEBUG_MODE === 'true',
             pluginsEnabled: process.env.PLUGINS_ENABLED === 'true',
-            showLogView: process.env.SHOW_LOG_VIEW === 'true'
+            showLogView: process.env.SHOW_LOG_VIEW === 'true',
         }
     },
 

@@ -1,8 +1,10 @@
 export const echartsFontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
 
-export const getEchartsBaseOption = () => ({
-	animation: false,
-	textStyle: { fontFamily: echartsFontFamily },
+export const getEchartsBaseOption = (fontFamily?: string) => ({
+	animation: true,
+	animationDuration: 300,
+	animationEasing: 'cubicOut',
+	textStyle: { fontFamily: fontFamily || echartsFontFamily },
 	grid: { left: 70, right: 16, top: 12, bottom: 28 },
 })
 
@@ -11,10 +13,25 @@ export const getEchartsAxisColors = (isDark: boolean) => ({
 	textColor: isDark ? '#aaa' : '#666',
 })
 
-export const getEchartsTooltipColors = (isDark: boolean) => ({
-	backgroundColor: isDark ? '#1f2937' : '#ffffff',
-	borderColor: isDark ? '#374151' : '#e5e7eb',
-	textColor: isDark ? '#e5e7eb' : '#1f2937',
+export const getEchartsTooltipColors = () => ({
+	backgroundColor: 'rgba(0, 0, 0, 0.8)',
+	borderColor: 'transparent',
+	textColor: '#e5e7eb',
+})
+
+export const getEchartsCenterTextGraphic = (text: string, textColor: string, fontFamily: string) => ({
+	type: 'text' as const,
+	left: 'center' as const,
+	top: 'center' as const,
+	style: {
+		text,
+		textAlign: 'center' as const,
+		textVerticalAlign: 'middle' as const,
+		fontSize: 18,
+		fontWeight: 'bold' as const,
+		fill: textColor,
+		fontFamily,
+	},
 })
 
 export const echartsSeriesBase = {

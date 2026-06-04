@@ -1,33 +1,15 @@
 <template>
-    <div class="relative">
-    <UCard class="h-full" :ui="{ header: 'p-0' }">
-        <template #header>
-            <div class="flex items-center gap-2 w-full">
-                <span class="font-semibold">{{ $t('components.dashboard.cumulated_pnl_chart.title') }}</span>
-                <button class="ml-auto px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
-                    :title="$t('components.dashboard.cumulated_pnl_chart.enlarge')" @click="isModalOpen = true">
-                    <UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
-                </button>
-                <CommonModalChart v-model="isModalOpen"
-                    :title="$t('components.dashboard.cumulated_pnl_chart.enlarged_title')">
-                    <template #content>
-                        <Line :key="`cumulated-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%; cursor: crosshair;" />
-                    </template>
-                </CommonModalChart>
-            </div>
-        </template>
-        <div class="relative" :style="`width: 100%; height: ${canvasHeight}px`" style="cursor: crosshair;">
-            <Line ref="lineChartRef" :key="`cumulated-chart-${displayModeNet}-${props.layoutKey ?? 0}`" :data="chartData" :options="chartDisplayOptions" @click="isModalOpen = true" />
-        </div>
-    </UCard>
-
-    <!-- Loading overlay covering entire card including header -->
-    <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-10 rounded"></div>
-    <!-- Transparent spinner centered on top -->
-    <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-20">
-        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
-    </div>
-    </div>
+	<DashboardChartsBaseChartjsCard
+		:title="$t('components.dashboard.cumulated_pnl_chart.title')"
+		:enlarged-title="$t('components.dashboard.cumulated_pnl_chart.enlarged_title')"
+		:canvas-height="canvasHeight"
+		:loading="loading"
+	>
+		<Line ref="lineChartRef" :key="`cumulated-chart-${displayModeNet}-${props.layoutKey ?? 0}`" :data="chartData" :options="chartDisplayOptions" />
+		<template #modal>
+			<Line :key="`cumulated-chart-modal-${displayModeNet}`" :data="chartData" :options="chartDisplayOptions" style="width: 100%; height: 100%; cursor: crosshair;" />
+		</template>
+	</DashboardChartsBaseChartjsCard>
 </template>
 
 <script setup lang="ts">
@@ -45,7 +27,6 @@ const props = defineProps<{
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
 
-const isModalOpen = ref(false)
 const userStore = useUserStore()
 const dataStore = useDataStore()
 const { displayModeNet } = useNetGrossDisplay()
@@ -56,7 +37,7 @@ const chartConfigOptions = appConfig.charts.options
 
 const canvasHeight = computed(() => chartConfigOptions.canvasHeight)
 
-const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
+const { profitColor, lossColor, isDark } = useTypeColors('cumulatedPnlChart')
 
 // Données du graphique calculées à partir des trades stockés dans le store
 const chartData = computed(() => {
@@ -129,8 +110,8 @@ const chartDisplayOptions = computed(
             animation: {
                 duration: 200,
             },
-            hover: {
-                mode: 'nearest',
+            interaction: {
+                mode: 'index' as const,
                 intersect: false,
             },
             responsiveAnimationDuration: 0,
@@ -138,7 +119,7 @@ const chartDisplayOptions = computed(
                 legend: { display: false },
                 crosshair: {
                     line: {
-                        color: '#666',
+                        color: isDark.value ? '#888' : '#222',
                         width: 1,
                     },
                     sync: {
@@ -149,7 +130,7 @@ const chartDisplayOptions = computed(
                         enabled: false,
                     },
                     snap: {
-                        enabled: false,
+                        enabled: true,
                     },
                 },
                 tooltip: {

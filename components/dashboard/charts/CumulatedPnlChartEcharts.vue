@@ -52,7 +52,7 @@ const chartOption = computed(() => {
 	const pAreaColor = colorToRgba(pColor, 0.3)
 	const lAreaColor = colorToRgba(lColor, 0.3)
 
-	type DataPoint = { value: [number, number] } | null
+	type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
 
 	const profitData: DataPoint[] = []
 	const lossData: DataPoint[] = []
@@ -66,11 +66,11 @@ const chartOption = computed(() => {
 			const crossedDown = prev >= threshold && v < threshold
 
 			if (crossedUp || crossedDown) {
-				const t = (threshold - prev) / (v - prev)
-				const xi = (i - 1) + t
-				const crossing = { value: [xi, threshold] as [number, number] }
-				profitData.push(crossing)
-				lossData.push(crossing)
+				const tRatio = (threshold - prev) / (v - prev)
+				const xi = (i - 1) + tRatio
+				const crossingPoint = { value: [xi, threshold] as [number, number], itemStyle: { opacity: 0 }, symbolSize: 0 }
+				profitData.push(crossingPoint)
+				lossData.push(crossingPoint)
 			}
 		}
 
@@ -88,6 +88,8 @@ const chartOption = computed(() => {
 		type: 'line' as const,
 		smooth: false,
 		symbol: 'none',
+		showSymbol: false,
+		symbolSize: 0,
 		connectNulls: false,
 		emphasis: { disabled: true },
 		blur: { lineStyle: { opacity: 1 }, areaStyle: { opacity: 0.3 } },
@@ -95,6 +97,7 @@ const chartOption = computed(() => {
 
 	return {
 		...base,
+		animation: false,
 		tooltip: {
 			...base.tooltip,
 			formatter: (params: any) => {
@@ -136,7 +139,7 @@ const chartOption = computed(() => {
 				data: profitData,
 				lineStyle: { width: 2, color: pColor },
 				itemStyle: { color: pColor },
-				areaStyle: { origin: 'start', color: pAreaColor },
+				areaStyle: { origin: threshold as any, color: pAreaColor },
 			},
 			{
 				...seriesBase,
@@ -144,7 +147,7 @@ const chartOption = computed(() => {
 				data: lossData,
 				lineStyle: { width: 2, color: lColor },
 				itemStyle: { color: lColor },
-				areaStyle: { origin: 'start', color: lAreaColor },
+				areaStyle: { origin: threshold as any, color: lAreaColor },
 				markLine: threshold > 0 ? {
 					silent: true,
 					symbol: 'none',
