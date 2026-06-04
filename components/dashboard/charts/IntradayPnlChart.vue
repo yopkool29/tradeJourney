@@ -25,11 +25,11 @@ const props = defineProps<{
 const colorMode = useColorMode()
 
 const pnlchartColors = computed(() => {
-	const colors = userStore.user?.settings_object?.chartColors?.pnlchart || defaultSettings.chartColors!.pnlchart
+	const colors = defaultSettings.chartColors!.pnlchart
 	const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
     return {
-		line: colors.line[theme] || colors.line.light,
-		point: colors.point[theme] || colors.point.light,
+		line: colors.line[theme],
+		point: colors.point[theme],
 	}
 })
 
@@ -89,6 +89,22 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
     plugins: {
         legend: { display: false },
+        crosshair: {
+            line: {
+                color: colorMode.value === 'dark' || colorMode.value === 'dark-gold' ? '#888' : '#222',
+                width: 1,
+            },
+            sync: {
+                enabled: true,
+                group: 1,
+            },
+            zoom: {
+                enabled: false,
+            },
+            snap: {
+                enabled: false,
+            },
+        },
         tooltip: {
             animation: {
                 duration: 200,

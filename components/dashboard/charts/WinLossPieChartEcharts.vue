@@ -84,7 +84,7 @@ const chartOption = computed(() => {
 					formatter: '{c}',
 					fontSize: 12,
 					fontWeight: 'bold',
-					color: '#ffffff',
+					color: textColor,
 					fontFamily: chartFontFamily.value,
 				},
 				emphasis: {

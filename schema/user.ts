@@ -86,7 +86,7 @@ export const SettingsContentSchema = z.object({
         tableRowHover: { light: 'rgb(229, 229, 229)', dark: 'rgb(55, 65, 81)', 'light-blue': 'rgb(229, 229, 229)', 'dark-gold': 'rgb(55, 65, 81)' },
         pnlchart: {
             line: { light: 'rgb(56, 189, 248)', dark: 'rgb(56, 189, 248)', 'light-blue': 'rgb(56, 189, 248)', 'dark-gold': 'rgb(56, 189, 248)' },
-            point: { light: 'rgb(9, 75, 255)', dark: 'rgb(159, 65, 65)', 'light-blue': 'rgb(9, 75, 255)', 'dark-gold': 'rgb(9, 75, 255)' },
+            point: { light: 'rgb(200, 75, 255)', dark: 'rgb(150, 75, 255)', 'light-blue': 'rgb(200, 75, 255)', 'dark-gold': 'rgb(150, 75, 255)' },
         },
         datalabels: {
             display: false,
