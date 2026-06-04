@@ -82,7 +82,7 @@ const chartOption = computed(() => {
 					value: v,
 					itemStyle: {
 						color: v >= 0 ? profitColor.value : lossColor.value,
-						borderRadius: [3, 3, 0, 0],
+						borderRadius: v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3],
 					},
 				})),
 				barMaxWidth: 32,

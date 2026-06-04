@@ -89,7 +89,13 @@ const chartOption = computed(() => {
 		},
 		series: [{
 			type: 'bar',
-			data: values.map((v, i) => ({ value: v, itemStyle: { color: colors[i], borderRadius: [3, 3, 0, 0] } })),
+			data: values.map((v, i) => ({
+				value: v,
+				itemStyle: {
+					color: colors[i],
+					borderRadius: v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3],
+				},
+			})),
 			barMaxWidth: 32,
 			emphasis: { disabled: true },
 		}],

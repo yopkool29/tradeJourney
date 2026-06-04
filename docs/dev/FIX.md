@@ -70,3 +70,12 @@ Le Max Run-up est affiche dans `ProfitTradesSection` qui montre le **PnlBarChart
 - `utils/tradeStats.ts:437-474` — calcul
 - `composables/useDashboard.ts:107-111` — injection dans le dashboardResult
 - `components/dashboard/ProfitTradesSection.vue:58-73` — affichage (mauvaise section)
+
+
+vérifier la font
+
+Max Run-up:
+$966.58
+Max Run-up from:
+29/01/2026, 15:59
+Max Run-up to:
