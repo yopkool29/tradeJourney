@@ -8,7 +8,7 @@
             <!-- Pie Chart -->
             
             <div class="flex justify-center">
-                <DashboardWinLossPieChart />
+                <DashboardChartsWinLossPieChart />
             </div>
             
             <!-- Légende avec pourcentages -->
@@ -65,8 +65,6 @@
 </template>
 
 <script setup lang="ts">
-import DashboardWinLossPieChart from './charts/WinLossPieChart.vue'
-
 const userStore = useUserStore()
 
 const { dashBoardResult : result} = useDashboard()

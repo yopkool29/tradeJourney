@@ -50,7 +50,7 @@ export default defineNuxtConfig({
                 output: {
                     manualChunks: (id) => {
                         // Charts libraries
-                        if (id.includes('chart.js') || id.includes('vue-chartjs') || id.includes('lightweight-charts')) {
+                        if (id.includes('chart.js') || id.includes('vue-chartjs') || id.includes('lightweight-charts') || id.includes('echarts') || id.includes('vue-echarts') || id.includes('zrender')) {
                             return 'charts'
                         }
                         // Milkdown editor

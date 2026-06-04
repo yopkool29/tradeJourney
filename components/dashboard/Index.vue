@@ -157,14 +157,6 @@ import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { metadataHelpers } from '~/utils'
 import type { TradeFilter, ChartKey, SectionKey, DashboardGridItem } from '~/type'
 import { OPERATOR_EQUAL } from '~/utils'
-import DashboardPnlBarChart from './charts/PnlBarChart.vue'
-import DashboardCumulatedPnlChart from './charts/CumulatedPnlChart2.vue'
-import DashboardApptChart from './charts/ApptChart.vue'
-import DashboardWinrateChart from './charts/WinrateChart.vue'
-import DashboardAllTradesSection from './AllTradesSection.vue'
-import DashboardProfitTradesSection from './ProfitTradesSection.vue'
-import DashboardLosingTradesSection from './LosingTradesSection.vue'
-import DashboardWinLossComparisonSection from './WinLossComparisonSection.vue'
 
 const { formatCurrency } = useUtils()
 
@@ -211,16 +203,17 @@ const gridLayout = computed(() => {
 
 const gridComponents = computed(() => {
     const chartComponentMap: Record<ChartKey, any> = {
-        pnlBar: DashboardPnlBarChart,
-        cumulatedPnl: DashboardCumulatedPnlChart,
-        appt: DashboardApptChart,
-        winrate: DashboardWinrateChart
+        pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
+        cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
+        // cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
+        appt: resolveComponent('DashboardChartsApptChartEcharts'),
+        winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
     }
     const sectionComponentMap: Record<SectionKey, any> = {
-        allTrades: DashboardAllTradesSection,
-        profitTrades: DashboardProfitTradesSection,
-        losingTrades: DashboardLosingTradesSection,
-        winLossComparison: DashboardWinLossComparisonSection
+        allTrades: resolveComponent('DashboardAllTradesSection'),
+        profitTrades: resolveComponent('DashboardProfitTradesSection'),
+        losingTrades: resolveComponent('DashboardLosingTradesSection'),
+        winLossComparison: resolveComponent('DashboardWinLossComparisonSection'),
     }
     return { ...chartComponentMap, ...sectionComponentMap }
 })
