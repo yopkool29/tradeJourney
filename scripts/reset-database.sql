@@ -1,4 +1,4 @@
--- Script de réinitialisation de la base de données TradeJourney
+-- Script de réinitialisation de la base de données PnlTracker
 -- ⚠️ ATTENTION : Ce script supprime TOUTES les données et réinitialise complètement la base
 
 -- Supprimer tous les schémas utilisateur AVANT les rôles (pour éviter les erreurs de dépendances)
@@ -34,7 +34,7 @@ END $$;
 -- Supprimer et recréer le schéma public (Auth)
 DROP SCHEMA IF EXISTS public CASCADE;
 CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public TO tradejourney;
+GRANT ALL ON SCHEMA public TO pnltracker;
 GRANT ALL ON SCHEMA public TO public;
 
 -- Message de confirmation

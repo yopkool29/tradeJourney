@@ -17,7 +17,7 @@ class IBKRFlexQueryClient:
         self.query_id = query_id
         self.base_url = base_url
         self.flex_version = 3
-        self.headers = {"User-Agent": "TradeJourney-FlexQuery/1.0"}
+        self.headers = {"User-Agent": "PnlTracker-FlexQuery/1.0"}
 
     def send_request(self):
         """Send Flex Query request and return reference code

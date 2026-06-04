@@ -1,8 +1,8 @@
 """
-TradingView to TradeJourney Standard CSV Converter
+TradingView to PnlTracker Standard CSV Converter
 
 This script converts a CSV file exported from TradingView to the
-TradeJourney standard CSV format for easy import.
+PnlTracker standard CSV format for easy import.
 
 Usage:
     python tradingview_to_standard.py input.csv output.csv [--account-name NAME] [--import-name NAME]
@@ -111,7 +111,7 @@ def convert_to_standard_format(
     commission_percent: float = 0.0,
 ) -> List[Dict]:
     """
-    Convert TradingView trades to TradeJourney standard format
+    Convert TradingView trades to PnlTracker standard format
     
     Args:
         trades: List of parsed trades
@@ -184,7 +184,7 @@ def convert_to_standard_format(
 
 def write_standard_csv(trades: List[Dict], output_path: str):
     """
-    Write trades in TradeJourney standard CSV format
+    Write trades in PnlTracker standard CSV format
     
     Args:
         trades: List of trades in standard format
@@ -207,7 +207,7 @@ def write_standard_csv(trades: List[Dict], output_path: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Convert a TradingView CSV file to TradeJourney standard format'
+        description='Convert a TradingView CSV file to PnlTracker standard format'
     )
     parser.add_argument('input', help='Input TradingView CSV file')
     parser.add_argument('output', help='Output standard CSV file')
@@ -242,7 +242,7 @@ def main():
         write_standard_csv(standard_trades, args.output)
         
         print(f"\n🎉 Conversion completed successfully!")
-        print(f"You can now import {args.output} into TradeJourney")
+        print(f"You can now import {args.output} into PnlTracker")
         print(f"Select report type: 'Standard CSV Format'")
         
     except Exception as e:

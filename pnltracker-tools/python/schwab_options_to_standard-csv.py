@@ -1,8 +1,8 @@
 """
-Schwab Options Account Statement to TradeJourney Standard CSV Converter
+Schwab Options Account Statement to PnlTracker Standard CSV Converter
 
 This script converts a CSV file exported from Charles Schwab (Account Statement)
-to the TradeJourney standard CSV format for easy import.
+to the PnlTracker standard CSV format for easy import.
 
 It handles complex option spreads (SINGLE, BUTTERFLY, CALENDAR, etc.) and
 stores leg details in the metadata field.
@@ -479,7 +479,7 @@ def pair_open_close_trades(matched_trades: List[Tuple[OptionTrade, Optional[Cash
 
 def convert_to_standard_format(trades: List[Dict], account_name: str = "Schwab", account_fullname: str = "Charles Schwab Options", import_name: str = "SchwabOptions") -> List[Dict]:
     """
-    Convert parsed trades to TradeJourney standard format
+    Convert parsed trades to PnlTracker standard format
 
     Args:
         trades: List of complete trade dictionaries
@@ -556,7 +556,7 @@ def convert_to_standard_format(trades: List[Dict], account_name: str = "Schwab",
 
 def write_standard_csv(trades: List[Dict], output_path: str):
     """
-    Write trades in TradeJourney standard CSV format
+    Write trades in PnlTracker standard CSV format
 
     Args:
         trades: List of trades in standard format
@@ -622,7 +622,7 @@ def parse_schwab_csv(filepath: str) -> Tuple[List[OptionTrade], List[CashTransac
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert a Schwab Options Account Statement CSV to TradeJourney standard format")
+    parser = argparse.ArgumentParser(description="Convert a Schwab Options Account Statement CSV to PnlTracker standard format")
     parser.add_argument("input", help="Input Schwab CSV file")
     parser.add_argument("output", help="Output standard CSV file")
     parser.add_argument("--account-name", default="Schwab", help="Account name (default: Schwab)")
@@ -653,7 +653,7 @@ def main():
         write_standard_csv(standard_trades, args.output)
 
         print(f"\n🎉 Conversion completed successfully!")
-        print(f"You can now import {args.output} into TradeJourney")
+        print(f"You can now import {args.output} into PnlTracker")
         print(f"Select report type: 'Standard CSV Format'")
 
         # Summary

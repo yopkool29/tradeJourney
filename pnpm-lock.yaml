@@ -149,9 +149,6 @@ importers:
       pinia-plugin-persistedstate:
         specifier: ^4.3.0
         version: 4.5.0(@nuxt/kit@4.1.2(magicast@0.3.5))(@pinia/nuxt@0.11.2(magicast@0.3.5)(pinia@3.0.4(typescript@5.9.2)(vue@3.5.21(typescript@5.9.2))))(pinia@3.0.4(typescript@5.9.2)(vue@3.5.21(typescript@5.9.2)))
-      sortablejs:
-        specifier: ^1.15.7
-        version: 1.15.7
       tsx:
         specifier: 4.21.0
         version: 4.21.0
@@ -15608,7 +15605,8 @@ snapshots:
 
   smob@1.5.0: {}
 
-  sortablejs@1.15.7: {}
+  sortablejs@1.15.7:
+    optional: true
 
   source-map-js@1.2.1: {}
 

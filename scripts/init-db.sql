@@ -1,11 +1,11 @@
--- PostgreSQL Initialization Script for TradeJourney
+-- PostgreSQL Initialization Script for PnlTracker
 -- This script is executed when the PostgreSQL container starts for the first time
 
 -- Create the main database (already created by POSTGRES_DB env var)
--- CREATE DATABASE tradejourney;
+-- CREATE DATABASE pnltracker;
 
--- Connect to the tradejourney database
-\c tradejourney;
+-- Connect to the pnltracker database
+\c pnltracker;
 
 -- Function to create a user schema dynamically
 -- This function will be called from the application when a new user database is created
@@ -50,6 +50,6 @@ $$ LANGUAGE plpgsql;
 -- Log initialization completion
 DO $$
 BEGIN
-    RAISE NOTICE 'TradeJourney PostgreSQL initialization completed successfully';
+    RAISE NOTICE 'PnlTracker PostgreSQL initialization completed successfully';
 END
 $$;
