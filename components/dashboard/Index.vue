@@ -132,18 +132,18 @@
                     :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
                     size="sm"
                     variant="ghost"
-                    color="neutral"
+                    :color="isGridDraggable ? 'warning' : 'neutral'"
                     :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
-                    @click="isGridDraggable = !isGridDraggable"
+                    @click="() => { if (isGridDraggable) saveGridLayout(); isGridDraggable = !isGridDraggable }"
                 />
             </div>
             <DashboardGridLayout
+                ref="gridLayoutRef"
                 :layout="gridLayout"
                 :components="gridComponents"
                 :shared-props="{ loading: filterLoading }"
                 :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
                 :is-draggable="isGridDraggable"
-                @update:layout="onGridLayoutChange"
             />
         </div>
     </div>
@@ -180,7 +180,7 @@ const { t, locale } = useI18n()
 const chartVisibility = computed({
     get: () => {
         const saved = userStore.dashBoardFilters.dashboardChartVisibility
-        const defaultVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+        const defaultVisibility: Record<string, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
         return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
     },
     set: (val) => {
@@ -191,7 +191,7 @@ const chartVisibility = computed({
 const sectionVisibility = computed({
     get: () => {
         const saved = userStore.dashBoardFilters.dashboardSectionVisibility
-        const defaultVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+        const defaultVisibility: Record<string, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
         return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
     },
     set: (val) => {
@@ -201,11 +201,12 @@ const sectionVisibility = computed({
 
 const gridLayout = computed(() => {
     const allLayout = userStore.dashBoardFilters.dashboardGridLayout || []
-    return allLayout.filter(item => {
+    const visible = allLayout.filter(item => {
         if (item.i in chartVisibility.value) return chartVisibility.value[item.i]
         if (item.i in sectionVisibility.value) return sectionVisibility.value[item.i]
         return false
     })
+    return visible
 })
 
 const gridComponents = computed(() => {
@@ -224,18 +225,28 @@ const gridComponents = computed(() => {
     return { ...chartComponentMap, ...sectionComponentMap }
 })
 
-const onGridLayoutChange = (newLayout: DashboardGridItem[]) => {
+const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)
+
+const saveGridLayout = () => {
+    const newLayout = gridLayoutRef.value?.getLayout()
+    if (!newLayout) return
     const currentLayout = userStore.dashBoardFilters.dashboardGridLayout || []
     const hiddenItems = currentLayout.filter(item => {
         if (item.i in chartVisibility.value) return !chartVisibility.value[item.i]
         if (item.i in sectionVisibility.value) return !sectionVisibility.value[item.i]
         return false
     })
-    userStore.dashBoardFilters.dashboardGridLayout = [...newLayout, ...hiddenItems]
+    userStore.dashBoardFilters = {
+        ...userStore.dashBoardFilters,
+        dashboardGridLayout: [...newLayout, ...hiddenItems]
+    }
 }
 
 const onResetLayout = () => {
-    userStore.dashBoardFilters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
+    userStore.dashBoardFilters = {
+        ...userStore.dashBoardFilters,
+        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item }))
+    }
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {

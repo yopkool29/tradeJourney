@@ -1,6 +1,6 @@
 # 📊 PnlTracker - Trading Journal
 
-**PnlTracker** is a modern trading journal web application built with Nuxt 4, allowing traders to track, analyze, and optimize their trading performance — fully local, nothing leaves your machine.
+**PnlTracker** is a modern trading journal web application built with Nuxt 3, allowing traders to track, analyze, and optimize their trading performance — fully local, nothing leaves your machine.
 
 > 🚀 This project is actively evolving. New features and improvements are added regularly.
 

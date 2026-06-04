@@ -15,7 +15,6 @@
             :cols="{ lg: 12, md: 6, sm: 3 }"
             :responsive-layouts="responsiveLayouts"
             :class="{ 'layout-ready': layoutReady }"
-            @layout-updated="onLayoutUpdated"
             @layout-ready="onLayoutReady"
             @breakpoint-changed="onBreakpointChanged"
         >
@@ -74,14 +73,10 @@ const props = defineProps<{
     isDraggable?: boolean
 }>()
 
-const emit = defineEmits<{
-    'update:layout': [layout: GridLayoutItem[]]
-}>()
-
-const localLayout = ref([...props.layout])
+const localLayout = ref(props.layout.map(item => ({ ...item })))
 
 watch(() => props.layout, (newLayout) => {
-    localLayout.value = [...newLayout]
+    localLayout.value = newLayout.map(item => ({ ...item }))
 })
 
 // Prevent initial flash: disable CSS transitions until the layout has calculated positions once
@@ -104,11 +99,7 @@ const onBreakpointChanged = (newBreakpoint: string, newLayout: GridLayoutItem[])
     localLayout.value = [...newLayout]
 }
 
-const onLayoutUpdated = (newLayout: GridLayoutItem[]) => {
-    if (currentBreakpoint.value === 'lg') {
-        emit('update:layout', newLayout)
-    }
-}
+defineExpose({ getLayout: () => localLayout.value.map(item => ({ ...item })) })
 
 const responsiveLayouts = computed(() => {
     const lg = props.layout.map(item => ({ ...item }))
