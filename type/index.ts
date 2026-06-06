@@ -102,7 +102,15 @@ export interface DashBoardFilters {
     lastFilterColumn: string
     dashboardChartVisibility: Record<ChartKey, boolean>
     dashboardSectionVisibility: Record<SectionKey, boolean>
+    dashboardChartVisibilityLg?: Record<ChartKey, boolean>
+    dashboardChartVisibilityMd?: Record<ChartKey, boolean>
+    dashboardChartVisibilitySm?: Record<ChartKey, boolean>
+    dashboardSectionVisibilityLg?: Record<SectionKey, boolean>
+    dashboardSectionVisibilityMd?: Record<SectionKey, boolean>
+    dashboardSectionVisibilitySm?: Record<SectionKey, boolean>
     dashboardGridLayout: DashboardGridItem[]
+    dashboardGridLayoutMd?: DashboardGridItem[]
+    dashboardGridLayoutSm?: DashboardGridItem[]
 }
 
 export interface DailyFilters {

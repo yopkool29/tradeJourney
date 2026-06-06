@@ -117,8 +117,19 @@
         <div class="mb-8">
             <div class="flex justify-start gap-2 mb-2">
                 <DashboardVisibilityMenu
-                    v-model:chart-visibility="chartVisibility"
-                    v-model:section-visibility="sectionVisibility"
+                    v-if="currentBreakpoint === 'lg'"
+                    v-model:chart-visibility="chartVisibilityLg"
+                    v-model:section-visibility="sectionVisibilityLg"
+                />
+                <DashboardVisibilityMenu
+                    v-if="currentBreakpoint === 'md'"
+                    v-model:chart-visibility="chartVisibilityMd"
+                    v-model:section-visibility="sectionVisibilityMd"
+                />
+                <DashboardVisibilityMenu
+                    v-if="currentBreakpoint === 'sm'"
+                    v-model:chart-visibility="chartVisibilitySm"
+                    v-model:section-visibility="sectionVisibilitySm"
                 />
                 <UButton
                     icon="i-lucide-list-restart"
@@ -138,19 +149,21 @@
                 />
             </div>
             <DashboardGridLayout
+                :key="gridResetKey"
                 ref="gridLayoutRef"
                 :layout="gridLayout"
                 :components="gridComponents"
                 :shared-props="{ loading: filterLoading }"
                 :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
                 :is-draggable="isGridDraggable"
+                :col-num="gridColNum"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { periodOptions, getPeriodDates, defaultDashboardGridLayout } from '~/utils/dashboard'
+import { periodOptions, getPeriodDates, defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -169,36 +182,49 @@ const chartsReady = ref(false)
 const chartsCanRender = ref(false)
 const { t, locale } = useI18n()
 
-const chartVisibility = computed({
-    get: () => {
-        const saved = userStore.dashBoardFilters.dashboardChartVisibility
-        const defaultVisibility: Record<string, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
-        return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
-    },
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibility: val }
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+
+const chartVisibilityLg = computed({
+    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityLg || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityLg: val } }
+})
+const chartVisibilityMd = computed({
+    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityMd || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityMd: val } }
+})
+const chartVisibilitySm = computed({
+    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilitySm || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilitySm: val } }
+})
+
+const sectionVisibilityLg = computed({
+    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityLg || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityLg: val } }
+})
+const sectionVisibilityMd = computed({
+    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityMd || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityMd: val } }
+})
+const sectionVisibilitySm = computed({
+    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilitySm || {}) }),
+    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilitySm: val } }
+})
+
+const activeChartVisibility = computed(() => {
+    switch (currentBreakpoint.value) {
+        case 'md': return chartVisibilityMd.value
+        case 'sm': return chartVisibilitySm.value
+        default: return chartVisibilityLg.value
     }
 })
 
-const sectionVisibility = computed({
-    get: () => {
-        const saved = userStore.dashBoardFilters.dashboardSectionVisibility
-        const defaultVisibility: Record<string, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
-        return saved ? { ...defaultVisibility, ...saved } : defaultVisibility
-    },
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibility: val }
+const activeSectionVisibility = computed(() => {
+    switch (currentBreakpoint.value) {
+        case 'md': return sectionVisibilityMd.value
+        case 'sm': return sectionVisibilitySm.value
+        default: return sectionVisibilityLg.value
     }
-})
-
-const gridLayout = computed(() => {
-    const allLayout = userStore.dashBoardFilters.dashboardGridLayout || []
-    const visible = allLayout.filter(item => {
-        if (item.i in chartVisibility.value) return chartVisibility.value[item.i]
-        if (item.i in sectionVisibility.value) return sectionVisibility.value[item.i]
-        return false
-    })
-    return visible
 })
 
 const appConfig = useAppConfig()
@@ -226,27 +252,101 @@ const gridComponents = computed(() => {
 })
 
 const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)
+const gridResetKey = ref(0)
+
+// Breakpoint detection: lg >= 768, md >= 530, sm < 530
+const currentBreakpoint = ref<'lg' | 'md' | 'sm'>('lg')
+
+const updateBreakpoint = () => {
+    const w = window.innerWidth
+    if (w >= 768) currentBreakpoint.value = 'lg'
+    else if (w >= 530) currentBreakpoint.value = 'md'
+    else currentBreakpoint.value = 'sm'
+}
+
+onMounted(() => {
+    updateBreakpoint()
+    window.addEventListener('resize', updateBreakpoint)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateBreakpoint)
+})
+
+const defaultLayoutForBreakpoint = computed(() => {
+    const filters = userStore.dashBoardFilters
+    switch (currentBreakpoint.value) {
+        case 'md': {
+            const saved = filters.dashboardGridLayoutMd
+            return saved?.length ? saved : defaultDashboardGridLayoutMd
+        }
+        case 'sm': {
+            const saved = filters.dashboardGridLayoutSm
+            return saved?.length ? saved : defaultDashboardGridLayoutSm
+        }
+        default: {
+            const saved = filters.dashboardGridLayout
+            return saved?.length ? saved : defaultDashboardGridLayout
+        }
+    }
+})
+
+const gridColNum = computed(() => {
+    switch (currentBreakpoint.value) {
+        case 'md': return 6
+        case 'sm': return 3
+        default: return 12
+    }
+})
+
+const gridLayout = computed(() => {
+    const baseLayout = defaultLayoutForBreakpoint.value
+    const visible = baseLayout.filter(item => {
+        if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
+        if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
+        return false
+    })
+    return visible
+})
 
 const saveGridLayout = () => {
     const newLayout = gridLayoutRef.value?.getLayout()
     if (!newLayout) return
-    const currentLayout = userStore.dashBoardFilters.dashboardGridLayout || []
+    const currentLayout = defaultLayoutForBreakpoint.value
     const hiddenItems = currentLayout.filter(item => {
-        if (item.i in chartVisibility.value) return !chartVisibility.value[item.i]
-        if (item.i in sectionVisibility.value) return !sectionVisibility.value[item.i]
+        if (item.i in activeChartVisibility.value) return !activeChartVisibility.value[item.i as ChartKey]
+        if (item.i in activeSectionVisibility.value) return !activeSectionVisibility.value[item.i as SectionKey]
         return false
     })
-    userStore.dashBoardFilters = {
-        ...userStore.dashBoardFilters,
-        dashboardGridLayout: [...newLayout, ...hiddenItems]
+    const saved = [...newLayout, ...hiddenItems]
+    const filters = userStore.dashBoardFilters
+    switch (currentBreakpoint.value) {
+        case 'md':
+            userStore.dashBoardFilters = { ...filters, dashboardGridLayoutMd: saved }
+            break
+        case 'sm':
+            userStore.dashBoardFilters = { ...filters, dashboardGridLayoutSm: saved }
+            break
+        default:
+            userStore.dashBoardFilters = { ...filters, dashboardGridLayout: saved }
     }
 }
 
 const onResetLayout = () => {
-    userStore.dashBoardFilters = {
+    const updated = {
         ...userStore.dashBoardFilters,
-        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item }))
+        dashboardChartVisibilityLg: defaultChartVisibility,
+        dashboardSectionVisibilityLg: defaultSectionVisibility,
+        dashboardChartVisibilityMd: defaultChartVisibility,
+        dashboardSectionVisibilityMd: defaultSectionVisibility,
+        dashboardChartVisibilitySm: defaultChartVisibility,
+        dashboardSectionVisibilitySm: defaultSectionVisibility,
+        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
+        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
+        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
     }
+    userStore.dashBoardFilters = updated
+    gridResetKey.value++
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {

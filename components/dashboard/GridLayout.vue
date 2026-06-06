@@ -1,11 +1,9 @@
 <template>
     <div class="relative">
-        <grid-layout v-model:layout="localLayout" :col-num="12" :row-height="50" :is-draggable="isDraggable"
+        <grid-layout v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
             :is-resizable="false" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
-            :responsive="true" :use-style-cursor="false" :breakpoints="{ lg: 768, md: 530, sm: 0 }"
-            :cols="{ lg: 12, md: 6, sm: 3 }" :responsive-layouts="responsiveLayouts"
-            :class="{ 'layout-ready': layoutReady }" @layout-ready="onLayoutReady"
-            @breakpoint-changed="onBreakpointChanged">
+            :responsive="false" :use-style-cursor="false"
+            :class="{ 'layout-ready': layoutReady }" @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
                 :i="item.i" class="rounded-lg overflow-hidden">
                 <div class="h-full w-full relative" @mousedown="onMouseDown" @click.capture="onContentClick">
@@ -25,7 +23,6 @@
 
 <script setup lang="ts">
 import { GridLayout, GridItem } from 'vue-grid-layout-v3'
-import { defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
 interface GridLayoutItem {
     x: number
@@ -41,13 +38,24 @@ const props = defineProps<{
     sharedProps?: Record<string, any>
     componentProps?: Record<string, Record<string, any>>
     isDraggable?: boolean
+    colNum?: number
 }>()
 
 const localLayout = ref(props.layout.map(item => ({ ...item })))
 
+const layoutsEqual = (a: GridLayoutItem[], b: GridLayoutItem[]) => {
+    if (a.length !== b.length) return false
+    return a.every((item, i) => {
+        const other = b[i]
+        return item.i === other.i && item.x === other.x && item.y === other.y && item.w === other.w && item.h === other.h
+    })
+}
+
 watch(() => props.layout, (newLayout) => {
-    localLayout.value = newLayout.map(item => ({ ...item }))
-})
+    if (!layoutsEqual(localLayout.value, newLayout)) {
+        localLayout.value = newLayout.map(item => ({ ...item }))
+    }
+}, { immediate: true })
 
 // Prevent initial flash: disable CSS transitions until the layout has calculated positions once
 const layoutReady = ref(false)
@@ -62,22 +70,9 @@ const onLayoutReady = () => {
     })
 }
 
-const currentBreakpoint = ref('lg')
-
-const onBreakpointChanged = (newBreakpoint: string, newLayout: GridLayoutItem[]) => {
-    currentBreakpoint.value = newBreakpoint
-    localLayout.value = [...newLayout]
-}
+const colNum = computed(() => props.colNum || 12)
 
 defineExpose({ getLayout: () => localLayout.value.map(item => ({ ...item })) })
-
-const responsiveLayouts = computed(() => {
-    const lg = props.layout.map(item => ({ ...item }))
-    const md = defaultDashboardGridLayoutMd.map(item => ({ ...item }))
-    const sm = defaultDashboardGridLayoutSm.map(item => ({ ...item }))
-
-    return { lg, md, sm }
-})
 
 // Prevent click events on child components after a drag + disable text selection during drag
 const mouseStart = ref<{ x: number; y: number } | null>(null)

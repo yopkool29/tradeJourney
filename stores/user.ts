@@ -15,7 +15,7 @@ import type {
     DashBoardResult,
 } from '~/type'
 import { formatDateToYYYYMM } from '~/utils/date-utils'
-import { defaultDashboardGridLayout } from '~/utils/dashboard'
+import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
 export const useUserStore = defineStore(
     'userStore',
@@ -217,6 +217,12 @@ export const useUserStore = defineStore(
                 }
                 if (!filters.dashboardGridLayout || filters.dashboardGridLayout.length === 0) {
                     filters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
+                }
+                if (!filters.dashboardGridLayoutMd || filters.dashboardGridLayoutMd.length === 0) {
+                    filters.dashboardGridLayoutMd = defaultDashboardGridLayoutMd.map(item => ({ ...item }))
+                }
+                if (!filters.dashboardGridLayoutSm || filters.dashboardGridLayoutSm.length === 0) {
+                    filters.dashboardGridLayoutSm = defaultDashboardGridLayoutSm.map(item => ({ ...item }))
                 }
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)

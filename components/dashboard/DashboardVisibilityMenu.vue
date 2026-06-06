@@ -10,7 +10,7 @@
 					<div class="space-y-1">
 						<label v-for="chart in chartConfig" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
 							<UCheckbox
-								:model-value="localChartVisibility[chart.id]"
+								:model-value="props.chartVisibility[chart.id]"
 								@update:model-value="toggleChart(chart.id)"
 							/>
 							<span>{{ t(chart.label) }}</span>
@@ -22,7 +22,7 @@
 					<div class="space-y-1">
 						<label v-for="section in sectionConfig" :key="section.id" class="flex items-center gap-2 cursor-pointer">
 							<UCheckbox
-								:model-value="localSectionVisibility[section.id]"
+								:model-value="props.sectionVisibility[section.id]"
 								@update:model-value="toggleSection(section.id)"
 							/>
 							<span>{{ t(section.label) }}</span>
@@ -63,28 +63,11 @@ const sectionConfig = [
 	{ id: 'winLossComparison', label: 'components.dashboard.sections.win_loss_comparison' },
 ]
 
-const localChartVisibility = ref<Record<string, boolean>>({ ...props.chartVisibility })
-const localSectionVisibility = ref<Record<string, boolean>>({ ...props.sectionVisibility })
-
-watch(() => props.chartVisibility, (newVal) => {
-	localChartVisibility.value = { ...newVal }
-}, { deep: true })
-
-watch(() => props.sectionVisibility, (newVal) => {
-	localSectionVisibility.value = { ...newVal }
-}, { deep: true })
-
 const toggleChart = (chartId: string) => {
-	localChartVisibility.value[chartId] = !localChartVisibility.value[chartId]
-	setTimeout(() => {
-		emit('update:chartVisibility', { ...localChartVisibility.value })
-	}, 50)
+	emit('update:chartVisibility', { ...props.chartVisibility, [chartId]: !props.chartVisibility[chartId] })
 }
 
 const toggleSection = (sectionId: string) => {
-	localSectionVisibility.value[sectionId] = !localSectionVisibility.value[sectionId]
-	setTimeout(() => {
-		emit('update:sectionVisibility', { ...localSectionVisibility.value })
-	}, 50)
+	emit('update:sectionVisibility', { ...props.sectionVisibility, [sectionId]: !props.sectionVisibility[sectionId] })
 }
 </script>
