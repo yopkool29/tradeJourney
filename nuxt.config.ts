@@ -29,6 +29,10 @@ export default defineNuxtConfig({
         // }
     },
 
+    experimental: {
+        appManifest: process.env.VITEST !== 'true'
+    },
+
     vite: {
         resolve: {
             alias: {
@@ -77,8 +81,10 @@ export default defineNuxtConfig({
     },
 
     sourcemap: {
-        server: process.env.NODE_ENV !== 'production',
-        client: process.env.NODE_ENV !== 'production'
+        server: false,
+        client: false
+        // server: process.env.NODE_ENV !== 'production',
+        // client: process.env.NODE_ENV !== 'production'
     },
 
     routeRules: {
@@ -184,8 +190,7 @@ export default defineNuxtConfig({
     typescript: {
         tsConfig: {
             compilerOptions: {
-                sourceMap: true,
-                inlineSources: true
+                sourceMap: false
             }
         }
     }

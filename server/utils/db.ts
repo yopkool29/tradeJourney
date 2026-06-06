@@ -1,7 +1,7 @@
-import type { H3Event, EventHandlerRequest } from 'h3'
 import { PrismaClient as AuthPrismaClient } from '~/generated/prisma-auth'
 import { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
-import { getScreenshotUploadPath } from "./index"
+import { getScreenshotUploadPath } from './index'
+import { createAppError } from './errors'
 import { mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 
@@ -269,15 +269,15 @@ export const validateSchemaExists = async (userId: number, dbName: string): Prom
     }
 }
 
-export const getPrisma = async (event: H3Event<EventHandlerRequest>): Promise<DataPrismaClient> => {
-    const userId = Number(event.context.userId)
-    const dbName = event.context.dbName as string
+export const getPrisma = async (event: { context: { userId?: unknown; dbName?: unknown } }): Promise<DataPrismaClient> => {
+	const userId = Number(event.context.userId)
+	const dbName = event.context.dbName as string
 
-    if (!userId || !dbName) {
-        throw new Error('User ID or database name not found in context. Make sure auth middleware is applied and database is selected.')
-    }
+	if (!userId || !dbName) {
+		throw new Error('User ID or database name not found in context. Make sure auth middleware is applied and database is selected.')
+	}
 
-    return await getDataDb(userId, dbName)
+	return await getDataDb(userId, dbName)
 }
 
 // export const closeAllConnections = async () => {

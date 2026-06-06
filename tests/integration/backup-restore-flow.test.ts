@@ -2,7 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Database } from '~/composables/useDatabase'
 import type { CreateAccountType } from '~/schema/account'
 import type { CreateTradeType } from '~/schema/trade'
-import type { CreateTagGroupType, CreateTagType } from '~/schema/tagGroup'
+import type { CreateTagGroupType } from '~/schema/tagGroup'
+import type { CreateTagType } from '~/schema/tag'
 import type { CreateNoteType } from '~/schema/note'
 import { InstrumentType } from '~/type'
 import {
@@ -158,10 +159,13 @@ describe('Database Integration - Backup Restore Flow', () => {
 		backupFileName = result.filename
 		console.log('Backup created:', backupFileName)
 
-		// Download backup file as arrayBuffer
-		const arrayBuffer = await $fetch(`${BASE_URL}${result.downloadUrl}`, { responseType: 'arrayBuffer' })
-		expect(arrayBuffer).toBeDefined()
-		expect((arrayBuffer as ArrayBuffer).byteLength).toBeGreaterThan(0)
+		// Download backup file using native fetch for binary data
+		const downloadResp = await fetch(`${BASE_URL}${result.downloadUrl}`, {
+			headers: { cookie: getSessionCookie() }
+		})
+		expect(downloadResp.ok).toBe(true)
+		const arrayBuffer = await downloadResp.arrayBuffer()
+		expect(arrayBuffer.byteLength).toBeGreaterThan(0)
 		backupBlob = new Blob([arrayBuffer], { type: 'application/zip' })
 	}, 15000)
 

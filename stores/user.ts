@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia'
 import type { UserType } from '~/schema/user'
-import type { SymbolType } from '~/schema/symbol'
-import type { TradeExtendedType } from '~/schema/trade'
-import type { DayTagType } from '~/schema/dayTag'
-import type { TagGroupType } from '~/schema/tagGroup'
-import type { TradeFilter } from '~/type'
 
 import type {
+    TradeFilter,
     CustomInputs,
     TradeOptions,
     DashBoardFilters,
@@ -14,6 +10,7 @@ import type {
     CalendarFilters,
     DashBoardResult,
 } from '~/type'
+
 import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
@@ -478,8 +475,8 @@ export const useUserStore = defineStore(
                 Object.entries(customInputsPerDb.value).filter(([key]) => key !== dbName)
             )
             // dayTags and tagGroups cleaned via dataStore
-            delete dataStore.dayTagsPerDb[dbName]
-            delete dataStore.tagGroupsPerDb[dbName]
+            Reflect.deleteProperty(dataStore.dayTagsPerDb, dbName)
+            Reflect.deleteProperty(dataStore.tagGroupsPerDb, dbName)
             recentColorsPerDb.value = Object.fromEntries(
                 Object.entries(recentColorsPerDb.value).filter(([key]) => key !== dbName)
             )

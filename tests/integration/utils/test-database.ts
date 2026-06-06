@@ -3,10 +3,8 @@ import {
 	checkServerRunning,
 	loginTestUser,
 	cleanupOldTestDatabases,
-	updateSessionCookie,
 	deleteTestDatabase,
-	generateTestDbName,
-	BASE_URL
+	generateTestDbName
 } from './test-helpers'
 
 /**
@@ -33,7 +31,8 @@ const waitForDatabaseSchemaReady = async () => {
 
 	while (Date.now() - start < maxWait) {
 		try {
-			const list = await $fetch(`${BASE_URL}/api/database/list`) as Array<{ id: number; migrationVersion: number }>
+			// @ts-expect-error global $fetch is stubbed in setup.ts
+			const list = await $fetch('/api/database/list') as Array<{ id: number; migrationVersion: number }>
 			const db = list.find(d => d.migrationVersion === targetVersion)
 			if (db) {
 				console.log(`[test-database] Schema ready after ${Date.now() - start}ms (migrationVersion=${db.migrationVersion}/${targetVersion})`)
@@ -59,25 +58,25 @@ export const acquireTestDatabase = async () => {
 	userStore.setUser(loginResult)
 	await cleanupOldTestDatabases()
 
-	const { createDatabase } = useDatabase()
 	const dbName = generateTestDbName()
-	const result = await createDatabase(dbName, `Test DB ${dbName}`) as Database
+	// @ts-expect-error global $fetch is stubbed in setup.ts
+	const result = await $fetch('/api/database/create', {
+		method: 'POST',
+		body: { name: dbName, displayName: `Test DB ${dbName}` }
+	}) as Database
 
-	const selectResp = await $fetch.raw(`${BASE_URL}/api/database/select`, {
+	// @ts-expect-error global $fetch is stubbed in setup.ts
+	await $fetch.raw('/api/database/select', {
 		method: 'POST',
 		body: { databaseId: result.id }
 	})
-	const newCookie = selectResp.headers.get('set-cookie')
-	if (newCookie) {
-		updateSessionCookie(newCookie.split(';')[0])
-	}
 
 	// Wait for schema to be ready via polling instead of fixed sleep
 	await waitForDatabaseSchemaReady()
 
 	// Initialize tag groups (needed by most composables)
-	const { fetchGroups } = useTags()
-	await fetchGroups()
+	// @ts-expect-error global $fetch is stubbed in setup.ts
+	await $fetch('/api/tags')
 
 	console.log(`[test-database] Created fresh test database: ${result.id}`)
 	return { id: result.id, name: result.name }

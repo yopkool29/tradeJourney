@@ -152,14 +152,19 @@ export default defineNuxtPlugin(async () => {
         loadPlugin(e.detail.pluginId, true)
     }) as EventListener)
 
-    // Load initially active plugins
+    // Load initially active plugins only if user is authenticated
+    const userStore = useUserStore()
+    const user = await userStore.fetchUser()
+    if (!user) {
+        return
+    }
+
     try {
         const activePluginIds = await $fetch('/api/plugins/active') as string[]
         for (const pluginId of activePluginIds) {
             await loadPlugin(pluginId)
         }
     } catch {
-        // Silently handle auth errors during initial load
-        console.log('[TJ Plugins] Could not load active plugins (user not authenticated or no database selected)')
+        // Silently handle errors loading active plugins
     }
 })
