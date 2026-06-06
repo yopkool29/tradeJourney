@@ -45,7 +45,7 @@ function Generate-AdminToken {
     return ($base64 -replace '[=+/]', '').Substring(0, 24)
 }
 
-Write-Host "🔐 Génération des mots de passe..." -ForegroundColor Cyan
+Write-Host "🔐 Génération des secrets..." -ForegroundColor Cyan
 
 # Générer les secrets (séparément pour garantir qu'ils sont différents)
 $POSTGRES_PASSWORD = Generate-Password

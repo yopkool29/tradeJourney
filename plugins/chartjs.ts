@@ -16,23 +16,40 @@ import {
 import DataLabels from 'chartjs-plugin-datalabels'
 import CrosshairPlugin from 'chartjs-plugin-crosshair'
 
+interface CrosshairChart extends Chart {
+	crosshair?: unknown;
+}
+
+interface CrosshairPluginHooks {
+	afterInit?: (chart: CrosshairChart, ...args: unknown[]) => void;
+	afterEvent?: (chart: CrosshairChart, ...args: unknown[]) => void;
+	afterDraw?: (chart: CrosshairChart, ...args: unknown[]) => void;
+	beforeTooltipDraw?: (chart: CrosshairChart, ...args: unknown[]) => boolean | void;
+	afterDestroy?: (chart: CrosshairChart, ...args: unknown[]) => void;
+}
+
+const crosshairPlugin = CrosshairPlugin as CrosshairPluginHooks;
+
 export default defineNuxtPlugin(() => {
 	const safeCrosshairPlugin = {
 		id: 'crosshair',
-		afterInit: (...args: any[]) => (CrosshairPlugin as any).afterInit?.apply(CrosshairPlugin, args),
-		afterEvent: (...args: any[]) => {
-			if (!(args[0] as any)?.crosshair) return
-			return (CrosshairPlugin as any).afterEvent?.apply(CrosshairPlugin, args)
+		afterInit: (chart: CrosshairChart, ...args: unknown[]) => crosshairPlugin.afterInit?.(chart, ...args),
+		afterEvent: (chart: CrosshairChart, ...args: unknown[]) => {
+			if (!chart.crosshair) return;
+			return crosshairPlugin.afterEvent?.(chart, ...args);
 		},
-		afterDraw: (...args: any[]) => {
-			if (!(args[0] as any)?.crosshair) return
-			return (CrosshairPlugin as any).afterDraw?.apply(CrosshairPlugin, args)
+		afterDraw: (chart: CrosshairChart, ...args: unknown[]) => {
+			if (!chart.crosshair) return;
+			return crosshairPlugin.afterDraw?.(chart, ...args);
 		},
-		beforeTooltipDraw: (...args: any[]) => {
-			if (!(args[0] as any)?.crosshair) return
-			return (CrosshairPlugin as any).beforeTooltipDraw?.apply(CrosshairPlugin, args)
+		beforeTooltipDraw: (chart: CrosshairChart, ...args: unknown[]) => {
+			if (!chart.crosshair) return;
+			return crosshairPlugin.beforeTooltipDraw?.(chart, ...args);
 		},
-		afterDestroy: (...args: any[]) => (CrosshairPlugin as any).afterDestroy?.apply(CrosshairPlugin, args),
+		afterDestroy: (chart: CrosshairChart, ...args: unknown[]) => {
+			if (!chart.crosshair) return;
+			return crosshairPlugin.afterDestroy?.(chart, ...args);
+		},
 	}
 
   // Enregistrement des composants de base
