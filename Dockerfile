@@ -31,7 +31,7 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy configuration files first (changes less frequently)
 COPY package.json pnpm-lock.yaml ./
 COPY .env .env
-COPY nuxt.config.ts tsconfig.json app.config.js ./
+COPY nuxt.config.ts tsconfig.json app.config.ts ./
 
 # Copy Prisma schemas (changes less frequently than source code)
 COPY prisma ./prisma
@@ -63,7 +63,7 @@ COPY type ./type
 
 COPY app.vue ./app.vue
 COPY error.vue ./error.vue
-COPY app.config.js ./app.config.js
+COPY app.config.ts ./app.config.ts
 COPY server-start.mjs ./server-start.mjs
 
 RUN npx nuxt prepare
