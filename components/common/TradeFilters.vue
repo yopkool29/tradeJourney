@@ -117,6 +117,7 @@ const emit = defineEmits<{
     'update:dirty': [value: boolean]
     apply: []
     reset: []
+    remove: [isLast: boolean]
 }>()
 
 const localAccountIds = computed({
@@ -213,8 +214,10 @@ const removeFilter = (idx: number) => {
     const newFilters = [...localFilters.value]
     newFilters.splice(idx, 1)
     localFilters.value = newFilters
-    // Déclencher immédiatement comme le bouton "Effacer"
-    emit('apply')
+    // Si dernier filtre supprimé, c'est comme "Effacer" (apply direct)
+    // Sinon, compter et voir si auto/manuel
+    const isLast = newFilters.length === 0
+    emit('remove', isLast)
 }
 
 watch(() => props.filters.map(f => f.column), (newColumns, oldColumns) => {

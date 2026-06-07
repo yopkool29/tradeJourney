@@ -8,7 +8,7 @@
                     v-model:filters="filters"
                     v-model:show-advanced-filters="userStore.dashBoardFilters.showAdvancedFilters"
                     v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
-                    :dirty="userStore.filterDirty"
+                    :dirty="filterDirty"
                     :title="$t('components.dashboard.index.accounts')"
                     slot-id="page-dashboard"
                     :show-plugin-slot="true"
@@ -21,6 +21,7 @@
                     :tag-groups="tagGroups"
                     @apply="onExplicitApply"
                     @reset="resetFilters"
+                    @remove="(isLast) => { if (isLast) onExplicitApply() }"
                 >
                     <template #after-accounts>
                         <div class="filter-actions-lg">
@@ -212,7 +213,6 @@ const { formatCurrency } = useUtils()
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult, clearLastTrades } = useDashboard()
-const { fetchFilteredTradeCount, isAutoApplyMode } = useTrades()
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups, fetchGroups } = useTags()
 const chartsReady = ref(false)
@@ -519,32 +519,34 @@ const isGridDraggable = ref(false)
 // Variable locale pour le mode cumulé (buffer en mode manuel)
 const localCumuleMode = ref(userStore.dashBoardFilters.cumuleMode)
 
-const updateTradeCount = async () => {
-    const filterParams = buildFiltersForApi(
+// Fonction pour construire les filtres du dashboard
+const buildDashboardFilters = (): TradeFilter[] => {
+    return buildFiltersForApi(
         userStore.dashBoardFilters.startDate,
         userStore.dashBoardFilters.endDate,
         true,
         userStore.dashBoardFilters.accountIds,
         filters.value
     )
-    await fetchFilteredTradeCount(filterParams)
 }
 
-// Centralisé : gérer tout changement de filtre (count + auto/manuel)
-const handleFilterChange = async (shouldFetch = true) => {
-    await updateTradeCount()
-    if (isAutoApplyMode.value) {
-        // Mode auto : jamais de dirty, fetch seulement si demandé
-        userStore.filterDirty = false
-        if (shouldFetch) onApplyFiltersDebounced()
-    } else {
-        // Mode manuel : dirty = true, fetch au clic "Appliquer"
-        userStore.filterDirty = true
-    }
-}
-
-// Debounced versions pour éviter le spam API
-const debouncedHandleFilterChange = useDebounce(handleFilterChange, 300, { leading: true })
+// Utiliser le pattern générique pour la gestion des filtres
+const {
+    filterDirty,
+    isAutoApplyMode,
+    updateTradeCount,
+    handleFilterChange,
+    debouncedHandleFilterChange,
+    onExplicitApply,
+} = useFilteredPage({
+    pageType: 'dashboard',
+    onFetch: async () => {
+        await onApplyFilters()
+        userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+    },
+    buildFiltersFn: buildDashboardFilters,
+    debounceMs: 300,
+})
 
 const onCumuleModeChange = () => {
     // Laisser l'UI mettre à jour le sélecteur avant de lancer les calculs lourds
@@ -559,18 +561,13 @@ const onCumuleModeChange = () => {
     })
 }
 
-const onExplicitApply = async () => {
-    await onApplyFilters()
-    userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
-}
-
 const {
     filterLoading,
     load: onApplyFilters,
     loadDebounced: onApplyFiltersDebounced,
 } = usePageDataManager({
     fetchFn: async () => {
-        userStore.filterDirty = false
+        filterDirty.value = false
         const trades = await fetchData(
             userStore.dashBoardFilters.startDate,
             userStore.dashBoardFilters.endDate,
@@ -595,6 +592,8 @@ function resetFilters() {
     userStore.dashBoardFilters.showAdvancedFilters = false
     onApplyFiltersDebounced()
 }
+
+// _onResetFilters est exposé par useFilteredPage si besoin
 
 onMounted(() => {
     // Clear data if autoDataSync is enabled
@@ -655,8 +654,18 @@ watch([startDateStr, endDateStr], () => debouncedHandleFilterChange())
 // Watcher pour les filtres avancés (debounced, mais pas si loading)
 watch(
     () => filters.value,
-    () => {
-        if (!filterLoading.value) debouncedHandleFilterChange()
+    (newFilters, oldFilters) => {
+        if (filterLoading.value) return
+
+        // Si c'est juste un ajout de filtre vide, ne pas déclencher
+        if (newFilters && oldFilters && newFilters.length > oldFilters.length) {
+            const addedFilter = newFilters[newFilters.length - 1]
+            if (!addedFilter.value || addedFilter.value === '') {
+                return
+            }
+        }
+
+        debouncedHandleFilterChange()
     },
     { deep: true }
 )
