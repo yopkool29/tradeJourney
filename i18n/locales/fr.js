@@ -186,6 +186,7 @@ export default {
         loading: 'Chargement...',
         actions: {
             convert: 'Convertir',
+            edit: 'Modifier',
             save: 'Enregistrer',
             save_and_close: 'Enregistrer & Quitter',
             refresh: 'Actualiser',

@@ -1,8 +1,8 @@
 <template>
     <div>
-        <!-- Tags sélectionnés affichés comme badges -->
+        <!-- Tags sélectionnés affichés comme badges (tronqué dans le filtre) -->
         <div v-if="selectedTags.length > 0" class="flex flex-wrap items-center gap-2">
-            <UTooltip v-for="tag in selectedTags" :key="tag.id" :text="tag.description || tag.name">
+            <UTooltip v-for="tag in displayedTags" :key="tag.id" :text="tag.description || tag.name">
                 <UBadge
                     class="cursor-pointer"
                     size="md"
@@ -12,6 +12,17 @@
                 >
                     {{ tag.name }}
                     <UIcon name="i-heroicons-x-mark" class="ml-1" @click.stop="removeTag(tag.id)" />
+                </UBadge>
+            </UTooltip>
+            <UTooltip v-if="hiddenTagsCount > 0" :text="hiddenTagNames">
+                <UBadge
+                    class="cursor-pointer"
+                    size="md"
+                    color="neutral"
+                    variant="subtle"
+                    @click="openModal"
+                >
+                    +{{ hiddenTagsCount }}
                 </UBadge>
             </UTooltip>
         </div>
@@ -81,10 +92,13 @@ const openModal = () => {
     isOpen.value = true
 }
 
-// Limiter à 3 tags maximum
+const maxTags = 20
+const maxDisplayChars = 50
+
+// Limiter le nombre total de tags sélectionnables
 watch(tempSelectedIds, (newIds) => {
-    if (newIds.length > 3) {
-        tempSelectedIds.value = newIds.slice(0, 3)
+    if (newIds.length > maxTags) {
+        tempSelectedIds.value = newIds.slice(0, maxTags)
     }
 }, { deep: true })
 
@@ -110,24 +124,11 @@ const selectedTags = computed<TagType[]>(() => {
     return tags
 })
 
-// Vérifier si un tag est sélectionné
-const isTagSelected = (tagId: number) => {
-    return selectedTagIds.value.includes(tagId)
-}
-
-// Toggle un tag (ajouter ou retirer)
-const toggleTag = (tag: TagType) => {
-    const currentIds = [...selectedTagIds.value]
-    const index = currentIds.indexOf(tag.id)
-    if (index > -1) {
-        currentIds.splice(index, 1)
-    } else {
-        if (currentIds.length < 3) {
-            currentIds.push(tag.id)
-        }
-    }
-    modelValue.value = currentIds.join(',')
-}
+const { displayedItems: displayedTags, hiddenCount: hiddenTagsCount, hiddenLabels: hiddenTagNames } = useTruncatedList({
+    getItems: () => selectedTags.value,
+    getLabel: (tag) => tag.name,
+    maxChars: maxDisplayChars,
+})
 
 // Retirer un tag
 const removeTag = (tagId: number) => {

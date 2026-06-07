@@ -180,6 +180,7 @@ export default {
         loading: 'Loading...',
         actions: {
             convert: 'Convert',
+            edit: 'Edit',
             save: 'Save',
             save_and_close: 'Save & Close',
             refresh: 'Refresh',
