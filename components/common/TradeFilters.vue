@@ -60,8 +60,17 @@
         </div>
 
         <div class="filter-actions-lg mt-4">
-            <UButton type="submit" form="tradeFiltersForm" icon="i-lucide-filter" :loading="filterLoading" :color="applyButtonColor" variant="solid" size="sm">
-                {{ $t('components.trade.table.advanced_filters.apply') }}{{ props.dirty ? '!' : '' }}
+            <UButton
+                type="submit"
+                form="tradeFiltersForm"
+                icon="i-lucide-filter"
+                :trailing-icon="props.dirty ? 'i-lucide-alert-circle' : undefined"
+                :loading="filterLoading"
+                :color="applyButtonColor"
+                variant="solid"
+                size="sm"
+            >
+                {{ $t('components.trade.table.advanced_filters.apply') }}
             </UButton>
             <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
                 {{ $t('components.trade.table.advanced_filters.clear') }}

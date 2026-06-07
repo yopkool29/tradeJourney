@@ -77,24 +77,25 @@
                         <UIcon name="i-heroicons-book-open" class="w-5 h-5" />
                     </a>
                     <!-- Language Switcher Button -->
-                    <button
-                        class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                        @click="toggleLanguage">
-                        <span v-if="locale === 'fr'" class="w-5 h-5 flex-shrink-0">
-                            <img src="/img/flags/fr.svg" alt="Drapeau français"
-                                class="w-full h-full object-cover rounded-sm" />
+                    <UButton
+                        variant="ghost"
+                        class="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg"
+                        :loading="languageLoading"
+                        @click="toggleLanguage"
+                    >
+                        <span v-if="!languageLoading">
+                            <img v-if="locale === 'fr'" src="/img/flags/fr.svg" alt="Drapeau français" class="w-5 h-5 object-cover rounded-sm" />
+                            <img v-else src="/img/flags/en.svg" alt="English flag" class="w-5 h-5 object-cover rounded-sm" />
                         </span>
-                        <span v-else class="w-5 h-5 flex-shrink-0">
-                            <img src="/img/flags/en.svg" alt="English flag"
-                                class="w-full h-full object-cover rounded-sm" />
-                        </span>
-                        <span class="font-medium">{{ $t('language.switch') }}</span>
-                    </button>
+                        <span v-if="!languageLoading" class="font-medium">{{ $t('language.switch') }}</span>
+                        <span v-else class="font-medium">{{ $t('language.switch') }}</span>
+                    </UButton>
 
                     <UDropdownMenu :items="themeItems">
-                        <UButton variant="ghost" class="p-2 rounded-full flex items-center gap-2">
-                            <UIcon :name="themeIcon" class="header-icon" />
-                            <span class="hidden md:inline text-sm">{{ themeLabel }}</span>
+                        <UButton variant="ghost" class="p-2 rounded-full flex items-center gap-2" :loading="themeLoading">
+                            <UIcon v-if="!themeLoading" :name="themeIcon" class="header-icon" />
+                            <span v-if="!themeLoading" class="hidden md:inline text-sm">{{ themeLabel }}</span>
+                            <span v-else class="hidden md:inline text-sm">{{ themeLabel }}</span>
                         </UButton>
                     </UDropdownMenu>
                     <UButton v-if="userStore.user" color="primary" variant="ghost" class="ml-2 hidden md:inline-flex"
@@ -227,10 +228,12 @@ const hideHeader = useState<boolean>('hideHeader', () => false)
 const colorMode = useColorMode()
 const userStore = useUserStore()
 const { logout } = useAuth()
-const { locale, setLocale, t } = useI18n()
+const { locale, t } = useI18n()
 const { currentDatabase, clearCurrentDatabase } = useDatabase()
 const router = useRouter()
 const config = useRuntimeConfig()
+const { themeLoading, setTheme } = useThemeSwitcher()
+const { languageLoading, toggleLanguage } = useLanguageSwitcher()
 
 const mobileMenuOpen = ref(false)
 
@@ -277,23 +280,24 @@ const themeLabels: Record<string, string> = {
 
 const themeLabel = computed(() => themeLabels[colorMode.value] ?? colorMode.value)
 
+
 const themeItems = computed(() => [
     [{
         label: 'Light',
         icon: 'i-heroicons-sun',
-        onSelect: () => { colorMode.preference = 'light' }
+        onSelect: () => setTheme('light')
     }, {
         label: 'Light Blue',
         icon: 'i-heroicons-sparkles',
-        onSelect: () => { colorMode.preference = 'light-blue' }
+        onSelect: () => setTheme('light-blue')
     }, {
         label: 'Dark',
         icon: 'i-heroicons-moon',
-        onSelect: () => { colorMode.preference = 'dark' }
+        onSelect: () => setTheme('dark')
     }, {
         label: 'Dark Gold',
         icon: 'i-heroicons-star',
-        onSelect: () => { colorMode.preference = 'dark-gold' }
+        onSelect: () => setTheme('dark-gold')
     }]
 ])
 
@@ -348,11 +352,6 @@ const menuItems = computed(() => [
     },
 ])
 
-const toggleLanguage = () => {
-    const newLocale = locale.value === 'fr' ? 'en' : ('fr' as const)
-    setLocale(newLocale)
-    localStorage.setItem('i18n-locale', newLocale)
-}
 
 const onLogActivity = () => {
     mobileMenuOpen.value = false

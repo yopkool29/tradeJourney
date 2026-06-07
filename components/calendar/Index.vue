@@ -4,48 +4,70 @@
         <UCard class="card-container-xl">
             <template #default>
                 <div class="flex items-start justify-between">
-                <div class="flex flex-col">
-                    <CommonTradeFilters
-                        :title="$t('components.calendar.index.accounts')"
-                        slot-id="page-calendar"
-                        :show-plugin-slot="false"
-                        v-model:account-ids="userStore.calendarFilters.accountIds"
-                        v-model:show-inactive="userStore.calendarFilters.showInactive"
-                        v-model:filters="filters"
-                        v-model:show-advanced-filters="userStore.calendarFilters.showAdvancedFilters"
-                        :filter-loading="filterLoading"
-                        :account-options="accountOptions"
-                        :placeholder="$t('components.calendar.index.select_accounts')"
-                        :all-label="$t('components.calendar.index.all_accounts')"
-                        :selected-label="$t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })"
-                        :show-inactive-checkbox="false"
-                        :tag-groups="tagGroups"
-                        v-model:last-filter-column="userStore.calendarFilters.lastFilterColumn"
-                        @apply="onApplyFilters"
-                        @reset="resetFilters"
-                    >
-                        <template #after-accounts>
-                            <div class="filter-actions-lg">
-                                <UInput :model-value="selectedMonth" type="month" class="date-input" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
-                                <UButton icon="i-lucide-calendar-clock" size="xs" variant="ghost" color="neutral"
-                                    :title="$t('components.dashboard.index.set_history_range')"
-                                    :loading="fetchingDateRange"
-                                    @click="setHistoryDateRange" />
-                            </div>
-                        </template>
-                    </CommonTradeFilters>
+                    <div class="flex flex-col">
+                        <CommonTradeFilters
+                            v-model:account-ids="userStore.calendarFilters.accountIds"
+                            v-model:show-inactive="userStore.calendarFilters.showInactive"
+                            v-model:filters="filters"
+                            v-model:show-advanced-filters="userStore.calendarFilters.showAdvancedFilters"
+                            v-model:last-filter-column="userStore.calendarFilters.lastFilterColumn"
+                            :title="$t('components.calendar.index.accounts')"
+                            slot-id="page-calendar"
+                            :show-plugin-slot="false"
+                            :filter-loading="filterLoading"
+                            :account-options="accountOptions"
+                            :placeholder="$t('components.calendar.index.select_accounts')"
+                            :all-label="$t('components.calendar.index.all_accounts')"
+                            :selected-label="
+                                $t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })
+                            "
+                            :show-inactive-checkbox="false"
+                            :tag-groups="tagGroups"
+                            :dirty="filterDirty"
+                            @apply="onExplicitApply"
+                            @reset="resetFilters"
+                            @remove="
+                                (isLast) => {
+                                    if (isLast) onExplicitApply()
+                                }
+                            "
+                        >
+                            <template #after-accounts>
+                                <div class="filter-actions-lg">
+                                    <UInput
+                                        :model-value="selectedMonth"
+                                        type="month"
+                                        class="date-input"
+                                        @change="
+                                            (e: Event) => {
+                                                selectedMonth = (e.target as HTMLInputElement).value
+                                            }
+                                        "
+                                    />
+                                    <UButton
+                                        icon="i-lucide-calendar-clock"
+                                        size="xs"
+                                        variant="ghost"
+                                        color="neutral"
+                                        :title="$t('components.dashboard.index.set_history_range')"
+                                        :loading="fetchingDateRange"
+                                        @click="setHistoryDateRange"
+                                    />
+                                </div>
+                            </template>
+                        </CommonTradeFilters>
+                    </div>
+                    <div class="flex flex-col items-start gap-2">
+                        <PluginPageSlot slot-id="page-calendar" />
+                        <CommonPnLCalendar
+                            v-model="calendarValue"
+                            :month="calendarMonth"
+                            :day-stats="dayStats"
+                            :show="settings.showCalendarCalendar"
+                            @update:month="onCalendarMonthChange"
+                        />
+                    </div>
                 </div>
-                <div class="flex flex-col items-start gap-2">
-                    <PluginPageSlot slot-id="page-calendar" />
-                    <CommonPnLCalendar
-                        v-model="calendarValue"
-                        :month="calendarMonth"
-                        :day-stats="dayStats"
-                        :show="settings.showCalendarCalendar"
-                        @update:month="onCalendarMonthChange"
-                    />
-                </div>
-            </div>
             </template>
         </UCard>
 
@@ -59,8 +81,11 @@
                     <div class="min-w-[950px]">
                         <!-- En-têtes des jours de la semaine -->
                         <div class="grid grid-cols-8 gap-2 mb-2">
-                            <div v-for="day in weekDays" :key="day"
-                                class="text-center font-semibold text-sm p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                            <div
+                                v-for="day in weekDays"
+                                :key="day"
+                                class="text-center font-semibold text-sm p-2 bg-gray-100 dark:bg-gray-800 rounded"
+                            >
                                 {{ day }}
                             </div>
                             <div class="text-center font-semibold text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded">
@@ -69,33 +94,41 @@
                         </div>
 
                         <!-- Grille des semaines -->
-                        <div v-for="(week, weekIndex) in calendarWeeks" :key="weekIndex"
-                            class="grid grid-cols-8 gap-2 mb-2">
+                        <div v-for="(week, weekIndex) in calendarWeeks" :key="weekIndex" class="grid grid-cols-8 gap-2 mb-2">
                             <!-- Jours de la semaine -->
-                            <div v-for="(day, dayIndex) in week.days" :key="dayIndex"
+                            <div
+                                v-for="(day, dayIndex) in week.days"
+                                :key="dayIndex"
                                 class="border rounded px-2 py-0 min-h-[100px] transition-all cursor-pointer hover:shadow-lg hover:scale-105"
                                 :class="{
                                     'calendar-day-positive': day.pnl > 0,
                                     'calendar-day-negative': day.pnl < 0,
                                     'calendar-day-neutral': day.pnl === 0 || !day.isCurrentMonth,
                                     'opacity-50': !day.isCurrentMonth,
-                                }" @click="openDayModal(day)">
+                                }"
+                                @click="openDayModal(day)"
+                            >
                                 <CalendarDayCard :day="day" />
                             </div>
 
                             <!-- Total de la semaine -->
-                            <div class="border rounded p-2 min-h-[100px] flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-lg"
+                            <div
+                                class="border rounded p-2 min-h-[100px] flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-lg"
                                 :class="{
                                     'calendar-day-positive': week.total > 0,
                                     'calendar-day-negative': week.total < 0,
                                     'calendar-day-neutral': week.total === 0,
-                                }" @click="openWeekModal(week)">
-                                <div class="text-xs font-semibold mb-1">{{ $t('components.calendar.index.total') }}
-                                </div>
-                                <div class="text-lg font-bold" :class="{
-                                    'calendar-pnl-positive': week.total > 0,
-                                    'calendar-pnl-negative': week.total < 0,
-                                }">
+                                }"
+                                @click="openWeekModal(week)"
+                            >
+                                <div class="text-xs font-semibold mb-1">{{ $t('components.calendar.index.total') }}</div>
+                                <div
+                                    class="text-lg font-bold"
+                                    :class="{
+                                        'calendar-pnl-positive': week.total > 0,
+                                        'calendar-pnl-negative': week.total < 0,
+                                    }"
+                                >
                                     {{ formatCurrency(week.total) }}
                                 </div>
                             </div>
@@ -103,15 +136,19 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <!-- Modal pour afficher les trades d'une journée -->
         <CommonModalDefault v-model:open="showDayModal" :title="dayModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
-                <DailyTradeGroup v-if="selectedDay && selectedDay.count > 0" :showToggleButton="false"  :display-title="false"
-                    v-model:show-table="dayModalShowTable" :group-date="selectedDayDate"
-                    :group-trades="selectedDay.trades" />
+                <DailyTradeGroup
+                    v-if="selectedDay && selectedDay.count > 0"
+                    v-model:show-table="dayModalShowTable"
+                    :show-toggle-button="false"
+                    :display-title="false"
+                    :group-date="selectedDayDate"
+                    :group-trades="selectedDay.trades"
+                />
                 <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_day') }}</div>
                 </div>
@@ -122,12 +159,16 @@
         <CommonModalDefault v-model:open="showWeekModal" :title="weekModalTitle" :ui="{ content: 'max-w-4/5' }">
             <template #content>
                 <template v-for="day in selectedWeekDays" :key="day.dayNumber">
-                    <DailyTradeGroup v-if="day.count > 0" :showToggleButton="false" :display-title="false"
-                        v-model:show-table="weekModalShowTable[day.dayNumber]" :group-date="getDateFromDay(day)"
-                        :group-trades="day.trades" />
+                    <DailyTradeGroup
+                        v-if="day.count > 0"
+                        v-model:show-table="weekModalShowTable[day.dayNumber]"
+                        :show-toggle-button="false"
+                        :display-title="false"
+                        :group-date="getDateFromDay(day)"
+                        :group-trades="day.trades"
+                    />
                 </template>
-                <div v-if="!selectedWeekDays.some(d => d.count > 0)"
-                    class="py-8 text-center text-gray-500 dark:text-gray-400">
+                <div v-if="!selectedWeekDays.some((d) => d.count > 0)" class="py-8 text-center text-gray-500 dark:text-gray-400">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_week') }}</div>
                 </div>
             </template>
@@ -208,8 +249,8 @@ const setHistoryDateRange = async () => {
     try {
         const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
-                accountIds: JSON.stringify(userStore.calendarFilters.accountIds)
-            }
+                accountIds: JSON.stringify(userStore.calendarFilters.accountIds),
+            },
         })
 
         if (result.maxDate) {
@@ -249,7 +290,7 @@ const dayModalTitle = computed(() => {
 
 const selectedWeekDays = computed(() => {
     if (!selectedWeek.value) return []
-    return selectedWeek.value.days.filter(day => day.isCurrentMonth)
+    return selectedWeek.value.days.filter((day) => day.isCurrentMonth)
 })
 
 const weekModalTitle = computed(() => {
@@ -264,17 +305,31 @@ const weekModalTitle = computed(() => {
 
 const filters = computed({
     get: () => userStore.calendarFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => userStore.calendarFilters.filters = val
+    set: (val) => (userStore.calendarFilters.filters = val),
 })
 
+// Fonction pour construire les filtres du calendar (convertit selectedMonth en dates)
+const buildCalendarFilters = (): TradeFilter[] => {
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = endOfMonth(startDate)
+
+    return buildFiltersForApi(startDate, endDate, true, userStore.calendarFilters.accountIds, filters.value)
+}
+
+// Utiliser le pattern générique pour la gestion des filtres
+const { filterDirty, debouncedHandleFilterChange, onExplicitApply } = useFilteredPage({
+    pageType: 'calendar',
+    onFetch: async () => {
+        await loadCalendarDataDebounced()
+    },
+    buildFiltersFn: buildCalendarFilters,
+    debounceMs: 300,
+})
 
 function resetFilters() {
     filters.value = []
     userStore.calendarFilters.showAdvancedFilters = false
-    loadCalendarDataDebounced()
-}
-
-function onApplyFilters() {
     loadCalendarDataDebounced()
 }
 
@@ -290,7 +345,9 @@ const { filterLoading, loadDebounced: loadCalendarDataDebounced } = usePageDataM
     },
     accounts,
     getAccountIds: () => userStore.calendarFilters.accountIds,
-    setAccountIds: (ids) => { userStore.calendarFilters.accountIds = ids },
+    setAccountIds: (ids) => {
+        userStore.calendarFilters.accountIds = ids
+    },
 })
 
 // Modal pour afficher les trades d'une journée
@@ -303,11 +360,13 @@ const openDayModal = async (day: DayData) => {
 
     startLoading()
 
-    await new Promise<void>((resolve) => setTimeout(() => {
-        selectedDay.value = day
-        showDayModal.value = true
-        resolve()
-    }, 100))
+    await new Promise<void>((resolve) =>
+        setTimeout(() => {
+            selectedDay.value = day
+            showDayModal.value = true
+            resolve()
+        }, 100)
+    )
 
     stopLoading()
 }
@@ -324,7 +383,7 @@ const getDateFromDay = (day: DayData): Date => {
 }
 
 const openWeekModal = async (week: WeekData) => {
-    const hasTradesInWeek = week.days.some(day => day.isCurrentMonth && day.count > 0)
+    const hasTradesInWeek = week.days.some((day) => day.isCurrentMonth && day.count > 0)
     if (!hasTradesInWeek) return
 
     startLoading()
@@ -335,7 +394,7 @@ const openWeekModal = async (week: WeekData) => {
             selectedWeek.value = week
             // Initialiser tous les tableaux comme ouverts
             weekModalShowTable.value = {}
-            week.days.forEach(day => {
+            week.days.forEach((day) => {
                 if (day.isCurrentMonth && day.count > 0) {
                     weekModalShowTable.value[day.dayNumber] = true
                 }
@@ -376,7 +435,7 @@ const getDaysStats = () => {
     eachDayOfInterval({ start, end }).forEach((day) => {
         const key = formatDateToYYYYMMDD(day)
         const tradesOfDay = tradesByDay[key] || []
-        const pnl = tradesOfDay.reduce((sum, t) => sum + (displayModeNet.value ? (t.netProfit || 0) : (t.profit || 0)), 0)
+        const pnl = tradesOfDay.reduce((sum, t) => sum + (displayModeNet.value ? t.netProfit || 0 : t.profit || 0), 0)
         const commission = tradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
         stats[key] = {
             count: tradesOfDay.length,
@@ -412,7 +471,7 @@ const calendarWeeks = computed(() => {
     let currentWeek: DayData[] = []
     let weekTotal = 0
 
-    allDays.forEach((day, index) => {
+    allDays.forEach((day) => {
         const dayKey = formatDateToYYYYMMDD(day)
         const dayData = dayStats.value[dayKey]
         const isCurrentMonth = day.getMonth() === month - 1
@@ -424,7 +483,7 @@ const calendarWeeks = computed(() => {
             const hasScreenshotUrl = trade.screenshotUrl ? 1 : 0
             return total + screenshots + hasScreenshotUrl
         }, 0)
-        const hasDetailedNote = trades.some(trade => {
+        const hasDetailedNote = trades.some((trade) => {
             const detailedNote = (trade.metadata as Record<string, unknown>)?.detailedNote as string
             return detailedNote && detailedNote.length > 0
         })
@@ -466,7 +525,6 @@ const calendarWeeks = computed(() => {
     return weeks
 })
 
-
 const onCalendarMonthChange = (...args: unknown[]) => {
     const month = args[0] as { year: number; month: number }
     selectedMonth.value = `${month.year}-${month.month.toString().padStart(2, '0')}`
@@ -479,7 +537,7 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         if (forceFetch) {
             await Promise.all([
                 fetchData(startDate, endDate, true, userStore.calendarFilters.accountIds, filters.value),
-                fetchDayTags(selectedMonth.value)
+                fetchDayTags(selectedMonth.value),
             ])
         }
     }
@@ -492,14 +550,9 @@ onMounted(async () => {
     }
 
     nextTick(async () => {
-        if (settings?.autoDataSync)
-            filterLoading.value = true
+        if (settings?.autoDataSync) filterLoading.value = true
 
-        await Promise.all([
-            fetchAccounts(),
-            fetchDayTags(selectedMonth.value),
-            fetchGroups()
-        ])
+        await Promise.all([fetchAccounts(), fetchDayTags(selectedMonth.value), fetchGroups()])
 
         // Initialiser calendarValue avec le mois sélectionné
         const [year, month] = selectedMonth.value.split('-').map(Number)
@@ -521,22 +574,37 @@ onMounted(async () => {
         }
 
         filterLoading.value = false
-
     })
 })
 
+// Watcher pour les comptes (debounced)
 watch(
     () => [...(userStore.calendarFilters.accountIds || [])],
-    () => {
-        loadCalendarDataDebounced()
-    },
+    () => debouncedHandleFilterChange(),
     { deep: true }
 )
 
-// Charger les données quand selectedMonth change
-watch(selectedMonth, () => {
-    loadCalendarDataDebounced()
-})
+// Watcher pour selectedMonth (debounced)
+watch(selectedMonth, () => debouncedHandleFilterChange())
+
+// Watcher pour les filtres avancés (debounced, mais pas si loading)
+watch(
+    () => filters.value,
+    (newFilters, oldFilters) => {
+        if (filterLoading.value) return
+
+        // Si c'est juste un ajout de filtre vide, ne pas déclencher
+        if (newFilters && oldFilters && newFilters.length > oldFilters.length) {
+            const addedFilter = newFilters[newFilters.length - 1]
+            if (!addedFilter.value || addedFilter.value === '') {
+                return
+            }
+        }
+
+        debouncedHandleFilterChange()
+    },
+    { deep: true }
+)
 
 // Relancer le fetch quand la base de données change
 const { currentDatabase } = useDatabase()
@@ -555,5 +623,4 @@ watch([showDayModal, showWeekModal], ([newDay, newWeek], [oldDay, oldWeek]) => {
         loadCalendarDataDebounced()
     }
 })
-
 </script>

@@ -5,17 +5,26 @@
             <template #default>
                 <div class="flex items-start justify-between">
                     <div class="flex flex-col">
-                        <CommonTradeFilters :title="$t('components.daily.index.accounts')" slot-id="page-daily"
-                            :show-plugin-slot="false" v-model:account-ids="userStore.dailyFilters.accountIds"
-                            v-model:show-inactive="userStore.dailyFilters.showInactive" v-model:filters="filters"
+                        <CommonTradeFilters
+                            v-model:account-ids="userStore.dailyFilters.accountIds"
+                            v-model:show-inactive="userStore.dailyFilters.showInactive"
+                            v-model:filters="filters"
                             v-model:show-advanced-filters="userStore.dailyFilters.showAdvancedFilters"
-                            :filter-loading="filterLoading" :account-options="accountOptions"
+                            v-model:last-filter-column="userStore.dailyFilters.lastFilterColumn"
+                            :title="$t('components.daily.index.accounts')"
+                            slot-id="page-daily"
+                            :show-plugin-slot="false"
+                            :filter-loading="filterLoading"
+                            :account-options="accountOptions"
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
                             :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyFilters.accountIds?.length })"
-                            :show-inactive-checkbox="true" :tag-groups="tagGroups"
-                            v-model:last-filter-column="userStore.dailyFilters.lastFilterColumn"
-                            @apply="onApplyFilters" @reset="resetFilters">
+                            :show-inactive-checkbox="true"
+                            :tag-groups="tagGroups"
+                            :dirty="filterDirty"
+                            @apply="onExplicitApply"
+                            @reset="resetFilters"
+                            @remove="(isLast) => { if (isLast) onExplicitApply() }">
                             <template #after-accounts>
                                 <div class="filter-actions-lg">
                                     <UInput :model-value="selectedMonth" type="month" class="w-36" @change="(e: Event) => { selectedMonth = (e.target as HTMLInputElement).value }" />
@@ -168,13 +177,38 @@ const filters = computed({
     set: (val) => userStore.dailyFilters.filters = val
 })
 
+// Fonction pour construire les filtres du daily (convertit selectedMonth en dates)
+const buildDailyFilters = (): TradeFilter[] => {
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = endOfMonth(startDate)
+
+    return buildFiltersForApi(
+        startDate,
+        endDate,
+        true,
+        userStore.dailyFilters.accountIds,
+        filters.value
+    )
+}
+
+// Utiliser le pattern générique pour la gestion des filtres
+const {
+    filterDirty,
+    debouncedHandleFilterChange,
+    onExplicitApply,
+} = useFilteredPage({
+    pageType: 'daily',
+    onFetch: async () => {
+        await loadMonthDataDebounced()
+    },
+    buildFiltersFn: buildDailyFilters,
+    debounceMs: 300,
+})
+
 function resetFilters() {
     filters.value = []
     userStore.dailyFilters.showAdvancedFilters = false
-    loadMonthDataDebounced()
-}
-
-function onApplyFilters() {
     loadMonthDataDebounced()
 }
 
@@ -344,27 +378,40 @@ onMounted(() => {
     })
 })
 
-// Appliquer les filtres quand les comptes changent
+// Watcher pour les comptes (debounced)
 watch(
     () => [...(userStore.dailyFilters.accountIds || [])],
-    () => {
-        loadMonthDataDebounced()
-    },
+    () => debouncedHandleFilterChange(),
     { deep: true }
 )
 
-// Appliquer les filtres quand showInactive change
+// Watcher pour showInactive (debounced)
 watch(
     () => userStore.dailyFilters.showInactive,
-    () => {
-        loadMonthDataDebounced()
-    }
+    () => debouncedHandleFilterChange()
 )
 
-// Synchronisation bidirectionnelle : quand selectedMonth change, on charge les données
-watch(selectedMonth, () => {
-    loadMonthDataDebounced()
-})
+// Watcher pour selectedMonth (debounced)
+watch(selectedMonth, () => debouncedHandleFilterChange())
+
+// Watcher pour les filtres avancés (debounced, mais pas si loading)
+watch(
+    () => filters.value,
+    (newFilters, oldFilters) => {
+        if (filterLoading.value) return
+
+        // Si c'est juste un ajout de filtre vide, ne pas déclencher
+        if (newFilters && oldFilters && newFilters.length > oldFilters.length) {
+            const addedFilter = newFilters[newFilters.length - 1]
+            if (!addedFilter.value || addedFilter.value === '') {
+                return
+            }
+        }
+
+        debouncedHandleFilterChange()
+    },
+    { deep: true }
+)
 
 // Relancer le fetch quand la base de données change
 const { currentDatabase } = useDatabase()
