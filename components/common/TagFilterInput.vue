@@ -25,11 +25,11 @@
             color="neutral"
             @click="openModal"
         >
-            {{ $t('components.trade.table.filters.select_tag') }}
+            {{ $t('components.trade.table.tagSelector.select_tags') }}
         </UButton>
 
         <!-- Modal de sélection de tags -->
-        <CommonModalDefault v-model:open="isOpen" :title="$t('components.trade.table.filters.select_tag')">
+        <CommonModalDefault v-model:open="isOpen" :title="$t('components.trade.table.tagSelector.select_tags')">
             <template #content>
                 <div class="p-4">
                     <CommonTagSelector
@@ -41,8 +41,8 @@
             </template>
             <template #footer>
                 <div class="action-buttons-end">
-                    <UButton variant="soft" @click="cancelSelection">{{ $t('common.actions.cancel') }}</UButton>
                     <UButton @click="confirmSelection">{{ $t('common.actions.validate') }}</UButton>
+                    <UButton variant="soft" @click="cancelSelection">{{ $t('common.actions.cancel') }}</UButton>
                 </div>
             </template>
         </CommonModalDefault>

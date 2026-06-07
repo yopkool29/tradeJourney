@@ -1,4 +1,5 @@
-type AnyFn = (...args: unknown[]) => unknown
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => any
 
 type Options = {
 	leading?: boolean
@@ -19,29 +20,35 @@ export const useDebounce = <T extends AnyFn>(fn: T, ms: number, options: Options
 			clearTimeout(timeout)
 		}
 
-		if (leading && !leadingFired) {
-			leadingFired = true
-			lastCallTime = now
-			fn(...args)
-		}
-
-		timeout = setTimeout(() => {
-			timeout = null
-			leadingFired = false
-			lastCallTime = null
-			if (!leading) {
-				fn(...args)
+		return new Promise<Awaited<ReturnType<T>>>((resolve) => {
+			const execute = () => {
+				Promise.resolve(fn(...args)).then(resolve as (value: unknown) => void)
 			}
-		}, ms)
 
-		if (maxWait !== undefined && lastCallTime !== null && now - lastCallTime >= maxWait) {
-			if (timeout) {
-				clearTimeout(timeout)
+			if (leading && !leadingFired) {
+				leadingFired = true
+				lastCallTime = now
+				execute()
+			}
+
+			timeout = setTimeout(() => {
 				timeout = null
+				leadingFired = false
+				lastCallTime = null
+				if (!leading) {
+					execute()
+				}
+			}, ms)
+
+			if (maxWait !== undefined && lastCallTime !== null && now - lastCallTime >= maxWait) {
+				if (timeout) {
+					clearTimeout(timeout)
+					timeout = null
+				}
+				leadingFired = false
+				lastCallTime = now
+				execute()
 			}
-			leadingFired = false
-			lastCallTime = now
-			fn(...args)
-		}
+		})
 	}
 }

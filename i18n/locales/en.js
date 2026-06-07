@@ -1192,7 +1192,6 @@ export default {
                     profit: 'Profit',
                     tags: 'Tags',
                     symbol_placeholder: 'Search ...',
-                    select_tag: 'Select tag',
                     no_tags: 'No tags available',
                     selected: 'Selected',
                     none: 'None',

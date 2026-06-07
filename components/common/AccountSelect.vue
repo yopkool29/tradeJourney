@@ -2,24 +2,24 @@
     <div class="flex flex-col gap-3">
         <div class='flex flex-col md:flex-row items-start gap-4'>
             <USelect
-                :model-value="modelValue"
+                :model-value="localValue"
                 :items="items"
-                :placeholder="modelValue?.length ? '' : placeholder"
+                :placeholder="localValue?.length ? '' : placeholder"
                 multiple
                 size="md"
                 class="w-auto select-none"
                 :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
                 :content="{ align: 'center', position: 'popper' }"
-                @update:model-value="$emit('update:modelValue', $event)"
+                @update:model-value="onSelectChange"
             >
                 <div>
-                    <span v-if="!modelValue?.length">{{ allLabel }}</span>
+                    <span v-if="!localValue?.length">{{ allLabel }}</span>
                     <span v-else>{{ selectedLabel }}</span>
                 </div>
             </USelect>
             <slot name="before-badges" />
         </div>
-        <div v-if="modelValue?.length && items?.length" class="flex flex-wrap gap-2 mx-4">
+        <div v-if="localValue?.length && items?.length" class="flex flex-wrap gap-2 mx-4">
             <UBadge
                 v-for="label in selectedLabels"
                 :key="label"
@@ -55,9 +55,24 @@ const emit = defineEmits<{
     'update:modelValue': [value: number[]]
 }>()
 
+const localValue = ref<number[]>(props.modelValue)
+
+watch(() => props.modelValue, (val) => {
+    localValue.value = val
+})
+
 const selectedLabels = computed(() =>
-    (props.modelValue ?? []).map(id => props.items.find(i => i.value === id)?.label ?? String(id))
+    (localValue.value ?? []).map(id => props.items.find(i => i.value === id)?.label ?? String(id))
 )
+
+const debouncedEmit = useDebounce((val: number[]) => {
+    emit('update:modelValue', val)
+}, 1000)
+
+const onSelectChange = (val: number[]) => {
+    localValue.value = val
+    debouncedEmit(val)
+}
 
 watch(() => props.items, (items) => {
     if (!items?.length) return
@@ -71,7 +86,8 @@ const onTagsChange = (labels: string[]) => {
     const ids = labels
         .map(label => props.items.find(i => i.label === label)?.value)
         .filter((id): id is number => id !== undefined)
-    emit('update:modelValue', ids)
+    localValue.value = ids
+    debouncedEmit(ids)
 }
 
 </script>

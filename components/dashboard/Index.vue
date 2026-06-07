@@ -3,13 +3,14 @@
         <UCard class="card-container-xl">
             <template #default>
                 <CommonTradeFilters
-                    :title="$t('components.dashboard.index.accounts')"
-                    slot-id="page-dashboard"
-                    :show-plugin-slot="true"
                     v-model:account-ids="userStore.dashBoardFilters.accountIds"
                     v-model:show-inactive="userStore.dashBoardFilters.showInactive"
                     v-model:filters="filters"
                     v-model:show-advanced-filters="userStore.dashBoardFilters.showAdvancedFilters"
+                    v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
+                    :title="$t('components.dashboard.index.accounts')"
+                    slot-id="page-dashboard"
+                    :show-plugin-slot="true"
                     :filter-loading="filterLoading"
                     :account-options="accountOptions"
                     :placeholder="$t('components.dashboard.index.select_accounts')"
@@ -17,13 +18,15 @@
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
                     :show-inactive-checkbox="false"
                     :tag-groups="tagGroups"
-                    v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
                     @apply="onApplyFiltersDebounced"
                     @reset="resetFilters"
                 >
                     <template #after-accounts>
                         <div class="filter-actions-lg">
-                            <USelect class="w-auto select-none select-standard" :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }" v-model="userStore.dashBoardFilters.period" :items="periodOptions(locale)"
+                            <USelect 
+                            v-model="userStore.dashBoardFilters.period"
+                            class="w-auto select-none select-standard" 
+                            :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }" :items="periodOptions(locale)"
                                 :placeholder="$t('components.dashboard.index.period')"/>
                             <UInput v-model="startDateStr" type="date" class="date-input" />
                             <UInput v-model="endDateStr" type="date" class="date-input" />
@@ -149,6 +152,7 @@
                 />
             </div>
             <DashboardGridLayout
+                v-if="gridReady"
                 :key="gridResetKey"
                 ref="gridLayoutRef"
                 :layout="gridLayout"
@@ -164,12 +168,10 @@
 
 <script setup lang="ts">
 import { periodOptions, getPeriodDates, defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
-import type { AccountType } from '~/schema/account'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
-import { metadataHelpers } from '~/utils'
-import type { TradeFilter, ChartKey, SectionKey, DashboardGridItem } from '~/type'
-import { OPERATOR_EQUAL } from '~/utils'
+import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
+import type { ChartKey, SectionKey, DashboardGridItem } from '~/type'
 
 const { formatCurrency } = useUtils()
 
@@ -180,6 +182,7 @@ const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups, fetchGroups } = useTags()
 const chartsReady = ref(false)
 const chartsCanRender = ref(false)
+const gridReady = ref(false)
 const { t, locale } = useI18n()
 
 const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
@@ -231,7 +234,7 @@ const appConfig = useAppConfig()
 const useChartjs = computed(() => appConfig.charts.chartjs === true)
 
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, any> = useChartjs.value ? {
+    const chartComponentMap: Record<ChartKey, Component | string> = useChartjs.value ? {
         pnlBar: resolveComponent('DashboardChartsPnlBarChart'),
         cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
         appt: resolveComponent('DashboardChartsApptChart'),
@@ -242,7 +245,7 @@ const gridComponents = computed(() => {
         appt: resolveComponent('DashboardChartsApptChartEcharts'),
         winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
     }
-    const sectionComponentMap: Record<SectionKey, any> = {
+    const sectionComponentMap: Record<SectionKey, Component | string> = {
         allTrades: resolveComponent('DashboardAllTradesSection'),
         profitTrades: resolveComponent('DashboardProfitTradesSection'),
         losingTrades: resolveComponent('DashboardLosingTradesSection'),
@@ -477,36 +480,34 @@ function resetFilters() {
     onApplyFiltersDebounced()
 }
 
-onMounted(async () => {
+onMounted(() => {
     // Clear data if autoDataSync is enabled
     if (settings?.autoDataSync) {
         clearLastTrades()
     }
 
-    nextTick(async () => {
-        filterLoading.value = true
+    filterLoading.value = true
 
-        await Promise.all([
-            fetchAccounts(),
-            fetchGroups()
-        ])
-
-        // Fetch les données seulement si le tableau est vide, ou si un refresh est requis (ex: changement de DB)
+    // Lancer les requêtes en background sans await — le skeleton s'affiche immédiatement
+    Promise.all([
+        fetchAccounts(),
+        fetchGroups()
+    ]).then(() => {
         if (dashBoardLastTrades.value.length === 0 || userStore.shouldRefreshData()) {
-            await onApplyFilters()
+            onApplyFilters()
             userStore.clearDataRefresh()
+        } else {
+            filterLoading.value = false
         }
+    })
 
-        filterLoading.value = false
-
-        // Laisser le browser respirer avant d'initialiser Chart.js (évite le blocage au premier affichage)
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                chartsCanRender.value = true
-                chartsReady.value = true
-            }, 100)
-        })
-
+    // Afficher les charts après le premier paint pour éviter le blocage initial
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            gridReady.value = true
+            chartsCanRender.value = true
+            chartsReady.value = true
+        }, 0)
     })
 })
 
