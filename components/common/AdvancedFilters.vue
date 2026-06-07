@@ -76,8 +76,6 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn, TradeFilterValue } from '~/type'
-const { log_debug } = useLogView()
-
 import {
     OPERATOR_EQUAL,
     OPERATOR_NOT_EQUAL,
@@ -89,11 +87,15 @@ import {
     getDatePlaceholderFormat,
 } from '~/utils'
 
+const { log_debug } = useLogView()
+
+
 const props = defineProps<{
     modelValue: TradeFilter[]
     columns: FilterColumn[]
     loading?: boolean
     tagGroups?: any[]
+    isAutoApplyMode?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -144,7 +146,9 @@ const getPlaceholder = (filter: TradeFilter) => {
 
 // Debounce l'application des filtres pour éviter trop de requêtes API
 const debouncedApply = useDebounce(() => {
-    emit('apply')
+    if (props.isAutoApplyMode) {
+        emit('apply')
+    }
 }, 300, { leading: true })
 
 const onColumnChange = (index: number, value: string) => {

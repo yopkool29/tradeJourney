@@ -114,6 +114,23 @@ export const useTrades = () => {
         })
     }
 
+    const tradeCount = useState<number>('tradeCount', () => 0)
+    const config = useRuntimeConfig()
+    const tradeCountThreshold = config.public.tradeCountThreshold
+
+    const fetchFilteredTradeCount = async (params = {}, showInactive = false): Promise<number> => {
+        const query: Record<string, string> = {
+            count: 'true',
+            filters: JSON.stringify(params),
+            showInactive: showInactive.toString(),
+        }
+        const result = await $fetch<{ count: number }>('/api/trades', { query })
+        tradeCount.value = result.count
+        return result.count
+    }
+
+    const isAutoApplyMode = computed(() => tradeCount.value < tradeCountThreshold)
+
     return {
         trades,
         loading,
@@ -126,6 +143,9 @@ export const useTrades = () => {
         deleteAccountTrades,
         uploadMultipleScreenshots,
         deleteScreenshots,
-        importTrades
+        importTrades,
+        fetchFilteredTradeCount,
+        tradeCount,
+        isAutoApplyMode
     }
 }

@@ -8,6 +8,7 @@
                     v-model:filters="filters"
                     v-model:show-advanced-filters="userStore.dashBoardFilters.showAdvancedFilters"
                     v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
+                    :dirty="userStore.filterDirty"
                     :title="$t('components.dashboard.index.accounts')"
                     slot-id="page-dashboard"
                     :show-plugin-slot="true"
@@ -18,31 +19,41 @@
                     :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
                     :show-inactive-checkbox="false"
                     :tag-groups="tagGroups"
-                    @apply="onApplyFiltersDebounced"
+                    @apply="onExplicitApply"
                     @reset="resetFilters"
                 >
                     <template #after-accounts>
                         <div class="filter-actions-lg">
-                            <USelect 
-                            v-model="userStore.dashBoardFilters.period"
-                            class="w-auto select-none select-standard" 
-                            :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }" :items="periodOptions(locale)"
-                                :placeholder="$t('components.dashboard.index.period')"/>
+                            <USelect
+                                v-model="userStore.dashBoardFilters.period"
+                                class="w-auto select-none select-standard"
+                                :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
+                                :items="periodOptions(locale)"
+                                :placeholder="$t('components.dashboard.index.period')"
+                            />
                             <UInput v-model="startDateStr" type="date" class="date-input" />
                             <UInput v-model="endDateStr" type="date" class="date-input" />
-                            <UButton icon="i-lucide-calendar-clock" size="xs" variant="ghost" color="neutral"
+                            <UButton
+                                icon="i-lucide-calendar-clock"
+                                size="xs"
+                                variant="ghost"
+                                color="neutral"
                                 :title="$t('components.dashboard.index.set_history_range')"
                                 :loading="fetchingDateRange"
-                                @click="setHistoryDateRange" />
+                                @click="setHistoryDateRange"
+                            />
                         </div>
                         <!-- Ligne d'options avancées -->
                         <div class="">
                             <div class="form-row">
-                                <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation')
-                                    }}</label>
-                                <USelect id="cumule-mode-select" v-model="userStore.dashBoardFilters.cumuleMode"
-                                    :items="cumuleOptions" class="min-w-[120px] max-w-[200px] w-full"
-                                    @update:model-value="onApplyFiltersDebounced" />
+                                <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation') }}</label>
+                                <USelect
+                                    id="cumule-mode-select"
+                                    v-model="localCumuleMode"
+                                    :items="cumuleOptions"
+                                    class="min-w-[120px] max-w-[200px] w-full"
+                                    @update:model-value="onCumuleModeChange"
+                                />
                             </div>
                         </div>
                     </template>
@@ -51,71 +62,83 @@
         </UCard>
 
         <div class="flex flex-col gap-4 max-w-5xl mb-8">
-
             <!-- Overview : Cards (Nuxt UI) -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.trades_count') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.trades_count_tooltip')" :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center">
+                    <UTooltip
+                        :text="$t('components.dashboard.index.trades_count_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
                         <span class="dashboard-card-value">{{ dashBoardResult.tradesCount }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.cumulated_pnl') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
-                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
+                    <UTooltip
+                        :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
                         <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.pnl) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.expectancy') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.expectancy_tooltip')" :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center">
+                    <UTooltip
+                        :text="$t('components.dashboard.index.expectancy_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
                         <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.appt) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.pl_ratio') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center">
+                    <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ dashBoardResult.plRatio?.toFixed(2) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.win_rate') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center">
+                    <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
                         <span class="dashboard-card-value">{{ dashBoardResult.winrate?.toFixed(2) }}%</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.profit_factor') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.profit_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.profitFactor)
-                            }}</span>
+                    <UTooltip
+                        :text="$t('components.dashboard.index.profit_factor_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
+                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.profitFactor) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.recovery_factor') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.recovery_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.recoveryFactor)
-                            }}</span>
+                    <UTooltip
+                        :text="$t('components.dashboard.index.recovery_factor_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
+                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.recoveryFactor) }}</span>
                     </UTooltip>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.sharpe_ratio') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.sharpe_ratio_tooltip')" :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ dashBoardResult.sharpeRatio?.toFixed(2)
-                            }}</span>
+                    <UTooltip
+                        :text="$t('components.dashboard.index.sharpe_ratio_tooltip')"
+                        :ui="{ content: 'text-sm' }"
+                        class="inline-flex items-center"
+                    >
+                        <span class="dashboard-card-value">{{ dashBoardResult.sharpeRatio?.toFixed(2) }}</span>
                     </UTooltip>
                 </div>
             </div>
         </div>
-        
+
         <!-- Dashboard items : graphiques + sections -->
         <div class="mb-8">
             <div class="flex justify-start gap-2 mb-2">
@@ -148,7 +171,12 @@
                     variant="ghost"
                     :color="isGridDraggable ? 'warning' : 'neutral'"
                     :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
-                    @click="() => { if (isGridDraggable) saveGridLayout(); isGridDraggable = !isGridDraggable }"
+                    @click="
+                        () => {
+                            if (isGridDraggable) saveGridLayout()
+                            isGridDraggable = !isGridDraggable
+                        }
+                    "
                 />
             </div>
             <DashboardGridLayout
@@ -167,7 +195,13 @@
 </template>
 
 <script setup lang="ts">
-import { periodOptions, getPeriodDates, defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
+import {
+    periodOptions,
+    getPeriodDates,
+    defaultDashboardGridLayout,
+    defaultDashboardGridLayoutMd,
+    defaultDashboardGridLayoutSm,
+} from '~/utils/dashboard'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
@@ -178,6 +212,7 @@ const { formatCurrency } = useUtils()
 const userStore = useUserStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult, clearLastTrades } = useDashboard()
+const { fetchFilteredTradeCount, isAutoApplyMode } = useTrades()
 const { displayModeNet } = useNetGrossDisplay()
 const { tagGroups, fetchGroups } = useTags()
 const chartsReady = ref(false)
@@ -190,43 +225,61 @@ const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true,
 
 const chartVisibilityLg = computed({
     get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityLg || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityLg: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityLg: val }
+    },
 })
 const chartVisibilityMd = computed({
     get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityMd || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityMd: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityMd: val }
+    },
 })
 const chartVisibilitySm = computed({
     get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilitySm || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilitySm: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilitySm: val }
+    },
 })
 
 const sectionVisibilityLg = computed({
     get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityLg || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityLg: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityLg: val }
+    },
 })
 const sectionVisibilityMd = computed({
     get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityMd || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityMd: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityMd: val }
+    },
 })
 const sectionVisibilitySm = computed({
     get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilitySm || {}) }),
-    set: (val) => { userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilitySm: val } }
+    set: (val) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilitySm: val }
+    },
 })
 
 const activeChartVisibility = computed(() => {
     switch (currentBreakpoint.value) {
-        case 'md': return chartVisibilityMd.value
-        case 'sm': return chartVisibilitySm.value
-        default: return chartVisibilityLg.value
+        case 'md':
+            return chartVisibilityMd.value
+        case 'sm':
+            return chartVisibilitySm.value
+        default:
+            return chartVisibilityLg.value
     }
 })
 
 const activeSectionVisibility = computed(() => {
     switch (currentBreakpoint.value) {
-        case 'md': return sectionVisibilityMd.value
-        case 'sm': return sectionVisibilitySm.value
-        default: return sectionVisibilityLg.value
+        case 'md':
+            return sectionVisibilityMd.value
+        case 'sm':
+            return sectionVisibilitySm.value
+        default:
+            return sectionVisibilityLg.value
     }
 })
 
@@ -234,17 +287,19 @@ const appConfig = useAppConfig()
 const useChartjs = computed(() => appConfig.charts.chartjs === true)
 
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, Component | string> = useChartjs.value ? {
-        pnlBar: resolveComponent('DashboardChartsPnlBarChart'),
-        cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
-        appt: resolveComponent('DashboardChartsApptChart'),
-        winrate: resolveComponent('DashboardChartsWinrateChart'),
-    } : {
-        pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
-        cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
-        appt: resolveComponent('DashboardChartsApptChartEcharts'),
-        winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
-    }
+    const chartComponentMap: Record<ChartKey, Component | string> = useChartjs.value
+        ? {
+              pnlBar: resolveComponent('DashboardChartsPnlBarChart'),
+              cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
+              appt: resolveComponent('DashboardChartsApptChart'),
+              winrate: resolveComponent('DashboardChartsWinrateChart'),
+          }
+        : {
+              pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
+              cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
+              appt: resolveComponent('DashboardChartsApptChartEcharts'),
+              winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
+          }
     const sectionComponentMap: Record<SectionKey, Component | string> = {
         allTrades: resolveComponent('DashboardAllTradesSection'),
         profitTrades: resolveComponent('DashboardProfitTradesSection'),
@@ -296,15 +351,18 @@ const defaultLayoutForBreakpoint = computed(() => {
 
 const gridColNum = computed(() => {
     switch (currentBreakpoint.value) {
-        case 'md': return 6
-        case 'sm': return 3
-        default: return 12
+        case 'md':
+            return 6
+        case 'sm':
+            return 3
+        default:
+            return 12
     }
 })
 
 const gridLayout = computed(() => {
     const baseLayout = defaultLayoutForBreakpoint.value
-    const visible = baseLayout.filter(item => {
+    const visible = baseLayout.filter((item) => {
         if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
         if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
         return false
@@ -316,7 +374,7 @@ const saveGridLayout = () => {
     const newLayout = gridLayoutRef.value?.getLayout()
     if (!newLayout) return
     const currentLayout = defaultLayoutForBreakpoint.value
-    const hiddenItems = currentLayout.filter(item => {
+    const hiddenItems = currentLayout.filter((item) => {
         if (item.i in activeChartVisibility.value) return !activeChartVisibility.value[item.i as ChartKey]
         if (item.i in activeSectionVisibility.value) return !activeSectionVisibility.value[item.i as SectionKey]
         return false
@@ -344,9 +402,9 @@ const onResetLayout = () => {
         dashboardSectionVisibilityMd: defaultSectionVisibility,
         dashboardChartVisibilitySm: defaultChartVisibility,
         dashboardSectionVisibilitySm: defaultSectionVisibility,
-        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
-        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
-        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
+        dashboardGridLayout: defaultDashboardGridLayout.map((item) => ({ ...item })),
+        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map((item) => ({ ...item })),
+        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map((item) => ({ ...item })),
     }
     userStore.dashBoardFilters = updated
     gridResetKey.value++
@@ -375,9 +433,8 @@ const accountOptions = computed(() => {
 
 const filters = computed({
     get: () => userStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => userStore.dashBoardFilters.filters = val
+    set: (val) => (userStore.dashBoardFilters.filters = val),
 })
-
 
 // Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
@@ -386,7 +443,7 @@ const startingCapital = computed(() => {
     // Filtrer les comptes sélectionnés qui existent réellement
     let availableAccounts = accounts.value
     if (selectedAccountIds && selectedAccountIds.length > 0) {
-        availableAccounts = accounts.value.filter(acc => selectedAccountIds.includes(acc.id))
+        availableAccounts = accounts.value.filter((acc) => selectedAccountIds.includes(acc.id))
     }
 
     // Additionner les capitaux de départ de tous les comptes disponibles
@@ -396,8 +453,7 @@ const startingCapital = computed(() => {
         const capital = metadataHelpers.get<number>(account.metadata, 'startingCapital')
         if (capital !== null && capital !== undefined) {
             totalCapital += capital
-        }
-        else {
+        } else {
             return null
         }
     }
@@ -439,8 +495,8 @@ const setHistoryDateRange = async () => {
     try {
         const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
-                accountIds: JSON.stringify(userStore.dashBoardFilters.accountIds)
-            }
+                accountIds: JSON.stringify(userStore.dashBoardFilters.accountIds),
+            },
         })
 
         if (result.minDate && result.maxDate) {
@@ -460,18 +516,78 @@ const setHistoryDateRange = async () => {
 
 const isGridDraggable = ref(false)
 
-const { filterLoading, load: onApplyFilters, loadDebounced: onApplyFiltersDebounced } = usePageDataManager({
-    fetchFn: () => fetchData(
+// Variable locale pour le mode cumulé (buffer en mode manuel)
+const localCumuleMode = ref(userStore.dashBoardFilters.cumuleMode)
+
+const updateTradeCount = async () => {
+    const filterParams = buildFiltersForApi(
         userStore.dashBoardFilters.startDate,
         userStore.dashBoardFilters.endDate,
         true,
         userStore.dashBoardFilters.accountIds,
-        displayModeNet.value,
         filters.value
-    ),
+    )
+    await fetchFilteredTradeCount(filterParams)
+}
+
+// Centralisé : gérer tout changement de filtre (count + auto/manuel)
+const handleFilterChange = async (shouldFetch = true) => {
+    await updateTradeCount()
+    if (isAutoApplyMode.value) {
+        // Mode auto : jamais de dirty, fetch seulement si demandé
+        userStore.filterDirty = false
+        if (shouldFetch) onApplyFiltersDebounced()
+    } else {
+        // Mode manuel : dirty = true, fetch au clic "Appliquer"
+        userStore.filterDirty = true
+    }
+}
+
+// Debounced versions pour éviter le spam API
+const debouncedHandleFilterChange = useDebounce(handleFilterChange, 300, { leading: true })
+
+const onCumuleModeChange = () => {
+    // Laisser l'UI mettre à jour le sélecteur avant de lancer les calculs lourds
+    nextTick(() => {
+        setTimeout(() => {
+            if (isAutoApplyMode.value) {
+                userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+            }
+            // Recalculer le count et mettre à jour dirty
+            handleFilterChange(false) // false = pas de fetch auto, juste count + dirty
+        }, 20)
+    })
+}
+
+const onExplicitApply = async () => {
+    await onApplyFilters()
+    userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+}
+
+const {
+    filterLoading,
+    load: onApplyFilters,
+    loadDebounced: onApplyFiltersDebounced,
+} = usePageDataManager({
+    fetchFn: async () => {
+        userStore.filterDirty = false
+        const trades = await fetchData(
+            userStore.dashBoardFilters.startDate,
+            userStore.dashBoardFilters.endDate,
+            true,
+            userStore.dashBoardFilters.accountIds,
+            displayModeNet.value,
+            filters.value
+        )
+        // Copier le cumulé APRES le fetch pour éviter le double rendu
+        userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+        return trades
+    },
     accounts,
     getAccountIds: () => userStore.dashBoardFilters.accountIds,
-    setAccountIds: (ids) => { userStore.dashBoardFilters.accountIds = ids },
+    setAccountIds: (ids) => {
+        userStore.dashBoardFilters.accountIds = ids
+    },
 })
 
 function resetFilters() {
@@ -489,10 +605,7 @@ onMounted(() => {
     filterLoading.value = true
 
     // Lancer les requêtes en background sans await — le skeleton s'affiche immédiatement
-    Promise.all([
-        fetchAccounts(),
-        fetchGroups()
-    ]).then(() => {
+    Promise.all([fetchAccounts(), fetchGroups(), updateTradeCount()]).then(() => {
         if (dashBoardLastTrades.value.length === 0 || userStore.shouldRefreshData()) {
             onApplyFilters()
             userStore.clearDataRefresh()
@@ -529,21 +642,30 @@ watch(
     { immediate: true }
 )
 
-// Appliquer les filtres quand les comptes changent
+// Watcher unique pour les comptes (debounced)
 watch(
     () => [...(userStore.dashBoardFilters.accountIds || [])],
+    () => debouncedHandleFilterChange(),
+    { deep: true }
+)
+
+// Watcher unique pour les dates (debounced)
+watch([startDateStr, endDateStr], () => debouncedHandleFilterChange())
+
+// Watcher pour les filtres avancés (debounced, mais pas si loading)
+watch(
+    () => filters.value,
     () => {
-        onApplyFiltersDebounced()
+        if (!filterLoading.value) debouncedHandleFilterChange()
     },
     { deep: true }
 )
 
-// Relancer les filtres quand le mode d'affichage (Net/Brut) change
+// Net/Gross change (pas de recalc de count, juste re-render)
 watch(
     () => displayModeNet.value,
     () => {
-        onApplyFiltersDebounced()
+        if (isAutoApplyMode.value) onApplyFiltersDebounced()
     }
 )
-
 </script>

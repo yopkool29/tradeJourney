@@ -1,5 +1,5 @@
 <template>
-    <UForm id="tradeFiltersForm" :state="{}" @submit="debouncedApply">
+    <UForm id="tradeFiltersForm" :state="{}" @submit="onExplicitApply">
         <div class="filter-container">
             <div class="flex items-center justify-between">
                 <div class="section-label">{{ title }}</div>
@@ -41,9 +41,10 @@
                         :columns="columnsConfig"
                         :loading="filterLoading"
                         :tag-groups="tagGroups"
+                        :is-auto-apply-mode="isAutoApplyMode"
                         @add="addFilter"
                         @remove="removeFilter($event)"
-                        @apply="emit('apply')"
+                        @apply="onExplicitApply"
                     />
                 </div>
             </template>
@@ -59,8 +60,8 @@
         </div>
 
         <div class="filter-actions-lg mt-4">
-            <UButton type="submit" form="tradeFiltersForm" icon="i-lucide-filter" :loading="filterLoading" color="primary" variant="solid" size="sm">
-                {{ $t('components.trade.table.advanced_filters.apply') }}
+            <UButton type="submit" form="tradeFiltersForm" icon="i-lucide-filter" :loading="filterLoading" :color="applyButtonColor" variant="solid" size="sm">
+                {{ $t('components.trade.table.advanced_filters.apply') }}{{ props.dirty ? '!' : '' }}
             </UButton>
             <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
                 {{ $t('components.trade.table.advanced_filters.clear') }}
@@ -71,14 +72,15 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn } from '~/type'
-const { log_debug } = useLogView()
-const { t } = useI18n()
 import {
 	OPERATOR_EQUAL,
 	OPERATOR_NOT_EQUAL,
 	OPERATOR_GREATER_THAN_OR_EQUAL,
 	OPERATOR_IN,
 } from '~/utils'
+
+const { log_debug } = useLogView()
+const { t } = useI18n()
 
 const props = defineProps<{
     title: string
@@ -103,6 +105,7 @@ const props = defineProps<{
     tagGroups?: any[]
     lastFilterColumn?: string
     maxFilters?: number
+    dirty?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -111,6 +114,7 @@ const emit = defineEmits<{
     'update:filters': [value: TradeFilter[]]
     'update:showAdvancedFilters': [value: boolean]
     'update:lastFilterColumn': [value: string]
+    'update:dirty': [value: boolean]
     apply: []
     reset: []
 }>()
@@ -190,10 +194,9 @@ const columnsConfig = computed(() => props.filterableColumnsConfig ?? defaultFil
 
 const maxFiltersCount = computed(() => props.maxFilters ?? 4)
 
-// Debounce l'application des filtres pour éviter trop de requêtes API
-const debouncedApply = useDebounce(() => {
+const onExplicitApply = () => {
     emit('apply')
-}, 500, { leading: true })
+}
 
 const addFilter = () => {
     if (localFilters.value.length < maxFiltersCount.value) {
@@ -210,7 +213,8 @@ const removeFilter = (idx: number) => {
     const newFilters = [...localFilters.value]
     newFilters.splice(idx, 1)
     localFilters.value = newFilters
-    debouncedApply()
+    // Déclencher immédiatement comme le bouton "Effacer"
+    emit('apply')
 }
 
 watch(() => props.filters.map(f => f.column), (newColumns, oldColumns) => {
@@ -246,5 +250,12 @@ const buttonClass = computed(() => {
         classes.push('font-bold')
     }
     return classes.join(' ')
+})
+
+const applyButtonColor = computed(() => {
+    if (props.dirty) {
+        return 'warning'
+    }
+    return 'primary'
 })
 </script>

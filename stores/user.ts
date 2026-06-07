@@ -54,6 +54,7 @@ export const useUserStore = defineStore(
         const dashBoardResultPerDb = ref<Record<string, DashBoardResult>>({})
         const columnVisibilityPerDb = ref<Record<string, Record<string, boolean>>>({})
         const showDetailedNotePerDb = ref<Record<string, boolean>>({})
+        const filterDirty = ref(false)
 
         const lastViewedNoteId = computed({
             get: () => {
@@ -566,6 +567,7 @@ export const useUserStore = defineStore(
             dashBoardResult,
             columnVisibility,
             showDetailedNote,
+            filterDirty,
             user,
             customInputs,
             // Expose internal refs for persistence

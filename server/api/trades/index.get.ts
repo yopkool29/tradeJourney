@@ -27,6 +27,7 @@ export default defineEventHandler(async (event) => {
         const query = getQuery(event)
         let filters: TradeFilter[] = []
         let limit = 1000 // Valeur par défaut
+        const isCount = query.count === 'true'
 
         try {
             if (query.filters) {
@@ -165,6 +166,11 @@ export default defineEventHandler(async (event) => {
 
         if (!showInactive)
             where.active = true
+
+        if (isCount) {
+            const result = await prisma.trade.count({ where })
+            return { count: result }
+        }
 
         // Récupérer les trades avec leurs associations de tags
         const queryOptions: Prisma.TradeFindManyArgs = {
