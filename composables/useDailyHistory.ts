@@ -1,6 +1,5 @@
 import type { AccountType } from '~/schema/account'
 import type { TradeFilter } from '~/type'
-import type { TradeExtendedType } from '~/schema/trade'
 import { transformAdvancedFilters } from '~/utils/filter-utils'
 
 export const useDailyHistory = (storeKey: 'dailyFilters' | 'calendarFilters' = 'dailyFilters') => {

@@ -53,8 +53,8 @@
                     </div>
                 </div>
                 <template
-                    v-else
-                    v-for="(group, index) in (settings?.reverseDaysOrder ? filteredGroups : [...filteredGroups].reverse())"
+                    v-for="(group, index) in displayGroups"
+                    v-else-if="groupsReady"
                     :key="group.key">
                     <DailyTradeGroup :show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
@@ -82,6 +82,7 @@ const { fetchDayTags } = useDayTags()
 const { tagGroups, fetchGroups } = useTags()
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
+const groupsReady = ref(false)
 
 const expandedGroups = shallowRef<{ [key: string]: boolean }>({})
 
@@ -236,6 +237,11 @@ const filteredGroups = computed(() => {
     return Object.values(dayStats.value).filter((g) => g.trades.length > 0)
 })
 
+const displayGroups = computed(() => {
+    const groups = filteredGroups.value
+    return settings?.reverseDaysOrder ? groups : [...groups].reverse()
+})
+
 const expandLoading = ref(false)
 
 const onExpand = () => {
@@ -279,6 +285,8 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
             await fetchData(startDate, endDate, true, userStore.dailyFilters.accountIds, filters.value)
+            // Laisser le browser respirer avant le rendu des groupes
+            await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)))
         }
     }
 }
@@ -291,44 +299,48 @@ async function applyDaysTags(forceFetch: boolean = true) {
 
 // const mountStart = performance.now()
 
-onMounted(async () => {
+onMounted(() => {
     // Clear data if autoDataSync is enabled
-    if (settings?.autoDataSync)
+    if (settings?.autoDataSync) {
         clearLastTrades()
+    }
 
-    // Charger les données en arrière-plan sans bloquer le rendu
-    nextTick(async () => {
-        if (settings?.autoDataSync)
-            filterLoading.value = true
+    filterLoading.value = true
 
-        await fetchSymbols()
-        await fetchAccounts()
-        await fetchGroups()
-
-        // Déterminer si on doit forcer le chargement des données
+    // Lancer les requêtes en background sans bloquer le rendu
+    Promise.all([
+        fetchSymbols(),
+        fetchAccounts(),
+        fetchGroups()
+    ]).then(async () => {
         const needForceCalendar = dailyLastTrades.value.length === 0
-
-        // Toujours charger les dayTags pour le mois sélectionné
-        await applyDaysTags(true)
-
-        // Charger les données du calendrier si nécessaire
-        await applyCalendar(selectedMonth.value, needForceCalendar)
+        // Paralléliser les deux requêtes indépendantes
+        await Promise.all([
+            applyDaysTags(true),
+            applyCalendar(selectedMonth.value, needForceCalendar)
+        ])
 
         displayResults.value = dailyLastTrades.value
-        
         displayMonth.value = selectedMonth.value
 
-        // Forcer la réactivité UNIQUEMENT après une reconnexion
         if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || dataStore.dailyLastTrades.length > 0)) {
             await loadMonthData()
             userStore.clearDataRefresh()
         }
 
-        if (!settings?.autoDataSync)
+        if (!settings?.autoDataSync) {
             refreshTrigger.value++
+        }
 
         filterLoading.value = false
         isInitialLoad.value = false
+    })
+
+    // Afficher les groupes après le premier paint pour éviter le blocage initial
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            groupsReady.value = true
+        }, 0)
     })
 })
 
