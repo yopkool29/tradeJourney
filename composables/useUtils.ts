@@ -56,7 +56,7 @@ export const useThemeSwitcher = () => {
 export const useLanguageSwitcher = () => {
     const languageLoading = ref(false)
     let languageLoadingTimeout: ReturnType<typeof setTimeout> | null = null
-    const locale = useI18n().locale
+    const { locale, setLocale } = useI18n()
 
     const setLanguage = (lang: 'fr' | 'en') => {
         if (locale.value === lang) return
@@ -68,8 +68,8 @@ export const useLanguageSwitcher = () => {
             languageLoadingTimeout = null
         }, 3000)
 
-        setTimeout(() => {
-            locale.value = lang
+        setTimeout(async () => {
+            await setLocale(lang)
             localStorage.setItem('i18n-locale', lang)
             languageLoading.value = false
             if (languageLoadingTimeout) {

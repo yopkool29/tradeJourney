@@ -1,12 +1,19 @@
+import { PrismaClient } from '../generated/prisma-auth'
 import { config } from 'dotenv'
-import { getAuthDb } from '../server/utils/db'
+import { resolve } from 'path'
 import bcrypt from 'bcryptjs'
 import { defaultSettings } from '../schema/user'
 
-// Charger les variables d'environnement
-config()
+// Charger explicitement le .env depuis le répertoire courant
+config({ path: resolve(process.cwd(), '.env') })
 
-const prisma = getAuthDb()
+const prisma = new PrismaClient({
+	datasources: {
+		db: {
+			url: process.env.POSTGRES_URL_AUTH!
+		}
+	}
+})
 
 async function main() {
 

@@ -138,7 +138,6 @@
 
             <template #footer>
                 <div class="action-buttons-end">
-                    <UButton variant="ghost" :disabled="isRestoring" @click="showConfirmDialog = false"> {{ $t('common.actions.cancel') }} </UButton>
                     <UButton
                         color="error"
                         variant="solid"
@@ -153,6 +152,7 @@
                         </template>
                         {{ isRestoring ? $t('components.backup_manager.restore.in_progress') : $t('components.backup_manager.restore.button') }}
                     </UButton>
+                    <UButton variant="ghost" :disabled="isRestoring" @click="showConfirmDialog = false"> {{ $t('common.actions.cancel') }} </UButton>
                 </div>
             </template>
         </CommonModalDefault>
