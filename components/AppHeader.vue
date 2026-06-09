@@ -1,6 +1,6 @@
 <template>
     <header v-show="!hideHeader"
-        class="w-full shadow bg-[var(--ui-bg)] dark:bg-gray-900 text-gray-900 dark:text-white select-none">
+        class="w-full shadow bg-default dark:bg-gray-900 text-gray-900 dark:text-white select-none">
         <div>
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
@@ -65,7 +65,7 @@
                     <a href="https://github.com/yopkool29/pnltracker" target="_blank" rel="noopener noreferrer"
                         class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         title="GitHub">
-                        <span class="w-5 h-5 flex-shrink-0">
+                        <span class="w-5 h-5 shrink-0">
                             <img src="/img/social/github.svg" alt="GitHub"
                                 class="w-full h-full object-cover rounded-sm dark:invert" />
                         </span>
@@ -168,7 +168,7 @@
                             <!-- GitHub Link -->
                             <a href="https://github.com/yopkool29/pnltracker" target="_blank"
                                 rel="noopener noreferrer" class="header-mobile-link">
-                                <span class="w-5 h-5 flex-shrink-0 mr-3">
+                                <span class="w-5 h-5 shrink-0 mr-3">
                                     <img src="/img/social/github.svg" alt="GitHub"
                                         class="w-full h-full object-cover rounded-sm dark:invert" />
                                 </span>
@@ -184,11 +184,11 @@
 
                             <!-- Language Switcher -->
                             <li class="header-mobile-link cursor-pointer" @click="toggleLanguage">
-                                <span v-if="locale === 'fr'" class="w-5 h-5 flex-shrink-0 mr-3">
+                                <span v-if="locale === 'fr'" class="w-5 h-5 shrink-0 mr-3">
                                     <img src="/img/flags/fr.svg" alt="Drapeau français"
                                         class="w-full h-full object-cover rounded-sm" />
                                 </span>
-                                <span v-else class="w-5 h-5 flex-shrink-0 mr-3">
+                                <span v-else class="w-5 h-5 shrink-0 mr-3">
                                     <img src="/img/flags/en.svg" alt="English flag"
                                         class="w-full h-full object-cover rounded-sm" />
                                 </span>
