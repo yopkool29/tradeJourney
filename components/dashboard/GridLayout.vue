@@ -1,19 +1,18 @@
 <template>
     <div class="relative">
         <grid-layout v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
-            :is-resizable="false" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
+            :is-resizable="isResizable" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
             :responsive="false" :use-style-cursor="false"
             :class="{ 'layout-ready': layoutReady }" @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
-                :i="item.i" class="rounded-lg overflow-hidden">
+                :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
                 <div class="h-full w-full relative" @mousedown="onMouseDown" @click.capture="onContentClick">
                     <UIcon v-if="isDraggable" name="i-lucide-grip"
                         class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 pointer-events-none z-10"
                         size="xs" />
-                    <component :is="components[item.i]" v-bind="{
+                    <component :is="components[item.i]" class="h-full" v-bind="{
                         ...(sharedProps || {}),
-                        ...(componentProps?.[item.i] || {}),
-                        layoutKey: layoutUpdateKey
+                        ...(componentProps?.[item.i] || {})
                     }" />
                 </div>
             </grid-item>
@@ -38,10 +37,21 @@ const props = defineProps<{
     sharedProps?: Record<string, any>
     componentProps?: Record<string, Record<string, any>>
     isDraggable?: boolean
+    isResizable?: boolean
+    resizableItems?: string[]
     colNum?: number
 }>()
 
 const localLayout = ref(props.layout.map(item => ({ ...item })))
+
+const isItemResizable = (itemId: string): boolean => {
+    if (!props.isResizable) 
+        return false
+    if (props.resizableItems && props.resizableItems.length > 0) {
+        return props.resizableItems.includes(itemId)
+    }
+    return true
+}
 
 const layoutsEqual = (a: GridLayoutItem[], b: GridLayoutItem[]) => {
     if (a.length !== b.length) return false
@@ -123,7 +133,6 @@ const onContentClick = (e: MouseEvent) => {
 <style scoped>
 :deep(.vue-grid-layout) {
     position: relative;
-    transition: height 200ms ease;
 }
 
 :deep(.vue-grid-item) {
@@ -135,7 +144,7 @@ const onContentClick = (e: MouseEvent) => {
 }
 
 .layout-ready :deep(.vue-grid-item) {
-    transition: all 200ms ease;
+    transition: all 100ms ease;
     transition-property: left, top;
 }
 
@@ -146,11 +155,28 @@ const onContentClick = (e: MouseEvent) => {
     opacity: 0.5;
 }
 
-:deep(.vue-grid-item > .vue-resizable-handle) {
-    display: none;
-}
-
 :deep(.vue-grid-item.vue-draggable-dragging) {
     cursor: grabbing !important;
+}
+
+/* Resize handles - more visible */
+:deep(.vue-resizable-handle) {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    bottom: 4px;
+    right: 4px;
+    cursor: se-resize;
+    z-index: 100;
+    background: linear-gradient(135deg, transparent 40%, rgba(100, 116, 139, 0.9) 40%);
+    border-radius: 0 0 6px 0;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+:deep(.vue-resizable-handle:hover) {
+    background: linear-gradient(135deg, transparent 40%, var(--color-primary-300) 40%);
+    border-color: var(--color-primary-300);
+    box-shadow: -2px -2px 6px rgba(0, 0, 0, 0.3);
 }
 </style>

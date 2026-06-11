@@ -12,6 +12,9 @@ export const defaultDashboardGridLayout = [
 	{ x: 3, y: 10, w: 3, h: 10, i: 'profitTrades' },
 	{ x: 6, y: 10, w: 3, h: 10, i: 'losingTrades' },
 	{ x: 9, y: 10, w: 3, h: 10, i: 'winLossComparison' },
+	{ x: 0, y: 20, w: 6, h: 8, i: 'tickerPnl' },
+	{ x: 6, y: 20, w: 6, h: 6, i: 'tickerWinrate' },
+	{ x: 0, y: 28, w: 12, h: 12, i: 'tickerTable' },
 ]
 
 export const defaultDashboardGridLayoutMd = [
@@ -23,6 +26,9 @@ export const defaultDashboardGridLayoutMd = [
 	{ x: 3, y: 20, w: 3, h: 10, i: 'profitTrades' },
 	{ x: 0, y: 30, w: 3, h: 10, i: 'losingTrades' },
 	{ x: 3, y: 30, w: 3, h: 10, i: 'winLossComparison' },
+	{ x: 0, y: 40, w: 6, h: 8, i: 'tickerPnl' },
+	{ x: 0, y: 48, w: 6, h: 6, i: 'tickerWinrate' },
+	{ x: 0, y: 54, w: 6, h: 12, i: 'tickerTable' },
 ]
 
 export const defaultDashboardGridLayoutSm = [
@@ -34,6 +40,9 @@ export const defaultDashboardGridLayoutSm = [
 	{ x: 0, y: 30, w: 3, h: 10, i: 'profitTrades' },
 	{ x: 0, y: 40, w: 3, h: 10, i: 'losingTrades' },
 	{ x: 0, y: 50, w: 3, h: 10, i: 'winLossComparison' },
+	{ x: 0, y: 60, w: 3, h: 8, i: 'tickerPnl' },
+	{ x: 0, y: 68, w: 3, h: 6, i: 'tickerWinrate' },
+	{ x: 0, y: 74, w: 3, h: 12, i: 'tickerTable' },
 ]
 
 export const getWeekNumber = (date: Date): number => {

@@ -9,10 +9,31 @@ import type {
     DailyFilters,
     CalendarFilters,
     DashBoardResult,
+    WorkspaceConfig,
+    ChartKey,
+    SectionKey,
 } from '~/type'
 
 import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
+
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+
+const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
+    id,
+    name,
+    dashboardChartVisibilityLg: { ...defaultChartVisibility },
+    dashboardChartVisibilityMd: { ...defaultChartVisibility },
+    dashboardChartVisibilitySm: { ...defaultChartVisibility },
+    dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
+    dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
+    dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
+    dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
+    dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
+    dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
+    ...partial,
+})
 
 export const useUserStore = defineStore(
     'userStore',
@@ -221,6 +242,28 @@ export const useUserStore = defineStore(
                 if (!filters.dashboardGridLayoutSm || filters.dashboardGridLayoutSm.length === 0) {
                     filters.dashboardGridLayoutSm = defaultDashboardGridLayoutSm.map(item => ({ ...item }))
                 }
+
+                // Init workspaces — migration transparente depuis les clés plates existantes
+                if (!filters.workspaces || filters.workspaces.length === 0) {
+                    filters.workspaces = [
+                        buildDefaultWorkspace('summary', 'Résumé', {
+                            dashboardChartVisibilityLg: { ...defaultChartVisibility, ...(filters.dashboardChartVisibilityLg || {}) },
+                            dashboardChartVisibilityMd: { ...defaultChartVisibility, ...(filters.dashboardChartVisibilityMd || {}) },
+                            dashboardChartVisibilitySm: { ...defaultChartVisibility, ...(filters.dashboardChartVisibilitySm || {}) },
+                            dashboardSectionVisibilityLg: { ...defaultSectionVisibility, ...(filters.dashboardSectionVisibilityLg || {}) },
+                            dashboardSectionVisibilityMd: { ...defaultSectionVisibility, ...(filters.dashboardSectionVisibilityMd || {}) },
+                            dashboardSectionVisibilitySm: { ...defaultSectionVisibility, ...(filters.dashboardSectionVisibilitySm || {}) },
+                            dashboardGridLayout: (filters.dashboardGridLayout?.length ? filters.dashboardGridLayout : defaultDashboardGridLayout).map(item => ({ ...item })),
+                            dashboardGridLayoutMd: (filters.dashboardGridLayoutMd?.length ? filters.dashboardGridLayoutMd : defaultDashboardGridLayoutMd).map(item => ({ ...item })),
+                            dashboardGridLayoutSm: (filters.dashboardGridLayoutSm?.length ? filters.dashboardGridLayoutSm : defaultDashboardGridLayoutSm).map(item => ({ ...item })),
+                        }),
+                        buildDefaultWorkspace('analytics', 'Analyse Avancée'),
+                    ]
+                }
+                if (!filters.activeWorkspaceId) {
+                    filters.activeWorkspaceId = 'summary'
+                }
+
                 filters.startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate)
                 filters.endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate)
                 filters.customStartDate = filters.customStartDate instanceof Date ? filters.customStartDate : new Date(filters.customStartDate)
