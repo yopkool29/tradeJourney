@@ -70,7 +70,7 @@ const chartOption = computed(() => {
 			],
 			itemStyle: {
 				color: g.pnl > 0 ? profitColor.value : g.pnl < 0 ? lossColor.value : neutralColor.value,
-				borderColor: isDark.value ? '#ffffff' : '#000000',
+				borderColor: isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)',
 				borderWidth: 1,
 				borderType: 'solid' as const,
 			},
@@ -148,10 +148,8 @@ const chartOption = computed(() => {
 			emphasis: {
 				scale: 1.3,
 				itemStyle: {
-					borderColor: '#fff',
+					borderColor: isDark.value ? '#ffffff' : '#1f2937',
 					borderWidth: 2,
-					shadowBlur: 10,
-					shadowColor: 'rgba(0,0,0,0.3)',
 				},
 			},
 		}],
