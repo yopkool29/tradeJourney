@@ -22,8 +22,9 @@ const userStore = useUserStore()
 const dataStore = useDataStore()
 const appConfig = useAppConfig()
 const { getBaseChartOption } = useEchartsChart()
-const { profitColor, lossColor, neutralColor, isDark } = useTypeColors()
+const { profitColor, lossColor, isDark } = useTypeColors()
 const { calculateMetricsByTicker } = useAnalytics()
+import { getEchartsAxisColors } from '~/utils/chart-utils'
 
 const tickerMetrics = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
@@ -34,14 +35,50 @@ const tickerMetrics = computed(() => {
 const chartOption = computed(() => {
 	const metrics = tickerMetrics.value
 
-	const scatterData = metrics.map(m => ({
-		value: [m.tradesCount, m.winrate, m.pnl, m.symbol],
-		itemStyle: {
-			color: m.pnl > 0 ? profitColor.value : m.pnl < 0 ? lossColor.value : neutralColor.value,
-		},
-	}))
+	// Group tickers with same (tradesCount, winrate rounded to 1 decimal)
+	const grouped = new Map<string, { tradesCount: number, winrate: number, pnl: number, symbols: string[] }>()
+	metrics.forEach((m) => {
+		const key = `${m.tradesCount}-${m.winrate.toFixed(1)}`
+		const existing = grouped.get(key)
+		if (existing) {
+			existing.pnl += m.pnl
+			existing.symbols.push(m.symbol)
+		} else {
+			grouped.set(key, { tradesCount: m.tradesCount, winrate: m.winrate, pnl: m.pnl, symbols: [m.symbol] })
+		}
+	})
+
+	// Slight jitter based on symbol name to avoid exact vertical overlap on same x
+	const getJitter = (str: string): number => {
+		let hash = 0
+		for (let i = 0; i < str.length; i++) {
+			hash = ((hash << 5) - hash) + str.charCodeAt(i)
+			hash |= 0
+		}
+		return ((Math.abs(hash) % 1000) / 1000 - 0.5) * 0.16
+	}
+
+	const scatterData = Array.from(grouped.values()).map((g) => {
+		const isGroup = g.symbols.length > 1
+		const firstSymbol = g.symbols[0]
+		return {
+			value: [
+				g.tradesCount + getJitter(firstSymbol),
+				g.winrate,
+				g.pnl,
+				isGroup ? g.symbols.join(', ') : firstSymbol,
+			],
+			itemStyle: {
+				color: g.pnl > 0 ? profitColor.value : g.pnl < 0 ? lossColor.value : neutralColor.value,
+				borderColor: isDark.value ? '#ffffff' : '#000000',
+				borderWidth: 1,
+				borderType: 'solid' as const,
+			},
+		}
+	})
 
 	const base = getBaseChartOption(isDark.value)
+	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
 
 	return {
 		...base,
@@ -50,13 +87,17 @@ const chartOption = computed(() => {
 			...base.tooltip,
 			formatter: (params: any) => {
 				const p = Array.isArray(params) ? params[0] : params
-				const [tradesCount, winrate, pnl, symbol] = p.value
+				const [tradesCount, winrate, pnl, symbolOrGroup] = p.value
+				const isGroup = symbolOrGroup.includes(',')
 				const lines = [
-					`<strong>${symbol}</strong>`,
-					`Trades: ${tradesCount}`,
+					`<strong>${symbolOrGroup}</strong>`,
+					`Trades: ${Math.round(tradesCount)}`,
 					`Winrate: ${winrate.toFixed(1)}%`,
 					`P&L: ${formatCurrency(pnl)}`,
-				].filter(Boolean)
+				]
+				if (isGroup) {
+					lines.push('<em>(multiple tickers grouped)</em>')
+				}
 				return lines.join('<br/>')
 			},
 		},
@@ -65,9 +106,13 @@ const chartOption = computed(() => {
 			name: 'Nb Trades',
 			nameLocation: 'middle' as const,
 			nameGap: 25,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisLabel: { color: textColor },
+			nameTextStyle: { color: textColor },
 			splitLine: {
 				lineStyle: {
 					type: 'dashed' as const,
+					color: axisColor,
 					opacity: 0.3,
 				},
 			},
@@ -79,9 +124,13 @@ const chartOption = computed(() => {
 			nameGap: 35,
 			min: 0,
 			max: 100,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisLabel: { color: textColor },
+			nameTextStyle: { color: textColor },
 			splitLine: {
 				lineStyle: {
 					type: 'dashed' as const,
+					color: axisColor,
 					opacity: 0.3,
 				},
 			},
@@ -89,16 +138,20 @@ const chartOption = computed(() => {
 		series: [{
 			type: 'scatter',
 			symbolSize: (data: number[]) => {
-				// Size based on absolute PnL (min 8, max 24)
 				const pnl = Math.abs(data[2])
-				return Math.min(24, Math.max(8, Math.sqrt(pnl) / 10))
+				const symbols = data[3] as string
+				const count = symbols.split(',').length
+				const baseSize = Math.min(18, Math.max(10, Math.sqrt(pnl) / 10))
+				return baseSize * (1 + (count - 1) * 0.3)
 			},
 			data: scatterData,
 			emphasis: {
-				focus: 'series',
+				scale: 1.3,
 				itemStyle: {
 					borderColor: '#fff',
 					borderWidth: 2,
+					shadowBlur: 10,
+					shadowColor: 'rgba(0,0,0,0.3)',
 				},
 			},
 		}],
