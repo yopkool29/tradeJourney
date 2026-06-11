@@ -1,12 +1,13 @@
 import VueECharts, { INIT_OPTIONS_KEY } from 'vue-echarts'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
+import { BarChart, LineChart, PieChart, ScatterChart } from 'echarts/charts'
 import {
 	GridComponent,
 	TooltipComponent,
 	LegendComponent,
 	GraphicComponent,
+	DataZoomComponent,
 } from 'echarts/components'
 
 use([
@@ -14,10 +15,12 @@ use([
 	BarChart,
 	LineChart,
 	PieChart,
+	ScatterChart,
 	GridComponent,
 	TooltipComponent,
 	LegendComponent,
 	GraphicComponent,
+	DataZoomComponent,
 ])
 
 export default defineNuxtPlugin((nuxtApp) => {

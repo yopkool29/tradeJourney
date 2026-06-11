@@ -192,7 +192,8 @@ export default {
             reset: 'Reset',
             back: 'Back',
             create: 'Create',
-            update: 'Update'
+            update: 'Update',
+            apply: 'Apply'
         },
         title: {
             success: 'Success',
@@ -559,6 +560,7 @@ export default {
             visibility: {
                 title: 'Visibility',
                 charts: 'Charts',
+                ticker_charts: 'Ticker Analysis',
                 sections: 'Statistics Sections',
             },
             sections: {
@@ -566,6 +568,7 @@ export default {
                 profit_trades: 'Winning Trades',
                 losing_trades: 'Losing Trades',
                 win_loss_comparison: 'Winning vs Losing',
+                ticker_table: 'Ticker Breakdown',
             },
             charts: {
                 pnl_bar: 'PnL Bar Chart',
@@ -573,6 +576,8 @@ export default {
                 appt: 'APPT',
                 winrate: 'Winrate',
                 visibility: 'Chart Visibility',
+                ticker_pnl: 'P&L by Ticker',
+                ticker_winrate: 'Winrate vs Trades',
             },
             appt_chart: {
                 title: 'APPT',
@@ -596,6 +601,26 @@ export default {
                 title: 'P/L Ratio',
                 enlarge: 'Enlarge',
                 enlarged_title: 'P/L Ratio (enlarged)',
+            },
+            ticker_pnl_chart: {
+                title: 'P&L by Ticker',
+                enlarged_title: 'P&L by Ticker (enlarged)',
+            },
+            ticker_winrate_chart: {
+                title: 'Winrate vs Trades',
+                enlarged_title: 'Winrate vs Trades (enlarged)',
+            },
+            ticker_table: {
+                title: 'Ticker Breakdown',
+                sort_by: 'Sort by',
+                symbol: 'Symbol',
+                pnl: 'P&L',
+                trades: 'Trades',
+                winrate: 'Winrate',
+                profit_factor: 'Profit Factor',
+                avg_win: 'Avg Win',
+                avg_loss: 'Avg Loss',
+                avg_duration: 'Avg Duration',
             },
             index: {
                 accounts: 'Accounts',
@@ -640,6 +665,8 @@ export default {
                 reset_layout: 'Reset Layout',
                 unlock_layout: 'Unlock layout',
                 lock_layout: 'Lock layout',
+                add_workspace: 'Add workspace',
+                confirm_delete_workspace: 'Delete workspace "{name}"?',
             },
             all_trades: {
                 title: 'ALL TRADES',
@@ -1158,7 +1185,6 @@ export default {
                 advanced_filters: {
                     title: 'Advanced filters',
                     add: 'Filter',
-                    apply: 'Apply',
                     clear: 'Clear filters',
                     placeholder: 'Value',
                 },

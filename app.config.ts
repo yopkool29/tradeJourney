@@ -17,6 +17,9 @@ export default defineAppConfig({
 			pnlBarChart: {
 				maxTrades: 100, // Nombre maximum de trades à afficher dans le graphique P&L History
 			},
+			tickerChart: {
+				maxTickers: 30, // Nombre maximum de tickers à afficher
+			},
 		},
 	},
 	ui: {

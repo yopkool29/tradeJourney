@@ -11,7 +11,7 @@
             <template v-else>{{ title }}</template>
         </template>
         <template #body>
-            <div class="h-full w-full" @click="modelValue = false">
+            <div class="h-full w-full overflow-y-auto" @click="modelValue = false">
                 <slot name="content" />
             </div>
         </template>

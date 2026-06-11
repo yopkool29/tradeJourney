@@ -198,7 +198,8 @@ export default {
             reset: 'Réinitialiser',
             back: 'Retour',
             create: 'Créer',
-            update: 'Mettre à jour'
+            update: 'Mettre à jour',
+            apply: 'Appliquer'
         },
         title: {
             success: 'Success',
@@ -569,6 +570,7 @@ export default {
             visibility: {
                 title: 'Visibilité',
                 charts: 'Graphiques',
+                ticker_charts: 'Analyse par Ticker',
                 sections: 'Sections statistiques',
             },
             sections: {
@@ -576,13 +578,16 @@ export default {
                 profit_trades: 'Trades gagnants',
                 losing_trades: 'Trades perdants',
                 win_loss_comparison: 'Gagnants vs perdants',
+                ticker_table: 'Détail par Ticker',
             },
             charts: {
                 pnl_bar: 'Graphique Barres PnL',
                 cumulated_pnl: 'PnL Cumulé',
                 appt: 'APPT',
-                winrate: 'Winrate',
+                winrate: 'Taux de Gain (wr)',
                 visibility: 'Visibilité des graphiques',
+                ticker_pnl: 'P&L par Ticker',
+                ticker_winrate: 'Taux de Gain (wr) vs Trades',
             },
             appt_chart: {
                 title: 'APPT',
@@ -590,9 +595,9 @@ export default {
                 enlarged_title: 'APPT (agrandi)',
             },
             winrate_chart: {
-                title: 'Win Rate',
+                title: 'Taux de Gain (wr)',
                 enlarge: 'Agrandir',
-                enlarged_title: 'Win Rate (agrandi)',
+                enlarged_title: 'Taux de Gain (agrandi)',
             },
             cumulated_pnl_chart: {
                 title: 'PnL Cumulé',
@@ -606,6 +611,26 @@ export default {
                 title: 'Ratio P/L',
                 enlarge: 'Agrandir',
                 enlarged_title: 'Ratio P/L (agrandi)',
+            },
+            ticker_pnl_chart: {
+                title: 'P&L par Ticker',
+                enlarged_title: 'P&L par Ticker (agrandi)',
+            },
+            ticker_winrate_chart: {
+                title: 'Taux de Gain vs Trades',
+                enlarged_title: 'Taux de Gain vs Trades (agrandi)',
+            },
+            ticker_table: {
+                title: 'Détail par Ticker',
+                sort_by: 'Trier par',
+                symbol: 'Symbole',
+                pnl: 'P&L',
+                trades: 'Trades',
+                winrate: 'Taux de Gain',
+                profit_factor: 'Profit Factor',
+                avg_win: 'Gain Moyen',
+                avg_loss: 'Perte Moyenne',
+                avg_duration: 'Durée Moyenne',
             },
             index: {
                 accounts: 'Comptes',
@@ -651,6 +676,8 @@ export default {
                 reset_layout: 'Réinitialiser la grille',
                 unlock_layout: 'Déverrouiller la grille',
                 lock_layout: 'Verrouiller la grille',
+                add_workspace: 'Ajouter un espace de travail',
+                confirm_delete_workspace: 'Supprimer l\'espace de travail "{name}" ?',
             },
             all_trades: {
                 title: 'TOUS LES TRADES',
@@ -919,7 +946,7 @@ export default {
                 chart_cumulated_pnl: 'Graphique P&L Cumulé',
                 chart_appt: 'Graphique APPT',
                 chart_pl_ratio: 'Graphique Ratio P/L',
-                chart_winrate: 'Graphique Win Rate',
+                chart_winrate: 'Graphique Taux de Gain',
                 color_bar: 'Couleur des barres',
                 color_point: 'Couleur de la ligne',
                 color_moving_average: 'Couleur de la moyenne mobile',
@@ -1178,7 +1205,6 @@ export default {
                 advanced_filters: {
                     title: 'Filtres avancés',
                     add: 'Filtre',
-                    apply: 'Appliquer',
                     clear: 'Effacer filtres',
                     placeholder: 'Valeur',
                 },
@@ -1273,7 +1299,7 @@ export default {
                 trades: 'Trades',
                 win: 'Gain',
                 loss: 'Perte',
-                winrate: 'Winrate',
+                winrate: 'Taux de Gain',
                 pnl: 'PnL',
                 edit_note: 'Modifier la note du jour',
                 add_note: 'Ajouter une note du jour',
@@ -1305,7 +1331,7 @@ export default {
                 filter: 'Filtrer',
                 no_history: 'Aucun historique de trades pour ce mois',
                 trades: 'Trades',
-                winrate: 'Winrate',
+                winrate: 'Taux de Gain',
                 pnl: 'PnL',
                 week_total: 'Total Semaine',
                 total: 'Total',

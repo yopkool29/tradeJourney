@@ -1,8 +1,8 @@
 <template>
 	<div class="relative">
-		<UCard class="h-full" :ui="{ header: 'p-0' }">
+		<UCard class="h-full flex flex-col" :ui="{ header: 'p-0 flex-shrink-0', body: 'flex-1 flex flex-col min-h-0 p-2' }">
 			<template #header>
-				<div class="flex items-center gap-2 w-full">
+				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold">{{ title }}</span>
 					<button
 						class="ml-auto px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
@@ -19,12 +19,11 @@
 				</div>
 			</template>
 			<div
-				class="relative w-full"
-				:style="{ height: `${canvasHeight}px` }"
-				style="cursor: crosshair;"
-				@click="isModalOpen = true"
+				ref="chartContainerRef"
+				class="relative w-full flex-1 min-h-0"
+				style="min-height: 200px;"
 			>
-				<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
+				<VChart :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight) + 'px' }" />
 			</div>
 		</UCard>
 
@@ -37,14 +36,32 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
+import { onMounted } from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 
 const props = defineProps<{
 	title: string
 	enlargedTitle: string
 	chartOption: EChartsOption
-	canvasHeight: number
+	canvasHeight?: number
 	loading?: boolean
 }>()
 
 const isModalOpen = ref(false)
+
+const chartContainerRef = ref<HTMLElement | null>(null)
+const containerHeight = ref(250)
+
+onMounted(() => {
+	if (chartContainerRef.value) {
+		containerHeight.value = chartContainerRef.value.clientHeight
+	}
+})
+
+useResizeObserver(chartContainerRef, (entries) => {
+	const entry = entries[0]
+	if (entry) {
+		containerHeight.value = entry.contentRect.height
+	}
+})
 </script>

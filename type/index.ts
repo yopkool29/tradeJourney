@@ -77,8 +77,8 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
-export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate'
-export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison'
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate'
+export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'tickerTable'
 
 export interface DashboardGridItem {
     x: number
@@ -86,6 +86,22 @@ export interface DashboardGridItem {
     w: number
     h: number
     i: string
+}
+
+export type WorkspaceId = string
+
+export interface WorkspaceConfig {
+    id: WorkspaceId
+    name: string
+    dashboardChartVisibilityLg: Record<ChartKey, boolean>
+    dashboardChartVisibilityMd: Record<ChartKey, boolean>
+    dashboardChartVisibilitySm: Record<ChartKey, boolean>
+    dashboardSectionVisibilityLg: Record<SectionKey, boolean>
+    dashboardSectionVisibilityMd: Record<SectionKey, boolean>
+    dashboardSectionVisibilitySm: Record<SectionKey, boolean>
+    dashboardGridLayout: DashboardGridItem[]
+    dashboardGridLayoutMd: DashboardGridItem[]
+    dashboardGridLayoutSm: DashboardGridItem[]
 }
 
 export interface DashBoardFilters {
@@ -111,6 +127,8 @@ export interface DashBoardFilters {
     dashboardGridLayout: DashboardGridItem[]
     dashboardGridLayoutMd?: DashboardGridItem[]
     dashboardGridLayoutSm?: DashboardGridItem[]
+    workspaces?: WorkspaceConfig[]
+    activeWorkspaceId?: WorkspaceId
 }
 
 export interface DailyFilters {

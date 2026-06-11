@@ -140,57 +140,137 @@
             </div>
         </div>
 
-        <!-- Dashboard items : graphiques + sections -->
+        <!-- Dashboard workspaces : onglets + contenu -->
         <div class="mb-8">
-            <div class="flex justify-start gap-2 mb-2">
-                <DashboardVisibilityMenu
-                    v-if="currentBreakpoint === 'lg'"
-                    v-model:chart-visibility="chartVisibilityLg"
-                    v-model:section-visibility="sectionVisibilityLg"
-                />
-                <DashboardVisibilityMenu
-                    v-if="currentBreakpoint === 'md'"
-                    v-model:chart-visibility="chartVisibilityMd"
-                    v-model:section-visibility="sectionVisibilityMd"
-                />
-                <DashboardVisibilityMenu
-                    v-if="currentBreakpoint === 'sm'"
-                    v-model:chart-visibility="chartVisibilitySm"
-                    v-model:section-visibility="sectionVisibilitySm"
-                />
+            <!-- Barre d'onglets -->
+            <div class="flex items-center gap-1 mb-3 border-b border-default">
+                <button
+                    v-for="ws in workspaces"
+                    :key="ws.id"
+                    class="group relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors rounded-t-md"
+                    :class="activeWorkspaceId === ws.id
+                        ? 'text-primary border-b-2 border-primary -mb-px bg-default'
+                        : 'text-muted hover:text-default hover:bg-elevated'"
+                    @click="switchWorkspace(ws.id)"
+                >
+                    <UIcon
+                        v-if="switchingToWorkspaceId === ws.id"
+                        name="i-heroicons-arrow-path"
+                        class="w-3.5 h-3.5 animate-spin"
+                    />
+                    <span>{{ ws.name }}</span>
+                    <CommonModalDelete
+                        v-if="workspaces.length > 1 && ws.id !== 'summary'"
+                        @confirm="removeWorkspace(ws.id)"
+                    >
+                        <template #trigger>
+                            <UButton
+                                icon="i-lucide-x"
+                                size="xs"
+                                variant="ghost"
+                                color="neutral"
+                                class="opacity-0 group-hover:opacity-100 -mr-1 h-4 w-4 p-0"
+                                @click.stop
+                            />
+                        </template>
+                        <template #content>
+                            {{ $t('components.dashboard.index.confirm_delete_workspace', { name: ws.name }) }}
+                        </template>
+                    </CommonModalDelete>
+                </button>
                 <UButton
-                    icon="i-lucide-list-restart"
-                    size="sm"
+                    icon="i-lucide-plus"
+                    size="xs"
                     variant="ghost"
                     color="neutral"
-                    :title="$t('components.dashboard.index.reset_layout')"
-                    @click="onResetLayout"
-                />
-                <UButton
-                    :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
-                    size="sm"
-                    variant="ghost"
-                    :color="isGridDraggable ? 'warning' : 'neutral'"
-                    :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
-                    @click="
-                        () => {
-                            if (isGridDraggable) saveGridLayout()
-                            isGridDraggable = !isGridDraggable
-                        }
-                    "
+                    class="ml-1 mb-px"
+                    :title="$t('components.dashboard.index.add_workspace')"
+                    :disabled="workspaces.length >= 3"
+                    @click="addWorkspace"
                 />
             </div>
-            <DashboardGridLayout
-                v-if="gridReady"
-                :key="gridResetKey"
-                ref="gridLayoutRef"
-                :layout="gridLayout"
-                :components="gridComponents"
-                :shared-props="{ loading: filterLoading }"
-                :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
-                :is-draggable="isGridDraggable"
-                :col-num="gridColNum"
-            />
+
+            <!-- Barre de contrôle du workspace actif -->
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-1">
+                    <DashboardVisibilityMenu
+                        v-if="currentBreakpoint === 'lg'"
+                        v-model:chart-visibility="chartVisibilityLg"
+                        v-model:section-visibility="sectionVisibilityLg"
+                    />
+                    <DashboardVisibilityMenu
+                        v-if="currentBreakpoint === 'md'"
+                        v-model:chart-visibility="chartVisibilityMd"
+                        v-model:section-visibility="sectionVisibilityMd"
+                    />
+                    <DashboardVisibilityMenu
+                        v-if="currentBreakpoint === 'sm'"
+                        v-model:chart-visibility="chartVisibilitySm"
+                        v-model:section-visibility="sectionVisibilitySm"
+                    />
+                    <UButton
+                        icon="i-lucide-list-restart"
+                        size="sm"
+                        variant="ghost"
+                        color="neutral"
+                        :title="$t('components.dashboard.index.reset_layout')"
+                        @click="onResetLayout"
+                    />
+                    <UButton
+                        :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
+                        size="sm"
+                        variant="ghost"
+                        :color="isGridDraggable ? 'warning' : 'neutral'"
+                        :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
+                        @click="() => { if (isGridDraggable) saveGridLayout(); isGridDraggable = !isGridDraggable }"
+                    />
+                    <!-- Renommer le workspace (sauf summary) -->
+                    <div v-if="activeWorkspace?.id !== 'summary'" class="flex items-center gap-1 ml-4">
+                        <UInput
+                            v-model="workspaceRenameValue"
+                            size="xs"
+                            class="w-36"
+                            maxlength="28"
+                            @keydown.enter="renameActiveWorkspace"
+                        />
+                        <template v-if="workspaceRenameValue !== activeWorkspace?.name">
+                            <UButton
+                                icon="i-lucide-check"
+                                size="xs"
+                                color="success"
+                                variant="ghost"
+                                @click="renameActiveWorkspace"
+                            />
+                            <UButton
+                                icon="i-lucide-x"
+                                size="xs"
+                                color="error"
+                                variant="ghost"
+                                @click="cancelRenameWorkspace"
+                            />
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KeepAlive pour préserver l'état des workspaces -->
+            <div class="relative">
+                <KeepAlive>
+                    <DashboardGridLayout
+                        v-if="gridReady"
+                        :key="activeWorkspaceId"
+                        ref="gridLayoutRef"
+                        :layout="gridLayout"
+                        :components="gridComponents"
+                        :shared-props="{ loading: filterLoading }"
+                        :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
+                        :is-draggable="isGridDraggable"
+                        :is-resizable="isGridDraggable"
+                        :resizable-items="['tickerPnl', 'tickerTable']"
+                        :col-num="gridColNum"
+                    />
+                </KeepAlive>
+            </div>
         </div>
     </div>
 </template>
@@ -206,7 +286,7 @@ import {
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
-import type { ChartKey, SectionKey, DashboardGridItem } from '~/type'
+import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter } from '~/type'
 
 const { formatCurrency } = useUtils()
 
@@ -220,45 +300,69 @@ const chartsCanRender = ref(false)
 const gridReady = ref(false)
 const { t, locale } = useI18n()
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
+
+// --- Workspace helpers ---
+
+const workspaces = computed(() => userStore.dashBoardFilters.workspaces || [])
+
+const activeWorkspaceId = computed({
+    get: () => userStore.dashBoardFilters.activeWorkspaceId || 'summary',
+    set: (val: WorkspaceId) => {
+        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, activeWorkspaceId: val }
+    },
+})
+
+const switchWorkspace = async (id: WorkspaceId) => {
+    if (id === activeWorkspaceId.value) return
+    switchingToWorkspaceId.value = id
+    // Laisser le spinner s'afficher avant de switcher
+    await nextTick()
+    setTimeout(() => {
+        activeWorkspaceId.value = id
+        // Attendre le recalcul du grid
+        setTimeout(() => {
+            switchingToWorkspaceId.value = null
+        }, 150)
+    }, 0)
+}
+
+const activeWorkspace = computed(() =>
+    workspaces.value.find(w => w.id === activeWorkspaceId.value) || workspaces.value[0]
+)
+
+const updateActiveWorkspace = (patch: Partial<WorkspaceConfig>) => {
+    const updated = workspaces.value.map(w =>
+        w.id === activeWorkspaceId.value ? { ...w, ...patch } : w
+    )
+    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated }
+}
 
 const chartVisibilityLg = computed({
-    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityLg || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityLg: val }
-    },
+    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilityLg || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardChartVisibilityLg: val }),
 })
 const chartVisibilityMd = computed({
-    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilityMd || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilityMd: val }
-    },
+    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilityMd || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardChartVisibilityMd: val }),
 })
 const chartVisibilitySm = computed({
-    get: () => ({ ...defaultChartVisibility, ...(userStore.dashBoardFilters.dashboardChartVisibilitySm || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardChartVisibilitySm: val }
-    },
+    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilitySm || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardChartVisibilitySm: val }),
 })
 
 const sectionVisibilityLg = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityLg || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityLg: val }
-    },
+    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilityLg || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityLg: val }),
 })
 const sectionVisibilityMd = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilityMd || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilityMd: val }
-    },
+    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilityMd || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityMd: val }),
 })
 const sectionVisibilitySm = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(userStore.dashBoardFilters.dashboardSectionVisibilitySm || {}) }),
-    set: (val) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, dashboardSectionVisibilitySm: val }
-    },
+    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilitySm || {}) }),
+    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilitySm: val }),
 })
 
 const activeChartVisibility = computed(() => {
@@ -293,24 +397,28 @@ const gridComponents = computed(() => {
               cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
               appt: resolveComponent('DashboardChartsApptChart'),
               winrate: resolveComponent('DashboardChartsWinrateChart'),
+              tickerPnl: resolveComponent('DashboardChartsTickerPnlBarChart'),
+              tickerWinrate: resolveComponent('DashboardChartsTickerWinrateScatterChart'),
           }
         : {
               pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
               cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
               appt: resolveComponent('DashboardChartsApptChartEcharts'),
               winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
+              tickerPnl: resolveComponent('DashboardChartsTickerPnlBarChart'),
+              tickerWinrate: resolveComponent('DashboardChartsTickerWinrateScatterChart'),
           }
     const sectionComponentMap: Record<SectionKey, Component | string> = {
         allTrades: resolveComponent('DashboardAllTradesSection'),
         profitTrades: resolveComponent('DashboardProfitTradesSection'),
         losingTrades: resolveComponent('DashboardLosingTradesSection'),
         winLossComparison: resolveComponent('DashboardWinLossComparisonSection'),
+        tickerTable: resolveComponent('DashboardTickerBreakdownTable'),
     }
     return { ...chartComponentMap, ...sectionComponentMap }
 })
 
 const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)
-const gridResetKey = ref(0)
 
 // Breakpoint detection: lg >= 768, md >= 530, sm < 530
 const currentBreakpoint = ref<'lg' | 'md' | 'sm'>('lg')
@@ -332,20 +440,14 @@ onBeforeUnmount(() => {
 })
 
 const defaultLayoutForBreakpoint = computed(() => {
-    const filters = userStore.dashBoardFilters
+    const ws = activeWorkspace.value
     switch (currentBreakpoint.value) {
-        case 'md': {
-            const saved = filters.dashboardGridLayoutMd
-            return saved?.length ? saved : defaultDashboardGridLayoutMd
-        }
-        case 'sm': {
-            const saved = filters.dashboardGridLayoutSm
-            return saved?.length ? saved : defaultDashboardGridLayoutSm
-        }
-        default: {
-            const saved = filters.dashboardGridLayout
-            return saved?.length ? saved : defaultDashboardGridLayout
-        }
+        case 'md':
+            return ws?.dashboardGridLayoutMd?.length ? ws.dashboardGridLayoutMd : defaultDashboardGridLayoutMd
+        case 'sm':
+            return ws?.dashboardGridLayoutSm?.length ? ws.dashboardGridLayoutSm : defaultDashboardGridLayoutSm
+        default:
+            return ws?.dashboardGridLayout?.length ? ws.dashboardGridLayout : defaultDashboardGridLayout
     }
 })
 
@@ -380,34 +482,47 @@ const saveGridLayout = () => {
         return false
     })
     const saved = [...newLayout, ...hiddenItems]
-    const filters = userStore.dashBoardFilters
     switch (currentBreakpoint.value) {
         case 'md':
-            userStore.dashBoardFilters = { ...filters, dashboardGridLayoutMd: saved }
+            updateActiveWorkspace({ dashboardGridLayoutMd: saved })
             break
         case 'sm':
-            userStore.dashBoardFilters = { ...filters, dashboardGridLayoutSm: saved }
+            updateActiveWorkspace({ dashboardGridLayoutSm: saved })
             break
         default:
-            userStore.dashBoardFilters = { ...filters, dashboardGridLayout: saved }
+            updateActiveWorkspace({ dashboardGridLayout: saved })
     }
 }
 
 const onResetLayout = () => {
-    const updated = {
-        ...userStore.dashBoardFilters,
-        dashboardChartVisibilityLg: defaultChartVisibility,
-        dashboardSectionVisibilityLg: defaultSectionVisibility,
-        dashboardChartVisibilityMd: defaultChartVisibility,
-        dashboardSectionVisibilityMd: defaultSectionVisibility,
-        dashboardChartVisibilitySm: defaultChartVisibility,
-        dashboardSectionVisibilitySm: defaultSectionVisibility,
-        dashboardGridLayout: defaultDashboardGridLayout.map((item) => ({ ...item })),
-        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map((item) => ({ ...item })),
-        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map((item) => ({ ...item })),
+    // Sur un workspace personnalisé, on vide la grille plutôt que de remettre le layout par défaut
+    if (activeWorkspaceId.value !== 'summary') {
+        updateActiveWorkspace({
+            dashboardChartVisibilityLg: { ...emptyChartVisibility },
+            dashboardChartVisibilityMd: { ...emptyChartVisibility },
+            dashboardChartVisibilitySm: { ...emptyChartVisibility },
+            dashboardSectionVisibilityLg: { ...emptySectionVisibility },
+            dashboardSectionVisibilityMd: { ...emptySectionVisibility },
+            dashboardSectionVisibilitySm: { ...emptySectionVisibility },
+            dashboardGridLayout: [],
+            dashboardGridLayoutMd: [],
+            dashboardGridLayoutSm: [],
+        })
+        return
     }
-    userStore.dashBoardFilters = updated
-    gridResetKey.value++
+
+    // Sur summary, reset classique avec le layout par défaut
+    updateActiveWorkspace({
+        dashboardChartVisibilityLg: { ...defaultChartVisibility },
+        dashboardChartVisibilityMd: { ...defaultChartVisibility },
+        dashboardChartVisibilitySm: { ...defaultChartVisibility },
+        dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
+        dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
+        dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
+        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
+        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
+        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
+    })
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {
@@ -515,6 +630,66 @@ const setHistoryDateRange = async () => {
 }
 
 const isGridDraggable = ref(false)
+const switchingToWorkspaceId = ref<WorkspaceId | null>(null)
+
+// --- Workspace management ---
+
+const workspaceRenameValue = ref(activeWorkspace.value?.name || '')
+
+watch(activeWorkspace, (ws) => {
+    workspaceRenameValue.value = ws?.name || ''
+})
+
+const emptyChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false }
+const emptySectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
+
+// Default config for new workspaces - shows ticker charts
+const newWorkspaceChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: true, tickerWinrate: true }
+const newWorkspaceSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: true }
+
+const newWorkspaceGridLayout = [
+    { x: 0, y: 0, w: 6, h: 8, i: 'tickerPnl' },
+    { x: 6, y: 0, w: 6, h: 6, i: 'tickerWinrate' },
+    { x: 0, y: 8, w: 12, h: 12, i: 'tickerTable' },
+]
+
+const addWorkspace = () => {
+    if (workspaces.value.length >= 3) return
+    const id = `workspace-${Date.now()}`
+    const name = `Workspace ${workspaces.value.length + 1}`
+    const newWorkspace: WorkspaceConfig = {
+        id,
+        name,
+        dashboardChartVisibilityLg: { ...newWorkspaceChartVisibility },
+        dashboardChartVisibilityMd: { ...newWorkspaceChartVisibility },
+        dashboardChartVisibilitySm: { ...newWorkspaceChartVisibility },
+        dashboardSectionVisibilityLg: { ...newWorkspaceSectionVisibility },
+        dashboardSectionVisibilityMd: { ...newWorkspaceSectionVisibility },
+        dashboardSectionVisibilitySm: { ...newWorkspaceSectionVisibility },
+        dashboardGridLayout: [...newWorkspaceGridLayout],
+        dashboardGridLayoutMd: [...newWorkspaceGridLayout],
+        dashboardGridLayoutSm: [...newWorkspaceGridLayout],
+    }
+    const updated = [...workspaces.value, newWorkspace]
+    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: id }
+}
+
+const removeWorkspace = (id: WorkspaceId) => {
+    if (id === 'summary') return
+    const updated = workspaces.value.filter(w => w.id !== id)
+    const newActiveId = activeWorkspaceId.value === id ? 'summary' : activeWorkspaceId.value
+    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: newActiveId }
+}
+
+const renameActiveWorkspace = () => {
+    const name = workspaceRenameValue.value.trim()
+    if (!name || name === activeWorkspace.value?.name) return
+    updateActiveWorkspace({ name })
+}
+
+const cancelRenameWorkspace = () => {
+    workspaceRenameValue.value = activeWorkspace.value?.name || ''
+}
 
 // Variable locale pour le mode cumulé (buffer en mode manuel)
 const localCumuleMode = ref(userStore.dashBoardFilters.cumuleMode)
@@ -623,6 +798,8 @@ onMounted(() => {
     })
 })
 
+// DEBUG: Test watchers un par un
+
 // Watcher sur la période
 watch(
     () => userStore.dashBoardFilters.period,
@@ -641,11 +818,19 @@ watch(
     { immediate: true }
 )
 
-// Watcher unique pour les comptes (debounced)
+// Watcher unique pour les comptes (debounced) - sans deep pour éviter re-fetch KeepAlive
+let lastAccountIds: number[] = []
 watch(
-    () => [...(userStore.dashBoardFilters.accountIds || [])],
-    () => debouncedHandleFilterChange(),
-    { deep: true }
+    () => userStore.dashBoardFilters.accountIds,
+    (newIds) => {
+        const currentIds = newIds || []
+        const changed = currentIds.length !== lastAccountIds.length ||
+            currentIds.some((id, i) => id !== lastAccountIds[i])
+        if (changed) {
+            lastAccountIds = [...currentIds]
+            debouncedHandleFilterChange()
+        }
+    }
 )
 
 // Watcher unique pour les dates (debounced)

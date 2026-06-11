@@ -70,7 +70,7 @@
                 variant="solid"
                 size="sm"
             >
-                {{ $t('components.trade.table.advanced_filters.apply') }}
+                {{ $t('common.actions.apply') }}
             </UButton>
             <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="xs" @click="emit('reset')">
                 {{ $t('components.trade.table.advanced_filters.clear') }}
