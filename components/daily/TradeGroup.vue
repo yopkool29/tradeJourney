@@ -51,7 +51,7 @@
 
                         <!-- Graphique d'évolution intraday -->
                         <div class="w-48 h-16">
-                            <DashboardChartsIntradayPnlChart :chart-data="intradayChartData" :width="192" :height="64" />
+                            <DashboardChartsMainIntradayPnlChart :chart-data="intradayChartData" :width="192" :height="64" />
                         </div>
                     </div>
                 </div>

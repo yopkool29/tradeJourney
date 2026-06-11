@@ -39,7 +39,7 @@
 						</td>
 						<td class="py-2 px-2 text-right">{{ metric.tradesCount }}</td>
 						<td class="py-2 px-2 text-right">{{ metric.winrate.toFixed(1) }}%</td>
-						<td class="py-2 px-2 text-right">{{ metric.profitFactor.toFixed(2) }}</td>
+						<td class="py-2 px-2 text-right">{{ metric.profitFactor === Infinity ? '∞' : metric.profitFactor.toFixed(2) }}</td>
 						<td class="py-2 px-2 text-right" :style="{ color: profitColor }">{{ formatCurrency(metric.avgWin) }}</td>
 						<td class="py-2 px-2 text-right" :style="{ color: lossColor }">{{ formatCurrency(metric.avgLoss) }}</td>
 						<td class="py-2 px-2 text-right">{{ formatDuration(metric.avgDuration) }}</td>

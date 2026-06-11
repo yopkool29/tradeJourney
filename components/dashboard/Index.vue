@@ -276,6 +276,18 @@
 </template>
 
 <script setup lang="ts">
+import DashboardChartsMainPnlBarChartEcharts from '~/components/dashboard/charts/main/PnlBarChartEcharts.vue'
+import DashboardChartsMainCumulatedPnlChartEcharts from '~/components/dashboard/charts/main/CumulatedPnlChartEcharts.vue'
+import DashboardChartsMainApptChartEcharts from '~/components/dashboard/charts/main/ApptChartEcharts.vue'
+import DashboardChartsMainWinrateChartEcharts from '~/components/dashboard/charts/main/WinrateChartEcharts.vue'
+import DashboardChartsTickerTickerPnlBarChart from '~/components/dashboard/charts/ticker/TickerPnlBarChart.vue'
+import DashboardChartsTickerTickerWinrateScatterChart from '~/components/dashboard/charts/ticker/TickerWinrateScatterChart.vue'
+import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/AllTradesSection.vue'
+import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
+import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
+import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
+import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
+
 import {
     periodOptions,
     getPeriodDates,
@@ -391,29 +403,20 @@ const appConfig = useAppConfig()
 const useChartjs = computed(() => appConfig.charts.chartjs === true)
 
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, Component | string> = useChartjs.value
-        ? {
-              pnlBar: resolveComponent('DashboardChartsPnlBarChart'),
-              cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChart2'),
-              appt: resolveComponent('DashboardChartsApptChart'),
-              winrate: resolveComponent('DashboardChartsWinrateChart'),
-              tickerPnl: resolveComponent('DashboardChartsTickerPnlBarChart'),
-              tickerWinrate: resolveComponent('DashboardChartsTickerWinrateScatterChart'),
-          }
-        : {
-              pnlBar: resolveComponent('DashboardChartsPnlBarChartEcharts'),
-              cumulatedPnl: resolveComponent('DashboardChartsCumulatedPnlChartEcharts'),
-              appt: resolveComponent('DashboardChartsApptChartEcharts'),
-              winrate: resolveComponent('DashboardChartsWinrateChartEcharts'),
-              tickerPnl: resolveComponent('DashboardChartsTickerPnlBarChart'),
-              tickerWinrate: resolveComponent('DashboardChartsTickerWinrateScatterChart'),
-          }
+    const chartComponentMap: Record<ChartKey, Component | string> = {
+        pnlBar: DashboardChartsMainPnlBarChartEcharts,
+        cumulatedPnl: DashboardChartsMainCumulatedPnlChartEcharts,
+        appt: DashboardChartsMainApptChartEcharts,
+        winrate: DashboardChartsMainWinrateChartEcharts,
+        tickerPnl: DashboardChartsTickerTickerPnlBarChart,
+        tickerWinrate: DashboardChartsTickerTickerWinrateScatterChart,
+    }
     const sectionComponentMap: Record<SectionKey, Component | string> = {
-        allTrades: resolveComponent('DashboardAllTradesSection'),
-        profitTrades: resolveComponent('DashboardProfitTradesSection'),
-        losingTrades: resolveComponent('DashboardLosingTradesSection'),
-        winLossComparison: resolveComponent('DashboardWinLossComparisonSection'),
-        tickerTable: resolveComponent('DashboardTickerBreakdownTable'),
+        allTrades: DashboardSectionsAllTradesSection,
+        profitTrades: DashboardSectionsProfitTradesSection,
+        losingTrades: DashboardSectionsLosingTradesSection,
+        winLossComparison: DashboardSectionsWinLossComparisonSection,
+        tickerTable: DashboardSectionsTickerBreakdownTable,
     }
     return { ...chartComponentMap, ...sectionComponentMap }
 })
