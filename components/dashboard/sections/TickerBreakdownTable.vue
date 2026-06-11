@@ -2,53 +2,47 @@
 	<div class="h-full overflow-y-auto bg-surface rounded-lg">
 		<div class="flex items-center justify-between px-4 py-3 border-b border-default">
 			<h3 class="text-base font-semibold text-primary">{{ $t('components.dashboard.ticker_table.title') }}</h3>
-			<div class="flex items-center gap-2">
-				<span class="text-sm text-secondary">{{ $t('components.dashboard.ticker_table.sort_by') }}:</span>
-				<USelect
-					v-model="sortBy"
-					:items="sortOptions"
-					size="xs"
-					class="w-32"
-				/>
-			</div>
 		</div>
 
-		<div class="p-4 overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b border-default">
-						<th class="text-left py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.symbol') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.pnl') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.trades') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.winrate') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.profit_factor') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.avg_win') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.avg_loss') }}</th>
-						<th class="text-right py-2 px-2 font-medium text-secondary">{{ $t('components.dashboard.ticker_table.avg_duration') }}</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="metric in paginatedMetrics"
-						:key="metric.symbol"
-						class="border-b border-default/50 hover:bg-elevated/50"
-					>
-						<td class="py-2 px-2 font-medium">{{ metric.symbol }}</td>
-						<td class="py-2 px-2 text-right" :style="{ color: metric.pnl > 0 ? profitColor : metric.pnl < 0 ? lossColor : undefined }">
-							{{ formatCurrency(metric.pnl) }}
-						</td>
-						<td class="py-2 px-2 text-right">{{ metric.tradesCount }}</td>
-						<td class="py-2 px-2 text-right">{{ metric.winrate.toFixed(1) }}%</td>
-						<td class="py-2 px-2 text-right">{{ metric.profitFactor === Infinity ? '∞' : metric.profitFactor.toFixed(2) }}</td>
-						<td class="py-2 px-2 text-right" :style="{ color: profitColor }">{{ formatCurrency(metric.avgWin) }}</td>
-						<td class="py-2 px-2 text-right" :style="{ color: lossColor }">{{ formatCurrency(metric.avgLoss) }}</td>
-						<td class="py-2 px-2 text-right">{{ formatDuration(metric.avgDuration) }}</td>
-					</tr>
-				</tbody>
-			</table>
+		<div class="p-4">
+			<UTable
+				:data="paginatedMetrics"
+				:columns="columns"
+				:loading="props.loading"
+				:empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.dashboard.ticker_table.empty_state') }"
+				:ui="{ td: 'p-2' }"
+				class="table-fixed"
+				@sort="onSort"
+			>
+				<template #symbol-cell="{ row }">
+					<span class="font-semibold">{{ row.original.symbol }}</span>
+				</template>
+				<template #pnl-cell="{ row }">
+					<span :class="row.original.pnl >= 0 ? 'profit-text' : 'loss-text'">
+						{{ formatCurrency(row.original.pnl) }}
+					</span>
+				</template>
+				<template #tradesCount-cell="{ row }">
+					<span>{{ row.original.tradesCount }}</span>
+				</template>
+				<template #winrate-cell="{ row }">
+					<span>{{ row.original.winrate.toFixed(1) }}%</span>
+				</template>
+				<template #profitFactor-cell="{ row }">
+					<span>{{ row.original.profitFactor === Infinity ? '∞' : row.original.profitFactor.toFixed(2) }}</span>
+				</template>
+				<template #avgWin-cell="{ row }">
+					<span class="profit-text">{{ formatCurrency(row.original.avgWin) }}</span>
+				</template>
+				<template #avgLoss-cell="{ row }">
+					<span class="loss-text">{{ formatCurrency(row.original.avgLoss) }}</span>
+				</template>
+				<template #avgDuration-cell="{ row }">
+					<span>{{ formatDurationSeconds(row.original.avgDuration * 60) }}</span>
+				</template>
+			</UTable>
 		</div>
 
-		<!-- Pagination -->
 		<div v-if="sortedMetrics.length > pageSize" class="flex justify-center pt-4 pb-2">
 			<UPagination
 				v-model:page="page"
@@ -67,6 +61,8 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 import type { TickerMetrics } from '~/composables/useAnalytics'
+import { formatDurationSeconds } from '~/utils/date-utils'
+import { UIcon } from '#components'
 
 const props = defineProps<{
 	loading?: boolean
@@ -76,7 +72,6 @@ const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
 const dataStore = useDataStore()
 const { calculateMetricsByTicker } = useAnalytics()
-const { profitColor, lossColor } = useTypeColors()
 
 const tickerMetrics = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
@@ -84,35 +79,100 @@ const tickerMetrics = computed(() => {
 	return calculateMetricsByTicker(trades, displayModeNet.value)
 })
 
-const sortBy = ref<'pnl' | 'tradesCount' | 'winrate' | 'profitFactor'>('pnl')
+const sortBy = ref<keyof TickerMetrics | ''>('')
+const sortDesc = ref(false)
 
-const sortOptions = computed(() => [
-	{ label: 'P&L', value: 'pnl' },
-	{ label: 'Trades', value: 'tradesCount' },
-	{ label: 'Winrate', value: 'winrate' },
-	{ label: 'Profit Factor', value: 'profitFactor' },
-])
+const createSortHeader = (key: keyof TickerMetrics, label: string) => {
+	return () => h('button', {
+		class: 'flex items-center gap-1 select-none',
+		onClick: () =>
+			onSort({
+				column: { accessorKey: key as string },
+				direction: sortBy.value === key && !sortDesc.value ? 'desc' : 'asc',
+			}),
+	}, [
+		label,
+		h(UIcon, {
+			name:
+				sortBy.value === key
+					? sortDesc.value
+						? 'i-lucide-arrow-down-wide-narrow'
+						: 'i-lucide-arrow-up-narrow-wide'
+					: 'i-lucide-arrow-up-down',
+			class: 'w-4 h-4 ml-1',
+		}),
+	])
+}
+
+const columns = [
+	{
+		accessorKey: 'symbol',
+		header: () => createSortHeader('symbol', 'Symbol')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'pnl',
+		header: () => createSortHeader('pnl', 'P&L')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'tradesCount',
+		header: () => createSortHeader('tradesCount', 'Trades')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'winrate',
+		header: () => createSortHeader('winrate', 'Winrate')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'profitFactor',
+		header: () => createSortHeader('profitFactor', 'PF')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'avgWin',
+		header: () => createSortHeader('avgWin', 'Avg Win')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'avgLoss',
+		header: () => createSortHeader('avgLoss', 'Avg Loss')(),
+		sortable: true,
+	},
+	{
+		accessorKey: 'avgDuration',
+		header: () => createSortHeader('avgDuration', 'Avg Duration')(),
+		sortable: true,
+	},
+]
+
+function onSort({ column, direction }: { column: { accessorKey: string }; direction: string }) {
+	const col = columns.find((c) => c.accessorKey === column.accessorKey)
+	if (col && col.sortable === false) return
+	sortBy.value = column.accessorKey as keyof TickerMetrics
+	sortDesc.value = direction === 'desc'
+	page.value = 1
+}
 
 const sortedMetrics = computed(() => {
-	const sorted = [...tickerMetrics.value]
-	sorted.sort((a, b) => {
-		switch (sortBy.value) {
-			case 'pnl':
-				return b.pnl - a.pnl
-			case 'tradesCount':
-				return b.tradesCount - a.tradesCount
-			case 'winrate':
-				return b.winrate - a.winrate
-			case 'profitFactor':
-				return b.profitFactor - a.profitFactor
-			default:
-				return 0
-			}
-		})
-		return sorted
+	if (!sortBy.value) return tickerMetrics.value
+	return [...tickerMetrics.value].sort((a: TickerMetrics, b: TickerMetrics) => {
+		const valA = a[sortBy.value as keyof TickerMetrics]
+		const valB = b[sortBy.value as keyof TickerMetrics]
+		if (valA == null) return 1
+		if (valB == null) return -1
+		if (valA === valB) return 0
+		if (typeof valA === 'string' && typeof valB === 'string') {
+			return sortDesc.value ? valB.localeCompare(valA) : valA.localeCompare(valB)
+		}
+		if (sortDesc.value) {
+			return (valA as number) < (valB as number) ? 1 : -1
+		}
+		return (valA as number) > (valB as number) ? 1 : -1
+	})
 })
 
-// Pagination
 const page = ref(1)
 const pageSize = 12
 
@@ -122,12 +182,4 @@ const paginatedMetrics = computed(() => {
 	return sortedMetrics.value.slice(start, end)
 })
 
-const formatDuration = (minutes: number): string => {
-	if (minutes < 60) {
-		return `${Math.round(minutes)}m`
-	}
-	const hours = Math.floor(minutes / 60)
-	const mins = Math.round(minutes % 60)
-	return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`
-}
 </script>

@@ -601,6 +601,24 @@ export const formatDurationMinutes = (minutes: number): string => {
 }
 
 /**
+ * Format duration from seconds (e.g. "1h 30m 45s" or "90s")
+ * @param seconds - Duration in seconds
+ * @returns Formatted duration string
+ */
+export const formatDurationSeconds = (seconds: number): string => {
+  if (seconds < 60) {
+    return `${Math.round(seconds)}s`
+  }
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  const secs = Math.round(seconds % 60)
+  if (hours > 0) {
+    return secs > 0 ? `${hours}h ${mins}m ${secs}s` : `${hours}h ${mins}m`
+  }
+  return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`
+}
+
+/**
  * Format date as YYYY-MM-DD-HH-MM for use in filenames
  * @param date - Date to format (defaults to current date)
  * @returns Formatted date string (e.g. "2023-06-27-14-30")
