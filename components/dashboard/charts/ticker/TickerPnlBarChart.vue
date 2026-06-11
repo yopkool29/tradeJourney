@@ -72,7 +72,7 @@ const chartOption = computed(() => {
 					`P&L: ${formatCurrency(metric.pnl)}`,
 					`Trades: ${metric.tradesCount}`,
 					`Winrate: ${metric.winrate.toFixed(1)}%`,
-					`Profit Factor: ${metric.profitFactor.toFixed(2)}`,
+					`Profit Factor: ${metric.profitFactor === Infinity ? '∞' : metric.profitFactor.toFixed(2)}`,
 					`Avg Win: ${formatCurrency(metric.avgWin)}`,
 					`Avg Loss: ${formatCurrency(metric.avgLoss)}`,
 				].filter(Boolean)

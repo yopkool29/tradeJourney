@@ -1,6 +1,6 @@
 <template>
 	<div class="p-8">
-		<DashboardChartsPnlBarChartEcharts :loading="false" />
+		<DashboardChartsMainPnlBarChartEcharts :loading="false" />
 	</div>
 </template>
 
