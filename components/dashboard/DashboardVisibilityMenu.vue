@@ -42,6 +42,9 @@
 					<UButton size="xs" color="primary" @click="applyChanges">
 						{{ $t('common.actions.apply') }}
 					</UButton>
+					<UButton size="xs" variant="ghost" color="neutral" @click="clearAll">
+						{{ $t('common.actions.clear') }}
+					</UButton>
 					<UButton size="xs" variant="ghost" color="neutral" @click="cancelChanges">
 						{{ $t('common.cancel') }}
 					</UButton>
@@ -115,6 +118,19 @@ const applyChanges = () => {
 	emit('update:chartVisibility', { ...localChartVisibility.value })
 	emit('update:sectionVisibility', { ...localSectionVisibility.value })
 	isOpen.value = false
+}
+
+const clearAll = () => {
+	const clearedCharts = Object.keys(localChartVisibility.value).reduce((acc, k) => {
+		acc[k] = false
+		return acc
+	}, {} as Record<string, boolean>)
+	const clearedSections = Object.keys(localSectionVisibility.value).reduce((acc, k) => {
+		acc[k] = false
+		return acc
+	}, {} as Record<string, boolean>)
+	localChartVisibility.value = clearedCharts
+	localSectionVisibility.value = clearedSections
 }
 
 const cancelChanges = () => {

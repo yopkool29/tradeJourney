@@ -46,7 +46,7 @@
                     <div v-if="chartsVisible" class="form-row-lg ml-auto">
                         <!-- Graphique en anneau Winrate -->
                         <div class="w-16 h-16 flex items-center justify-center">
-                            <DashboardChartsWinratePie :value="winrate / 100" />
+                            <DashboardChartsOldWinratePie :value="winrate / 100" />
                         </div>
 
                         <!-- Graphique d'évolution intraday -->

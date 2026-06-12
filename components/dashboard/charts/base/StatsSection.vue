@@ -5,7 +5,7 @@
 				{{ title }}
 			</h3>
 		</template>
-		<div class="space-y-3 text-sm">
+		<div class="space-y-3 text-sm overflow-y-auto max-h-full">
 			<div
 				v-for="(row, i) in visibleRows"
 				:key="i"

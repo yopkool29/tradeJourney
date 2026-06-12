@@ -193,7 +193,8 @@ export default {
             back: 'Back',
             create: 'Create',
             update: 'Update',
-            apply: 'Apply'
+            apply: 'Apply',
+            clear: 'Clear'
         },
         title: {
             success: 'Success',
@@ -678,8 +679,13 @@ export default {
                 unlock_layout: 'Unlock layout',
                 lock_layout: 'Lock layout',
                 add_workspace: 'Add workspace',
-                sync_layout: 'Sync to other breakpoints',
+                sync_dashboard: 'Sync dashboard to other databases',
+                sync_workspace: 'Sync active workspace to other databases',
+                sync_dashboard_success: 'Dashboard synced',
+                sync_workspace_success: 'Workspace synced',
                 confirm_delete_workspace: 'Delete workspace "{name}"?',
+                unsaved_changes_title: 'Unsaved Changes',
+                unsaved_changes_message: 'You have unsaved layout changes. Do you want to save them?',
             },
             all_trades: {
                 title: 'ALL TRADES',
