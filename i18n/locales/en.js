@@ -678,6 +678,7 @@ export default {
                 unlock_layout: 'Unlock layout',
                 lock_layout: 'Lock layout',
                 add_workspace: 'Add workspace',
+                sync_layout: 'Sync to other breakpoints',
                 confirm_delete_workspace: 'Delete workspace "{name}"?',
             },
             all_trades: {

@@ -1,117 +1,45 @@
 <template>
-    <UCard class="h-full">
-        <template #header>
-            <h3 class="section-title-semibold text-red-600 dark:text-red-400">
-                {{ $t('components.dashboard.losing_trades.title') }}
-            </h3>
-        </template>
-        
-        <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.total_loss') }}:</span>
-                <span class="font-semibold" :class="result.totalLoss !== 0 ? 'loss-text' : ''">{{ formatLossValue(result.totalLoss) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.losing_trades') }}:</span>
-                <span class="font-semibold">{{ result.losingTradesCount }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.losing_contracts') }}:</span>
-                <span class="font-semibold">{{ result.losingContractsCount }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.largest_loss') }}:</span>
-                <span class="font-semibold" :class="result.largestLoss !== 0 ? 'loss-text' : ''">{{ formatLossValue(result.largestLoss) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.avg_loss') }}:</span>
-                <span class="font-semibold">{{ formatLossValue(result.avgLoss) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.std_dev') }}:</span>
-                <span class="font-semibold">{{ formatCurrency(result.stdDevLoss) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.commission') }}:</span>
-                <span class="font-semibold">{{ formatCurrency(result.losingTradesCommission) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.avg_loss_time') }}:</span>
-                <span class="font-semibold">{{ formatDurationMinutes(result.avgLossDuration) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.longest_loss_time') }}:</span>
-                <span class="font-semibold">{{ formatDurationMinutes(result.maxLossDuration) }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.max_losing_streak') }}:</span>
-                <span class="font-semibold loss-text">{{ result.maxLosingStreak }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.max_drawdown') }}:</span>
-                <span class="font-semibold" :class="result.maxDrawdown !== 0 ? 'loss-text' : ''">{{ formatLossValue(result.maxDrawdown) }}</span>
-            </div>
-            
-            <div v-if="maxDrawdownDisplayDates.start" class="flex justify-between text-xs">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.max_drawdown_from') }}:</span>
-                <span>{{ formatDateWithFallback(maxDrawdownDisplayDates.start) }}</span>
-            </div>
-            
-            <div v-if="maxDrawdownDisplayDates.end" class="flex justify-between text-xs">
-                <span class="text-secondary">{{ $t('components.dashboard.losing_trades.max_drawdown_to') }}:</span>
-                <span>{{ formatDateWithFallback(maxDrawdownDisplayDates.end) }}</span>
-            </div>
-        </div>
-    </UCard>
+	<DashboardChartsBaseStatsSection
+		:title="$t('components.dashboard.losing_trades.title')"
+		title-class="text-red-600 dark:text-red-400"
+		:rows="rows"
+	/>
 </template>
 
 <script setup lang="ts">
-import { formatDurationMinutes, formatDateWithUserTimezone } from '~/utils/date-utils'
+import type { StatsRow } from '~/components/dashboard/charts/base/StatsSection.vue'
 
-const { formatCurrency } = useUtils()
-
-const { locale } = useI18n()
-const userStore = useUserStore()
-const { dashBoardResult : result} = useDashboard()
+const { formatCurrency, result } = useMetricsBaseSectionPattern()
 
 const maxDrawdownDisplayDates = computed(() => {
-    const from = result.value.maxDrawdownDateFrom ? new Date(result.value.maxDrawdownDateFrom) : null
-    const to = result.value.maxDrawdownDateTo ? new Date(result.value.maxDrawdownDateTo) : null
+	const from = result.value.maxDrawdownDateFrom ? new Date(result.value.maxDrawdownDateFrom) : null
+	const to = result.value.maxDrawdownDateTo ? new Date(result.value.maxDrawdownDateTo) : null
 
-    if (from && to && from > to) {
-        return { start: to, end: from }
-    }
+	if (from && to && from > to) {
+		return { start: to, end: from }
+	}
 
-    return { start: from, end: to }
-})
-
-// Clé réactive pour forcer le re-rendu quand les settings de timezone changent
-const timezoneKey = computed(() => {
-    const settings = userStore.user?.settings_object
-    return `${settings?.timezoneDisplay}-${settings?.timezoneLocal}-${settings?.timezoneUtcOffset}`
+	return { start: from, end: to }
 })
 
 const formatLossValue = (value: number): string => {
-    // Si la valeur est 0, afficher $0.00
-    if (value === 0) return formatCurrency(0)
-    // Sinon, afficher la valeur absolue (sans le signe négatif)
-    return formatCurrency(Math.abs(value))
+	if (value === 0) return formatCurrency(0)
+	return formatCurrency(Math.abs(value))
 }
 
-const formatDateWithFallback = (date: Date | null): string => {
-    void timezoneKey.value
-
-    if (!date) return '—'
-    return formatDateWithUserTimezone(date, userStore.user?.settings_object, true, locale.value as 'fr' | 'en' | 'us')
-}
+const rows = computed<StatsRow[]>(() => [
+	{ label: 'components.dashboard.losing_trades.total_loss', displayValue: formatLossValue(result.value.totalLoss), valueClass: result.value.totalLoss !== 0 ? 'loss-text' : '' },
+	{ label: 'components.dashboard.losing_trades.losing_trades', value: result.value.losingTradesCount, format: 'number' },
+	{ label: 'components.dashboard.losing_trades.losing_contracts', value: result.value.losingContractsCount, format: 'number' },
+	{ label: 'components.dashboard.losing_trades.largest_loss', displayValue: formatLossValue(result.value.largestLoss), valueClass: result.value.largestLoss !== 0 ? 'loss-text' : '' },
+	{ label: 'components.dashboard.losing_trades.avg_loss', displayValue: formatLossValue(result.value.avgLoss) },
+	{ label: 'components.dashboard.losing_trades.std_dev', value: result.value.stdDevLoss, format: 'currency' },
+	{ label: 'components.dashboard.losing_trades.commission', value: result.value.losingTradesCommission, format: 'currency' },
+	{ label: 'components.dashboard.losing_trades.avg_loss_time', value: result.value.avgLossDuration, format: 'duration' },
+	{ label: 'components.dashboard.losing_trades.longest_loss_time', value: result.value.maxLossDuration, format: 'duration' },
+	{ label: 'components.dashboard.losing_trades.max_losing_streak', value: result.value.maxLosingStreak, format: 'number', valueClass: 'loss-text' },
+	{ label: 'components.dashboard.losing_trades.max_drawdown', displayValue: formatLossValue(result.value.maxDrawdown), valueClass: result.value.maxDrawdown !== 0 ? 'loss-text' : '' },
+	{ label: 'components.dashboard.losing_trades.max_drawdown_from', value: maxDrawdownDisplayDates.value.start, format: 'date', small: true, condition: !!maxDrawdownDisplayDates.value.start },
+	{ label: 'components.dashboard.losing_trades.max_drawdown_to', value: maxDrawdownDisplayDates.value.end, format: 'date', small: true, condition: !!maxDrawdownDisplayDates.value.end },
+])
 </script>

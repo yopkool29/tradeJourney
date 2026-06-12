@@ -121,7 +121,7 @@
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.note') }}</span>
                     <UTooltip :text="trade.note" class="mt-1 inline-block">
                         <UBadge color="neutral" class="whitespace-normal">
-                            <span class="break-words">{{ trade.note }}</span>
+                            <span class="wrap-break-word">{{ trade.note }}</span>
                         </UBadge>
                     </UTooltip>
                 </div>

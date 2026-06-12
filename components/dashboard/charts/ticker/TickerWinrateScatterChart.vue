@@ -1,8 +1,14 @@
 <template>
-	<DashboardChartsBaseEchartsCard
+	<DashboardChartsBaseScatterChart
 		:title="$t('components.dashboard.ticker_winrate_chart.title')"
 		:enlarged-title="$t('components.dashboard.ticker_winrate_chart.enlarged_title')"
-		:chart-option="chartOption"
+		:data="scatterData"
+		:x-axis-name="t('components.dashboard.ticker_table.trades')"
+		:y-axis-name="'Winrate (%)'"
+		:y-axis-min="0"
+		:y-axis-max="100"
+		:tooltip-formatter="tooltipFormatter"
+		:symbol-size="symbolSize"
 		:loading="loading"
 	/>
 </template>
@@ -10,21 +16,18 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 
-const props = defineProps<{
-	loading?: boolean
-	layoutKey?: number
-}>()
+const props = defineProps({
+	loading: { type: Boolean },
+	layoutKey: { type: Number },
+})
 
+const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
-const { locale, t } = useI18n()
-const userStore = useUserStore()
+const { profitColor, lossColor } = useTypeColors()
+const isDark = useIsDark()
 const dataStore = useDataStore()
-const appConfig = useAppConfig()
-const { getBaseChartOption } = useEchartsChart()
-const { profitColor, lossColor, isDark } = useTypeColors()
 const { calculateMetricsByTicker } = useAnalytics()
-import { getEchartsAxisColors } from '~/utils/chart-utils'
 
 const tickerMetrics = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
@@ -32,33 +35,33 @@ const tickerMetrics = computed(() => {
 	return calculateMetricsByTicker(trades, displayModeNet.value)
 })
 
-const chartOption = computed(() => {
-	const metrics = tickerMetrics.value
-
-	// Group tickers with same (tradesCount, winrate rounded to 1 decimal)
-	const grouped = new Map<string, { tradesCount: number, winrate: number, pnl: number, symbols: string[] }>()
-	metrics.forEach((m) => {
+// Group tickers with same (tradesCount, winrate rounded to 1 decimal)
+const grouped = computed(() => {
+	const map = new Map<string, { tradesCount: number, winrate: number, pnl: number, symbols: string[] }>()
+	tickerMetrics.value.forEach((m) => {
 		const key = `${m.tradesCount}-${m.winrate.toFixed(1)}`
-		const existing = grouped.get(key)
+		const existing = map.get(key)
 		if (existing) {
 			existing.pnl += m.pnl
 			existing.symbols.push(m.symbol)
 		} else {
-			grouped.set(key, { tradesCount: m.tradesCount, winrate: m.winrate, pnl: m.pnl, symbols: [m.symbol] })
+			map.set(key, { tradesCount: m.tradesCount, winrate: m.winrate, pnl: m.pnl, symbols: [m.symbol] })
 		}
 	})
+	return Array.from(map.values())
+})
 
-	// Slight jitter based on symbol name to avoid exact vertical overlap on same x
-	const getJitter = (str: string): number => {
-		let hash = 0
-		for (let i = 0; i < str.length; i++) {
-			hash = ((hash << 5) - hash) + str.charCodeAt(i)
-			hash |= 0
-		}
-		return ((Math.abs(hash) % 1000) / 1000 - 0.5) * 0.16
+const getJitter = (str: string): number => {
+	let hash = 0
+	for (let i = 0; i < str.length; i++) {
+		hash = ((hash << 5) - hash) + str.charCodeAt(i)
+		hash |= 0
 	}
+	return ((Math.abs(hash) % 1000) / 1000 - 0.5) * 0.16
+}
 
-	const scatterData = Array.from(grouped.values()).map((g) => {
+const scatterData = computed(() => {
+	return grouped.value.map((g) => {
 		const isGroup = g.symbols.length > 1
 		const firstSymbol = g.symbols[0]
 		return {
@@ -69,90 +72,36 @@ const chartOption = computed(() => {
 				isGroup ? g.symbols.join(', ') : firstSymbol,
 			],
 			itemStyle: {
-				color: g.pnl > 0 ? profitColor.value : g.pnl < 0 ? lossColor.value : neutralColor.value,
+				color: g.pnl > 0 ? profitColor.value : g.pnl < 0 ? lossColor.value : '#9ca3af',
 				borderColor: isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)',
 				borderWidth: 1,
 				borderType: 'solid' as const,
 			},
 		}
 	})
-
-	const base = getBaseChartOption(isDark.value)
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-
-	return {
-		...base,
-		grid: { left: 60, right: 16, top: 24, bottom: 40 },
-		tooltip: {
-			...base.tooltip,
-			formatter: (params: any) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const [tradesCount, winrate, pnl, symbolOrGroup] = p.value
-				const isGroup = symbolOrGroup.includes(',')
-				const lines = [
-					`<strong>${symbolOrGroup}</strong>`,
-					`${t('components.dashboard.ticker_table.trades')}: ${Math.round(tradesCount)}`,
-					`${t('components.dashboard.ticker_table.winrate')}: ${winrate.toFixed(1)}%`,
-					`${t('components.dashboard.ticker_table.pnl')}: ${formatCurrency(pnl)}`,
-				]
-				if (isGroup) {
-					lines.push(`<em>(${t('components.dashboard.ticker_table.multiple_tickers')})</em>`)
-				}
-				return lines.join('<br/>')
-			},
-		},
-		xAxis: {
-			type: 'value' as const,
-			name: t('components.dashboard.ticker_table.trades'),
-			nameLocation: 'middle' as const,
-			nameGap: 25,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisLabel: { color: textColor },
-			nameTextStyle: { color: textColor },
-			splitLine: {
-				lineStyle: {
-					type: 'dashed' as const,
-					color: axisColor,
-					opacity: 0.3,
-				},
-			},
-		},
-		yAxis: {
-			type: 'value' as const,
-			name: 'Winrate (%)',
-			nameLocation: 'middle' as const,
-			nameGap: 35,
-			min: 0,
-			max: 100,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisLabel: { color: textColor },
-			nameTextStyle: { color: textColor },
-			splitLine: {
-				lineStyle: {
-					type: 'dashed' as const,
-					color: axisColor,
-					opacity: 0.3,
-				},
-			},
-		},
-		series: [{
-			type: 'scatter',
-			symbolSize: (data: number[]) => {
-				const pnl = Math.abs(data[2])
-				const symbols = data[3] as string
-				const count = symbols.split(',').length
-				const baseSize = Math.min(18, Math.max(10, Math.sqrt(pnl) / 10))
-				return baseSize * (1 + (count - 1) * 0.3)
-			},
-			data: scatterData,
-			emphasis: {
-				scale: 1.3,
-				itemStyle: {
-					borderColor: isDark.value ? '#ffffff' : '#1f2937',
-					borderWidth: 2,
-				},
-			},
-		}],
-	}
 })
+
+const tooltipFormatter = (params: any) => {
+	const p = Array.isArray(params) ? params[0] : params
+	const [tradesCount, winrate, pnl, symbolOrGroup] = p.value
+	const isGroup = symbolOrGroup.includes(',')
+	const lines = [
+		`<strong>${symbolOrGroup}</strong>`,
+		`${t('components.dashboard.ticker_table.trades')}: ${Math.round(tradesCount)}`,
+		`${t('components.dashboard.ticker_table.winrate')}: ${winrate.toFixed(1)}%`,
+		`${t('components.dashboard.ticker_table.pnl')}: ${formatCurrency(pnl)}`,
+	]
+	if (isGroup) {
+		lines.push(`<em>(${t('components.dashboard.ticker_table.multiple_tickers')})</em>`)
+	}
+	return lines.join('<br/>')
+}
+
+const symbolSize = (data: any[]) => {
+	const pnl = Math.abs(data[2])
+	const symbols = String(data[3])
+	const count = symbols.split(',').length
+	const baseSize = Math.min(18, Math.max(10, Math.sqrt(pnl) / 10))
+	return baseSize * (1 + (count - 1) * 0.3)
+}
 </script>

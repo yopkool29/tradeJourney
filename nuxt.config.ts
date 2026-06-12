@@ -16,6 +16,13 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n'
     ],
 
+    imports: {
+        dirs: [
+            '~/composables',
+            '~/composables/**',
+        ],
+    },
+
     fonts: {
         providers: {
             fontshare: false

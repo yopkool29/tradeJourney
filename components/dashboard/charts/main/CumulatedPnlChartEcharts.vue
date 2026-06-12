@@ -1,8 +1,14 @@
 <template>
-	<DashboardChartsBaseEchartsCard
+	<DashboardChartsBaseCumulatedLineChart
 		:title="$t('components.dashboard.cumulated_pnl_chart.title')"
 		:enlarged-title="$t('components.dashboard.cumulated_pnl_chart.enlarged_title')"
-		:chart-option="chartOption"
+		:labels="labels"
+		:values="values"
+		:threshold="threshold"
+		:profit-color="profitColor"
+		:loss-color="lossColor"
+		:tooltip-formatter="tooltipFormatter"
+		:y-axis-formatter="formatCurrency"
 		:canvas-height="canvasHeight"
 		:loading="loading"
 	/>
@@ -10,153 +16,51 @@
 
 <script setup lang="ts">
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
-import { colorToRgba } from '~/utils/color-utils'
 
-const props = defineProps<{
-	startingCapital?: number | null
-	loading?: boolean
-	layoutKey?: number
-}>()
+const props = defineProps({
+	startingCapital: { type: Number, default: null },
+	loading: { type: Boolean },
+	layoutKey: { type: Number },
+})
 
+const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
-const userStore = useUserStore()
+const { canvasHeight } = useEchartsChart()
+const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 const dataStore = useDataStore()
-const { displayModeNet } = useNetGrossDisplay()
-const { canvasHeight, getBaseChartOption } = useEchartsChart()
-const { profitColor, lossColor, isDark } = useTypeColors('cumulatedPnlChart')
+const userStore = useUserStore()
 
-const chartOption = computed(() => {
-	const raw = generateCumulatedPnlChartData(
-		dataStore.lastTrades,
-		userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
-		displayModeNet.value
-	)
+const rawData = computed(() => generateCumulatedPnlChartData(
+	dataStore.lastTrades,
+	userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+	displayModeNet.value
+))
 
-	const cumulatedDataset = raw.datasets[0]
-
-	let labels = raw.labels as string[]
-	let cumulatedValues = (cumulatedDataset?.data || []) as number[]
-
+const labels = computed(() => {
+	const baseLabels = rawData.value.labels as string[]
 	if (props.startingCapital && props.startingCapital > 0) {
-		labels = ['', ...labels]
-		cumulatedValues = [props.startingCapital, ...cumulatedValues.map(v => v + props.startingCapital!)]
+		return ['', ...baseLabels]
 	}
-
-	const threshold = props.startingCapital ?? 0
-	const base = getBaseChartOption(isDark.value)
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-
-	const pColor = profitColor.value
-	const lColor = lossColor.value
-	const pAreaColor = colorToRgba(pColor, 0.3)
-	const lAreaColor = colorToRgba(lColor, 0.3)
-
-	type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
-
-	const profitData: DataPoint[] = []
-	const lossData: DataPoint[] = []
-
-	for (let i = 0; i < cumulatedValues.length; i++) {
-		const v = cumulatedValues[i]
-		const prev = i > 0 ? cumulatedValues[i - 1] : undefined
-
-		if (prev !== undefined) {
-			const crossedUp = prev < threshold && v >= threshold
-			const crossedDown = prev >= threshold && v < threshold
-
-			if (crossedUp || crossedDown) {
-				const tRatio = (threshold - prev) / (v - prev)
-				const xi = (i - 1) + tRatio
-				const crossingPoint = { value: [xi, threshold] as [number, number], itemStyle: { opacity: 0 }, symbolSize: 0 }
-				profitData.push(crossingPoint)
-				lossData.push(crossingPoint)
-			}
-		}
-
-		const point = { value: [i, v] as [number, number] }
-		if (v >= threshold) {
-			profitData.push(point)
-			lossData.push(null)
-		} else {
-			lossData.push(point)
-			profitData.push(null)
-		}
-	}
-
-	const seriesBase = {
-		type: 'line' as const,
-		smooth: false,
-		symbol: 'none',
-		showSymbol: false,
-		symbolSize: 0,
-		connectNulls: false,
-		emphasis: { disabled: true },
-		blur: { lineStyle: { opacity: 1 }, areaStyle: { opacity: 0.3 } },
-	}
-
-	return {
-		...base,
-		animation: false,
-		tooltip: {
-			...base.tooltip,
-			formatter: (params: any) => {
-				const p = params.find((x: any) => x.value !== null)
-				if (!p) return ''
-				const xi = Math.round(p.value[0])
-				const label = labels[xi] || ''
-				const val = p.value[1] as number
-				return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`].filter(Boolean).join('<br/>')
-			},
-		},
-		xAxis: {
-			type: 'value' as const,
-			min: 0,
-			max: labels.length - 1,
-			boundaryGap: false,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: {
-				color: textColor,
-				fontSize: 11,
-				formatter: (v: number) => labels[Math.round(v)] ?? '',
-			},
-			splitLine: { show: false },
-		},
-		yAxis: {
-			...base.yAxis,
-			scale: true,
-			axisLabel: {
-				color: textColor,
-				fontSize: 11,
-				formatter: (v: number) => formatCurrency(v),
-			},
-		},
-		series: [
-			{
-				...seriesBase,
-				name: t('components.dashboard.index.cumulated_label'),
-				data: profitData,
-				lineStyle: { width: 2, color: pColor },
-				itemStyle: { color: pColor },
-				areaStyle: { origin: threshold as any, color: pAreaColor },
-			},
-			{
-				...seriesBase,
-				name: t('components.dashboard.index.cumulated_label'),
-				data: lossData,
-				lineStyle: { width: 2, color: lColor },
-				itemStyle: { color: lColor },
-				areaStyle: { origin: threshold as any, color: lAreaColor },
-				markLine: threshold > 0 ? {
-					silent: true,
-					symbol: 'none',
-					lineStyle: { color: axisColor, type: 'dashed', width: 1 },
-					data: [{ yAxis: threshold }],
-					label: { show: false },
-				} : undefined,
-			},
-		],
-	}
+	return baseLabels
 })
+
+const values = computed(() => {
+	const baseValues = (rawData.value.datasets[0]?.data || []) as number[]
+	if (props.startingCapital && props.startingCapital > 0) {
+		return [props.startingCapital, ...baseValues.map(v => v + props.startingCapital!)]
+	}
+	return baseValues
+})
+
+const threshold = computed(() => props.startingCapital ?? 0)
+
+const tooltipFormatter = (params: any, labelsRef: string[]) => {
+	const p = params.find((x: any) => x.value !== null)
+	if (!p) return ''
+	const xi = Math.round(p.value[0])
+	const label = labelsRef[xi] || ''
+	const val = p.value[1] as number
+	return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`].filter(Boolean).join('<br/>')
+}
 </script>

@@ -1,9 +1,11 @@
+import type { EChartsOption } from 'echarts'
+
 export const echartsFontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
 
-export const getEchartsBaseOption = (fontFamily?: string) => ({
+export const getEchartsBaseOption = (fontFamily?: string): Partial<EChartsOption> => ({
 	animation: true,
 	animationDuration: 300,
-	animationEasing: 'cubicOut',
+	animationEasing: 'cubicOut' as const,
 	textStyle: { fontFamily: fontFamily || echartsFontFamily },
 	grid: { left: 70, right: 16, top: 12, bottom: 28 },
 })
