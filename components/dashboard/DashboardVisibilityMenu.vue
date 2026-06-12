@@ -97,6 +97,8 @@ const sectionConfig = [
 const tickerChartConfig = [
 	{ id: 'tickerPnl', label: 'components.dashboard.charts.ticker_pnl' },
 	{ id: 'tickerWinrate', label: 'components.dashboard.charts.ticker_winrate' },
+	{ id: 'hourlyHeatmap', label: 'components.dashboard.charts.hourly_heatmap' },
+	{ id: 'hourlyWinrate', label: 'components.dashboard.charts.hourly_winrate' },
 ]
 
 const isOpen = ref(false)

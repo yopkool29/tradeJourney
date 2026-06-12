@@ -84,8 +84,8 @@
                         @click="toggleLanguage"
                     >
                         <span v-if="!languageLoading">
-                            <img v-if="locale === 'fr'" src="/img/flags/fr.svg" alt="Drapeau français" class="w-5 h-5 object-cover rounded-sm" />
-                            <img v-else src="/img/flags/en.svg" alt="English flag" class="w-5 h-5 object-cover rounded-sm" />
+                            <img v-if="locale === 'fr'" src="/img/flags/fr.svg" alt="Drapeau français" class="min-w-5 w-5 h-5 object-cover rounded-sm" />
+                            <img v-else src="/img/flags/en.svg" alt="English flag" class="min-w-5 w-5 h-5 object-cover rounded-sm" />
                         </span>
                         <span v-if="!languageLoading" class="font-medium">{{ $t('language.switch') }}</span>
                         <span v-else class="font-medium">{{ $t('language.switch') }}</span>

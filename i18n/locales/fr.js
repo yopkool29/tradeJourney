@@ -588,6 +588,8 @@ export default {
                 visibility: 'Visibilité des graphiques',
                 ticker_pnl: 'P&L par Ticker',
                 ticker_winrate: 'Taux de Gain (wr) vs Trades',
+                hourly_heatmap: 'Heatmap Heure × Jour',
+                hourly_winrate: 'Winrate par Heure',
             },
             appt_chart: {
                 title: 'APPT',
@@ -631,6 +633,15 @@ export default {
                 avg_win: 'Gain Moyen',
                 avg_loss: 'Perte Moyenne',
                 avg_duration: 'Durée Moyenne',
+                empty_state: 'Aucun ticker',
+            },
+            hourly_heatmap: {
+                title: 'Heatmap Heure × Jour',
+                enlarged_title: 'Heatmap Heure × Jour (agrandi)',
+            },
+            hourly_winrate: {
+                title: 'Winrate par Heure',
+                enlarged_title: 'Winrate par Heure (agrandi)',
             },
             index: {
                 accounts: 'Comptes',
