@@ -17,6 +17,7 @@ export const defaultDashboardGridLayout = [
 	{ x: 0, y: 30, w: 12, h: 12, i: 'tickerTable' },
 	{ x: 0, y: 42, w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ x: 6, y: 42, w: 6, h: 6, i: 'hourlyWinrate' },
+	{ x: 0, y: 48, w: 12, h: 6, i: 'dayOfWeekPnl' },
 ]
 
 export const defaultDashboardGridLayoutMd = [
@@ -33,6 +34,7 @@ export const defaultDashboardGridLayoutMd = [
 	{ x: 0, y: 62, w: 6, h: 12, i: 'tickerTable' },
 	{ x: 0, y: 74, w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ x: 0, y: 80, w: 6, h: 6, i: 'hourlyWinrate' },
+	{ x: 0, y: 86, w: 6, h: 6, i: 'dayOfWeekPnl' },
 ]
 
 export const defaultDashboardGridLayoutSm = [
@@ -49,6 +51,7 @@ export const defaultDashboardGridLayoutSm = [
 	{ x: 0, y: 90, w: 3, h: 12, i: 'tickerTable' },
 	{ x: 0, y: 102, w: 3, h: 6, i: 'hourlyHeatmap' },
 	{ x: 0, y: 108, w: 3, h: 6, i: 'hourlyWinrate' },
+	{ x: 0, y: 114, w: 3, h: 6, i: 'dayOfWeekPnl' },
 ]
 
 export const getWeekNumber = (date: Date): number => {

@@ -581,6 +581,7 @@ export default {
                 ticker_winrate: 'Winrate vs Trades',
                 hourly_heatmap: 'Hour × Day Heatmap',
                 hourly_winrate: 'Winrate by Hour',
+                day_of_week_pnl: 'Average PnL by Day of Week',
             },
             appt_chart: {
                 title: 'APPT',
@@ -634,6 +635,16 @@ export default {
             hourly_winrate: {
                 title: 'Winrate by Hour',
                 enlarged_title: 'Winrate by Hour (enlarged)',
+            },
+            day_of_week: {
+                title: 'Average PnL by Day',
+                enlarged_title: 'Average PnL by Day (enlarged)',
+                avg_pnl: 'Avg PnL',
+                monday: 'Mon',
+                tuesday: 'Tue',
+                wednesday: 'Wed',
+                thursday: 'Thu',
+                friday: 'Fri',
             },
             index: {
                 accounts: 'Accounts',

@@ -591,6 +591,7 @@ export default {
                 ticker_winrate: 'Taux de Gain (wr) vs Trades',
                 hourly_heatmap: 'Heatmap Heure × Jour',
                 hourly_winrate: 'Taux de Gain (wr) par heure',
+                day_of_week_pnl: 'PnL moyen par jour de semaine',
             },
             appt_chart: {
                 title: 'APPT',
@@ -644,6 +645,16 @@ export default {
             hourly_winrate: {
                 title: 'Taux de Gain (wr) par heure',
                 enlarged_title: 'Taux de Gain (wr) par heure (agrandi)',
+            },
+            day_of_week: {
+                title: 'PnL moyen par jour',
+                enlarged_title: 'PnL moyen par jour (agrandi)',
+                avg_pnl: 'PnL moyen',
+                monday: 'Lun',
+                tuesday: 'Mar',
+                wednesday: 'Mer',
+                thursday: 'Jeu',
+                friday: 'Ven',
             },
             index: {
                 accounts: 'Comptes',

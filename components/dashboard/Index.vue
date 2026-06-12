@@ -322,6 +322,7 @@ import DashboardChartsTickerTickerPnlBarChart from '~/components/dashboard/chart
 import DashboardChartsTickerTickerWinrateScatterChart from '~/components/dashboard/charts/ticker/TickerWinrateScatterChart.vue'
 import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
 import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
+import DashboardChartsTickerDayOfWeekPnlChart from '~/components/dashboard/charts/ticker/DayOfWeekPnlChart.vue'
 import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/AllTradesSection.vue'
 import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
@@ -461,6 +462,7 @@ const gridComponents = computed(() => {
         tickerWinrate: DashboardChartsTickerTickerWinrateScatterChart,
         hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
         hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
+        dayOfWeekPnl: DashboardChartsTickerDayOfWeekPnlChart,
     }
     const sectionComponentMap: Record<SectionKey, any> = {
         allTrades: DashboardSectionsAllTradesSection,
