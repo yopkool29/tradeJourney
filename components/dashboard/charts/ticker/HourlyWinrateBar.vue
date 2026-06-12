@@ -19,14 +19,24 @@ const props = defineProps<{
 
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
+const { t } = useI18n()
 const dataStore = useDataStore()
 const { getBaseChartOption } = useEchartsChart()
 const { profitColor, lossColor, breakevenColor, isDark } = useTypeColors()
 
+const userStore = useUserStore()
+const settings = computed(() => userStore.user?.settings_object)
+
 const hourlyMetrics = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
 	if (!trades.length) return []
-	return calculateMetricsByHour(trades, displayModeNet.value)
+	return calculateMetricsByHour(
+		trades,
+		displayModeNet.value,
+		settings.value?.timezoneDisplay!,
+		settings.value?.timezoneLocal!,
+		settings.value?.timezoneUtcOffset!
+	)
 })
 
 const chartOption = computed(() => {
@@ -51,9 +61,9 @@ const chartOption = computed(() => {
 				const m = metrics[hour]
 				return [
 					`<strong>${m.hour}:00</strong>`,
-					`Winrate: ${m.winrate.toFixed(1)}%`,
-					`Trades: ${m.tradesCount}`,
-					`P&L: ${formatCurrency(m.pnl)}`,
+					`${t('components.dashboard.index.win_rate')}: ${m.winrate.toFixed(1)}%`,
+					`${t('components.dashboard.ticker_table.trades')}: ${m.tradesCount}`,
+					`${t('components.dashboard.ticker_table.pnl')}: ${formatCurrency(m.pnl)}`,
 				].join('<br/>')
 			},
 		},
