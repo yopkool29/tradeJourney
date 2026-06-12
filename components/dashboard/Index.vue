@@ -185,7 +185,7 @@
                     color="neutral"
                     class="ml-1 mb-px"
                     :title="$t('components.dashboard.index.add_workspace')"
-                    :disabled="workspaces.length >= 3"
+                    :disabled="workspaces.length >= 5"
                     @click="addWorkspace"
                 />
             </div>
@@ -476,6 +476,36 @@ const gridLayout = computed(() => {
         if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
         return false
     })
+
+    // Essai: si le workspace n'a pas de layout sauvegardé, empiler en haut à gauche
+    const ws = activeWorkspace.value
+    const breakpoint = currentBreakpoint.value
+    const hasSavedLayout = breakpoint === 'md'
+        ? (ws?.dashboardGridLayoutMd?.length ?? 0) > 0
+        : breakpoint === 'sm'
+            ? (ws?.dashboardGridLayoutSm?.length ?? 0) > 0
+            : (ws?.dashboardGridLayout?.length ?? 0) > 0
+
+    if (!hasSavedLayout) {
+        const cols = gridColNum.value
+        const compacted: typeof visible = []
+        let currentX = 0
+        let currentY = 0
+        let rowHeight = 0
+
+        for (const item of visible) {
+            if (currentX + item.w > cols) {
+                currentX = 0
+                currentY += rowHeight
+                rowHeight = 0
+            }
+            compacted.push({ ...item, x: currentX, y: currentY })
+            currentX += item.w
+            rowHeight = Math.max(rowHeight, item.h)
+        }
+        return compacted
+    }
+
     return visible
 })
 
@@ -657,7 +687,7 @@ const newWorkspaceSectionVisibility: Record<SectionKey, boolean> = { allTrades: 
 const newWorkspaceGridLayout: any[] = []
 
 const addWorkspace = () => {
-    if (workspaces.value.length >= 3) return
+    if (workspaces.value.length >= 5) return
     const id = `workspace-${Date.now()}`
     const name = `Workspace ${workspaces.value.length + 1}`
     const newWorkspace: WorkspaceConfig = {
