@@ -689,6 +689,7 @@ export default {
                 unlock_layout: 'Déverrouiller la grille',
                 lock_layout: 'Verrouiller la grille',
                 add_workspace: 'Ajouter un espace de travail',
+                sync_layout: 'Synchroniser vers les autres breakpoints',
                 confirm_delete_workspace: 'Supprimer l\'espace de travail "{name}" ?',
             },
             all_trades: {

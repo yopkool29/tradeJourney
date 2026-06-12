@@ -179,6 +179,15 @@
                     </CommonModalDelete>
                 </button>
                 <UButton
+                    icon="i-lucide-copy"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    class="ml-1 mb-px"
+                    :title="$t('components.dashboard.index.sync_layout')"
+                    @click="syncLayoutToOtherBreakpoints"
+                />
+                <UButton
                     icon="i-lucide-plus"
                     size="xs"
                     variant="ghost"
@@ -282,13 +291,13 @@ import DashboardChartsMainApptChartEcharts from '~/components/dashboard/charts/m
 import DashboardChartsMainWinrateChartEcharts from '~/components/dashboard/charts/main/WinrateChartEcharts.vue'
 import DashboardChartsTickerTickerPnlBarChart from '~/components/dashboard/charts/ticker/TickerPnlBarChart.vue'
 import DashboardChartsTickerTickerWinrateScatterChart from '~/components/dashboard/charts/ticker/TickerWinrateScatterChart.vue'
+import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
+import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
 import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/AllTradesSection.vue'
 import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
 import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
 import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
-import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
-import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
 
 import {
     periodOptions,
@@ -314,8 +323,11 @@ const chartsCanRender = ref(false)
 const gridReady = ref(false)
 const { t, locale } = useI18n()
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
+const { getDefaultChartVisibility } = useMetricsChartRegistry()
+const { getDefaultSectionVisibility } = useMetricsSectionRegistry()
+
+const defaultChartVisibility = getDefaultChartVisibility()
+const defaultSectionVisibility = getDefaultSectionVisibility()
 
 // --- Workspace helpers ---
 
@@ -405,7 +417,7 @@ const appConfig = useAppConfig()
 const useChartjs = computed(() => appConfig.charts.chartjs === true)
 
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, Component | string> = {
+    const chartComponentMap: Record<ChartKey, any> = {
         pnlBar: DashboardChartsMainPnlBarChartEcharts,
         cumulatedPnl: DashboardChartsMainCumulatedPnlChartEcharts,
         appt: DashboardChartsMainApptChartEcharts,
@@ -415,7 +427,7 @@ const gridComponents = computed(() => {
         hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
         hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
     }
-    const sectionComponentMap: Record<SectionKey, Component | string> = {
+    const sectionComponentMap: Record<SectionKey, any> = {
         allTrades: DashboardSectionsAllTradesSection,
         profitTrades: DashboardSectionsProfitTradesSection,
         losingTrades: DashboardSectionsLosingTradesSection,
@@ -529,6 +541,58 @@ const saveGridLayout = () => {
         default:
             updateActiveWorkspace({ dashboardGridLayout: saved })
     }
+}
+
+const syncLayoutToOtherBreakpoints = () => {
+    const ws = activeWorkspace.value
+    if (!ws) return
+
+    const bp = currentBreakpoint.value
+
+    // Source layout and visibilities
+    const sourceLayout = bp === 'md' ? ws.dashboardGridLayoutMd
+        : bp === 'sm' ? ws.dashboardGridLayoutSm
+        : ws.dashboardGridLayout
+    const sourceChartVis = bp === 'md' ? ws.dashboardChartVisibilityMd
+        : bp === 'sm' ? ws.dashboardChartVisibilitySm
+        : ws.dashboardChartVisibilityLg
+    const sourceSectionVis = bp === 'md' ? ws.dashboardSectionVisibilityMd
+        : bp === 'sm' ? ws.dashboardSectionVisibilitySm
+        : ws.dashboardSectionVisibilityLg
+
+    const mapLayout = (items: DashboardGridItem[], targetCols: number): DashboardGridItem[] => {
+        const sourceCols = bp === 'lg' ? 12 : bp === 'md' ? 6 : 3
+        const ratio = targetCols / sourceCols
+        return items.map(item => {
+            let x = Math.round(item.x * ratio)
+            let w = Math.round(item.w * ratio)
+            if (targetCols === 3) {
+                // sm: everything in single column
+                x = 0
+                w = Math.min(w, 3)
+            } else {
+                x = Math.min(x, targetCols - 1)
+                w = Math.min(w, targetCols)
+            }
+            return { ...item, x, w }
+        })
+    }
+
+    const toLg = mapLayout(sourceLayout, 12)
+    const toMd = mapLayout(sourceLayout, 6)
+    const toSm = mapLayout(sourceLayout, 3)
+
+    updateActiveWorkspace({
+        dashboardGridLayout: toLg,
+        dashboardGridLayoutMd: toMd,
+        dashboardGridLayoutSm: toSm,
+        dashboardChartVisibilityLg: { ...sourceChartVis },
+        dashboardChartVisibilityMd: { ...sourceChartVis },
+        dashboardChartVisibilitySm: { ...sourceChartVis },
+        dashboardSectionVisibilityLg: { ...sourceSectionVis },
+        dashboardSectionVisibilityMd: { ...sourceSectionVis },
+        dashboardSectionVisibilitySm: { ...sourceSectionVis },
+    })
 }
 
 const onResetLayout = () => {
@@ -677,12 +741,16 @@ watch(activeWorkspace, (ws) => {
     workspaceRenameValue.value = ws?.name || ''
 })
 
-const emptyChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
-const emptySectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
+const emptyChartVisibility: Record<ChartKey, boolean> = Object.fromEntries(
+    Object.keys(defaultChartVisibility).map(k => [k, false])
+) as Record<ChartKey, boolean>
+const emptySectionVisibility: Record<SectionKey, boolean> = Object.fromEntries(
+    Object.keys(defaultSectionVisibility).map(k => [k, false])
+) as Record<SectionKey, boolean>
 
 // Default config for new workspaces - empty
-const newWorkspaceChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
-const newWorkspaceSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
+const newWorkspaceChartVisibility = emptyChartVisibility
+const newWorkspaceSectionVisibility = emptySectionVisibility
 
 const newWorkspaceGridLayout: any[] = []
 

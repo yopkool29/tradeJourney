@@ -68,7 +68,7 @@
 const appConfig = useAppConfig()
 const pieChartComponent = computed(() =>
     appConfig.charts.chartjs === true
-        ? resolveComponent('DashboardChartsWinLossPieChart')
+        ? resolveComponent('DashboardChartsOldWinLossPieChart')
         : resolveComponent('DashboardChartsMainWinLossPieChartEcharts')
 )
 

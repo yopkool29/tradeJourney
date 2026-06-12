@@ -1,6 +1,6 @@
 <template>
     <div class="relative">
-        <grid-layout v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
+        <grid-layout :key="gridKey" v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
             :is-resizable="isResizable" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
             :responsive="false" :use-style-cursor="false"
             :class="{ 'layout-ready': layoutReady }"
@@ -81,6 +81,16 @@ const onLayoutReady = () => {
         }, 50)
     })
 }
+
+const gridKey = ref(0)
+
+onActivated(() => {
+    gridKey.value++
+    layoutReady.value = false
+    nextTick(() => {
+        layoutReady.value = true
+    })
+})
 
 const colNum = computed(() => props.colNum || 12)
 

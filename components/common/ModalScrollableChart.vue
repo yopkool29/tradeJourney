@@ -10,16 +10,26 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
+import type { PropType } from 'vue'
 
 const modelValue = defineModel<boolean>('modelValue', { required: true })
 
-const props = withDefaults(defineProps<{
-	title: string
-	chartOption: EChartsOption
-	contentHeight?: number
-	chartHeight?: number
-}>(), {
-	contentHeight: 600,
-	chartHeight: 600,
+const props = defineProps({
+	title: {
+		type: String,
+		required: true,
+	},
+	chartOption: {
+		type: Object as PropType<EChartsOption>,
+		required: true,
+	},
+	contentHeight: {
+		type: Number,
+		default: 600,
+	},
+	chartHeight: {
+		type: Number,
+		default: 600,
+	},
 })
 </script>
