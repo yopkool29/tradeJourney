@@ -23,10 +23,18 @@ const dataStore = useDataStore()
 const { getBaseChartOption } = useEchartsChart()
 const { profitColor, lossColor, isDark } = useTypeColors()
 
+const userStore = useUserStore()
+const settings = computed(() => userStore.user?.settings_object)
+
 const heatmapData = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
 	if (!trades.length) return []
-	return calculateHourlyHeatmapData(trades)
+	return calculateHourlyHeatmapData(
+		trades,
+		settings.value?.timezoneDisplay!,
+		settings.value?.timezoneLocal!,
+		settings.value?.timezoneUtcOffset!
+	)
 })
 
 const { t } = useI18n()

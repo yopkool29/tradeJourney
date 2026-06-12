@@ -3,7 +3,9 @@
         <grid-layout v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
             :is-resizable="isResizable" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
             :responsive="false" :use-style-cursor="false"
-            :class="{ 'layout-ready': layoutReady }" @layout-ready="onLayoutReady">
+            :class="{ 'layout-ready': layoutReady }"
+            class="select-none" 
+            @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
                 :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
                 <div class="h-full w-full relative" @mousedown="onMouseDown" @click.capture="onContentClick">
@@ -128,6 +130,7 @@ const onContentClick = (e: MouseEvent) => {
         isRealClick.value = true
     }
 }
+
 </script>
 
 <style scoped>

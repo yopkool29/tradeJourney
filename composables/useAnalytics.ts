@@ -1,4 +1,5 @@
 import type { TradeExtendedType } from '~/schema/trade'
+import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
 
 export interface TickerMetrics {
 	symbol: string
@@ -124,11 +125,17 @@ export interface HourlyHeatmapCell {
 	winrate: number
 }
 
-export const calculateMetricsByHour = (trades: TradeExtendedType[], useNet: boolean = true): HourlyMetrics[] => {
+export const calculateMetricsByHour = (
+	trades: TradeExtendedType[],
+	useNet: boolean = true,
+	timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC' = 'CURRENT',
+	timezoneLocal: string = 'Europe/Paris',
+	timezoneUtcOffset: number = 0
+): HourlyMetrics[] => {
 	const tradesByHour = new Map<number, TradeExtendedType[]>()
 
 	for (const trade of trades) {
-		const hour = new Date(trade.openDate).getUTCHours()
+		const { hour } = getHourAndWeekdayInUserTimezone(trade.openDate, timezoneMode, timezoneLocal, timezoneUtcOffset)
 		if (!tradesByHour.has(hour)) {
 			tradesByHour.set(hour, [])
 		}
@@ -181,13 +188,16 @@ export const calculateMetricsByHour = (trades: TradeExtendedType[], useNet: bool
 	return metrics
 }
 
-export const calculateHourlyHeatmapData = (trades: TradeExtendedType[]): HourlyHeatmapCell[] => {
+export const calculateHourlyHeatmapData = (
+	trades: TradeExtendedType[],
+	timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC' = 'CURRENT',
+	timezoneLocal: string = 'Europe/Paris',
+	timezoneUtcOffset: number = 0
+): HourlyHeatmapCell[] => {
 	const tradesByHourDay = new Map<string, TradeExtendedType[]>()
 
 	for (const trade of trades) {
-		const date = new Date(trade.openDate)
-		const hour = date.getUTCHours()
-		const weekday = date.getUTCDay()
+		const { hour, weekday } = getHourAndWeekdayInUserTimezone(trade.openDate, timezoneMode, timezoneLocal, timezoneUtcOffset)
 		const key = `${hour}-${weekday}`
 		if (!tradesByHourDay.has(key)) {
 			tradesByHourDay.set(key, [])

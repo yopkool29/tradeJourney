@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const userStore = useUserStore()
 const dataStore = useDataStore()
 const appConfig = useAppConfig()
@@ -91,19 +91,19 @@ const chartOption = computed(() => {
 				const isGroup = symbolOrGroup.includes(',')
 				const lines = [
 					`<strong>${symbolOrGroup}</strong>`,
-					`Trades: ${Math.round(tradesCount)}`,
-					`Winrate: ${winrate.toFixed(1)}%`,
-					`P&L: ${formatCurrency(pnl)}`,
+					`${t('components.dashboard.ticker_table.trades')}: ${Math.round(tradesCount)}`,
+					`${t('components.dashboard.ticker_table.winrate')}: ${winrate.toFixed(1)}%`,
+					`${t('components.dashboard.ticker_table.pnl')}: ${formatCurrency(pnl)}`,
 				]
 				if (isGroup) {
-					lines.push('<em>(multiple tickers grouped)</em>')
+					lines.push(`<em>(${t('components.dashboard.ticker_table.multiple_tickers')})</em>`)
 				}
 				return lines.join('<br/>')
 			},
 		},
 		xAxis: {
 			type: 'value' as const,
-			name: 'Nb Trades',
+			name: t('components.dashboard.ticker_table.trades'),
 			nameLocation: 'middle' as const,
 			nameGap: 25,
 			axisLine: { lineStyle: { color: axisColor } },

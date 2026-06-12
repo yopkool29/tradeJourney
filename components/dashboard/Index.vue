@@ -266,7 +266,7 @@
                         :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
                         :is-draggable="isGridDraggable"
                         :is-resizable="isGridDraggable"
-                        :resizable-items="['tickerPnl', 'tickerTable']"
+                        :resizable-items="['tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']"
                         :col-num="gridColNum"
                     />
                 </KeepAlive>
@@ -647,18 +647,14 @@ watch(activeWorkspace, (ws) => {
     workspaceRenameValue.value = ws?.name || ''
 })
 
-const emptyChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false }
+const emptyChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
 const emptySectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
 
-// Default config for new workspaces - shows ticker charts
-const newWorkspaceChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: true, tickerWinrate: true }
-const newWorkspaceSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: true }
+// Default config for new workspaces - empty
+const newWorkspaceChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
+const newWorkspaceSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
 
-const newWorkspaceGridLayout = [
-    { x: 0, y: 0, w: 6, h: 8, i: 'tickerPnl' },
-    { x: 6, y: 0, w: 6, h: 6, i: 'tickerWinrate' },
-    { x: 0, y: 8, w: 12, h: 12, i: 'tickerTable' },
-]
+const newWorkspaceGridLayout: any[] = []
 
 const addWorkspace = () => {
     if (workspaces.value.length >= 3) return

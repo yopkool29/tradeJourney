@@ -1,23 +1,28 @@
 <template>
-	<div class="h-full overflow-y-auto bg-surface rounded-lg">
-		<div class="flex items-center justify-between px-3 py-2 border-b border-default">
-			<span class="font-semibold">{{ $t('components.dashboard.ticker_pnl_chart.title') }}</span>
-			<button
-				class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
-				:title="$t('components.dashboard.ticker_pnl_chart.enlarged_title')"
-				@click="isModalOpen = true"
-			>
-				<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
-			</button>
-		</div>
-		<div class="p-2">
+	<div class="h-full overflow-y-auto">
+		<UCard class="h-full flex flex-col" :ui="{ header: 'p-0 flex-shrink-0', body: 'flex-1 flex flex-col min-h-0 p-2' }">
+			<template #header>
+				<div class="flex items-center gap-2 w-full px-2 py-1">
+					<span class="font-semibold">{{ $t('components.dashboard.ticker_pnl_chart.title') }}</span>
+					<button
+						class="ml-auto px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+						:title="$t('components.dashboard.ticker_pnl_chart.enlarged_title')"
+						@click="isModalOpen = true"
+					>
+						<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
+					</button>
+					<CommonModalChart
+						v-model="isModalOpen"
+						:title="$t('components.dashboard.ticker_pnl_chart.enlarged_title')"
+					>
+						<template #content>
+							<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
+						</template>
+					</CommonModalChart>
+				</div>
+			</template>
 			<VChart :option="chartOption" autoresize style="width: 100%; height: 600px;" />
-		</div>
-		<CommonModalScrollableChart
-			v-model="isModalOpen"
-			:title="$t('components.dashboard.ticker_pnl_chart.enlarged_title')"
-			:chart-option="chartOption"
-		/>
+		</UCard>
 	</div>
 </template>
 
@@ -34,7 +39,7 @@ const isModalOpen = ref(false)
 
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const userStore = useUserStore()
 const dataStore = useDataStore()
 const appConfig = useAppConfig()
@@ -69,12 +74,12 @@ const chartOption = computed(() => {
 				const metric = metrics[p.dataIndex]
 				const lines = [
 					`<strong>${metric.symbol}</strong>`,
-					`P&L: ${formatCurrency(metric.pnl)}`,
-					`Trades: ${metric.tradesCount}`,
-					`Winrate: ${metric.winrate.toFixed(1)}%`,
-					`Profit Factor: ${metric.profitFactor === Infinity ? '∞' : metric.profitFactor.toFixed(2)}`,
-					`Avg Win: ${formatCurrency(metric.avgWin)}`,
-					`Avg Loss: ${formatCurrency(metric.avgLoss)}`,
+					`${t('components.dashboard.ticker_table.pnl')}: ${formatCurrency(metric.pnl)}`,
+					`${t('components.dashboard.ticker_table.trades')}: ${metric.tradesCount}`,
+					`${t('components.dashboard.ticker_table.winrate')}: ${metric.winrate.toFixed(1)}%`,
+					`${t('components.dashboard.ticker_table.profit_factor')}: ${metric.profitFactor === Infinity ? '∞' : metric.profitFactor.toFixed(2)}`,
+					`${t('components.dashboard.ticker_table.avg_win')}: ${formatCurrency(metric.avgWin)}`,
+					`${t('components.dashboard.ticker_table.avg_loss')}: ${formatCurrency(metric.avgLoss)}`,
 				].filter(Boolean)
 				return lines.join('<br/>')
 			},

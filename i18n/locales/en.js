@@ -624,6 +624,7 @@ export default {
                 avg_loss: 'Avg Loss',
                 avg_duration: 'Avg Duration',
                 empty_state: 'No tickers',
+                multiple_tickers: 'multiple tickers grouped',
             },
             hourly_heatmap: {
                 title: 'Hour × Day Heatmap',

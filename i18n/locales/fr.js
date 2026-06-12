@@ -589,7 +589,7 @@ export default {
                 ticker_pnl: 'P&L par Ticker',
                 ticker_winrate: 'Taux de Gain (wr) vs Trades',
                 hourly_heatmap: 'Heatmap Heure × Jour',
-                hourly_winrate: 'Winrate par Heure',
+                hourly_winrate: 'Taux de Gain (wr) par heure',
             },
             appt_chart: {
                 title: 'APPT',
@@ -628,20 +628,21 @@ export default {
                 symbol: 'Symbole',
                 pnl: 'P&L',
                 trades: 'Trades',
-                winrate: 'Taux de Gain',
+                winrate: 'Taux de Gain (wr)',
                 profit_factor: 'Profit Factor',
                 avg_win: 'Gain Moyen',
                 avg_loss: 'Perte Moyenne',
                 avg_duration: 'Durée Moyenne',
                 empty_state: 'Aucun ticker',
+                multiple_tickers: 'plusieurs tickers groupés',
             },
             hourly_heatmap: {
                 title: 'Heatmap Heure × Jour',
                 enlarged_title: 'Heatmap Heure × Jour (agrandi)',
             },
             hourly_winrate: {
-                title: 'Winrate par Heure',
-                enlarged_title: 'Winrate par Heure (agrandi)',
+                title: 'Taux de Gain (wr) par heure',
+                enlarged_title: 'Taux de Gain (wr) par heure (agrandi)',
             },
             index: {
                 accounts: 'Comptes',

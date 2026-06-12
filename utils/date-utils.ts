@@ -562,6 +562,44 @@ export const formatHourString = (
 }
 
 /**
+ * Extract numeric hour and weekday using the same timezone logic as formatHourString
+ * Uses Luxon for reliable timezone conversion
+ * @param dateString - Date to parse (string or Date object)
+ * @param timezoneMode - Timezone display mode
+ * @param timezoneLocal - IANA timezone for LOCAL mode
+ * @param timezoneUtcOffset - UTC offset for UTC mode
+ * @returns Object with hour (0-23) and weekday (0=Sunday..6=Saturday)
+ */
+export const getHourAndWeekdayInUserTimezone = (
+  dateString: string | Date,
+  timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC' = 'CURRENT',
+  timezoneLocal: string = 'Europe/Paris',
+  timezoneUtcOffset: number = 0
+): { hour: number; weekday: number } => {
+  const dt = DateTime.fromJSDate(new Date(dateString), { zone: 'utc' })
+
+  let targetZone: string
+  if (timezoneMode === 'CURRENT') {
+    targetZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  } else if (timezoneMode === 'LOCAL') {
+    targetZone = timezoneLocal
+  } else {
+    const sign = timezoneUtcOffset >= 0 ? '+' : '-'
+    const hours = String(Math.abs(Math.floor(timezoneUtcOffset))).padStart(2, '0')
+    const minutes = String(Math.abs((timezoneUtcOffset % 1) * 60)).padStart(2, '0')
+    targetZone = `UTC${sign}${hours}:${minutes}`
+  }
+
+  const localDt = dt.setZone(targetZone)
+  // Luxon weekday: 1=Monday..7=Sunday
+  // Convert to JS getDay(): 0=Sunday..6=Saturday
+  return {
+    hour: localDt.hour,
+    weekday: localDt.weekday % 7
+  }
+}
+
+/**
  * ============================================
  * FORMATAGE SPÉCIALISÉ (Durée, Fichiers)
  * ============================================
