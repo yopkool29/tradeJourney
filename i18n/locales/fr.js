@@ -199,7 +199,8 @@ export default {
             back: 'Retour',
             create: 'Créer',
             update: 'Mettre à jour',
-            apply: 'Appliquer'
+            apply: 'Appliquer',
+            clear: 'Effacer'
         },
         title: {
             success: 'Success',
@@ -689,8 +690,13 @@ export default {
                 unlock_layout: 'Déverrouiller la grille',
                 lock_layout: 'Verrouiller la grille',
                 add_workspace: 'Ajouter un espace de travail',
-                sync_layout: 'Synchroniser vers les autres breakpoints',
+                sync_dashboard: 'Synchroniser le dashboard vers les autres bases',
+                sync_workspace: 'Synchroniser le workspace actif vers les autres bases',
+                sync_dashboard_success: 'Dashboard synchronisé',
+                sync_workspace_success: 'Workspace synchronisé',
                 confirm_delete_workspace: 'Supprimer l\'espace de travail "{name}" ?',
+                unsaved_changes_title: 'Modifications non enregistrées',
+                unsaved_changes_message: 'Vous avez des modifications de grille non enregistrées. Voulez-vous les sauvegarder ?',
             },
             all_trades: {
                 title: 'TOUS LES TRADES',

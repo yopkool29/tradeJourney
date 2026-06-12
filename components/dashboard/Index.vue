@@ -141,7 +141,7 @@
         </div>
 
         <!-- Dashboard workspaces : onglets + contenu -->
-        <div class="mb-8">
+        <div class="mb-8 select-none">
             <!-- Barre d'onglets -->
             <div class="flex items-center gap-1 mb-3 border-b border-default">
                 <button
@@ -179,13 +179,22 @@
                     </CommonModalDelete>
                 </button>
                 <UButton
+                    icon="i-lucide-monitor"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    class="ml-1 mb-px"
+                    :title="$t('components.dashboard.index.sync_dashboard')"
+                    @click="syncDashboardToOtherDatabases"
+                />
+                <UButton
                     icon="i-lucide-copy"
                     size="xs"
                     variant="ghost"
                     color="neutral"
                     class="ml-1 mb-px"
-                    :title="$t('components.dashboard.index.sync_layout')"
-                    @click="syncLayoutToOtherBreakpoints"
+                    :title="$t('components.dashboard.index.sync_workspace')"
+                    @click="syncActiveWorkspaceToOtherDatabases"
                 />
                 <UButton
                     icon="i-lucide-plus"
@@ -275,13 +284,33 @@
                         :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
                         :is-draggable="isGridDraggable"
                         :is-resizable="isGridDraggable"
-                        :resizable-items="['tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']"
+                        :resizable-items="['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']"
                         :col-num="gridColNum"
                     />
                 </KeepAlive>
             </div>
         </div>
     </div>
+
+    <CommonModalDefault
+        v-model:open="showUnsavedChangesModal"
+        :title="t('components.dashboard.index.unsaved_changes_title')"
+    >
+        <template #content>
+            <p>{{ t('components.dashboard.index.unsaved_changes_message') }}</p>
+        </template>
+        <template #footer>
+            <UButton size="sm" color="primary" @click="onSaveAndSwitch">
+                {{ t('common.actions.save') }}
+            </UButton>
+            <UButton size="sm" color="neutral" variant="ghost" @click="onDiscardAndSwitch">
+                {{ t('common.no') }}
+            </UButton>
+            <UButton size="sm" color="neutral" variant="ghost" @click="onCancelSwitch">
+                {{ t('common.cancel') }}
+            </UButton>
+        </template>
+    </CommonModalDefault>
 </template>
 
 <script setup lang="ts">
@@ -322,6 +351,7 @@ const chartsReady = ref(false)
 const chartsCanRender = ref(false)
 const gridReady = ref(false)
 const { t, locale } = useI18n()
+const { success: toastSuccess } = useAppToast()
 
 const { getDefaultChartVisibility } = useMetricsChartRegistry()
 const { getDefaultSectionVisibility } = useMetricsSectionRegistry()
@@ -342,6 +372,11 @@ const activeWorkspaceId = computed({
 
 const switchWorkspace = async (id: WorkspaceId) => {
     if (id === activeWorkspaceId.value) return
+    if (isGridDraggable.value) {
+        pendingWorkspaceSwitch.value = id
+        showUnsavedChangesModal.value = true
+        return
+    }
     switchingToWorkspaceId.value = id
     // Laisser le spinner s'afficher avant de switcher
     await nextTick()
@@ -439,12 +474,12 @@ const gridComponents = computed(() => {
 
 const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)
 
-// Breakpoint detection: lg >= 768, md >= 530, sm < 530
+// Breakpoint detection: lg >= 1024, md >= 530, sm < 530
 const currentBreakpoint = ref<'lg' | 'md' | 'sm'>('lg')
 
 const updateBreakpoint = () => {
     const w = window.innerWidth
-    if (w >= 768) currentBreakpoint.value = 'lg'
+    if (w >= 1024) currentBreakpoint.value = 'lg'
     else if (w >= 530) currentBreakpoint.value = 'md'
     else currentBreakpoint.value = 'sm'
 }
@@ -452,6 +487,10 @@ const updateBreakpoint = () => {
 onMounted(() => {
     updateBreakpoint()
     window.addEventListener('resize', updateBreakpoint)
+})
+
+watch(currentBreakpoint, (bp) => {
+    console.log('[Index] breakpoint changed:', bp)
 })
 
 onBeforeUnmount(() => {
@@ -543,61 +582,92 @@ const saveGridLayout = () => {
     }
 }
 
-const syncLayoutToOtherBreakpoints = () => {
+const syncDashboardToOtherDatabases = () => {
+    const { currentDatabase } = useDatabase()
+    const currentDbName = currentDatabase.value?.name || 'default'
+
+    const sourceFilters = userStore.dashBoardFiltersPerDb[currentDbName]
+    if (!sourceFilters) return
+
+    const newPerDb = { ...userStore.dashBoardFiltersPerDb }
+
+    for (const dbName of Object.keys(newPerDb)) {
+        if (dbName === currentDbName) continue
+        newPerDb[dbName] = { ...sourceFilters }
+    }
+
+    userStore.dashBoardFiltersPerDb = newPerDb
+    toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
+}
+
+const syncActiveWorkspaceToOtherDatabases = () => {
     const ws = activeWorkspace.value
     if (!ws) return
 
-    const bp = currentBreakpoint.value
+    const { currentDatabase } = useDatabase()
+    const currentDbName = currentDatabase.value?.name || 'default'
 
-    // Source layout and visibilities
-    const sourceLayout = bp === 'md' ? ws.dashboardGridLayoutMd
-        : bp === 'sm' ? ws.dashboardGridLayoutSm
-        : ws.dashboardGridLayout
-    const sourceChartVis = bp === 'md' ? ws.dashboardChartVisibilityMd
-        : bp === 'sm' ? ws.dashboardChartVisibilitySm
-        : ws.dashboardChartVisibilityLg
-    const sourceSectionVis = bp === 'md' ? ws.dashboardSectionVisibilityMd
-        : bp === 'sm' ? ws.dashboardSectionVisibilitySm
-        : ws.dashboardSectionVisibilityLg
+    const newPerDb = { ...userStore.dashBoardFiltersPerDb }
 
-    const mapLayout = (items: DashboardGridItem[], targetCols: number): DashboardGridItem[] => {
-        const sourceCols = bp === 'lg' ? 12 : bp === 'md' ? 6 : 3
-        const ratio = targetCols / sourceCols
-        return items.map(item => {
-            let x = Math.round(item.x * ratio)
-            let w = Math.round(item.w * ratio)
-            if (targetCols === 3) {
-                // sm: everything in single column
-                x = 0
-                w = Math.min(w, 3)
-            } else {
-                x = Math.min(x, targetCols - 1)
-                w = Math.min(w, targetCols)
-            }
-            return { ...item, x, w }
-        })
+    for (const [dbName, filters] of Object.entries(newPerDb)) {
+        if (dbName === currentDbName || !filters?.workspaces) continue
+
+        const idx = filters.workspaces.findIndex(w => w.id === ws.id)
+        const newWorkspaces = [...filters.workspaces]
+        if (idx >= 0) {
+            newWorkspaces[idx] = { ...ws }
+        } else {
+            newWorkspaces.push({ ...ws })
+        }
+
+        newPerDb[dbName] = { ...filters, workspaces: newWorkspaces }
     }
 
-    const toLg = mapLayout(sourceLayout, 12)
-    const toMd = mapLayout(sourceLayout, 6)
-    const toSm = mapLayout(sourceLayout, 3)
+    userStore.dashBoardFiltersPerDb = newPerDb
+    toastSuccess(t('components.dashboard.index.sync_workspace_success'))
+}
 
-    updateActiveWorkspace({
-        dashboardGridLayout: toLg,
-        dashboardGridLayoutMd: toMd,
-        dashboardGridLayoutSm: toSm,
-        dashboardChartVisibilityLg: { ...sourceChartVis },
-        dashboardChartVisibilityMd: { ...sourceChartVis },
-        dashboardChartVisibilitySm: { ...sourceChartVis },
-        dashboardSectionVisibilityLg: { ...sourceSectionVis },
-        dashboardSectionVisibilityMd: { ...sourceSectionVis },
-        dashboardSectionVisibilitySm: { ...sourceSectionVis },
-    })
+const onSaveAndSwitch = () => {
+    saveGridLayout()
+    isGridDraggable.value = false
+    showUnsavedChangesModal.value = false
+    const id = pendingWorkspaceSwitch.value
+    pendingWorkspaceSwitch.value = null
+    if (id) switchWorkspace(id)
+}
+
+const onDiscardAndSwitch = () => {
+    isGridDraggable.value = false
+    showUnsavedChangesModal.value = false
+    const id = pendingWorkspaceSwitch.value
+    pendingWorkspaceSwitch.value = null
+    if (id) switchWorkspace(id)
+}
+
+const onCancelSwitch = () => {
+    showUnsavedChangesModal.value = false
+    pendingWorkspaceSwitch.value = null
 }
 
 const onResetLayout = () => {
-    // Sur un workspace personnalisé, on vide la grille plutôt que de remettre le layout par défaut
-    if (activeWorkspaceId.value !== 'summary') {
+    if (activeWorkspaceId.value === 'summary') {
+        // Sur summary: restaure la visibilité par défaut du breakpoint actuel uniquement
+        const patch: Partial<WorkspaceConfig> = {}
+        switch (currentBreakpoint.value) {
+            case 'md':
+                patch.dashboardChartVisibilityMd = { ...defaultChartVisibility }
+                patch.dashboardSectionVisibilityMd = { ...defaultSectionVisibility }
+                break
+            case 'sm':
+                patch.dashboardChartVisibilitySm = { ...defaultChartVisibility }
+                patch.dashboardSectionVisibilitySm = { ...defaultSectionVisibility }
+                break
+            default:
+                patch.dashboardChartVisibilityLg = { ...defaultChartVisibility }
+                patch.dashboardSectionVisibilityLg = { ...defaultSectionVisibility }
+        }
+        updateActiveWorkspace(patch)
+    } else {
         updateActiveWorkspace({
             dashboardChartVisibilityLg: { ...emptyChartVisibility },
             dashboardChartVisibilityMd: { ...emptyChartVisibility },
@@ -609,21 +679,7 @@ const onResetLayout = () => {
             dashboardGridLayoutMd: [],
             dashboardGridLayoutSm: [],
         })
-        return
     }
-
-    // Sur summary, reset classique avec le layout par défaut
-    updateActiveWorkspace({
-        dashboardChartVisibilityLg: { ...defaultChartVisibility },
-        dashboardChartVisibilityMd: { ...defaultChartVisibility },
-        dashboardChartVisibilitySm: { ...defaultChartVisibility },
-        dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
-        dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
-        dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
-        dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
-        dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
-        dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
-    })
 }
 
 const formatValue = (value: number | undefined, decimals: number = 2): string => {
@@ -732,6 +788,8 @@ const setHistoryDateRange = async () => {
 
 const isGridDraggable = ref(false)
 const switchingToWorkspaceId = ref<WorkspaceId | null>(null)
+const showUnsavedChangesModal = ref(false)
+const pendingWorkspaceSwitch = ref<WorkspaceId | null>(null)
 
 // --- Workspace management ---
 

@@ -65,6 +65,7 @@ const layoutsEqual = (a: GridLayoutItem[], b: GridLayoutItem[]) => {
 
 watch(() => props.layout, (newLayout) => {
     if (!layoutsEqual(localLayout.value, newLayout)) {
+        console.log('[GridLayout] layout changed:', newLayout.length, 'items')
         localLayout.value = newLayout.map(item => ({ ...item }))
     }
 }, { immediate: true })
@@ -74,6 +75,7 @@ const layoutReady = ref(false)
 const layoutUpdateKey = ref(0)
 
 const onLayoutReady = () => {
+    console.log('[GridLayout] layout-ready fired, items:', localLayout.value.length)
     layoutReady.value = true
     nextTick(() => {
         setTimeout(() => {
@@ -90,6 +92,10 @@ onActivated(() => {
     nextTick(() => {
         layoutReady.value = true
     })
+})
+
+watch(() => props.colNum, (newVal, oldVal) => {
+    console.log('[GridLayout] colNum changed:', oldVal, '->', newVal)
 })
 
 const colNum = computed(() => props.colNum || 12)

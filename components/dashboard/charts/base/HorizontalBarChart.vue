@@ -53,7 +53,7 @@ const chartOption = computed((): EChartsOption => {
 			axisLine: { lineStyle: { color: axisColor } },
 			axisLabel: {
 				color: textColor,
-				...(props.xAxisFormatter && { formatter: props.xAxisFormatter }),
+				...(props.xAxisFormatter && { formatter: (v: number) => props.xAxisFormatter!(v) }),
 			},
 			splitLine: {
 				lineStyle: {

@@ -63,7 +63,7 @@ const chartOption = computed((): EChartsOption => {
 			inverse: true,
 			splitArea: { show: true },
 			axisLine: { lineStyle: { color: axisColor } },
-			axisLabel: { color: textColor },
+			axisLabel: { color: textColor, fontSize: 13 },
 		},
 		visualMap: buildVisualMap(props.visualMap, isDark.value),
 		series: [buildHeatmapSeries({
