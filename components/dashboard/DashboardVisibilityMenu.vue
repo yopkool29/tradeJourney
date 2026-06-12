@@ -102,6 +102,7 @@ const tickerChartConfig = [
 	{ id: 'tickerWinrate', label: 'components.dashboard.charts.ticker_winrate' },
 	{ id: 'hourlyHeatmap', label: 'components.dashboard.charts.hourly_heatmap' },
 	{ id: 'hourlyWinrate', label: 'components.dashboard.charts.hourly_winrate' },
+	{ id: 'dayOfWeekPnl', label: 'components.dashboard.charts.day_of_week_pnl' },
 ]
 
 const isOpen = ref(false)

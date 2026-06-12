@@ -15,6 +15,7 @@ const chartRegistry: ChartRegistration[] = [
 	{ id: 'tickerWinrate', category: 'ticker', defaultVisible: false },
 	{ id: 'hourlyHeatmap', category: 'ticker', defaultVisible: false },
 	{ id: 'hourlyWinrate', category: 'ticker', defaultVisible: false },
+	{ id: 'dayOfWeekPnl', category: 'ticker', defaultVisible: false },
 ]
 
 export const useMetricsChartRegistry = () => {
