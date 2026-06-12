@@ -578,6 +578,8 @@ export default {
                 visibility: 'Chart Visibility',
                 ticker_pnl: 'P&L by Ticker',
                 ticker_winrate: 'Winrate vs Trades',
+                hourly_heatmap: 'Hour × Day Heatmap',
+                hourly_winrate: 'Winrate by Hour',
             },
             appt_chart: {
                 title: 'APPT',
@@ -621,6 +623,15 @@ export default {
                 avg_win: 'Avg Win',
                 avg_loss: 'Avg Loss',
                 avg_duration: 'Avg Duration',
+                empty_state: 'No tickers',
+            },
+            hourly_heatmap: {
+                title: 'Hour × Day Heatmap',
+                enlarged_title: 'Hour × Day Heatmap (enlarged)',
+            },
+            hourly_winrate: {
+                title: 'Winrate by Hour',
+                enlarged_title: 'Winrate by Hour (enlarged)',
             },
             index: {
                 accounts: 'Accounts',

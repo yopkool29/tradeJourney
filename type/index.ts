@@ -77,7 +77,7 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
-export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate'
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate' | 'hourlyHeatmap' | 'hourlyWinrate'
 export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'tickerTable'
 
 export interface DashboardGridItem {

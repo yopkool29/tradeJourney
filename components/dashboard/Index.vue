@@ -287,6 +287,8 @@ import DashboardSectionsProfitTradesSection from '~/components/dashboard/section
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
 import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
 import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
+import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
+import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
 
 import {
     periodOptions,
@@ -312,7 +314,7 @@ const chartsCanRender = ref(false)
 const gridReady = ref(false)
 const { t, locale } = useI18n()
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false }
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false }
 const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
 
 // --- Workspace helpers ---
@@ -410,6 +412,8 @@ const gridComponents = computed(() => {
         winrate: DashboardChartsMainWinrateChartEcharts,
         tickerPnl: DashboardChartsTickerTickerPnlBarChart,
         tickerWinrate: DashboardChartsTickerTickerWinrateScatterChart,
+        hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
+        hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
     }
     const sectionComponentMap: Record<SectionKey, Component | string> = {
         allTrades: DashboardSectionsAllTradesSection,
