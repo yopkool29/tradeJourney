@@ -3,8 +3,7 @@
         <grid-layout :key="gridKey" v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
             :is-resizable="isResizable" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
             :responsive="false" :use-style-cursor="false"
-            :class="{ 'layout-ready': layoutReady }"
-            class="select-none" 
+            :class="{ 'layout-ready': layoutReady, 'select-none': isDraggable }"
             @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
                 :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
