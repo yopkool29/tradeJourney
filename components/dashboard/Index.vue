@@ -340,6 +340,8 @@ import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
 import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter } from '~/type'
+import { useMetricsChartRegistry } from '~/composables/metrics/useChartRegistry'
+import { useMetricsSectionRegistry } from '~/composables/metrics/useSectionRegistry'
 
 const { formatCurrency } = useUtils()
 
