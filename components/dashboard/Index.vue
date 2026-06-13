@@ -141,7 +141,7 @@
         </div>
 
         <!-- Dashboard workspaces : onglets + contenu -->
-        <div class="mb-8 select-none">
+        <div class="mb-8">
             <!-- Barre d'onglets -->
             <div class="flex items-center gap-1 mb-3 border-b border-default">
                 <button

@@ -4,6 +4,7 @@
 		:enlarged-title="enlargedTitle"
 		:chart-option="chartOption"
 		:loading="loading"
+		hide-chart-while-loading
 	/>
 </template>
 
