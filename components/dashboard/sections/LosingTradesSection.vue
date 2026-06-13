@@ -7,6 +7,7 @@
 </template>
 
 <script setup lang="ts">
+import { useMetricsBaseSectionPattern } from '~/composables/metrics/useBaseSectionPattern'
 import type { StatsRow } from '~/components/dashboard/charts/base/StatsSection.vue'
 
 const { formatCurrency, result } = useMetricsBaseSectionPattern()

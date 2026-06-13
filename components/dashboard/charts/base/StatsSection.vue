@@ -20,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import { useMetricsBaseSectionPattern } from '~/composables/metrics/useBaseSectionPattern'
+
 export interface StatsRow {
 	label: string
 	value?: any
