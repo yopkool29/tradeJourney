@@ -452,7 +452,7 @@ export const formatDateString = (
  */
 export const formatDateWithUserTimezone = (
   date: string | Date,
-  userSettings: Partial<SettingsContentType>,
+  userSettings: Partial<SettingsContentType> | null | undefined,
   withHour: boolean = false,
   locale: 'fr' | 'en' | 'us' = 'fr'
 ): string => {
