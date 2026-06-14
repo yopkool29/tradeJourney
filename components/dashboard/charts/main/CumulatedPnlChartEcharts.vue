@@ -17,10 +17,18 @@
 <script setup lang="ts">
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
 
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number | [number, number]
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
 const props = defineProps({
 	startingCapital: { type: Number, default: null },
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
@@ -55,12 +63,12 @@ const values = computed(() => {
 
 const threshold = computed(() => props.startingCapital ?? 0)
 
-const tooltipFormatter = (params: any, labelsRef: string[]) => {
-	const p = params.find((x: any) => x.value !== null)
+const tooltipFormatter = (params: FormatterParams[], labelsRef: string[]) => {
+	const p = params.find((x) => x.value !== null)
 	if (!p) return ''
-	const xi = Math.round(p.value[0])
+	const xi = Math.round((p.value as [number, number])[0])
 	const label = labelsRef[xi] || ''
-	const val = p.value[1] as number
+	const val = (p.value as [number, number])[1]
 	return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`].filter(Boolean).join('<br/>')
 }
 </script>

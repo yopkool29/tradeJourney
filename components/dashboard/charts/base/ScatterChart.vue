@@ -12,18 +12,37 @@ import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { buildScatterSeries } from '~/utils/echarts-builders'
 
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number | number[]
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
+type ScatterDataPoint = {
+	value: number[]
+	itemStyle?: {
+		color?: string
+		borderColor?: string
+		borderWidth?: number
+		borderType?: string
+	}
+}
+
 const props = defineProps({
 	title: { type: String, required: true },
 	enlargedTitle: { type: String, required: true },
-	data: { type: Array as PropType<any[]>, required: true },
-	xAxisName: { type: String },
-	yAxisName: { type: String },
-	xAxisMin: { type: Number },
-	xAxisMax: { type: Number },
-	yAxisMin: { type: Number },
-	yAxisMax: { type: Number },
-	tooltipFormatter: { type: Function as PropType<(params: any) => string> },
-	symbolSize: { type: [Number, Function] as PropType<number | ((data: any[]) => number)> },
+	data: { type: Array as PropType<ScatterDataPoint[]>, required: true },
+	xAxisName: { type: String, default: undefined },
+	yAxisName: { type: String, default: undefined },
+	xAxisMin: { type: Number, default: undefined },
+	xAxisMax: { type: Number, default: undefined },
+	yAxisMin: { type: Number, default: undefined },
+	yAxisMax: { type: Number, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: FormatterParams) => string>, default: undefined },
+	symbolSize: { type: [Number, Function] as PropType<number | ((data: unknown[]) => number)>, default: undefined },
 	loading: { type: Boolean, default: false },
 	grid: {
 		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,

@@ -18,7 +18,6 @@ import { buildBarColors, buildBarData, buildBarSeries } from '~/utils/echarts-bu
 
 const props = defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()

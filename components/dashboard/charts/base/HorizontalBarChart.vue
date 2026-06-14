@@ -11,18 +11,28 @@
 import type { PropType } from 'vue'
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
+import type { BarDataItem } from '~/utils/echarts-builders'
+
+type FormatterParams = {
+	seriesName?: string
+	name?: string
+	value: number
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
 
 const props = defineProps({
 	title: { type: String, required: true },
 	enlargedTitle: { type: String, required: true },
 	categories: { type: Array as PropType<string[]>, required: true },
-	data: { type: Array as PropType<any[]>, required: true },
-	colors: { type: Array as PropType<string[]> },
-	tooltipFormatter: { type: Function as PropType<(params: any) => string> },
-	xAxisFormatter: { type: Function as PropType<(v: number) => string> },
+	data: { type: Array as PropType<BarDataItem[]>, required: true },
+	colors: { type: Array as PropType<string[]>, default: () => [] },
+	tooltipFormatter: { type: Function as PropType<(params: FormatterParams | FormatterParams[]) => string>, default: undefined },
+	xAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
 	loading: { type: Boolean, default: false },
 	barMaxWidth: { type: Number, default: 24 },
-	labelFormatter: { type: Function as PropType<(params: any) => string> },
+	labelFormatter: { type: Function as PropType<(params: FormatterParams) => string>, default: undefined },
 	grid: {
 		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
 		default: () => ({ left: 80, right: 80, top: 12, bottom: 28 }),

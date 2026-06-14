@@ -16,9 +16,17 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import { calculateMetricsByHour } from '~/composables/useAnalytics'
 
-const props = defineProps({
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
@@ -67,7 +75,7 @@ const series = computed(() => [{
 	},
 }])
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const hour = p.dataIndex
 	const m = hourlyMetrics.value[hour]

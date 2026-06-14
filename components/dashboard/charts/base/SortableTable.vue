@@ -55,9 +55,11 @@ const props = defineProps({
 	},
 	emptyState: {
 		type: Object as PropType<{ icon: string; label: string }>,
+		default: undefined,
 	},
 	tableClass: {
 		type: String,
+		default: undefined,
 	},
 	tableUi: {
 		type: Object as PropType<Record<string, unknown>>,

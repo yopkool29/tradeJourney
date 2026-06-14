@@ -16,9 +16,17 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import { buildBarColors, buildBarData } from '~/utils/echarts-builders'
 
-const props = defineProps({
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
@@ -40,7 +48,7 @@ const colors = computed(() => buildBarColors(values.value, profitColor.value, lo
 
 const barData = computed(() => buildBarData(values.value, colors.value, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3]))
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const metric = tickerMetrics.value[p.dataIndex]
 	const lines = [
@@ -55,5 +63,5 @@ const tooltipFormatter = (params: any) => {
 	return lines.join('<br/>')
 }
 
-const labelFormatter = (params: any) => formatCurrency(params.value)
+const labelFormatter = (params: FormatterParams) => formatCurrency(params.value)
 </script>
