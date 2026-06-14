@@ -45,7 +45,7 @@ const generateFakeTickers = () => {
 		'CRM', 'ADBE', 'TXN', 'VZ', 'CVX', 'NFLX', 'QCOM', 'BMY', 'PM', 'RTX'
 	]
 	
-	return symbols.map((symbol, i) => {
+	return symbols.map((symbol) => {
 		// Mix of profit and loss
 		const isProfit = Math.random() > 0.4
 		const baseAmount = Math.random() * 3000
@@ -133,7 +133,7 @@ const chartOption = computed(() => {
 			emphasis: { disabled: true },
 			label: {
 				show: true,
-				position: 'right',
+				position: 'right' as const,
 				formatter: (params: unknown) => formatCurrency((params as EChartsFormatterParams).value as number),
 				fontSize: 12,
 				textBorderColor: 'transparent',
