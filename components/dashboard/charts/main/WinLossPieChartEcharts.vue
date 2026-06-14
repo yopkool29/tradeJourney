@@ -5,6 +5,10 @@
 </template>
 
 <script setup lang="ts">
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
+
+type PieFormatterParams = EChartsFormatterParams & { color: string }
+
 const { t } = useI18n()
 const userStore = useDataStore()
 const { profitColor, lossColor, breakevenColor, isDark } = useTypeColors()
@@ -59,10 +63,11 @@ const chartOption = computed(() => {
 			appendTo: 'body',
 			className: 'echarts-custom-tooltip',
 			transitionDuration: 0,
-			formatter: (params: any) => {
-				const value = params.value as number
-				const name = params.name as string
-				const color = params.color as string
+			formatter: (params: unknown) => {
+				const p = params as PieFormatterParams
+				const value = p.value as number
+				const name = p.name ?? ''
+				const color = p.color
 				const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
 				const marker = `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};margin-right:6px;"></span>`
 				return `${marker}${name}: ${value} (${percentage}%)`

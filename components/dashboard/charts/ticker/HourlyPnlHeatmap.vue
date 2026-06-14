@@ -14,6 +14,7 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 import { calculateHourlyHeatmapData } from '~/composables/useAnalytics'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 defineProps({
 	loading: { type: Boolean },
@@ -69,11 +70,8 @@ const maxAbsPnl = computed(() =>
 	Math.max(...heatmapData.value.map(d => Math.abs(d.pnl)), 1)
 )
 
-const tooltipFormatter = (params: any) => {
-	const p = Array.isArray(params) ? params[0] : params
-	const hour = p.value[0]
-	const weekday = p.value[1]
-	const pnl = p.value[2]
+const tooltipFormatter = (params: EChartsFormatterParams<[number, string, number]>, _labels: string[]) => {
+	const [hour, weekday, pnl] = params.value
 	return [
 		`<strong>${weekday} ${hour}:00</strong>`,
 		`Avg P&L: ${formatCurrency(pnl)}`,

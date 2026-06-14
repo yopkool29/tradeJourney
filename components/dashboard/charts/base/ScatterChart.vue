@@ -11,25 +11,7 @@
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { buildScatterSeries } from '~/utils/echarts-builders'
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number | number[]
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
-
-type ScatterDataPoint = {
-	value: number[]
-	itemStyle?: {
-		color?: string
-		borderColor?: string
-		borderWidth?: number
-		borderType?: string
-	}
-}
+import type { EChartsFormatterParams, ScatterDataPoint, EChartsGridOption } from '~/utils/echarts-builders'
 
 const props = defineProps({
 	title: { type: String, required: true },
@@ -41,11 +23,11 @@ const props = defineProps({
 	xAxisMax: { type: Number, default: undefined },
 	yAxisMin: { type: Number, default: undefined },
 	yAxisMax: { type: Number, default: undefined },
-	tooltipFormatter: { type: Function as PropType<(params: FormatterParams) => string>, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams<number | number[]>) => string>, default: undefined },
 	symbolSize: { type: [Number, Function] as PropType<number | ((data: unknown[]) => number)>, default: undefined },
 	loading: { type: Boolean, default: false },
 	grid: {
-		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
+		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 60, right: 16, top: 24, bottom: 40 }),
 	},
 })
@@ -66,8 +48,8 @@ const chartOption = computed((): EChartsOption => {
 			textStyle: { color: tooltipTextColor, fontSize: 13 },
 			appendTo: 'parent',
 			className: 'echarts-custom-tooltip',
-			...(props.tooltipFormatter && { formatter: props.tooltipFormatter }),
-		},
+			...(props.tooltipFormatter && { formatter: (params: unknown) => props.tooltipFormatter!(params as EChartsFormatterParams<number | number[]>) }),
+		} as EChartsOption['tooltip'],
 		xAxis: {
 			type: 'value' as const,
 			...(props.xAxisName && { name: props.xAxisName, nameLocation: 'middle' as const, nameGap: 25 }),

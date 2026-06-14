@@ -13,8 +13,11 @@
 
 <script setup lang="ts">
 import { generateApptChartData } from '~/utils/dashboard'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
-const props = defineProps({
+type ApptFormatterParams = EChartsFormatterParams & { axisValue?: string }
+
+defineProps({
 	loading: { type: Boolean },
 })
 
@@ -60,9 +63,9 @@ const series = computed(() => [
 	},
 ])
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: ApptFormatterParams[]) => {
 	const label = params[0]?.axisValue || ''
-	const lines = params.map((p: any) => {
+	const lines = params.map((p: ApptFormatterParams) => {
 		const val = p.value as number
 		if (val === null || val === undefined) return null
 		return `${p.seriesName}: ${formatCurrency(val)}`

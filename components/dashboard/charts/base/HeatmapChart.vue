@@ -13,15 +13,7 @@ import type { PropType } from 'vue'
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { buildHeatmapSeries, buildVisualMap } from '~/utils/echarts-builders'
-
-type FormatterParams = {
-    seriesName: string
-    name: string
-    value: number
-    dataIndex: number
-    seriesIndex: number
-    data: unknown
-}
+import type { EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -33,10 +25,10 @@ const props = defineProps({
         type: Object as PropType<{ min: number; max: number }>,
         required: true,
     },
-    tooltipFormatter: { type: Function as PropType<(params: FormatterParams, labels: string[]) => string>, default: undefined },
+    tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams<unknown>, labels: string[]) => string>, default: undefined },
     loading: { type: Boolean, default: false },
     grid: {
-        type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
+        type: Object as PropType<EChartsGridOption>,
         default: () => ({ left: 60, right: 16, top: 24, bottom: 40 }),
     },
 })
@@ -57,8 +49,8 @@ const chartOption = computed((): EChartsOption => {
             textStyle: { color: tooltipTextColor, fontSize: 13 },
             appendTo: 'parent',
             className: 'echarts-custom-tooltip',
-            ...(props.tooltipFormatter && { formatter: props.tooltipFormatter }),
-        },
+            ...(props.tooltipFormatter && { formatter: (params: unknown) => props.tooltipFormatter!(params as EChartsFormatterParams<unknown>, props.xLabels) }),
+        } as EChartsOption['tooltip'],
         xAxis: {
             type: 'category' as const,
             data: props.xLabels,

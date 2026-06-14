@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 defineProps({
 	loading: { type: Boolean },
@@ -115,7 +116,7 @@ const series = computed(() => [{
 	},
 }])
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const idx = p.dataIndex
 	const m = dayMetrics.value[idx]

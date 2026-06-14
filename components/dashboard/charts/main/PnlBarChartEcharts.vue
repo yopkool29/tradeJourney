@@ -15,8 +15,9 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
 import { buildBarColors, buildBarData, buildBarSeries } from '~/utils/echarts-builders'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
-const props = defineProps({
+defineProps({
 	loading: { type: Boolean },
 })
 
@@ -53,7 +54,7 @@ const series = computed(() => buildBarSeries({
 	emphasis: { disabled: true },
 }))
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const trade = displayTrades.value[p.dataIndex]
 	const value = p.value as number
