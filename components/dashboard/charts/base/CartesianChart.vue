@@ -56,6 +56,7 @@ const chartOption = computed((): EChartsOption => {
 	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
 
 	const mappedSeries = props.series.map((s) => {
+		const isLarge = s.data.length > 500
 		if (s.type === 'bar') {
 			return {
 				type: 'bar' as const,
@@ -64,6 +65,7 @@ const chartOption = computed((): EChartsOption => {
 				barMaxWidth: s.barMaxWidth ?? 32,
 				emphasis: s.emphasis ?? { disabled: true },
 				itemStyle: s.itemStyle,
+				...(isLarge && { large: true, largeThreshold: 400, progressive: 400, progressiveThreshold: 500 }),
 			}
 		}
 		return {
@@ -79,11 +81,15 @@ const chartOption = computed((): EChartsOption => {
 			areaStyle: s.areaStyle,
 			connectNulls: s.connectNulls ?? false,
 			emphasis: { disabled: true },
+			...(isLarge && { sampling: 'lttb' as const, progressive: 400, progressiveThreshold: 500 }),
 		}
 	})
 
+	const largeDataset = props.series.some(s => s.data.length > 500)
+
 	return {
 		...getEchartsBaseOption(),
+		animation: !largeDataset,
 		grid: props.grid,
 		tooltip: {
 			trigger: 'axis' as const,
