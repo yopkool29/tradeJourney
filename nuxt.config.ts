@@ -172,8 +172,8 @@ export default defineNuxtConfig({
 
     colorMode: {
         classSuffix: '',
-        preference: 'light', // mode par défaut
-        fallback: 'system',
+        preference: 'system',
+        fallback: 'light',
     },
     nitro: {
         esbuild: {

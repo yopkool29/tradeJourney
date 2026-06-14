@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen px-4 dark:bg-gray-900">
+    <div class="flex flex-col items-center justify-center min-h-screen px-4">
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold mb-3 text-primary">{{ $t('pages.index.title') }}
             </h1>
@@ -46,9 +46,6 @@
 </template>
 
 <script setup lang="ts">
-
-const userStore = useUserStore()
-
 onMounted(() => {
     const { stopLoading } = useGlobalLoading()
     stopLoading()
