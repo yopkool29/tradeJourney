@@ -563,6 +563,7 @@ export default {
                 charts: 'Charts',
                 ticker_charts: 'Ticker Analysis',
                 sections: 'Statistics Sections',
+                sync_all_breakpoints: 'Sync to all breakpoints',
             },
             sections: {
                 all_trades: 'All Trades',
@@ -645,6 +646,8 @@ export default {
                 wednesday: 'Wed',
                 thursday: 'Thu',
                 friday: 'Fri',
+                saturday: 'Sat',
+                sunday: 'Sun',
             },
             index: {
                 accounts: 'Accounts',
@@ -694,6 +697,7 @@ export default {
                 sync_workspace: 'Sync active workspace to other databases',
                 sync_dashboard_success: 'Dashboard synced',
                 sync_workspace_success: 'Workspace synced',
+                sync_visibility_success: 'Visibility synced to all breakpoints',
                 confirm_delete_workspace: 'Delete workspace "{name}"?',
                 unsaved_changes_title: 'Unsaved Changes',
                 unsaved_changes_message: 'You have unsaved layout changes. Do you want to save them?',

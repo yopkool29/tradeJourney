@@ -15,12 +15,10 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import { calculateHourlyHeatmapData } from '~/composables/useAnalytics'
 
-const props = defineProps({
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
-const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
 const { t } = useI18n()
 const dataStore = useDataStore()
@@ -32,25 +30,40 @@ const heatmapData = computed(() => {
 	if (!trades.length) return []
 	return calculateHourlyHeatmapData(
 		trades,
-		settings.value?.timezoneDisplay!,
-		settings.value?.timezoneLocal!,
-		settings.value?.timezoneUtcOffset!
+		settings.value!.timezoneDisplay!,
+		settings.value!.timezoneLocal!,
+		settings.value!.timezoneUtcOffset!
 	)
 })
 
-const weekdayLabels = computed(() => [
-	t('common.weekdays.short.monday'),
-	t('common.weekdays.short.tuesday'),
-	t('common.weekdays.short.wednesday'),
-	t('common.weekdays.short.thursday'),
-	t('common.weekdays.short.friday'),
-])
+const hasWeekendTrades = computed(() => {
+	return heatmapData.value.some(d => (d.weekday === 6 || d.weekday === 7) && d.tradesCount > 0)
+})
+
+const weekdayLabels = computed(() => {
+	const labels = [
+		t('common.weekdays.short.monday'),
+		t('common.weekdays.short.tuesday'),
+		t('common.weekdays.short.wednesday'),
+		t('common.weekdays.short.thursday'),
+		t('common.weekdays.short.friday'),
+	]
+	if (hasWeekendTrades.value) {
+		labels.push(t('common.weekdays.short.saturday'))
+		labels.push(t('common.weekdays.short.sunday'))
+	}
+	return labels
+})
 
 const xLabels = computed(() => Array.from({ length: 24 }, (_, i) => `${i}h`))
 
-const heatmapDataItems = computed(() =>
-	heatmapData.value.map(d => [d.hour, weekdayLabels.value[d.weekday - 1], d.pnl] as [number | string, number | string, number])
-)
+const heatmapDataItems = computed(() => {
+	// Filter out weekend data if no weekend trades
+	const filteredData = hasWeekendTrades.value
+		? heatmapData.value
+		: heatmapData.value.filter(d => d.weekday <= 5)
+	return filteredData.map(d => [d.hour, weekdayLabels.value[d.weekday - 1], d.pnl] as [number | string, number | string, number])
+})
 
 const maxAbsPnl = computed(() =>
 	Math.max(...heatmapData.value.map(d => Math.abs(d.pnl)), 1)

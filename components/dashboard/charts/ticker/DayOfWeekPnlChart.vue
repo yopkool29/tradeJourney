@@ -13,9 +13,8 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 
-const props = defineProps({
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
@@ -25,19 +24,41 @@ const { profitColor, lossColor } = useTypeColors()
 const isDark = useIsDark()
 const dataStore = useDataStore()
 
-const dayNames = [
+const dayNamesBase = computed(() => [
 	t('components.dashboard.day_of_week.monday'),
 	t('components.dashboard.day_of_week.tuesday'),
 	t('components.dashboard.day_of_week.wednesday'),
 	t('components.dashboard.day_of_week.thursday'),
 	t('components.dashboard.day_of_week.friday'),
-]
+])
+
+const dayNamesWithWeekend = computed(() => [
+	...dayNamesBase.value,
+	t('components.dashboard.day_of_week.saturday'),
+	t('components.dashboard.day_of_week.sunday'),
+])
+
+// Helper to convert getDay() (0=Sunday, 6=Saturday) to our day numbering (1=Monday, 7=Sunday)
+const getDayNumber = (jsDay: number): number => {
+	// jsDay: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+	// Our numbering: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun
+	return jsDay === 0 ? 7 : jsDay
+}
 
 const dayMetrics = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
 	if (!trades.length) return []
 
-	const metrics = Array.from({ length: 5 }, (_, i) => ({
+	// Check for weekend trades
+	const hasWeekendTrades = trades.some(t => {
+		const day = new Date(t.openDate).getDay()
+		return day === 0 || day === 6 // Sunday or Saturday
+	})
+
+	const dayCount = hasWeekendTrades ? 7 : 5
+	const dayNames = hasWeekendTrades ? dayNamesWithWeekend.value : dayNamesBase.value
+
+	const metrics = Array.from({ length: dayCount }, (_, i) => ({
 		day: i + 1,
 		dayName: dayNames[i],
 		totalPnl: 0,
@@ -48,9 +69,10 @@ const dayMetrics = computed(() => {
 
 	for (const trade of trades) {
 		const date = new Date(trade.openDate)
-		const day = date.getDay()
-		if (day >= 1 && day <= 5) {
-			const idx = day - 1
+		const jsDay = date.getDay()
+		const dayNum = getDayNumber(jsDay) // 1-7
+		if (dayNum <= dayCount) {
+			const idx = dayNum - 1
 			const pnl = displayModeNet.value ? trade.netProfit : trade.profit
 			metrics[idx].totalPnl += pnl
 			metrics[idx].tradesCount += 1
@@ -61,7 +83,7 @@ const dayMetrics = computed(() => {
 		if (m.tradesCount > 0) {
 			m.avgPnl = m.totalPnl / m.tradesCount
 			const dayTrades = trades.filter(t => {
-				const d = new Date(t.openDate).getDay()
+				const d = getDayNumber(new Date(t.openDate).getDay())
 				return d === m.day
 			})
 			const winners = dayTrades.filter(t => (displayModeNet.value ? t.netProfit : t.profit) > 0)

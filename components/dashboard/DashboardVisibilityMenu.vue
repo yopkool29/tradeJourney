@@ -38,7 +38,13 @@
 						</label>
 					</div>
 				</div>
-				<div class="filter-actions">
+				<div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+					<label class="flex items-center gap-2 cursor-pointer text-xs">
+						<UCheckbox v-model="syncAllBreakpoints" />
+						<span>{{ $t('components.dashboard.visibility.sync_all_breakpoints') }}</span>
+					</label>
+				</div>
+				<div class="filter-actions pt-2">
 					<UButton size="xs" color="primary" @click="applyChanges">
 						{{ $t('common.actions.apply') }}
 					</UButton>
@@ -76,8 +82,9 @@ watch(() => props.sectionVisibility, (val) => {
 }, { deep: true })
 
 const emit = defineEmits<{
-	'update:chartVisibility': [value: Record<string, boolean>]
-	'update:sectionVisibility': [value: Record<string, boolean>]
+	'update:chartVisibility': [value: Record<ChartKey, boolean>]
+	'update:sectionVisibility': [value: Record<SectionKey, boolean>]
+	'syncToAllBreakpoints': [chartVisibility: Record<ChartKey, boolean>, sectionVisibility: Record<SectionKey, boolean>]
 }>()
 
 const { t } = useI18n()
@@ -106,18 +113,25 @@ const tickerChartConfig = [
 ]
 
 const isOpen = ref(false)
+const syncAllBreakpoints = ref(false)
 
 const onPopoverChange = (open: boolean) => {
 	if (!open) {
 		// Reset to original values when closing without applying
 		localChartVisibility.value = { ...props.chartVisibility }
 		localSectionVisibility.value = { ...props.sectionVisibility }
+		syncAllBreakpoints.value = false
 	}
 }
 
 const applyChanges = () => {
-	emit('update:chartVisibility', { ...localChartVisibility.value })
-	emit('update:sectionVisibility', { ...localSectionVisibility.value })
+	if (syncAllBreakpoints.value) {
+		emit('syncToAllBreakpoints', { ...localChartVisibility.value }, { ...localSectionVisibility.value })
+	} else {
+		emit('update:chartVisibility', { ...localChartVisibility.value })
+		emit('update:sectionVisibility', { ...localSectionVisibility.value })
+	}
+	syncAllBreakpoints.value = false
 	isOpen.value = false
 }
 

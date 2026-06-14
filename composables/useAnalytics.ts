@@ -208,7 +208,7 @@ export const calculateHourlyHeatmapData = (
 	const cells: HourlyHeatmapCell[] = []
 
 	for (let hour = 0; hour < 24; hour++) {
-		for (let weekday = 1; weekday <= 5; weekday++) {
+		for (let weekday = 1; weekday <= 7; weekday++) {
 			const key = `${hour}-${weekday}`
 			const cellTrades = tradesByHourDay.get(key) || []
 

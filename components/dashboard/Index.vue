@@ -179,6 +179,17 @@
                     </CommonModalDelete>
                 </button>
                 <UButton
+                    icon="i-lucide-plus"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    class="ml-1 mb-px"
+                    :title="$t('components.dashboard.index.add_workspace')"
+                    :disabled="workspaces.length >= 5"
+                    @click="addWorkspace"
+                />
+                <div class="flex-1" />
+                <UButton
                     icon="i-lucide-monitor"
                     size="xs"
                     variant="ghost"
@@ -196,16 +207,6 @@
                     :title="$t('components.dashboard.index.sync_workspace')"
                     @click="syncActiveWorkspaceToOtherDatabases"
                 />
-                <UButton
-                    icon="i-lucide-plus"
-                    size="xs"
-                    variant="ghost"
-                    color="neutral"
-                    class="ml-1 mb-px"
-                    :title="$t('components.dashboard.index.add_workspace')"
-                    :disabled="workspaces.length >= 5"
-                    @click="addWorkspace"
-                />
             </div>
 
             <!-- Barre de contrôle du workspace actif -->
@@ -215,24 +216,19 @@
                         v-if="currentBreakpoint === 'lg'"
                         v-model:chart-visibility="chartVisibilityLg"
                         v-model:section-visibility="sectionVisibilityLg"
+                        @sync-to-all-breakpoints="onSyncVisibilityToAllBreakpoints"
                     />
                     <DashboardVisibilityMenu
                         v-if="currentBreakpoint === 'md'"
                         v-model:chart-visibility="chartVisibilityMd"
                         v-model:section-visibility="sectionVisibilityMd"
+                        @sync-to-all-breakpoints="onSyncVisibilityToAllBreakpoints"
                     />
                     <DashboardVisibilityMenu
                         v-if="currentBreakpoint === 'sm'"
                         v-model:chart-visibility="chartVisibilitySm"
                         v-model:section-visibility="sectionVisibilitySm"
-                    />
-                    <UButton
-                        icon="i-lucide-list-restart"
-                        size="sm"
-                        variant="ghost"
-                        color="neutral"
-                        :title="$t('components.dashboard.index.reset_layout')"
-                        @click="onResetLayout"
+                        @sync-to-all-breakpoints="onSyncVisibilityToAllBreakpoints"
                     />
                     <UButton
                         :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
@@ -268,10 +264,21 @@
                             />
                         </template>
                     </div>
+                    <div class="w-4" />
+                    <UButton
+                        icon="i-lucide-list-restart"
+                        size="sm"
+                        variant="ghost"
+                        color="neutral"
+                        :title="$t('components.dashboard.index.reset_layout')"
+                        @click="onResetLayout"
+                    >
+                        {{ $t('components.dashboard.index.reset_layout') }}
+                    </UButton>
                 </div>
             </div>
 
-            <!-- KeepAlive pour préserver l'état des workspaces -->
+            <!-- Workspaces with KeepAlive -->
             <div class="relative">
                 <KeepAlive>
                     <DashboardGridLayout
@@ -280,11 +287,11 @@
                         ref="gridLayoutRef"
                         :layout="gridLayout"
                         :components="gridComponents"
-                        :shared-props="{ loading: filterLoading }"
+                        :shared-props="{ loading: filterLoading || switchingToWorkspaceId !== null }"
                         :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
                         :is-draggable="isGridDraggable"
                         :is-resizable="isGridDraggable"
-                        :resizable-items="['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']"
+                        :resizable-items="resizableGridItems"
                         :col-num="gridColNum"
                     />
                 </KeepAlive>
@@ -332,9 +339,11 @@ import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sectio
 import {
     periodOptions,
     getPeriodDates,
-    defaultDashboardGridLayout,
-    defaultDashboardGridLayoutMd,
-    defaultDashboardGridLayoutSm,
+    defaultGridItemsLg,
+    defaultGridItemsMd,
+    defaultGridItemsSm,
+    resizableGridItems,
+    type GridTemplateItem,
 } from '~/utils/dashboard'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
@@ -501,18 +510,6 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', updateBreakpoint)
 })
 
-const defaultLayoutForBreakpoint = computed(() => {
-    const ws = activeWorkspace.value
-    switch (currentBreakpoint.value) {
-        case 'md':
-            return ws?.dashboardGridLayoutMd?.length ? ws.dashboardGridLayoutMd : defaultDashboardGridLayoutMd
-        case 'sm':
-            return ws?.dashboardGridLayoutSm?.length ? ws.dashboardGridLayoutSm : defaultDashboardGridLayoutSm
-        default:
-            return ws?.dashboardGridLayout?.length ? ws.dashboardGridLayout : defaultDashboardGridLayout
-    }
-})
-
 const gridColNum = computed(() => {
     switch (currentBreakpoint.value) {
         case 'md':
@@ -524,15 +521,15 @@ const gridColNum = computed(() => {
     }
 })
 
-const gridLayout = computed(() => {
-    const baseLayout = defaultLayoutForBreakpoint.value
-    const visible = baseLayout.filter((item) => {
-        if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
-        if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
-        return false
-    })
+const defaultItemsForBreakpoint = computed(() => {
+    switch (currentBreakpoint.value) {
+        case 'md': return defaultGridItemsMd
+        case 'sm': return defaultGridItemsSm
+        default: return defaultGridItemsLg
+    }
+})
 
-    // Essai: si le workspace n'a pas de layout sauvegardé, empiler en haut à gauche
+const gridLayout = computed(() => {
     const ws = activeWorkspace.value
     const breakpoint = currentBreakpoint.value
     const hasSavedLayout = breakpoint === 'md'
@@ -541,38 +538,57 @@ const gridLayout = computed(() => {
             ? (ws?.dashboardGridLayoutSm?.length ?? 0) > 0
             : (ws?.dashboardGridLayout?.length ?? 0) > 0
 
-    if (!hasSavedLayout) {
-        const cols = gridColNum.value
-        const compacted: typeof visible = []
-        let currentX = 0
-        let currentY = 0
-        let rowHeight = 0
-
-        for (const item of visible) {
-            if (currentX + item.w > cols) {
-                currentX = 0
-                currentY += rowHeight
-                rowHeight = 0
-            }
-            compacted.push({ ...item, x: currentX, y: currentY })
-            currentX += item.w
-            rowHeight = Math.max(rowHeight, item.h)
-        }
-        return compacted
+    // If saved layout exists, use it (backward compatibility)
+    if (hasSavedLayout) {
+        const baseLayout = breakpoint === 'md'
+            ? ws!.dashboardGridLayoutMd
+            : breakpoint === 'sm'
+                ? ws!.dashboardGridLayoutSm
+                : ws!.dashboardGridLayout
+        return baseLayout.filter((item) => {
+            if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
+            if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
+            return false
+        })
     }
 
-    return visible
+    // No saved layout: use templates and stack them
+    const templateItems = defaultItemsForBreakpoint.value
+    const visible = templateItems.filter((item) => {
+        if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
+        if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
+        return false
+    })
+
+    const cols = gridColNum.value
+    const compacted: (GridTemplateItem & { x: number; y: number })[] = []
+    let currentX = 0
+    let currentY = 0
+    let rowHeight = 0
+
+    for (const item of visible) {
+        if (currentX + item.w > cols) {
+            currentX = 0
+            currentY += rowHeight
+            rowHeight = 0
+        }
+        compacted.push({ ...item, x: currentX, y: currentY })
+        currentX += item.w
+        rowHeight = Math.max(rowHeight, item.h)
+    }
+    return compacted
 })
 
 const saveGridLayout = () => {
     const newLayout = gridLayoutRef.value?.getLayout()
     if (!newLayout) return
-    const currentLayout = defaultLayoutForBreakpoint.value
-    const hiddenItems = currentLayout.filter((item) => {
+    // Use templates to find hidden items (they contain all possible items)
+    const allItems = defaultItemsForBreakpoint.value
+    const hiddenItems = allItems.filter((item) => {
         if (item.i in activeChartVisibility.value) return !activeChartVisibility.value[item.i as ChartKey]
         if (item.i in activeSectionVisibility.value) return !activeSectionVisibility.value[item.i as SectionKey]
         return false
-    })
+    }).map(item => ({ ...item, x: 0, y: 0 })) // Add x/y for hidden items
     const saved = [...newLayout, ...hiddenItems]
     switch (currentBreakpoint.value) {
         case 'md':
@@ -623,12 +639,23 @@ const syncActiveWorkspaceToOtherDatabases = () => {
         } else {
             newWorkspaces.push({ ...ws })
         }
-
         newPerDb[dbName] = { ...filters, workspaces: newWorkspaces }
     }
 
     userStore.dashBoardFiltersPerDb = newPerDb
     toastSuccess(t('components.dashboard.index.sync_workspace_success'))
+}
+
+const onSyncVisibilityToAllBreakpoints = (chartVisibility: Record<ChartKey, boolean>, sectionVisibility: Record<SectionKey, boolean>) => {
+    updateActiveWorkspace({
+        dashboardChartVisibilityLg: { ...chartVisibility },
+        dashboardChartVisibilityMd: { ...chartVisibility },
+        dashboardChartVisibilitySm: { ...chartVisibility },
+        dashboardSectionVisibilityLg: { ...sectionVisibility },
+        dashboardSectionVisibilityMd: { ...sectionVisibility },
+        dashboardSectionVisibilitySm: { ...sectionVisibility },
+    })
+    toastSuccess(t('components.dashboard.index.sync_visibility_success'))
 }
 
 const onSaveAndSwitch = () => {
@@ -655,23 +682,20 @@ const onCancelSwitch = () => {
 
 const onResetLayout = () => {
     if (activeWorkspaceId.value === 'summary') {
-        // Sur summary: restaure la visibilité par défaut du breakpoint actuel uniquement
-        const patch: Partial<WorkspaceConfig> = {}
-        switch (currentBreakpoint.value) {
-            case 'md':
-                patch.dashboardChartVisibilityMd = { ...defaultChartVisibility }
-                patch.dashboardSectionVisibilityMd = { ...defaultSectionVisibility }
-                break
-            case 'sm':
-                patch.dashboardChartVisibilitySm = { ...defaultChartVisibility }
-                patch.dashboardSectionVisibilitySm = { ...defaultSectionVisibility }
-                break
-            default:
-                patch.dashboardChartVisibilityLg = { ...defaultChartVisibility }
-                patch.dashboardSectionVisibilityLg = { ...defaultSectionVisibility }
-        }
-        updateActiveWorkspace(patch)
+        // Sur summary: restaure la visibilité par défaut sur tous les breakpoints
+        updateActiveWorkspace({
+            dashboardChartVisibilityLg: { ...defaultChartVisibility },
+            dashboardChartVisibilityMd: { ...defaultChartVisibility },
+            dashboardChartVisibilitySm: { ...defaultChartVisibility },
+            dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
+            dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
+            dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
+            dashboardGridLayout: [],
+            dashboardGridLayoutMd: [],
+            dashboardGridLayoutSm: [],
+        })
     } else {
+        // Autres workspaces: vide tout
         updateActiveWorkspace({
             dashboardChartVisibilityLg: { ...emptyChartVisibility },
             dashboardChartVisibilityMd: { ...emptyChartVisibility },
