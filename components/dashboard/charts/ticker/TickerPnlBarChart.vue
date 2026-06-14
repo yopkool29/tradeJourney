@@ -15,15 +15,7 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 import { buildBarColors, buildBarData } from '~/utils/echarts-builders'
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 defineProps({
 	loading: { type: Boolean },
@@ -48,7 +40,7 @@ const colors = computed(() => buildBarColors(values.value, profitColor.value, lo
 
 const barData = computed(() => buildBarData(values.value, colors.value, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3]))
 
-const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
+const tooltipFormatter = (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const metric = tickerMetrics.value[p.dataIndex]
 	const lines = [
@@ -63,5 +55,5 @@ const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
 	return lines.join('<br/>')
 }
 
-const labelFormatter = (params: FormatterParams) => formatCurrency(params.value)
+const labelFormatter = (params: EChartsFormatterParams) => formatCurrency(params.value)
 </script>

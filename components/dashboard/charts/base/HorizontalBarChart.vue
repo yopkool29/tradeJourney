@@ -11,16 +11,7 @@
 import type { PropType } from 'vue'
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
-import type { BarDataItem } from '~/utils/echarts-builders'
-
-type FormatterParams = {
-	seriesName?: string
-	name?: string
-	value: number
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
+import type { BarDataItem, EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
 
 const props = defineProps({
 	title: { type: String, required: true },
@@ -28,13 +19,13 @@ const props = defineProps({
 	categories: { type: Array as PropType<string[]>, required: true },
 	data: { type: Array as PropType<BarDataItem[]>, required: true },
 	colors: { type: Array as PropType<string[]>, default: () => [] },
-	tooltipFormatter: { type: Function as PropType<(params: FormatterParams | FormatterParams[]) => string>, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams | EChartsFormatterParams[]) => string>, default: undefined },
 	xAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
 	loading: { type: Boolean, default: false },
 	barMaxWidth: { type: Number, default: 24 },
-	labelFormatter: { type: Function as PropType<(params: FormatterParams) => string>, default: undefined },
+	labelFormatter: { type: Function as PropType<(params: EChartsFormatterParams) => string>, default: undefined },
 	grid: {
-		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
+		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 80, right: 80, top: 12, bottom: 28 }),
 	},
 })
@@ -56,8 +47,8 @@ const chartOption = computed((): EChartsOption => {
 			appendTo: 'parent',
 			className: 'echarts-custom-tooltip',
 			axisPointer: { snap: true },
-			...(props.tooltipFormatter && { formatter: props.tooltipFormatter }),
-		},
+			...(props.tooltipFormatter && { formatter: (params: unknown) => props.tooltipFormatter!(params as EChartsFormatterParams | EChartsFormatterParams[]) }),
+		} as EChartsOption['tooltip'],
 		xAxis: {
 			type: 'value' as const,
 			axisLine: { lineStyle: { color: axisColor } },
@@ -89,12 +80,12 @@ const chartOption = computed((): EChartsOption => {
 			data: props.data,
 			barMaxWidth: props.barMaxWidth,
 			emphasis: { disabled: true },
-			...(props.colors && { itemStyle: { color: (params: any) => props.colors![params.dataIndex] } }),
+			...(props.colors && { itemStyle: { color: (params: { dataIndex: number }) => props.colors![params.dataIndex] } }),
 			...(props.labelFormatter && {
 				label: {
 					show: true,
 					position: 'right',
-					formatter: props.labelFormatter,
+					formatter: (params: unknown) => props.labelFormatter!(params as EChartsFormatterParams),
 					fontSize: 12,
 					color: textColor,
 					textBorderColor: 'transparent',

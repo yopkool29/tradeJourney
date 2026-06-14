@@ -16,15 +16,7 @@
 
 <script setup lang="ts">
 import { generateCumulatedPnlChartData } from '~/utils/dashboard'
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number | [number, number]
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 const props = defineProps({
 	startingCapital: { type: Number, default: null },
@@ -63,7 +55,7 @@ const values = computed(() => {
 
 const threshold = computed(() => props.startingCapital ?? 0)
 
-const tooltipFormatter = (params: FormatterParams[], labelsRef: string[]) => {
+const tooltipFormatter = (params: EChartsFormatterParams<number | [number, number]>[], labelsRef: string[]) => {
 	const p = params.find((x) => x.value !== null)
 	if (!p) return ''
 	const xi = Math.round((p.value as [number, number])[0])

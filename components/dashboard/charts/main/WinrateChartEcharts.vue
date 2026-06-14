@@ -15,16 +15,9 @@
 
 <script setup lang="ts">
 import { generateWinrateChartData } from '~/utils/dashboard'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-	axisValue?: string
-}
+type WinrateFormatterParams = EChartsFormatterParams & { axisValue?: string }
 
 defineProps({
 	loading: { type: Boolean },
@@ -69,7 +62,7 @@ const series = computed(() => [
 	},
 ])
 
-const tooltipFormatter = (params: FormatterParams[]) => {
+const tooltipFormatter = (params: WinrateFormatterParams[]) => {
 	const label = params[0]?.axisValue || ''
 	const lines = params.map((p) => {
 		const val = p.value as number

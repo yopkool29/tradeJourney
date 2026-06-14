@@ -15,15 +15,7 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 import { calculateMetricsByHour } from '~/composables/useAnalytics'
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 defineProps({
 	loading: { type: Boolean },
@@ -44,9 +36,9 @@ const hourlyMetrics = computed(() => {
 	return calculateMetricsByHour(
 		trades,
 		displayModeNet.value,
-		settings.value?.timezoneDisplay!,
-		settings.value?.timezoneLocal!,
-		settings.value?.timezoneUtcOffset!
+		settings.value?.timezoneDisplay ?? '',
+		settings.value?.timezoneLocal ?? '',
+		settings.value?.timezoneUtcOffset ?? 0
 	)
 })
 
@@ -75,9 +67,8 @@ const series = computed(() => [{
 	},
 }])
 
-const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
-	const p = Array.isArray(params) ? params[0] : params
-	const hour = p.dataIndex
+const tooltipFormatter = (params: EChartsFormatterParams, _labels: string[]) => {
+	const hour = params.dataIndex
 	const m = hourlyMetrics.value[hour]
 	return [
 		`<strong>${m.hour}:00</strong>`,

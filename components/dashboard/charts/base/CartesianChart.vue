@@ -11,16 +11,19 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
+import type { EChartsFormatterParams, EChartsItemStyle, EChartsLineStyle, EChartsAreaStyle, EChartsSeriesEmphasis, EChartsGridOption } from '~/utils/echarts-builders'
+
+type ChartSeriesDataItem = number | null | { value: number; itemStyle?: EChartsItemStyle }
 
 interface ChartSeries {
 	type: 'bar' | 'line'
 	name: string
-	data: any[]
+	data: ChartSeriesDataItem[]
 	color?: string
-	itemStyle?: any
-	areaStyle?: any
-	lineStyle?: any
-	emphasis?: any
+	itemStyle?: EChartsItemStyle
+	areaStyle?: EChartsAreaStyle
+	lineStyle?: EChartsLineStyle
+	emphasis?: EChartsSeriesEmphasis
 	barMaxWidth?: number
 	connectNulls?: boolean
 	showSymbol?: boolean
@@ -29,72 +32,28 @@ interface ChartSeries {
 	smooth?: number
 }
 
-type FormatterParams = {
-    seriesName: string
-    name: string
-    value: number
-    dataIndex: number
-    seriesIndex: number
-    data: unknown
-}
-
 const props = defineProps({
 	title: { type: String, required: true },
 	enlargedTitle: { type: String, required: true },
 	labels: { type: Array as PropType<string[]>, required: true },
 	series: { type: Array as PropType<ChartSeries[]>, required: true },
-	tooltipFormatter: { type: Function as PropType<(params: FormatterParams, labels: string[]) => string>, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams, labels: string[]) => string>, default: undefined },
 	yAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
 	yAxisMin: { type: Number, default: undefined },
 	yAxisMax: { type: Number, default: undefined },
 	loading: { type: Boolean, default: false },
 	canvasHeight: { type: Number, default: undefined },
 	grid: {
-		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
+		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 70, right: 16, top: 12, bottom: 28 }),
 	},
 })
 
 const isDark = useIsDark()
 
-const buildBaseOption = (dark: boolean): EChartsOption => {
-	const { axisColor, textColor } = getEchartsAxisColors(dark)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-
-	return {
-		...getEchartsBaseOption(),
-		tooltip: {
-			trigger: 'axis' as const,
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: 'parent',
-			className: 'echarts-custom-tooltip',
-			axisPointer: { snap: true },
-		},
-		grid: props.grid,
-		xAxis: {
-			type: 'category' as const,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11 },
-			splitLine: { show: false },
-		},
-		yAxis: {
-			type: 'value' as const,
-			axisLine: { show: false },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11 },
-			splitLine: { lineStyle: { color: axisColor } },
-			...(props.yAxisMin !== undefined && { min: props.yAxisMin }),
-			...(props.yAxisMax !== undefined && { max: props.yAxisMax }),
-		},
-	}
-}
-
 const chartOption = computed((): EChartsOption => {
-	const base = buildBaseOption(isDark.value)
 	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
+	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
 
 	const mappedSeries = props.series.map((s) => {
 		if (s.type === 'bar') {
@@ -115,7 +74,7 @@ const chartOption = computed((): EChartsOption => {
 			symbol: s.symbol ?? 'circle',
 			symbolSize: s.symbolSize ?? 4,
 			showSymbol: s.showSymbol ?? (s.symbolSize === 0 ? false : undefined),
-			lineStyle: (s.lineStyle ?? { width: 2, color: s.color }) as any,
+			lineStyle: s.lineStyle ?? { width: 2, color: s.color },
 			itemStyle: { color: s.color },
 			areaStyle: s.areaStyle,
 			connectNulls: s.connectNulls ?? false,
@@ -124,21 +83,38 @@ const chartOption = computed((): EChartsOption => {
 	})
 
 	return {
-		...base,
+		...getEchartsBaseOption(),
+		grid: props.grid,
+		tooltip: {
+			trigger: 'axis' as const,
+			backgroundColor,
+			borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: 'parent',
+			className: 'echarts-custom-tooltip',
+			axisPointer: { snap: true },
+			...(props.tooltipFormatter && { formatter: (params: unknown) => props.tooltipFormatter!(params as EChartsFormatterParams, props.labels) }),
+		} as EChartsOption['tooltip'],
 		xAxis: {
-			...(base.xAxis as any),
+			type: 'category' as const,
 			data: props.labels,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11 },
+			splitLine: { show: false },
 		},
 		yAxis: {
-			...(base.yAxis as any),
+			type: 'value' as const,
+			axisLine: { show: false },
+			axisTick: { show: false },
 			axisLabel: {
-				...(base.yAxis as any).axisLabel,
+				color: textColor,
+				fontSize: 11,
 				...(props.yAxisFormatter && { formatter: (v: number) => props.yAxisFormatter!(v) }),
 			},
-		},
-		tooltip: {
-			...(base.tooltip as any),
-			...(props.tooltipFormatter && { formatter: props.tooltipFormatter }),
+			splitLine: { lineStyle: { color: axisColor } },
+			...(props.yAxisMin !== undefined && { min: props.yAxisMin }),
+			...(props.yAxisMax !== undefined && { max: props.yAxisMax }),
 		},
 		series: mappedSeries,
 	}

@@ -38,7 +38,7 @@ interface SortableColumn {
 
 const props = defineProps({
 	data: {
-		type: Array as PropType<any[]>,
+		type: Array as PropType<Record<string, unknown>[]>,
 		required: true,
 	},
 	columns: {
@@ -111,8 +111,8 @@ const createSortHeader = (key: string, label: string) => {
 const sortedData = computed(() => {
 	if (!sortBy.value) return props.data
 	return [...props.data].sort((a, b) => {
-		const valA = (a as Record<string, any>)[sortBy.value]
-		const valB = (b as Record<string, any>)[sortBy.value]
+		const valA = a[sortBy.value]
+		const valB = b[sortBy.value]
 		if (valA == null) return 1
 		if (valB == null) return -1
 		if (valA === valB) return 0

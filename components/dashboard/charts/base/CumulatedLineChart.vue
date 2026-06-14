@@ -12,17 +12,9 @@
 import type { EChartsOption } from 'echarts'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { colorToRgba } from '~/utils/color-utils'
+import type { EChartsFormatterParams, EChartsAreaStyle } from '~/utils/echarts-builders'
 
 type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: number
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
 
 const props = defineProps({
 	title: { type: String, required: true },
@@ -33,7 +25,7 @@ const props = defineProps({
 	profitColor: { type: String, default: '#10b981' },
 	lossColor: { type: String, default: '#ef4444' },
 	yAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
-	tooltipFormatter: { type: Function as PropType<(params: FormatterParams, labels: string[]) => string>, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams<number | [number, number]>[], labels: string[]) => string>, default: undefined },
 	loading: { type: Boolean, default: false },
 	canvasHeight: { type: Number, default: undefined },
 })
@@ -102,8 +94,8 @@ const chartOption = computed((): EChartsOption => {
 			appendTo: 'parent',
 			className: 'echarts-custom-tooltip',
 			axisPointer: { snap: true },
-			...(props.tooltipFormatter && { formatter: (params: any) => props.tooltipFormatter!(params, props.labels) }),
-		},
+			...(props.tooltipFormatter && { formatter: (params: unknown) => props.tooltipFormatter!(params as EChartsFormatterParams<number | [number, number]>[], props.labels) }),
+		} as EChartsOption['tooltip'],
 		xAxis: {
 			type: 'value' as const,
 			min: 0,
@@ -137,7 +129,7 @@ const chartOption = computed((): EChartsOption => {
 				data: profitData,
 				lineStyle: { width: 2, color: pColor },
 				itemStyle: { color: pColor },
-				areaStyle: { origin: threshold as any, color: pAreaColor },
+				areaStyle: { origin: threshold, color: pAreaColor } as EChartsAreaStyle,
 			},
 			{
 				...seriesBase,
@@ -145,7 +137,7 @@ const chartOption = computed((): EChartsOption => {
 				data: lossData,
 				lineStyle: { width: 2, color: lColor },
 				itemStyle: { color: lColor },
-				areaStyle: { origin: threshold as any, color: lAreaColor },
+				areaStyle: { origin: threshold, color: lAreaColor } as EChartsAreaStyle,
 				markLine: threshold > 0 ? {
 					silent: true,
 					symbol: 'none',

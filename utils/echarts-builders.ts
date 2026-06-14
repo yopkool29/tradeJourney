@@ -1,4 +1,44 @@
-import type { EChartsOption, LineSeriesOption, ScatterSeriesOption } from 'echarts'
+import type { EChartsOption, LineSeriesOption, ScatterSeriesOption, HeatmapSeriesOption, VisualMapComponentOption } from 'echarts'
+
+export type EChartsGridOption = {
+	left?: number
+	right?: number
+	top?: number
+	bottom?: number
+}
+
+export type EChartsItemStyle = {
+	color?: string
+	borderRadius?: number | number[]
+	borderColor?: string
+	borderWidth?: number
+}
+
+export type EChartsLineStyle = {
+	width?: number
+	color?: string
+	type?: 'solid' | 'dashed' | 'dotted'
+}
+
+export type EChartsAreaStyle = {
+	color?: string
+	opacity?: number
+	origin?: number | 'start' | 'end' | 'auto'
+}
+
+export type EChartsSeriesEmphasis = {
+	disabled?: boolean
+	itemStyle?: EChartsItemStyle
+}
+
+export type EChartsFormatterParams<V = number> = {
+	seriesName?: string
+	name?: string
+	value: V
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
 
 export interface BarDataItem {
 	value: number
@@ -28,14 +68,25 @@ export interface LineSeriesConfig {
 	symbol?: string
 	symbolSize?: number
 	showSymbol?: boolean
-	areaStyle?: { color?: string; origin?: any; opacity?: number }
-	lineStyle?: { width?: number; color?: string; type?: string }
+	areaStyle?: EChartsAreaStyle
+	lineStyle?: EChartsLineStyle
 	connectNulls?: boolean
 }
 
+export type ScatterDataPoint = {
+	value: number[]
+	itemStyle?: {
+		color?: string
+		borderColor?: string
+		borderWidth?: number
+		borderType?: string
+	}
+}
+
 export interface ScatterSeriesConfig {
-	data: any[]
-	symbolSize?: number | ((data: number[]) => number)
+	data: ScatterDataPoint[]
+	symbolSize?: number | ((data: unknown[]) => number)
+
 	emphasis?: {
 		scale?: number
 		itemStyle?: {
@@ -100,9 +151,9 @@ export const buildLineSeries = (config: LineSeriesConfig): LineSeriesOption => {
 		symbol: config.symbol ?? 'circle',
 		symbolSize: config.symbolSize ?? 4,
 		showSymbol: config.showSymbol ?? (config.symbolSize === 0 ? false : undefined),
-		lineStyle: (config.lineStyle ?? { width: 2, color: config.color }) as any,
+		lineStyle: (config.lineStyle ?? { width: 2, color: config.color }) as LineSeriesOption['lineStyle'],
 		itemStyle: { color: config.color },
-		areaStyle: config.areaStyle,
+		areaStyle: config.areaStyle as LineSeriesOption['areaStyle'],
 		connectNulls: config.connectNulls ?? false,
 		emphasis: { disabled: true },
 	}
@@ -111,7 +162,7 @@ export const buildLineSeries = (config: LineSeriesConfig): LineSeriesOption => {
 export const buildScatterSeries = (config: ScatterSeriesConfig, isDark?: boolean): ScatterSeriesOption => {
 	return {
 		type: 'scatter' as const,
-		data: config.data,
+		data: config.data as ScatterSeriesOption['data'],
 		symbolSize: config.symbolSize ?? 10,
 		emphasis: config.emphasis ?? {
 			scale: 1.3,
@@ -123,7 +174,7 @@ export const buildScatterSeries = (config: ScatterSeriesConfig, isDark?: boolean
 	}
 }
 
-export const buildHeatmapSeries = (config: HeatmapSeriesConfig, isDark?: boolean): any => {
+export const buildHeatmapSeries = (config: HeatmapSeriesConfig, isDark?: boolean): HeatmapSeriesOption => {
 	return {
 		name: config.name ?? 'Heatmap',
 		type: 'heatmap' as const,
@@ -138,7 +189,7 @@ export const buildHeatmapSeries = (config: HeatmapSeriesConfig, isDark?: boolean
 	}
 }
 
-export const buildVisualMap = (config: VisualMapConfig, isDark?: boolean): any => {
+export const buildVisualMap = (config: VisualMapConfig, isDark?: boolean): VisualMapComponentOption => {
 	return {
 		min: config.min,
 		max: config.max,

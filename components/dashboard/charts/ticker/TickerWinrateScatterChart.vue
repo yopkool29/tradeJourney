@@ -15,15 +15,7 @@
 
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
-
-type FormatterParams = {
-	seriesName: string
-	name: string
-	value: [number, number, number, string]
-	dataIndex: number
-	seriesIndex: number
-	data: unknown
-}
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 defineProps({
 	loading: { type: Boolean },
@@ -89,7 +81,7 @@ const scatterData = computed(() => {
 	})
 })
 
-const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
+const tooltipFormatter = (params: EChartsFormatterParams<[number, number, number, string]> | EChartsFormatterParams<[number, number, number, string]>[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const [tradesCount, winrate, pnl, symbolOrGroup] = p.value
 	const isGroup = symbolOrGroup.includes(',')

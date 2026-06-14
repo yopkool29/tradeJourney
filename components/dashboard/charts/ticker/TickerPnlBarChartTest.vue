@@ -22,7 +22,9 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
+
+defineProps<{
 	loading?: boolean
 	layoutKey?: number
 }>()
@@ -82,8 +84,8 @@ const chartOption = computed(() => {
 		grid: { left: 80, right: 80, top: 12, bottom: 28 },
 		tooltip: {
 			...base.tooltip,
-			formatter: (params: any) => {
-				const p = Array.isArray(params) ? params[0] : params
+			formatter: (params: unknown) => {
+				const p = Array.isArray(params) ? (params as EChartsFormatterParams[])[0] : params as EChartsFormatterParams
 				const metric = metrics[p.dataIndex]
 				const lines = [
 					`<strong>${metric.symbol}</strong>`,
@@ -119,7 +121,7 @@ const chartOption = computed(() => {
 			inverse: true,
 		},
 		series: [{
-			type: 'bar',
+			type: 'bar' as const,
 			data: values.map((v, i) => ({
 				value: v,
 				itemStyle: {
@@ -132,7 +134,7 @@ const chartOption = computed(() => {
 			label: {
 				show: true,
 				position: 'right',
-				formatter: (params: any) => formatCurrency(params.value),
+				formatter: (params: unknown) => formatCurrency((params as EChartsFormatterParams).value as number),
 				fontSize: 12,
 				textBorderColor: 'transparent',
 				textBorderWidth: 0,
