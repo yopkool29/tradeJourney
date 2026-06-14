@@ -573,6 +573,7 @@ export default {
                 charts: 'Graphiques',
                 ticker_charts: 'Analyse par Ticker',
                 sections: 'Sections statistiques',
+                sync_all_breakpoints: 'Synchroniser sur tous les breakpoints',
             },
             sections: {
                 all_trades: 'Tous les trades',
@@ -655,6 +656,8 @@ export default {
                 wednesday: 'Mer',
                 thursday: 'Jeu',
                 friday: 'Ven',
+                saturday: 'Sam',
+                sunday: 'Dim',
             },
             index: {
                 accounts: 'Comptes',
@@ -705,6 +708,7 @@ export default {
                 sync_workspace: 'Synchroniser le workspace actif vers les autres bases',
                 sync_dashboard_success: 'Dashboard synchronisé',
                 sync_workspace_success: 'Workspace synchronisé',
+                sync_visibility_success: 'Visibilité synchronisée sur tous les breakpoints',
                 confirm_delete_workspace: 'Supprimer l\'espace de travail "{name}" ?',
                 unsaved_changes_title: 'Modifications non enregistrées',
                 unsaved_changes_message: 'Vous avez des modifications de grille non enregistrées. Voulez-vous les sauvegarder ?',

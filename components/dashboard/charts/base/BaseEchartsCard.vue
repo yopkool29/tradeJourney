@@ -23,7 +23,7 @@
 				class="relative w-full flex-1 min-h-0"
 				style="min-height: 200px;"
 			>
-				<VChart v-show="!hideChartWhileLoading || !loading" :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight) + 'px' }" />
+				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
 			</div>
 		</UCard>
 
@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import { onMounted } from 'vue'
+import { onMounted, onActivated, onDeactivated } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 const props = defineProps<{
@@ -54,6 +54,7 @@ const isModalOpen = ref(false)
 
 const chartContainerRef = ref<HTMLElement | null>(null)
 const containerHeight = ref(250)
+const isActive = ref(true)
 
 onMounted(() => {
 	if (chartContainerRef.value) {
@@ -61,7 +62,16 @@ onMounted(() => {
 	}
 })
 
-useResizeObserver(chartContainerRef, (entries) => {
+onActivated(() => {
+	isActive.value = true
+})
+
+onDeactivated(() => {
+	isActive.value = false
+})
+
+useResizeObserver(chartContainerRef, (entries: ResizeObserverEntry[]) => {
+	if (!isActive.value) return
 	const entry = entries[0]
 	if (entry) {
 		containerHeight.value = entry.contentRect.height

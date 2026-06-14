@@ -115,6 +115,7 @@ const props = defineProps<{
     lastFilterColumn?: string
     maxFilters?: number
     dirty?: boolean
+    isAutoApplyMode?: boolean
 }>()
 
 const emit = defineEmits<{
