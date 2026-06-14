@@ -70,8 +70,8 @@ const maxAbsPnl = computed(() =>
 	Math.max(...heatmapData.value.map(d => Math.abs(d.pnl)), 1)
 )
 
-const tooltipFormatter = (params: EChartsFormatterParams<[number, string, number]>, _labels: string[]) => {
-	const [hour, weekday, pnl] = params.value
+const tooltipFormatter = (params: EChartsFormatterParams<unknown>, _labels: string[]) => {
+	const [hour, weekday, pnl] = params.value as [number, string, number]
 	return [
 		`<strong>${weekday} ${hour}:00</strong>`,
 		`Avg P&L: ${formatCurrency(pnl)}`,
