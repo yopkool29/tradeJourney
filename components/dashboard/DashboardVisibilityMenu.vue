@@ -45,7 +45,7 @@
 					</label>
 				</div>
 				<div class="filter-actions pt-2">
-					<UButton size="xs" color="primary" @click="applyChanges">
+					<UButton size="xs" color="primary" :loading="isApplying" @click="applyChanges">
 						{{ $t('common.actions.apply') }}
 					</UButton>
 					<UButton size="xs" variant="ghost" color="neutral" @click="clearAll">
@@ -64,8 +64,8 @@
 import type { ChartKey, SectionKey } from '~/type'
 
 const props = defineProps<{
-	chartVisibility: Record<string, boolean>
-	sectionVisibility: Record<string, boolean>
+	chartVisibility: Record<ChartKey, boolean>
+	sectionVisibility: Record<SectionKey, boolean>
 }>()
 
 // Local copies for immediate UI feedback
@@ -89,14 +89,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const chartConfig = [
+const chartConfig: { id: ChartKey; label: string }[] = [
 	{ id: 'pnlBar', label: 'components.dashboard.charts.pnl_bar' },
 	{ id: 'cumulatedPnl', label: 'components.dashboard.charts.cumulated_pnl' },
 	{ id: 'appt', label: 'components.dashboard.charts.appt' },
 	{ id: 'winrate', label: 'components.dashboard.charts.winrate' },
 ]
 
-const sectionConfig = [
+const sectionConfig: { id: SectionKey; label: string }[] = [
 	{ id: 'allTrades', label: 'components.dashboard.sections.all_trades' },
 	{ id: 'profitTrades', label: 'components.dashboard.sections.profit_trades' },
 	{ id: 'losingTrades', label: 'components.dashboard.sections.losing_trades' },
@@ -104,7 +104,7 @@ const sectionConfig = [
 	{ id: 'tickerTable', label: 'components.dashboard.sections.ticker_table' },
 ]
 
-const tickerChartConfig = [
+const tickerChartConfig: { id: ChartKey; label: string }[] = [
 	{ id: 'tickerPnl', label: 'components.dashboard.charts.ticker_pnl' },
 	{ id: 'tickerWinrate', label: 'components.dashboard.charts.ticker_winrate' },
 	{ id: 'hourlyHeatmap', label: 'components.dashboard.charts.hourly_heatmap' },
@@ -114,6 +114,7 @@ const tickerChartConfig = [
 
 const isOpen = ref(false)
 const syncAllBreakpoints = ref(false)
+const isApplying = ref(false)
 
 const onPopoverChange = (open: boolean) => {
 	if (!open) {
@@ -124,7 +125,9 @@ const onPopoverChange = (open: boolean) => {
 	}
 }
 
-const applyChanges = () => {
+const applyChanges = async () => {
+	isApplying.value = true
+	await new Promise(resolve => setTimeout(resolve, 150))
 	if (syncAllBreakpoints.value) {
 		emit('syncToAllBreakpoints', { ...localChartVisibility.value }, { ...localSectionVisibility.value })
 	} else {
@@ -132,18 +135,19 @@ const applyChanges = () => {
 		emit('update:sectionVisibility', { ...localSectionVisibility.value })
 	}
 	syncAllBreakpoints.value = false
+	isApplying.value = false
 	isOpen.value = false
 }
 
 const clearAll = () => {
 	const clearedCharts = Object.keys(localChartVisibility.value).reduce((acc, k) => {
-		acc[k] = false
+		acc[k as ChartKey] = false
 		return acc
-	}, {} as Record<string, boolean>)
+	}, {} as Record<ChartKey, boolean>)
 	const clearedSections = Object.keys(localSectionVisibility.value).reduce((acc, k) => {
-		acc[k] = false
+		acc[k as SectionKey] = false
 		return acc
-	}, {} as Record<string, boolean>)
+	}, {} as Record<SectionKey, boolean>)
 	localChartVisibility.value = clearedCharts
 	localSectionVisibility.value = clearedSections
 }

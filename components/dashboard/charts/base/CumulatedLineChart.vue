@@ -71,6 +71,8 @@ const chartOption = computed((): EChartsOption => {
 		}
 	}
 
+	const largeDataset = props.values.length > 500
+
 	const seriesBase = {
 		type: 'line' as const,
 		smooth: false,
@@ -80,6 +82,7 @@ const chartOption = computed((): EChartsOption => {
 		connectNulls: false,
 		emphasis: { disabled: true },
 		blur: { lineStyle: { opacity: 1 }, areaStyle: { opacity: 0.3 } },
+		...(largeDataset && { sampling: 'lttb' as const, progressive: 500, progressiveThreshold: 500 }),
 	}
 
 	return {
