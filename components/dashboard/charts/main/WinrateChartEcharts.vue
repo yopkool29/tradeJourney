@@ -16,9 +16,18 @@
 <script setup lang="ts">
 import { generateWinrateChartData } from '~/utils/dashboard'
 
-const props = defineProps({
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+	axisValue?: string
+}
+
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
@@ -60,9 +69,9 @@ const series = computed(() => [
 	},
 ])
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: FormatterParams[]) => {
 	const label = params[0]?.axisValue || ''
-	const lines = params.map((p: any) => {
+	const lines = params.map((p) => {
 		const val = p.value as number
 		if (val === null || val === undefined) return null
 		return `${p.seriesName}: ${val.toFixed(0)}%`

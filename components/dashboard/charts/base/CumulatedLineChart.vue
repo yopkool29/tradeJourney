@@ -15,6 +15,15 @@ import { colorToRgba } from '~/utils/color-utils'
 
 type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
 
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: number
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
 const props = defineProps({
 	title: { type: String, required: true },
 	enlargedTitle: { type: String, required: true },
@@ -23,10 +32,10 @@ const props = defineProps({
 	threshold: { type: Number, default: 0 },
 	profitColor: { type: String, default: '#10b981' },
 	lossColor: { type: String, default: '#ef4444' },
-	yAxisFormatter: { type: Function as PropType<(v: number) => string> },
-	tooltipFormatter: { type: Function as PropType<(params: any, labels: string[]) => string> },
+	yAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
+	tooltipFormatter: { type: Function as PropType<(params: FormatterParams, labels: string[]) => string>, default: undefined },
 	loading: { type: Boolean, default: false },
-	canvasHeight: { type: Number },
+	canvasHeight: { type: Number, default: undefined },
 })
 
 const isDark = useIsDark()

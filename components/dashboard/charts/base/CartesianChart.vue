@@ -29,17 +29,26 @@ interface ChartSeries {
 	smooth?: number
 }
 
+type FormatterParams = {
+    seriesName: string
+    name: string
+    value: number
+    dataIndex: number
+    seriesIndex: number
+    data: unknown
+}
+
 const props = defineProps({
 	title: { type: String, required: true },
 	enlargedTitle: { type: String, required: true },
 	labels: { type: Array as PropType<string[]>, required: true },
 	series: { type: Array as PropType<ChartSeries[]>, required: true },
-	tooltipFormatter: { type: Function as PropType<(params: any) => string> },
-	yAxisFormatter: { type: Function as PropType<(v: number) => string> },
-	yAxisMin: { type: Number },
-	yAxisMax: { type: Number },
+	tooltipFormatter: { type: Function as PropType<(params: FormatterParams, labels: string[]) => string>, default: undefined },
+	yAxisFormatter: { type: Function as PropType<(v: number) => string>, default: undefined },
+	yAxisMin: { type: Number, default: undefined },
+	yAxisMax: { type: Number, default: undefined },
 	loading: { type: Boolean, default: false },
-	canvasHeight: { type: Number },
+	canvasHeight: { type: Number, default: undefined },
 	grid: {
 		type: Object as PropType<{ left?: number; right?: number; top?: number; bottom?: number }>,
 		default: () => ({ left: 70, right: 16, top: 12, bottom: 28 }),

@@ -16,9 +16,17 @@
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
 
-const props = defineProps({
+type FormatterParams = {
+	seriesName: string
+	name: string
+	value: [number, number, number, string]
+	dataIndex: number
+	seriesIndex: number
+	data: unknown
+}
+
+defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { t } = useI18n()
@@ -81,7 +89,7 @@ const scatterData = computed(() => {
 	})
 })
 
-const tooltipFormatter = (params: any) => {
+const tooltipFormatter = (params: FormatterParams | FormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params
 	const [tradesCount, winrate, pnl, symbolOrGroup] = p.value
 	const isGroup = symbolOrGroup.includes(',')
@@ -93,12 +101,12 @@ const tooltipFormatter = (params: any) => {
 	]
 	if (isGroup) {
 		lines.push(`<em>(${t('components.dashboard.ticker_table.multiple_tickers')})</em>`)
-	}
+	}   
 	return lines.join('<br/>')
 }
 
-const symbolSize = (data: any[]) => {
-	const pnl = Math.abs(data[2])
+const symbolSize = (data: unknown[]) => {
+	const pnl = Math.abs(data[2] as number)
 	const symbols = String(data[3])
 	const count = symbols.split(',').length
 	const baseSize = Math.min(18, Math.max(10, Math.sqrt(pnl) / 10))

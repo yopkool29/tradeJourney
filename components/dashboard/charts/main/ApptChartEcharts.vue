@@ -16,7 +16,6 @@ import { generateApptChartData } from '~/utils/dashboard'
 
 const props = defineProps({
 	loading: { type: Boolean },
-	layoutKey: { type: Number },
 })
 
 const { displayModeNet } = useNetGrossDisplay()
