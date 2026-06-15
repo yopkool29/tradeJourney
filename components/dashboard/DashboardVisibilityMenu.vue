@@ -8,33 +8,27 @@
 				<div>
 					<div class="text-xs font-semibold text-secondary mb-1">{{ $t('components.dashboard.visibility.charts') }}</div>
 					<div class="space-y-1">
-						<label v-for="chart in chartConfig" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
-							<UCheckbox
-								v-model="localChartVisibility[chart.id]"
-							/>
-							<span>{{ t(chart.label) }}</span>
+						<label v-for="chart in chartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
+							<UCheckbox v-model="localChartVisibility[chart.id]" />
+							<span>{{ chart.label }}</span>
 						</label>
 					</div>
 				</div>
 				<div>
 					<div class="text-xs font-semibold text-secondary mb-1">{{ $t('components.dashboard.visibility.ticker_charts') }}</div>
 					<div class="space-y-1">
-						<label v-for="chart in tickerChartConfig" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
-							<UCheckbox
-								v-model="localChartVisibility[chart.id]"
-							/>
-							<span>{{ t(chart.label) }}</span>
+						<label v-for="chart in tickerChartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
+							<UCheckbox v-model="localChartVisibility[chart.id]" />
+							<span>{{ chart.label }}</span>
 						</label>
 					</div>
 				</div>
 				<div>
 					<div class="text-xs font-semibold text-secondary mb-1">{{ $t('components.dashboard.visibility.sections') }}</div>
 					<div class="space-y-1">
-						<label v-for="section in sectionConfig" :key="section.id" class="flex items-center gap-2 cursor-pointer">
-							<UCheckbox
-								v-model="localSectionVisibility[section.id]"
-							/>
-							<span>{{ t(section.label) }}</span>
+						<label v-for="section in sectionOptions" :key="section.id" class="flex items-center gap-2 cursor-pointer">
+							<UCheckbox v-model="localSectionVisibility[section.id]" />
+							<span>{{ section.label }}</span>
 						</label>
 					</div>
 				</div>
@@ -68,19 +62,6 @@ const props = defineProps<{
 	sectionVisibility: Record<SectionKey, boolean>
 }>()
 
-// Local copies for immediate UI feedback
-const localChartVisibility = ref({ ...props.chartVisibility })
-const localSectionVisibility = ref({ ...props.sectionVisibility })
-
-// Sync with props when they change externally
-watch(() => props.chartVisibility, (val) => {
-	localChartVisibility.value = { ...val }
-}, { deep: true })
-
-watch(() => props.sectionVisibility, (val) => {
-	localSectionVisibility.value = { ...val }
-}, { deep: true })
-
 const emit = defineEmits<{
 	'update:chartVisibility': [value: Record<ChartKey, boolean>]
 	'update:sectionVisibility': [value: Record<SectionKey, boolean>]
@@ -89,28 +70,42 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const chartConfig: { id: ChartKey; label: string }[] = [
-	{ id: 'pnlBar', label: 'components.dashboard.charts.pnl_bar' },
-	{ id: 'cumulatedPnl', label: 'components.dashboard.charts.cumulated_pnl' },
-	{ id: 'appt', label: 'components.dashboard.charts.appt' },
-	{ id: 'winrate', label: 'components.dashboard.charts.winrate' },
-]
+type ChartOption = { id: ChartKey; label: string }
+type SectionOption = { id: SectionKey; label: string }
 
-const sectionConfig: { id: SectionKey; label: string }[] = [
-	{ id: 'allTrades', label: 'components.dashboard.sections.all_trades' },
-	{ id: 'profitTrades', label: 'components.dashboard.sections.profit_trades' },
-	{ id: 'losingTrades', label: 'components.dashboard.sections.losing_trades' },
-	{ id: 'winLossComparison', label: 'components.dashboard.sections.win_loss_comparison' },
-	{ id: 'tickerTable', label: 'components.dashboard.sections.ticker_table' },
-]
+const chartOptions = computed<ChartOption[]>(() => [
+	{ id: 'pnlBar', label: t('components.dashboard.charts.pnl_bar') },
+	{ id: 'cumulatedPnl', label: t('components.dashboard.charts.cumulated_pnl') },
+	{ id: 'appt', label: t('components.dashboard.charts.appt') },
+	{ id: 'winrate', label: t('components.dashboard.charts.winrate') },
+])
 
-const tickerChartConfig: { id: ChartKey; label: string }[] = [
-	{ id: 'tickerPnl', label: 'components.dashboard.charts.ticker_pnl' },
-	{ id: 'tickerWinrate', label: 'components.dashboard.charts.ticker_winrate' },
-	{ id: 'hourlyHeatmap', label: 'components.dashboard.charts.hourly_heatmap' },
-	{ id: 'hourlyWinrate', label: 'components.dashboard.charts.hourly_winrate' },
-	{ id: 'dayOfWeekPnl', label: 'components.dashboard.charts.day_of_week_pnl' },
-]
+const tickerChartOptions = computed<ChartOption[]>(() => [
+	{ id: 'tickerPnl', label: t('components.dashboard.charts.ticker_pnl') },
+	{ id: 'tickerWinrate', label: t('components.dashboard.charts.ticker_winrate') },
+	{ id: 'hourlyHeatmap', label: t('components.dashboard.charts.hourly_heatmap') },
+	{ id: 'hourlyWinrate', label: t('components.dashboard.charts.hourly_winrate') },
+	{ id: 'dayOfWeekPnl', label: t('components.dashboard.charts.day_of_week_pnl') },
+])
+
+const sectionOptions = computed<SectionOption[]>(() => [
+	{ id: 'allTrades', label: t('components.dashboard.sections.all_trades') },
+	{ id: 'profitTrades', label: t('components.dashboard.sections.profit_trades') },
+	{ id: 'losingTrades', label: t('components.dashboard.sections.losing_trades') },
+	{ id: 'winLossComparison', label: t('components.dashboard.sections.win_loss_comparison') },
+	{ id: 'tickerTable', label: t('components.dashboard.sections.ticker_table') },
+])
+
+const localChartVisibility = ref({ ...props.chartVisibility })
+const localSectionVisibility = ref({ ...props.sectionVisibility })
+
+watch(() => props.chartVisibility, (val) => {
+	localChartVisibility.value = { ...val }
+}, { deep: true })
+
+watch(() => props.sectionVisibility, (val) => {
+	localSectionVisibility.value = { ...val }
+}, { deep: true })
 
 const isOpen = ref(false)
 const syncAllBreakpoints = ref(false)
@@ -118,7 +113,6 @@ const isApplying = ref(false)
 
 const onPopoverChange = (open: boolean) => {
 	if (!open) {
-		// Reset to original values when closing without applying
 		localChartVisibility.value = { ...props.chartVisibility }
 		localSectionVisibility.value = { ...props.sectionVisibility }
 		syncAllBreakpoints.value = false

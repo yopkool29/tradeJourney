@@ -17,8 +17,8 @@ import type {
 import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true }
 
 const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
     id,
@@ -44,6 +44,7 @@ export const useUserStore = defineStore(
 
         // --- Global state (not DB-specific) ---
         const noteAssocMode = ref<'copy' | 'move'>('copy')
+        const chartSettings = ref<Record<string, Record<string, unknown>>>({})
 
         const isLogOpen = ref(false)
         const logOpenFirstInit = ref(true)
@@ -220,8 +221,8 @@ export const useUserStore = defineStore(
                         showAdvancedFilters: false,
                         filters: [] as TradeFilter[],
                         lastFilterColumn: 'symbol',
-                        dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true },
-                        dashboardSectionVisibility: { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true },
+                        dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true },
+                        dashboardSectionVisibility: { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true },
                         dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item }))
                     }
                 }
@@ -229,9 +230,9 @@ export const useUserStore = defineStore(
                 // Ensure dates are Date objects (localStorage restores them as strings)
                 const filters = dashBoardFiltersPerDb.value[dbName]
                 if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
-                if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true }
+                if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true }
                 if (!filters.dashboardSectionVisibility) {
-                    filters.dashboardSectionVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true }
+                    filters.dashboardSectionVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true }
                 }
                 if (!filters.dashboardGridLayout || filters.dashboardGridLayout.length === 0) {
                     filters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
@@ -585,6 +586,7 @@ export const useUserStore = defineStore(
 
         return {
             noteAssocMode,
+            chartSettings,
             isLogOpen,
             logOpenFirstInit,
             logMessage,
@@ -663,6 +665,7 @@ export const useUserStore = defineStore(
                 'conversionType',
                 'displayModeNet',
                 'noteAssocMode',
+                'chartSettings',
                 'lastViewedNoteIdPerDb',
                 'customInputsPerDb',
                 'recentColorsPerDb',

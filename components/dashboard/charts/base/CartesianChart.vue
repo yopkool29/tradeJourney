@@ -5,7 +5,11 @@
 		:chart-option="chartOption"
 		:canvas-height="canvasHeight"
 		:loading="loading"
-	/>
+	>
+		<template v-if="$slots.settings" #settings>
+			<slot name="settings" />
+		</template>
+	</DashboardChartsBaseEchartsCard>
 </template>
 
 <script setup lang="ts">
@@ -55,6 +59,8 @@ const chartOption = computed((): EChartsOption => {
 	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
 	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
 
+	const largeDataset = props.series.some(s => s.data.length > 500)
+
 	const mappedSeries = props.series.map((s) => {
 		const isLarge = s.data.length > 500
 		if (s.type === 'bar') {
@@ -85,12 +91,11 @@ const chartOption = computed((): EChartsOption => {
 		}
 	})
 
-	const largeDataset = props.series.some(s => s.data.length > 500)
-
 	return {
 		...getEchartsBaseOption(),
 		animation: !largeDataset,
 		grid: props.grid,
+		dataZoom: [],
 		tooltip: {
 			trigger: 'axis' as const,
 			backgroundColor,

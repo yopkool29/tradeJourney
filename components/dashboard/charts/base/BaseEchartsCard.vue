@@ -1,16 +1,31 @@
 <template>
-	<div class="relative">
+	<div class="relative group">
 		<UCard class="h-full flex flex-col" :ui="{ header: 'p-0 flex-shrink-0', body: 'flex-1 flex flex-col min-h-0 p-2' }">
 			<template #header>
 				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold">{{ title }}</span>
-					<button
-						class="ml-auto px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
-						:title="enlargedTitle"
-						@click="isModalOpen = true"
-					>
-						<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
-					</button>
+					<div class="ml-auto flex items-center gap-1">
+						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
+							<button
+								class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
+								:title="'Settings'"
+							>
+								<UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4" />
+							</button>
+							<template #content>
+								<div class="p-3 min-w-[180px]">
+									<slot name="settings" />
+								</div>
+							</template>
+						</UPopover>
+						<button
+							class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+							:title="enlargedTitle"
+							@click="isModalOpen = true"
+						>
+							<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
+						</button>
+					</div>
 					<CommonModalChart v-model="isModalOpen" :title="enlargedTitle">
 						<template #content>
 							<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
@@ -51,6 +66,7 @@ const props = defineProps<{
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)
 
 const isModalOpen = ref(false)
+const isSettingsOpen = ref(false)
 
 const chartContainerRef = ref<HTMLElement | null>(null)
 const containerHeight = ref(250)
