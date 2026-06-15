@@ -993,8 +993,10 @@ watch(
     (period) => {
         if (period === 'custom') {
             // En mode custom, utiliser les dates sauvegardées (convertir en Date si nécessaire)
-            userStore.dashBoardFilters.startDate = new Date(userStore.dashBoardFilters.customStartDate)
-            userStore.dashBoardFilters.endDate = new Date(userStore.dashBoardFilters.customEndDate)
+            const cs = userStore.dashBoardFilters.customStartDate
+            const ce = userStore.dashBoardFilters.customEndDate
+            userStore.dashBoardFilters.startDate = cs instanceof Date ? cs : new Date(cs)
+            userStore.dashBoardFilters.endDate = ce instanceof Date ? ce : new Date(ce)
         } else {
             // Pour les autres modes, calculer les dates selon la période
             const { start, end } = getPeriodDates(period)
