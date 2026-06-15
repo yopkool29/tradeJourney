@@ -7,7 +7,7 @@ export const BASE_URL = process.env.TEST_BASE_URL || `http://localhost:${process
 export const checkServerRunning = async () => {
 	try {
 		// @ts-expect-error global $fetch is stubbed in setup.ts
-		await $fetch('/api/auth', { ignoreResponseError: true })
+		await $fetch(`${BASE_URL}/api/health`, { ignoreResponseError: true })
 		console.log('Server is running at', BASE_URL)
 		return true
 	} catch {
