@@ -43,7 +43,6 @@ const chartOption = computed((): EChartsOption => {
 	return {
 		...getEchartsBaseOption(),
 		grid: props.grid,
-		dataZoom: [],
 		tooltip: {
 			trigger: 'axis' as const,
 			backgroundColor,
