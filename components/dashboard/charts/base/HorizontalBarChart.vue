@@ -4,6 +4,8 @@
 		:enlarged-title="enlargedTitle"
 		:chart-option="chartOption"
 		:loading="loading"
+		:modal-max-width="modalMaxWidth"
+		:modal-height-class="modalHeightClass"
 	/>
 </template>
 
@@ -28,6 +30,8 @@ const props = defineProps({
 		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 80, right: 80, top: 12, bottom: 28 }),
 	},
+	modalMaxWidth: { type: String, default: undefined },
+	modalHeightClass: { type: String, default: undefined },
 })
 
 const isDark = useIsDark()

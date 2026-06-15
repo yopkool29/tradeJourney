@@ -3,7 +3,7 @@
         v-model:open="modelValue"
         :dismissible="true"
         :description="title"
-        class="sm:max-w-6xl h-[300px] sm:h-[500px]"
+        :class="[props.modalMaxWidth, props.modalHeightClass]"
         :ui="{ content: 'md:max-w-4/5', description: props.hideDescription ? 'sr-only' : undefined }"
     >
         <template #title>
@@ -29,6 +29,14 @@ const props = defineProps({
     hideDescription: {
         type: Boolean,
         default: true
+    },
+    modalMaxWidth: {
+        type: String,
+        default: 'sm:max-w-6xl'
+    },
+    modalHeightClass: {
+        type: String,
+        default: 'h-[300px] sm:h-[500px]'
     }
 })
 </script>
