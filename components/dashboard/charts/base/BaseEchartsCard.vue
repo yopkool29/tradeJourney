@@ -26,7 +26,12 @@
 							<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
 						</button>
 					</div>
-					<CommonModalChart v-model="isModalOpen" :title="enlargedTitle">
+					<CommonModalChart
+						v-model="isModalOpen"
+						:title="enlargedTitle"
+						:modal-max-width="modalMaxWidth"
+						:modal-height-class="modalHeightClass"
+					>
 						<template #content>
 							<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
 						</template>
@@ -61,6 +66,8 @@ const props = defineProps<{
 	canvasHeight?: number
 	loading?: boolean
 	hideChartWhileLoading?: boolean
+	modalMaxWidth?: string
+	modalHeightClass?: string
 }>()
 
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)

@@ -9,6 +9,7 @@
 		:x-axis-formatter="formatCurrency"
 		:label-formatter="labelFormatter"
 		:loading="loading"
+		:modal-height-class="categories.length > 10 ? 'h-[300px] sm:h-[700px]' : undefined"
 	/>
 </template>
 
