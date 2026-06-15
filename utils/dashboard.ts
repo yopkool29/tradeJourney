@@ -60,9 +60,26 @@ export const defaultGridItemsSm: GridTemplateItem[] = [
 	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
 ]
 
-export const defaultDashboardGridLayout = defaultGridItemsLg.map(item => ({ ...item, x: 0, y: 0 }))
-export const defaultDashboardGridLayoutMd = defaultGridItemsMd.map(item => ({ ...item, x: 0, y: 0 }))
-export const defaultDashboardGridLayoutSm = defaultGridItemsSm.map(item => ({ ...item, x: 0, y: 0 }))
+const compactItems = (items: GridTemplateItem[], cols: number) => {
+	let currentX = 0
+	let currentY = 0
+	let rowHeight = 0
+	return items.map(item => {
+		if (currentX + item.w > cols) {
+			currentX = 0
+			currentY += rowHeight
+			rowHeight = 0
+		}
+		const positioned = { ...item, x: currentX, y: currentY }
+		currentX += item.w
+		rowHeight = Math.max(rowHeight, item.h)
+		return positioned
+	})
+}
+
+export const defaultDashboardGridLayout = compactItems(defaultGridItemsLg, 12)
+export const defaultDashboardGridLayoutMd = compactItems(defaultGridItemsMd, 6)
+export const defaultDashboardGridLayoutSm = compactItems(defaultGridItemsSm, 3)
 
 // Items that can be resized in the grid layout
 export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']
