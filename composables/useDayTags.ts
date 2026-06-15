@@ -3,11 +3,8 @@ import { DayTagSchema } from '~/schema/dayTag'
 import { normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
 
 import type { CreateDayTagType, UpdateDayTagType, DayTagType } from '~/schema/dayTag'
-import { useUserStore } from '~/stores/user'
-
 export const useDayTags = () => {
-    // Utiliser le store utilisateur pour accéder à dayTags
-    const userStore = useUserStore()
+    const dbStateStore = useDbStateStore()
 
     // Charger les DayTags depuis l'API, avec option pour filtrer par mois
     const fetchDayTags = async (month?: string) => {
@@ -22,9 +19,9 @@ export const useDayTags = () => {
         // Utiliser $fetch avec les paramètres dans query (pour GET)
         const result = await $fetch('/api/day-tags', { query })
 
-        userStore.dayTags = z.array(DayTagSchema).parse(result)
+        dbStateStore.dayTags = z.array(DayTagSchema).parse(result)
 
-        return userStore.dayTags
+        return dbStateStore.dayTags
     }
 
     // Récupérer un DayTag par date (sans appel API, utilise le cache)
@@ -36,7 +33,7 @@ export const useDayTags = () => {
         const dateStr = normalizeDateToLocalString(date)
 
         // Chercher dans le cache en comparant les dates normalisées
-        return userStore.dayTags.find((dt: DayTagType) => {
+        return dbStateStore.dayTags.find((dt: DayTagType) => {
             // Les dates du store sont en UTC, mais on les compare en tant que "jour calendaire"
             // On extrait le jour calendaire UTC qui correspond au même jour que la date locale
             const dtDateStr = normalizeDateToUTCString(new Date(dt.date))
@@ -53,7 +50,7 @@ export const useDayTags = () => {
 
         const newDayTag = DayTagSchema.parse(result)
 
-        userStore.dayTags.push(newDayTag)
+        dbStateStore.dayTags.push(newDayTag)
 
         return newDayTag
     }
@@ -68,10 +65,10 @@ export const useDayTags = () => {
         const updatedDayTag = DayTagSchema.parse(result)
 
         // Mettre à jour le cache
-        const index = userStore.dayTags.findIndex((dt: DayTagType) => dt.id === updatedDayTag.id)
+        const index = dbStateStore.dayTags.findIndex((dt: DayTagType) => dt.id === updatedDayTag.id)
 
         if (index !== -1) {
-            userStore.dayTags[index] = updatedDayTag
+            dbStateStore.dayTags[index] = updatedDayTag
         }
 
         return updatedDayTag
@@ -84,7 +81,7 @@ export const useDayTags = () => {
         })
 
         // Mettre à jour le cache
-        userStore.dayTags = userStore.dayTags.filter((dt: DayTagType) => dt.id !== id)
+        dbStateStore.dayTags = dbStateStore.dayTags.filter((dt: DayTagType) => dt.id !== id)
 
         return { success: true }
     }

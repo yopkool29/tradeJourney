@@ -235,6 +235,7 @@ const { fetchNoteDates, saveNote: saveNoteToApi, updateNote, deleteNote } = useN
 const { log_error } = useLogView()
 const { success: toastSuccess } = useAppToast()
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, deleteNoteImages } = useNoteImages()
 
 const loading = ref(false)
@@ -311,7 +312,7 @@ const formatNoteTime = (date: string | Date) => {
 
 const doSelectNote = (note: NoteType) => {
     selectedNote.value = note
-    userStore.setLastViewedNoteId(note.id ?? null)
+    dbStateStore.setLastViewedNoteId(note.id ?? null)
     const subtitle = note.metadata?.subtitle || ''
     noteSubtitle.value = subtitle
     savedSubtitle.value = subtitle
@@ -431,7 +432,7 @@ const loadNotes = async () => {
 
         // Restaurer la dernière note vue, sinon sélectionner la plus récente
         if (!selectedNote.value && noteDates.value.length > 0) {
-            const lastId = userStore.lastViewedNoteId
+            const lastId = dbStateStore.lastViewedNoteId
             const lastNote = lastId ? noteDates.value.find((n: NoteType) => n.id === lastId) : null
             const noteToSelect =
                 lastNote ?? [...noteDates.value].sort((a: NoteType, b: NoteType) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
@@ -562,7 +563,7 @@ const deleteNoteConfirmed = async () => {
         if (success) {
             if (selectedNote.value?.id === noteToDelete.value.id) {
                 selectedNote.value = null
-                userStore.setLastViewedNoteId(null)
+                dbStateStore.setLastViewedNoteId(null)
                 setContent('')
             }
 

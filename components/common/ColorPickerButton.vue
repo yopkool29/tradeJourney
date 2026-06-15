@@ -48,7 +48,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const modelValue = defineModel<string>()
 const isOpen = ref(false)
 const tempColor = ref<string>('')
@@ -64,11 +64,11 @@ const saveColor = () => {
     modelValue.value = hexColor
     
     // Ajouter la couleur aux couleurs récentes (recentColors2)
-    if (hexColor && !userStore.recentColors2.includes(hexColor)) {
-        userStore.recentColors2.unshift(hexColor)
+    if (hexColor && !dbStateStore.recentColors2.includes(hexColor)) {
+        dbStateStore.recentColors2.unshift(hexColor)
         // Limiter à 10 couleurs récentes
-        if (userStore.recentColors2.length > 10) {
-            userStore.recentColors2.pop()
+        if (dbStateStore.recentColors2.length > 10) {
+            dbStateStore.recentColors2.pop()
         }
     }
     

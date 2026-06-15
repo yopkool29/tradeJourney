@@ -30,12 +30,12 @@ const props = withDefaults(defineProps<Props>(), {
     width: 'full',
 })
 
-const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 
 const effectiveName = computed(() => props.name || 'default')
 const listId = computed(() => `input-history-${effectiveName.value}`)
 
-const items = computed(() => userStore.getCustomInput(effectiveName.value).items)
+const items = computed(() => dbStateStore.getCustomInput(effectiveName.value).items)
 
 const modelValue = defineModel<string>({ default: '' })
 
@@ -54,7 +54,7 @@ const widthClass = computed(() => {
 const saveToHistory = () => {
     const val = modelValue.value?.trim()
     if (val) {
-        userStore.addCustomItem(effectiveName.value, val)
+        dbStateStore.addCustomItem(effectiveName.value, val)
     }
 }
 </script>

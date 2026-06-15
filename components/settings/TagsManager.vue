@@ -256,7 +256,7 @@ import { CreateTagGroupSchema, UpdateTagGroupSchema } from '~/schema/tagGroup'
 const emit = defineEmits<{ 'tags-updated': [] }>()
 
 const { t } = useI18n()
-const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const isDark = useIsDark()
 
 const { getTagStyle, fetchGroups: fetchGroupsBase, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, reorderGroups, tagGroups } = useTags()
@@ -301,7 +301,7 @@ const props = defineProps({
 
 const onColorPicked = (color: string) => {
 	if (!color) return
-	userStore.recentColors = [color, ...userStore.recentColors.filter((c) => c !== color)].slice(0, 10)
+	dbStateStore.recentColors = [color, ...dbStateStore.recentColors.filter((c) => c !== color)].slice(0, 10)
 }
 
 function newGroup() {

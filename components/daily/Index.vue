@@ -6,11 +6,11 @@
                 <div class="flex items-start justify-between">
                     <div class="flex flex-col">
                         <CommonTradeFilters
-                            v-model:account-ids="userStore.dailyFilters.accountIds"
-                            v-model:show-inactive="userStore.dailyFilters.showInactive"
+                            v-model:account-ids="dbStateStore.dailyFilters.accountIds"
+                            v-model:show-inactive="dbStateStore.dailyFilters.showInactive"
                             v-model:filters="filters"
-                            v-model:show-advanced-filters="userStore.dailyFilters.showAdvancedFilters"
-                            v-model:last-filter-column="userStore.dailyFilters.lastFilterColumn"
+                            v-model:show-advanced-filters="dbStateStore.dailyFilters.showAdvancedFilters"
+                            v-model:last-filter-column="dbStateStore.dailyFilters.lastFilterColumn"
                             :title="$t('components.daily.index.accounts')"
                             slot-id="page-daily"
                             :show-plugin-slot="false"
@@ -18,7 +18,7 @@
                             :account-options="accountOptions"
                             :placeholder="$t('components.daily.index.select_accounts')"
                             :all-label="$t('components.daily.index.all_accounts')"
-                            :selected-label="$t('components.daily.index.selected_accounts', { count: userStore.dailyFilters.accountIds?.length })"
+                            :selected-label="$t('components.daily.index.selected_accounts', { count: dbStateStore.dailyFilters.accountIds?.length })"
                             :show-inactive-checkbox="true"
                             :tag-groups="tagGroups"
                             :dirty="filterDirty"
@@ -83,6 +83,7 @@ import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import type { TradeFilter } from '~/type'
 
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const showDialog = ref(false)
 const dialogGroup = ref<TradeGroup | null>(null)
@@ -96,8 +97,8 @@ const groupsReady = ref(false)
 const expandedGroups = shallowRef<{ [key: string]: boolean }>({})
 
 const isExpanded = computed({
-    get: () => userStore.dailyFilters.isExpanded,
-    set: (val) => userStore.dailyFilters.isExpanded = val
+    get: () => dbStateStore.dailyFilters.isExpanded,
+    set: (val) => dbStateStore.dailyFilters.isExpanded = val
 })
 
 type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number; commission: number }
@@ -115,8 +116,8 @@ const accountOptions = computed(() => {
 })
 
 const selectedMonth = computed({
-    get: () => userStore.dailyFilters.selectedMonth,
-    set: (value) => (userStore.dailyFilters.selectedMonth = value),
+    get: () => dbStateStore.dailyFilters.selectedMonth,
+    set: (value) => (dbStateStore.dailyFilters.selectedMonth = value),
 })
 
 const fetchingDateRange = ref(false)
@@ -126,7 +127,7 @@ const setHistoryDateRange = async () => {
     try {
         const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
-                accountIds: JSON.stringify(userStore.dailyFilters.accountIds)
+                accountIds: JSON.stringify(dbStateStore.dailyFilters.accountIds)
             }
         })
 
@@ -143,7 +144,7 @@ const setHistoryDateRange = async () => {
     }
 }
 
-const displayMonth = ref(userStore.dailyFilters.selectedMonth)
+const displayMonth = ref(dbStateStore.dailyFilters.selectedMonth)
 const dataStore = useDataStore()
 const displayResults = shallowRef<TradeExtendedType[]>(dailyLastTrades.value)
 
@@ -166,15 +167,15 @@ const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounce
         if (monthChanged) expandedGroups.value = {}
     },
     accounts,
-    getAccountIds: () => userStore.dailyFilters.accountIds,
-    setAccountIds: (ids) => { userStore.dailyFilters.accountIds = ids },
+    getAccountIds: () => dbStateStore.dailyFilters.accountIds,
+    setAccountIds: (ids) => { dbStateStore.dailyFilters.accountIds = ids },
 })
 
 const { t, locale } = useI18n()
 
 const filters = computed({
-    get: () => userStore.dailyFilters.filters || [],
-    set: (val) => userStore.dailyFilters.filters = val
+    get: () => dbStateStore.dailyFilters.filters || [],
+    set: (val) => dbStateStore.dailyFilters.filters = val
 })
 
 // Fonction pour construire les filtres du daily (convertit selectedMonth en dates)
@@ -187,7 +188,7 @@ const buildDailyFilters = (): TradeFilter[] => {
         startDate,
         endDate,
         true,
-        userStore.dailyFilters.accountIds,
+        dbStateStore.dailyFilters.accountIds,
         filters.value
     )
 }
@@ -208,7 +209,7 @@ const {
 
 function resetFilters() {
     filters.value = []
-    userStore.dailyFilters.showAdvancedFilters = false
+    dbStateStore.dailyFilters.showAdvancedFilters = false
     loadMonthDataDebounced()
 }
 
@@ -226,7 +227,7 @@ const getDaysStats = () => {
     const end = endOfMonth(start)
 
     // Extraire accountIds en Set pour O(1) lookup
-    const accountIds = userStore.dailyFilters.accountIds
+    const accountIds = dbStateStore.dailyFilters.accountIds
     const accountIdSet = new Set(accountIds)
     const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
 
@@ -318,7 +319,7 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const startDate = startOfMonth(selectedMonth.value)
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
-            await fetchData(startDate, endDate, true, userStore.dailyFilters.accountIds, filters.value)
+            await fetchData(startDate, endDate, true, dbStateStore.dailyFilters.accountIds, filters.value)
             // Laisser le browser respirer avant le rendu des groupes
             await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)))
         }
@@ -357,7 +358,7 @@ onMounted(() => {
         displayResults.value = dailyLastTrades.value
         displayMonth.value = selectedMonth.value
 
-        if (userStore.shouldRefreshData() && (userStore.dayTags.length > 0 || dataStore.dailyLastTrades.length > 0)) {
+        if (userStore.shouldRefreshData() && (dbStateStore.dayTags.length > 0 || dataStore.dailyLastTrades.length > 0)) {
             await loadMonthData()
             userStore.clearDataRefresh()
         }
@@ -380,14 +381,14 @@ onMounted(() => {
 
 // Watcher pour les comptes (debounced)
 watch(
-    () => [...(userStore.dailyFilters.accountIds || [])],
+    () => [...(dbStateStore.dailyFilters.accountIds || [])],
     () => debouncedHandleFilterChange(),
     { deep: true }
 )
 
 // Watcher pour showInactive (debounced)
 watch(
-    () => userStore.dailyFilters.showInactive,
+    () => dbStateStore.dailyFilters.showInactive,
     () => debouncedHandleFilterChange()
 )
 

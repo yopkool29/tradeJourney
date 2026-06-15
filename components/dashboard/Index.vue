@@ -3,11 +3,11 @@
         <UCard class="card-container-xl">
             <template #default>
                 <CommonTradeFilters
-                    v-model:account-ids="userStore.dashBoardFilters.accountIds"
-                    v-model:show-inactive="userStore.dashBoardFilters.showInactive"
+                    v-model:account-ids="dbStateStore.dashBoardFilters.accountIds"
+                    v-model:show-inactive="dbStateStore.dashBoardFilters.showInactive"
                     v-model:filters="filters"
-                    v-model:show-advanced-filters="userStore.dashBoardFilters.showAdvancedFilters"
-                    v-model:last-filter-column="userStore.dashBoardFilters.lastFilterColumn"
+                    v-model:show-advanced-filters="dbStateStore.dashBoardFilters.showAdvancedFilters"
+                    v-model:last-filter-column="dbStateStore.dashBoardFilters.lastFilterColumn"
                     :dirty="filterDirty"
                     :title="$t('components.dashboard.index.accounts')"
                     slot-id="page-dashboard"
@@ -16,7 +16,7 @@
                     :account-options="accountOptions"
                     :placeholder="$t('components.dashboard.index.select_accounts')"
                     :all-label="$t('components.dashboard.index.all_accounts')"
-                    :selected-label="$t('components.dashboard.index.selected_accounts', { count: userStore.dashBoardFilters.accountIds?.length })"
+                    :selected-label="$t('components.dashboard.index.selected_accounts', { count: dbStateStore.dashBoardFilters.accountIds?.length })"
                     :show-inactive-checkbox="false"
                     :tag-groups="tagGroups"
                     @apply="onExplicitApply"
@@ -26,7 +26,7 @@
                     <template #after-accounts>
                         <div class="filter-actions-lg">
                             <USelect
-                                v-model="userStore.dashBoardFilters.period"
+                                v-model="dbStateStore.dashBoardFilters.period"
                                 class="w-auto select-none select-standard"
                                 :ui="{ content: 'w-auto min-w-[var(--reka-select-trigger-width)]' }"
                                 :items="periodOptions(locale)"
@@ -355,6 +355,7 @@ import { useMetricsSectionRegistry } from '~/composables/metrics/useSectionRegis
 const { formatCurrency } = useUtils()
 
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const settings = userStore.user?.settings_object as SettingsContentType
 const { fetchAccounts, fetchData, accounts, dashBoardLastTrades, dashBoardResult, clearLastTrades } = useDashboard()
 const { displayModeNet } = useNetGrossDisplay()
@@ -373,12 +374,12 @@ const defaultSectionVisibility = getDefaultSectionVisibility()
 
 // --- Workspace helpers ---
 
-const workspaces = computed(() => userStore.dashBoardFilters.workspaces || [])
+const workspaces = computed(() => dbStateStore.dashBoardFilters.workspaces || [])
 
 const activeWorkspaceId = computed({
-    get: () => userStore.dashBoardFilters.activeWorkspaceId || 'summary',
+    get: () => dbStateStore.dashBoardFilters.activeWorkspaceId || 'summary',
     set: (val: WorkspaceId) => {
-        userStore.dashBoardFilters = { ...userStore.dashBoardFilters, activeWorkspaceId: val }
+        dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, activeWorkspaceId: val }
     },
 })
 
@@ -409,7 +410,7 @@ const updateActiveWorkspace = (patch: Partial<WorkspaceConfig>) => {
     const updated = workspaces.value.map(w =>
         w.id === activeWorkspaceId.value ? { ...w, ...patch } : w
     )
-    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated }
+    dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, workspaces: updated }
 }
 
 const chartVisibilityLg = computed({
@@ -606,17 +607,17 @@ const syncDashboardToOtherDatabases = () => {
     const { currentDatabase } = useDatabase()
     const currentDbName = currentDatabase.value?.name || 'default'
 
-    const sourceFilters = userStore.dashBoardFiltersPerDb[currentDbName]
+    const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
     if (!sourceFilters) return
 
-    const newPerDb = { ...userStore.dashBoardFiltersPerDb }
+    const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
 
     for (const dbName of Object.keys(newPerDb)) {
         if (dbName === currentDbName) continue
         newPerDb[dbName] = { ...sourceFilters }
     }
 
-    userStore.dashBoardFiltersPerDb = newPerDb
+    dbStateStore.dashBoardFiltersPerDb = newPerDb
     toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
 }
 
@@ -627,7 +628,7 @@ const syncActiveWorkspaceToOtherDatabases = () => {
     const { currentDatabase } = useDatabase()
     const currentDbName = currentDatabase.value?.name || 'default'
 
-    const newPerDb = { ...userStore.dashBoardFiltersPerDb }
+    const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
 
     for (const [dbName, filters] of Object.entries(newPerDb)) {
         if (dbName === currentDbName || !filters?.workspaces) continue
@@ -642,7 +643,7 @@ const syncActiveWorkspaceToOtherDatabases = () => {
         newPerDb[dbName] = { ...filters, workspaces: newWorkspaces }
     }
 
-    userStore.dashBoardFiltersPerDb = newPerDb
+    dbStateStore.dashBoardFiltersPerDb = newPerDb
     toastSuccess(t('components.dashboard.index.sync_workspace_success'))
 }
 
@@ -732,13 +733,13 @@ const accountOptions = computed(() => {
 })
 
 const filters = computed({
-    get: () => userStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => (userStore.dashBoardFilters.filters = val),
+    get: () => dbStateStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => (dbStateStore.dashBoardFilters.filters = val),
 })
 
 // Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
-    const selectedAccountIds = userStore.dashBoardFilters.accountIds
+    const selectedAccountIds = dbStateStore.dashBoardFilters.accountIds
 
     // Filtrer les comptes sélectionnés qui existent réellement
     let availableAccounts = accounts.value
@@ -763,27 +764,27 @@ const startingCapital = computed(() => {
 })
 
 const startDateStr = computed({
-    get: () => formatDateToYYYYMMDD(userStore.dashBoardFilters.startDate),
+    get: () => formatDateToYYYYMMDD(dbStateStore.dashBoardFilters.startDate),
     set: (value) => {
         const newDate = new Date(value)
-        userStore.dashBoardFilters.startDate = newDate
-        userStore.dashBoardFilters.customStartDate = newDate
+        dbStateStore.dashBoardFilters.startDate = newDate
+        dbStateStore.dashBoardFilters.customStartDate = newDate
         // Passer en mode custom si on modifie manuellement la date
-        if (userStore.dashBoardFilters.period !== 'custom') {
-            userStore.dashBoardFilters.period = 'custom'
+        if (dbStateStore.dashBoardFilters.period !== 'custom') {
+            dbStateStore.dashBoardFilters.period = 'custom'
         }
     },
 })
 
 const endDateStr = computed({
-    get: () => formatDateToYYYYMMDD(userStore.dashBoardFilters.endDate),
+    get: () => formatDateToYYYYMMDD(dbStateStore.dashBoardFilters.endDate),
     set: (value) => {
         const newDate = new Date(value)
-        userStore.dashBoardFilters.endDate = newDate
-        userStore.dashBoardFilters.customEndDate = newDate
+        dbStateStore.dashBoardFilters.endDate = newDate
+        dbStateStore.dashBoardFilters.customEndDate = newDate
         // Passer en mode custom si on modifie manuellement la date
-        if (userStore.dashBoardFilters.period !== 'custom') {
-            userStore.dashBoardFilters.period = 'custom'
+        if (dbStateStore.dashBoardFilters.period !== 'custom') {
+            dbStateStore.dashBoardFilters.period = 'custom'
         }
     },
 })
@@ -795,16 +796,16 @@ const setHistoryDateRange = async () => {
     try {
         const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
-                accountIds: JSON.stringify(userStore.dashBoardFilters.accountIds),
+                accountIds: JSON.stringify(dbStateStore.dashBoardFilters.accountIds),
             },
         })
 
         if (result.minDate && result.maxDate) {
-            userStore.dashBoardFilters.startDate = new Date(result.minDate)
-            userStore.dashBoardFilters.endDate = new Date(result.maxDate)
-            userStore.dashBoardFilters.customStartDate = new Date(result.minDate)
-            userStore.dashBoardFilters.customEndDate = new Date(result.maxDate)
-            userStore.dashBoardFilters.period = 'custom'
+            dbStateStore.dashBoardFilters.startDate = new Date(result.minDate)
+            dbStateStore.dashBoardFilters.endDate = new Date(result.maxDate)
+            dbStateStore.dashBoardFilters.customStartDate = new Date(result.minDate)
+            dbStateStore.dashBoardFilters.customEndDate = new Date(result.maxDate)
+            dbStateStore.dashBoardFilters.period = 'custom'
             await onApplyFiltersDebounced()
         }
     } catch (error) {
@@ -858,14 +859,14 @@ const addWorkspace = () => {
         dashboardGridLayoutSm: [...newWorkspaceGridLayout],
     }
     const updated = [...workspaces.value, newWorkspace]
-    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: id }
+    dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: id }
 }
 
 const removeWorkspace = (id: WorkspaceId) => {
     if (id === 'summary') return
     const updated = workspaces.value.filter(w => w.id !== id)
     const newActiveId = activeWorkspaceId.value === id ? 'summary' : activeWorkspaceId.value
-    userStore.dashBoardFilters = { ...userStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: newActiveId }
+    dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, workspaces: updated, activeWorkspaceId: newActiveId }
 }
 
 const renameActiveWorkspace = () => {
@@ -879,15 +880,15 @@ const cancelRenameWorkspace = () => {
 }
 
 // Variable locale pour le mode cumulé (buffer en mode manuel)
-const localCumuleMode = ref(userStore.dashBoardFilters.cumuleMode)
+const localCumuleMode = ref(dbStateStore.dashBoardFilters.cumuleMode)
 
 // Fonction pour construire les filtres du dashboard
 const buildDashboardFilters = (): TradeFilter[] => {
     return buildFiltersForApi(
-        userStore.dashBoardFilters.startDate,
-        userStore.dashBoardFilters.endDate,
+        dbStateStore.dashBoardFilters.startDate,
+        dbStateStore.dashBoardFilters.endDate,
         true,
-        userStore.dashBoardFilters.accountIds,
+        dbStateStore.dashBoardFilters.accountIds,
         filters.value
     )
 }
@@ -904,7 +905,7 @@ const {
     pageType: 'dashboard',
     onFetch: async () => {
         await onApplyFilters()
-        userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+        dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
     },
     buildFiltersFn: buildDashboardFilters,
     debounceMs: 300,
@@ -915,7 +916,7 @@ const onCumuleModeChange = () => {
     nextTick(() => {
         setTimeout(() => {
             if (isAutoApplyMode.value) {
-                userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+                dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
             }
             // Recalculer le count et mettre à jour dirty
             handleFilterChange(false) // false = pas de fetch auto, juste count + dirty
@@ -931,27 +932,27 @@ const {
     fetchFn: async () => {
         filterDirty.value = false
         const trades = await fetchData(
-            userStore.dashBoardFilters.startDate,
-            userStore.dashBoardFilters.endDate,
+            dbStateStore.dashBoardFilters.startDate,
+            dbStateStore.dashBoardFilters.endDate,
             true,
-            userStore.dashBoardFilters.accountIds,
+            dbStateStore.dashBoardFilters.accountIds,
             displayModeNet.value,
             filters.value
         )
         // Copier le cumulé APRES le fetch pour éviter le double rendu
-        userStore.dashBoardFilters.cumuleMode = localCumuleMode.value
+        dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
         return trades
     },
     accounts,
-    getAccountIds: () => userStore.dashBoardFilters.accountIds,
+    getAccountIds: () => dbStateStore.dashBoardFilters.accountIds,
     setAccountIds: (ids) => {
-        userStore.dashBoardFilters.accountIds = ids
+        dbStateStore.dashBoardFilters.accountIds = ids
     },
 })
 
 function resetFilters() {
     filters.value = []
-    userStore.dashBoardFilters.showAdvancedFilters = false
+    dbStateStore.dashBoardFilters.showAdvancedFilters = false
     onApplyFiltersDebounced()
 }
 
@@ -989,19 +990,19 @@ onMounted(() => {
 
 // Watcher sur la période
 watch(
-    () => userStore.dashBoardFilters.period,
+    () => dbStateStore.dashBoardFilters.period,
     (period) => {
         if (period === 'custom') {
             // En mode custom, utiliser les dates sauvegardées (convertir en Date si nécessaire)
-            const cs = userStore.dashBoardFilters.customStartDate
-            const ce = userStore.dashBoardFilters.customEndDate
-            userStore.dashBoardFilters.startDate = cs instanceof Date ? cs : new Date(cs)
-            userStore.dashBoardFilters.endDate = ce instanceof Date ? ce : new Date(ce)
+            const cs = dbStateStore.dashBoardFilters.customStartDate
+            const ce = dbStateStore.dashBoardFilters.customEndDate
+            dbStateStore.dashBoardFilters.startDate = cs instanceof Date ? cs : new Date(cs)
+            dbStateStore.dashBoardFilters.endDate = ce instanceof Date ? ce : new Date(ce)
         } else {
             // Pour les autres modes, calculer les dates selon la période
             const { start, end } = getPeriodDates(period)
-            userStore.dashBoardFilters.startDate = start ? start : new Date()
-            userStore.dashBoardFilters.endDate = end ? end : new Date()
+            dbStateStore.dashBoardFilters.startDate = start ? start : new Date()
+            dbStateStore.dashBoardFilters.endDate = end ? end : new Date()
         }
     },
     { immediate: true }
@@ -1010,7 +1011,7 @@ watch(
 // Watcher unique pour les comptes (debounced) - sans deep pour éviter re-fetch KeepAlive
 let lastAccountIds: number[] = []
 watch(
-    () => userStore.dashBoardFilters.accountIds,
+    () => dbStateStore.dashBoardFilters.accountIds,
     (newIds) => {
         const currentIds = newIds || []
         const changed = currentIds.length !== lastAccountIds.length ||

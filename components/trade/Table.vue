@@ -4,18 +4,18 @@
         <UCard class="card-container-xl">
             <template #default>
                 <CommonTradeFilters :title="$t('components.trade.table.accounts.title')" slot-id="page-trade"
-                        :show-plugin-slot="true" v-model:account-ids="userStore.tradeOptions.accountIds"
-                        v-model:show-inactive="userStore.tradeOptions.showInactive" v-model:filters="filters"
-                        v-model:show-advanced-filters="userStore.tradeOptions.showAdvancedFilters"
+                        :show-plugin-slot="true" v-model:account-ids="dbStateStore.tradeOptions.accountIds"
+                        v-model:show-inactive="dbStateStore.tradeOptions.showInactive" v-model:filters="filters"
+                        v-model:show-advanced-filters="dbStateStore.tradeOptions.showAdvancedFilters"
                         :filter-loading="filterLoading" :account-options="accountOptions"
                         :placeholder="$t('components.trade.table.accounts.placeholder')"
                         :all-label="$t('components.trade.table.accounts.all')"
-                        :selected-label="$t('components.trade.table.accounts.selected', { count: userStore.tradeOptions.accountIds?.length })"
+                        :selected-label="$t('components.trade.table.accounts.selected', { count: dbStateStore.tradeOptions.accountIds?.length })"
                         :show-column-visibility="true"
                         :table="table" :label-columns-header="labelColumnsHeader"
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
                         :show-inactive-checkbox="true" :tag-groups="tagGroups"
-                        v-model:last-filter-column="userStore.tradeOptions.lastFilterColumn"
+                        v-model:last-filter-column="dbStateStore.tradeOptions.lastFilterColumn"
                         @apply="onApplyFiltersDebounced" @reset="resetFilters" />
             </template>
         </UCard>
@@ -35,7 +35,7 @@
                     }" />
             </div>
             <div v-if="paginatedTrades.length" class="form-row">
-                <USelect v-model="userStore.tradeOptions.nbLines"
+                <USelect v-model="dbStateStore.tradeOptions.nbLines"
                     :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
                 <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
             </div>
@@ -57,7 +57,7 @@
                     {{ $t('components.trade.table.bulk_deactivate_confirm') }}
                 </template>
             </CommonModalDelete>
-            <UTable :key="timezoneKey" ref="table" v-model:column-visibility="userStore.columnVisibility"
+            <UTable :key="timezoneKey" ref="table" v-model:column-visibility="dbStateStore.columnVisibility"
                 :data="paginatedTrades" :columns="columns" :loading="tableIsLoading"
                 :empty-state="{ icon: 'i-heroicons-document-text', label: $t('components.trade.table.empty_state') }"
                 :ui="{ td: 'p-2' }" class="custom-table-hover table-fixed" @sort="onSort">
@@ -158,7 +158,7 @@
                     }" />
             </div>
             <div v-if="paginatedTrades.length" class="form-row">
-                <USelect v-model="userStore.tradeOptions.nbLines"
+                <USelect v-model="dbStateStore.tradeOptions.nbLines"
                     :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
                 <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
             </div>
@@ -180,6 +180,7 @@ const appConfig = useAppConfig()
 const { formatCurrency } = useUtils()
 const colorMode = useColorMode()
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 
 const tableRowHoverColor = computed(() => {
     const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
@@ -197,7 +198,7 @@ const { getDigitFromSymbol } = useSymbols()
 const { accounts, fetchAccounts } = useAccount()
 const { tradeTypeColors } = useTypeColors()
 
-const pageSize = computed(() => userStore.tradeOptions.nbLines)
+const pageSize = computed(() => dbStateStore.tradeOptions.nbLines)
 const page = ref(1)
 
 const sortBy = ref<keyof TradeType | ''>('')
@@ -255,8 +256,8 @@ const labelColumnsHeader = computed(() => {
 })
 
 const filters = computed({
-    get: () => userStore.tradeOptions.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => userStore.tradeOptions.filters = val
+    get: () => dbStateStore.tradeOptions.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => dbStateStore.tradeOptions.filters = val
 })
 
 const addMeta = (defaultClass: string = 'w-[80px]') => {
@@ -688,7 +689,7 @@ const fetchTradesWrapper = async (params = {}, limit = 1000) => {
     // Convertir les paramètres en tableau de filtres
     const filtersArray = Array.isArray(params) ? [...params] : []
     // Ajouter le filtre sur les trades inactifs
-    await fetchTrades(filtersArray, limit, userStore.tradeOptions.showInactive)
+    await fetchTrades(filtersArray, limit, dbStateStore.tradeOptions.showInactive)
 }
 
 const onApplyFiltersDebounced = useDebounce(onApplyFilters, 200, { leading: true })
@@ -705,7 +706,7 @@ function resetFilters() {
     sortDesc.value = false
     page.value = 1
     filters.value = []
-    userStore.tradeOptions.showAdvancedFilters = false
+    dbStateStore.tradeOptions.showAdvancedFilters = false
     onApplyFiltersDebounced()
 }
 
@@ -720,11 +721,11 @@ async function onApplyFilters() {
         filtersForApi = filtersForApi.filter((f) => f.column !== 'accountId')
 
         // Ajoute le filtre accountIds si des comptes sont sélectionnés
-        if (userStore.tradeOptions.accountIds?.length > 0) {
+        if (dbStateStore.tradeOptions.accountIds?.length > 0) {
             filtersForApi.push({
                 column: 'accountId',
                 operator: 'in',
-                value: userStore.tradeOptions.accountIds,
+                value: dbStateStore.tradeOptions.accountIds,
             })
         }
 
@@ -868,13 +869,13 @@ watch([page, pageCount], () => {
 usePageDataManager({
     fetchFn: onApplyFilters,
     accounts,
-    getAccountIds: () => userStore.tradeOptions.accountIds,
-    setAccountIds: (ids) => { userStore.tradeOptions.accountIds = ids },
+    getAccountIds: () => dbStateStore.tradeOptions.accountIds,
+    setAccountIds: (ids) => { dbStateStore.tradeOptions.accountIds = ids },
 })
 
 // Appliquer les filtres quand les comptes changent
 watch(
-    () => [...(userStore.tradeOptions.accountIds || [])],
+    () => [...(dbStateStore.tradeOptions.accountIds || [])],
     () => {
         onApplyFiltersDebounced()
     },
@@ -883,7 +884,7 @@ watch(
 
 // Appliquer les filtres quand showInactive change
 watch(
-    () => userStore.tradeOptions.showInactive,
+    () => dbStateStore.tradeOptions.showInactive,
     () => {
         onApplyFiltersDebounced()
     }
