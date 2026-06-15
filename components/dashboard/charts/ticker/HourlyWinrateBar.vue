@@ -67,9 +67,11 @@ const series = computed(() => [{
 	},
 }])
 
-const tooltipFormatter = (params: EChartsFormatterParams, _labels: string[]) => {
-	const hour = params.dataIndex
-	const m = hourlyMetrics.value[hour]
+const tooltipFormatter = (params: EChartsFormatterParams | EChartsFormatterParams[], _labels: string[]) => {
+	const p = Array.isArray(params) ? params[0] : params
+	if (!p) return ''
+	const m = hourlyMetrics.value[p.dataIndex]
+	if (!m) return ''
 	return [
 		`<strong>${m.hour}:00</strong>`,
 		`${t('components.dashboard.index.win_rate')}: ${m.winrate.toFixed(1)}%`,

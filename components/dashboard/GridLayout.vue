@@ -88,7 +88,7 @@ onActivated(() => {
 })
 
 watch(() => props.colNum, () => {
-    // colNum changed, layout will recalculate automatically
+    localLayout.value = props.layout.map(item => ({ ...item }))
 })
 
 const colNum = computed(() => props.colNum || 12)

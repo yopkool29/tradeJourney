@@ -10,7 +10,20 @@
 		:y-axis-formatter="(v: number) => `${v}%`"
 		:canvas-height="canvasHeight"
 		:loading="loading"
-	/>
+	>
+		<template #settings>
+			<div class="space-y-2">
+				<div class="flex items-center gap-2">
+					<UCheckbox v-model="showBars" />
+					<span class="text-sm">{{ $t('components.dashboard.common.show_bars') }}</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<UCheckbox v-model="showMovingAverage" />
+					<span class="text-sm">{{ $t('components.dashboard.common.show_moving_average') }}</span>
+				</div>
+			</div>
+		</template>
+	</DashboardChartsBaseCartesianChart>
 </template>
 
 <script setup lang="ts">
@@ -18,6 +31,7 @@ import { generateWinrateChartData } from '~/utils/dashboard'
 import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 type WinrateFormatterParams = EChartsFormatterParams & { axisValue?: string }
+type WinrateFormatter = (params: EChartsFormatterParams | WinrateFormatterParams[], labels: string[]) => string
 
 defineProps({
 	loading: { type: Boolean },
@@ -29,6 +43,20 @@ const { canvasHeight } = useEchartsChart()
 const { barColor, movingAverageColor } = useTypeColors('winrateChart')
 const dataStore = useDataStore()
 const userStore = useUserStore()
+
+const showBars = computed({
+	get: () => (userStore.chartSettings['winrate']?.showBars as boolean) ?? true,
+	set: (val: boolean) => {
+		userStore.chartSettings['winrate'] = { ...userStore.chartSettings['winrate'], showBars: val }
+	},
+})
+
+const showMovingAverage = computed({
+	get: () => (userStore.chartSettings['winrate']?.showMovingAverage as boolean) ?? true,
+	set: (val: boolean) => {
+		userStore.chartSettings['winrate'] = { ...userStore.chartSettings['winrate'], showMovingAverage: val }
+	},
+})
 
 const rawData = computed(() => generateWinrateChartData(
 	dataStore.lastTrades,
@@ -44,13 +72,13 @@ const maColor = computed(() => movingAverageColor.value || '#6366f1')
 const barFill = computed(() => barColor.value || '#f472b6')
 
 const series = computed(() => [
-	{
+	...(showMovingAverage.value ? [{
 		type: 'line' as const,
 		name: t('components.dashboard.index.mobile_avg_label'),
 		data: maValues.value,
 		color: maColor.value,
-	},
-	{
+	}] : []),
+	...(showBars.value ? [{
 		type: 'bar' as const,
 		name: 'Winrate',
 		data: winrateValues.value.map((v: number) => ({
@@ -59,12 +87,13 @@ const series = computed(() => [
 		})),
 		barMaxWidth: 32,
 		emphasis: { disabled: true },
-	},
+	}] : []),
 ])
 
-const tooltipFormatter = (params: WinrateFormatterParams[]) => {
-	const label = params[0]?.axisValue || ''
-	const lines = params.map((p) => {
+const tooltipFormatter: WinrateFormatter = (params) => {
+	const list = (Array.isArray(params) ? params : [params]) as WinrateFormatterParams[]
+	const label = list[0]?.axisValue || ''
+	const lines = list.map((p) => {
 		const val = p.value as number
 		if (val === null || val === undefined) return null
 		return `${p.seriesName}: ${val.toFixed(0)}%`

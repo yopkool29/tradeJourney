@@ -568,6 +568,10 @@ export default {
             title: 'Confirmation de suppression',
         },
         dashboard: {
+            common: {
+                show_bars: 'Afficher les barres',
+                show_moving_average: 'Afficher la moyenne mobile',
+            },
             visibility: {
                 title: 'Visibilité',
                 charts: 'Graphiques',

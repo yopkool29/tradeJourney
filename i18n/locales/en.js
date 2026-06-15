@@ -558,6 +558,10 @@ export default {
             title: 'Delete confirmation',
         },
         dashboard: {
+            common: {
+                show_bars: 'Show bars',
+                show_moving_average: 'Show moving average',
+            },
             visibility: {
                 title: 'Visibility',
                 charts: 'Charts',
