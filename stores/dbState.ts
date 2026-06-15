@@ -16,8 +16,8 @@ import type {
 import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true }
+const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
 
 const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
 	id,
@@ -197,8 +197,8 @@ export const useDbStateStore = defineStore(
 						showAdvancedFilters: false,
 						filters: [] as TradeFilter[],
 						lastFilterColumn: 'symbol',
-						dashboardChartVisibility: { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true },
-						dashboardSectionVisibility: { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true },
+						dashboardChartVisibility: { ...defaultChartVisibility },
+						dashboardSectionVisibility: { ...defaultSectionVisibility },
 						dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
 					}
 				}
@@ -206,9 +206,9 @@ export const useDbStateStore = defineStore(
 				// Ensure dates are Date objects (localStorage restores them as strings)
 				const filters = dashBoardFiltersPerDb.value[dbName]
 				if (!filters.lastFilterColumn) filters.lastFilterColumn = 'symbol'
-				if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: true, tickerWinrate: true, hourlyHeatmap: true, hourlyWinrate: true, dayOfWeekPnl: true }
+				if (!filters.dashboardChartVisibility) filters.dashboardChartVisibility = { ...defaultChartVisibility }
 				if (!filters.dashboardSectionVisibility) {
-					filters.dashboardSectionVisibility = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: true }
+					filters.dashboardSectionVisibility = { ...defaultSectionVisibility }
 				}
 				if (!filters.dashboardGridLayout || filters.dashboardGridLayout.length === 0) {
 					filters.dashboardGridLayout = defaultDashboardGridLayout.map(item => ({ ...item }))
@@ -234,7 +234,14 @@ export const useDbStateStore = defineStore(
 							dashboardGridLayoutMd: (filters.dashboardGridLayoutMd?.length ? filters.dashboardGridLayoutMd : defaultDashboardGridLayoutMd).map(item => ({ ...item })),
 							dashboardGridLayoutSm: (filters.dashboardGridLayoutSm?.length ? filters.dashboardGridLayoutSm : defaultDashboardGridLayoutSm).map(item => ({ ...item })),
 						}),
-						buildDefaultWorkspace('analytics', 'Analyse Avancée'),
+						buildDefaultWorkspace('analytics', 'Analyse Avancée', {
+						dashboardChartVisibilityLg: {},
+						dashboardChartVisibilityMd: {},
+						dashboardChartVisibilitySm: {},
+						dashboardSectionVisibilityLg: {},
+						dashboardSectionVisibilityMd: {},
+						dashboardSectionVisibilitySm: {},
+					}),
 					]
 				}
 				if (!filters.activeWorkspaceId) {
