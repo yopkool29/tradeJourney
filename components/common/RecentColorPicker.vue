@@ -32,10 +32,10 @@ const props = defineProps<{
 
 const modelValue = defineModel<string | undefined>('modelValue')
 
-const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 
 const recentColors = computed(() => {
-    return props.useAlternative ? userStore.recentColors2 : userStore.recentColors
+    return props.useAlternative ? dbStateStore.recentColors2 : dbStateStore.recentColors
 })
 
 const selectColor = (color: string) => {

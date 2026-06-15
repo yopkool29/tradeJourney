@@ -10,7 +10,7 @@
             />
         </div>
         <UTable ref="table" :key="`${locale}-${timezoneKey}`"
-            v-model:column-visibility="userStore.dailyFilters.columnVisibility"
+            v-model:column-visibility="dbStateStore.dailyFilters.columnVisibility"
             v-model:expanded="expanded"
             :columns="columns"
             :data="tableData"
@@ -245,7 +245,7 @@
                 </div>
 
                 <!-- Detailed Note — full width row -->
-                <div v-if="userStore.showDetailedNote && (row.original.metadata as Record<string, unknown>)?.detailedNote" class="mt-3 select-none" :class="{ 'opacity-50': !row.original.active }">
+                <div v-if="dbStateStore.showDetailedNote && (row.original.metadata as Record<string, unknown>)?.detailedNote" class="mt-3 select-none" :class="{ 'opacity-50': !row.original.active }">
                     <hr class="border-dashed border-gray-300 dark:border-gray-700 mb-2">
                     <div 
                         class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors"
@@ -265,7 +265,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone, formatHourString } from '~/utils/date-utils'
 
@@ -273,6 +272,7 @@ const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
 
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const { tradeTypeColors } = useTypeColors()
 const { getDigitFromSymbol } = useSymbols()
 const { getTagById } = useTags()

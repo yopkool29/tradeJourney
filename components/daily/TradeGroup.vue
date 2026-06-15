@@ -168,6 +168,7 @@ const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
 
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const appConfig = useAppConfig()
 
 const { log_error } = useLogView()
@@ -226,7 +227,7 @@ const colorMode = useColorMode()
 
 const currentDayTag = computed(() => {
     if (!props.groupDate) return null
-    return userStore.dayTags.find((dt: DayTagType) => {
+    return dbStateStore.dayTags.find((dt: DayTagType) => {
         const dtDateStr = normalizeDateToUTCString(new Date(dt.date))
         const dateStr = normalizeDateToLocalString(props.groupDate)
         return dtDateStr === dateStr
@@ -284,7 +285,7 @@ const hasDetailedNote = computed(() => {
 
 // Données du tableau calculées uniquement lorsque le collapsible est ouvert
 const tableData = computed<TradeExtendedType[]>(() => {
-    if (userStore.dailyFilters.showInactive) {
+    if (dbStateStore.dailyFilters.showInactive) {
         return props.groupTrades
     }
     return activeTrades.value

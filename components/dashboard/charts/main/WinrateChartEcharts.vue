@@ -43,6 +43,7 @@ const { canvasHeight } = useEchartsChart()
 const { barColor, movingAverageColor } = useTypeColors('winrateChart')
 const dataStore = useDataStore()
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 
 const showBars = computed({
 	get: () => (userStore.chartSettings['winrate']?.showBars as boolean) ?? true,
@@ -60,7 +61,7 @@ const showMovingAverage = computed({
 
 const rawData = computed(() => generateWinrateChartData(
 	dataStore.lastTrades,
-	userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
 	3,
 	displayModeNet.value
 ))

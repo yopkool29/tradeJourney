@@ -27,11 +27,11 @@ const { t } = useI18n()
 const { canvasHeight } = useEchartsChart()
 const { movingAverageColor, profitColor, lossColor } = useTypeColors('apptChart')
 const dataStore = useDataStore()
-const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 
 const rawData = computed(() => generateApptChartData(
 	dataStore.lastTrades,
-	userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
 	5,
 	displayModeNet.value
 ))

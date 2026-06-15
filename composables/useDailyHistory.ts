@@ -8,7 +8,7 @@ export const useDailyHistory = (storeKey: 'dailyFilters' | 'calendarFilters' = '
    
     const { fetchTrades } = useTrades()
     const dataStore = useDataStore()
-    const userStore = useUserStore()
+    const dbStateStore = useDbStateStore()
 
     const dailyLastTrades = computed(() => dataStore.dailyLastTrades)
     const calendarLastTrades = computed(() => dataStore.calendarLastTrades)
@@ -50,7 +50,7 @@ export const useDailyHistory = (storeKey: 'dailyFilters' | 'calendarFilters' = '
             filtersForApi.push(...transformAdvancedFilters(advancedFilters))
         }
 
-        const showInactive = storeKey === 'dailyFilters' ? userStore.dailyFilters.showInactive : false
+        const showInactive = storeKey === 'dailyFilters' ? dbStateStore.dailyFilters.showInactive : false
 
         const trades = await fetchTrades(filtersForApi, 1000, showInactive)
 

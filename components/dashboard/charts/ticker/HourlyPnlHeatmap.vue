@@ -28,12 +28,12 @@ const settings = computed(() => userStore.user?.settings_object)
 
 const heatmapData = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
-	if (!trades.length) return []
+	if (!trades.length || !settings.value) return []
 	return calculateHourlyHeatmapData(
 		trades,
-		settings.value!.timezoneDisplay!,
-		settings.value!.timezoneLocal!,
-		settings.value!.timezoneUtcOffset!
+		settings.value.timezoneDisplay!,
+		settings.value.timezoneLocal!,
+		settings.value.timezoneUtcOffset!
 	)
 })
 

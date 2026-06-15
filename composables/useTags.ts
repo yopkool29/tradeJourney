@@ -11,7 +11,7 @@ export interface TagStyle {
 }
 
 export const useTags = () => {
-    const userStore = useUserStore()
+    const dbStateStore = useDbStateStore()
     
     const getTagStyle = (tag: { color?: string | null; dark_fg_reverse?: boolean }): TagStyle => ({
         backgroundColor: tag.color || '#333',
@@ -22,9 +22,9 @@ export const useTags = () => {
     const fetchGroups = async () => {
         const result = await $fetch('/api/tags')
 
-        userStore.tagGroups = z.array(TagGroupSchema).parse(result)
+        dbStateStore.tagGroups = z.array(TagGroupSchema).parse(result)
 
-        return userStore.tagGroups
+        return dbStateStore.tagGroups
     }
 
     const createGroup = async (group: CreateTagGroupType) => {
@@ -96,11 +96,11 @@ export const useTags = () => {
         )
     }
 
-    const tagGroups = computed(() => userStore.tagGroups)
+    const tagGroups = computed(() => dbStateStore.tagGroups)
 
     return {
         tagGroups,
-        getTagById: userStore.getTagById,
+        getTagById: dbStateStore.getTagById,
         fetchGroups,
         createGroup,
         updateGroup,

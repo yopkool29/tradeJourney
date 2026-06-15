@@ -6,11 +6,11 @@
                 <div class="flex items-start justify-between">
                     <div class="flex flex-col">
                         <CommonTradeFilters
-                            v-model:account-ids="userStore.calendarFilters.accountIds"
-                            v-model:show-inactive="userStore.calendarFilters.showInactive"
+                            v-model:account-ids="dbStateStore.calendarFilters.accountIds"
+                            v-model:show-inactive="dbStateStore.calendarFilters.showInactive"
                             v-model:filters="filters"
-                            v-model:show-advanced-filters="userStore.calendarFilters.showAdvancedFilters"
-                            v-model:last-filter-column="userStore.calendarFilters.lastFilterColumn"
+                            v-model:show-advanced-filters="dbStateStore.calendarFilters.showAdvancedFilters"
+                            v-model:last-filter-column="dbStateStore.calendarFilters.lastFilterColumn"
                             :title="$t('components.calendar.index.accounts')"
                             slot-id="page-calendar"
                             :show-plugin-slot="false"
@@ -19,7 +19,7 @@
                             :placeholder="$t('components.calendar.index.select_accounts')"
                             :all-label="$t('components.calendar.index.all_accounts')"
                             :selected-label="
-                                $t('components.calendar.index.selected_accounts', { count: userStore.calendarFilters.accountIds?.length })
+                                $t('components.calendar.index.selected_accounts', { count: dbStateStore.calendarFilters.accountIds?.length })
                             "
                             :show-inactive-checkbox="false"
                             :tag-groups="tagGroups"
@@ -190,6 +190,7 @@ import { OPERATOR_EQUAL } from '~/utils'
 const { formatCurrency } = useUtils()
 
 const userStore = useUserStore()
+const dbStateStore = useDbStateStore()
 const { startLoading, stopLoading } = useGlobalLoading()
 const { displayModeNet } = useNetGrossDisplay()
 const settings = userStore.user?.settings_object as SettingsContentType
@@ -238,8 +239,8 @@ const weekDays = computed(() => {
 })
 
 const selectedMonth = computed({
-    get: () => userStore.calendarFilters.selectedMonth,
-    set: (value) => (userStore.calendarFilters.selectedMonth = value),
+    get: () => dbStateStore.calendarFilters.selectedMonth,
+    set: (value) => (dbStateStore.calendarFilters.selectedMonth = value),
 })
 
 const fetchingDateRange = ref(false)
@@ -249,7 +250,7 @@ const setHistoryDateRange = async () => {
     try {
         const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
             query: {
-                accountIds: JSON.stringify(userStore.calendarFilters.accountIds),
+                accountIds: JSON.stringify(dbStateStore.calendarFilters.accountIds),
             },
         })
 
@@ -266,7 +267,7 @@ const setHistoryDateRange = async () => {
     }
 }
 
-const displayMonth = ref(userStore.calendarFilters.selectedMonth)
+const displayMonth = ref(dbStateStore.calendarFilters.selectedMonth)
 const dataStore = useDataStore()
 const displayResults = shallowRef<TradeExtendedType[]>(calendarLastTrades.value)
 
@@ -304,8 +305,8 @@ const weekModalTitle = computed(() => {
 })
 
 const filters = computed({
-    get: () => userStore.calendarFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => (userStore.calendarFilters.filters = val),
+    get: () => dbStateStore.calendarFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => (dbStateStore.calendarFilters.filters = val),
 })
 
 // Fonction pour construire les filtres du calendar (convertit selectedMonth en dates)
@@ -314,7 +315,7 @@ const buildCalendarFilters = (): TradeFilter[] => {
     const startDate = new Date(year, month - 1, 1)
     const endDate = endOfMonth(startDate)
 
-    return buildFiltersForApi(startDate, endDate, true, userStore.calendarFilters.accountIds, filters.value)
+    return buildFiltersForApi(startDate, endDate, true, dbStateStore.calendarFilters.accountIds, filters.value)
 }
 
 // Utiliser le pattern générique pour la gestion des filtres
@@ -329,7 +330,7 @@ const { filterDirty, debouncedHandleFilterChange, onExplicitApply } = useFiltere
 
 function resetFilters() {
     filters.value = []
-    userStore.calendarFilters.showAdvancedFilters = false
+    dbStateStore.calendarFilters.showAdvancedFilters = false
     loadCalendarDataDebounced()
 }
 
@@ -344,9 +345,9 @@ const { filterLoading, loadDebounced: loadCalendarDataDebounced } = usePageDataM
         calendarValue.value = new CalendarDate(year, month, 1)
     },
     accounts,
-    getAccountIds: () => userStore.calendarFilters.accountIds,
+    getAccountIds: () => dbStateStore.calendarFilters.accountIds,
     setAccountIds: (ids) => {
-        userStore.calendarFilters.accountIds = ids
+        dbStateStore.calendarFilters.accountIds = ids
     },
 })
 
@@ -415,7 +416,7 @@ const getDaysStats = () => {
     const end = endOfMonth(start)
 
     // Extraire accountIds en Set pour O(1) lookup
-    const accountIds = userStore.calendarFilters.accountIds
+    const accountIds = dbStateStore.calendarFilters.accountIds
     const accountIdSet = new Set(accountIds)
     const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
 
@@ -536,7 +537,7 @@ async function applyCalendar(val: string, forceFetch: boolean = true) {
         const endDate = endOfMonth(startDate)
         if (forceFetch) {
             await Promise.all([
-                fetchData(startDate, endDate, true, userStore.calendarFilters.accountIds, filters.value),
+                fetchData(startDate, endDate, true, dbStateStore.calendarFilters.accountIds, filters.value),
                 fetchDayTags(selectedMonth.value),
             ])
         }
@@ -579,7 +580,7 @@ onMounted(async () => {
 
 // Watcher pour les comptes (debounced)
 watch(
-    () => [...(userStore.calendarFilters.accountIds || [])],
+    () => [...(dbStateStore.calendarFilters.accountIds || [])],
     () => debouncedHandleFilterChange(),
     { deep: true }
 )
