@@ -348,6 +348,7 @@ import {
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
+import type { Component } from 'vue'
 import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter } from '~/type'
 import { useMetricsChartRegistry } from '~/composables/metrics/useChartRegistry'
 import { useMetricsSectionRegistry } from '~/composables/metrics/useSectionRegistry'
@@ -414,28 +415,28 @@ const updateActiveWorkspace = (patch: Partial<WorkspaceConfig>) => {
 }
 
 const chartVisibilityLg = computed({
-    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilityLg || {}) }),
+    get: () => activeWorkspace.value?.dashboardChartVisibilityLg || {},
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilityLg: val }),
 })
 const chartVisibilityMd = computed({
-    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilityMd || {}) }),
+    get: () => activeWorkspace.value?.dashboardChartVisibilityMd || {},
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilityMd: val }),
 })
 const chartVisibilitySm = computed({
-    get: () => ({ ...defaultChartVisibility, ...(activeWorkspace.value?.dashboardChartVisibilitySm || {}) }),
+    get: () => activeWorkspace.value?.dashboardChartVisibilitySm || {},
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilitySm: val }),
 })
 
 const sectionVisibilityLg = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilityLg || {}) }),
+    get: () => activeWorkspace.value?.dashboardSectionVisibilityLg || {},
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityLg: val }),
 })
 const sectionVisibilityMd = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilityMd || {}) }),
+    get: () => activeWorkspace.value?.dashboardSectionVisibilityMd || {},
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityMd: val }),
 })
 const sectionVisibilitySm = computed({
-    get: () => ({ ...defaultSectionVisibility, ...(activeWorkspace.value?.dashboardSectionVisibilitySm || {}) }),
+    get: () => activeWorkspace.value?.dashboardSectionVisibilitySm || {},
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilitySm: val }),
 })
 
@@ -461,11 +462,8 @@ const activeSectionVisibility = computed(() => {
     }
 })
 
-const appConfig = useAppConfig()
-const useChartjs = computed(() => appConfig.charts.chartjs === true)
-
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, any> = {
+    const chartComponentMap: Record<ChartKey, Component> = {
         pnlBar: DashboardChartsMainPnlBarChartEcharts,
         cumulatedPnl: DashboardChartsMainCumulatedPnlChartEcharts,
         appt: DashboardChartsMainApptChartEcharts,
@@ -476,7 +474,7 @@ const gridComponents = computed(() => {
         hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
         dayOfWeekPnl: DashboardChartsTickerDayOfWeekPnlChart,
     }
-    const sectionComponentMap: Record<SectionKey, any> = {
+    const sectionComponentMap: Record<SectionKey, Component> = {
         allTrades: DashboardSectionsAllTradesSection,
         profitTrades: DashboardSectionsProfitTradesSection,
         losingTrades: DashboardSectionsLosingTradesSection,

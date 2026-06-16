@@ -18,6 +18,8 @@ import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashbo
 
 const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
 const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
+const hiddenChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
+const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
 
 const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
 	id,
@@ -235,12 +237,15 @@ export const useDbStateStore = defineStore(
 							dashboardGridLayoutSm: (filters.dashboardGridLayoutSm?.length ? filters.dashboardGridLayoutSm : defaultDashboardGridLayoutSm).map(item => ({ ...item })),
 						}),
 						buildDefaultWorkspace('analytics', 'Analyse Avancée', {
-						dashboardChartVisibilityLg: {},
-						dashboardChartVisibilityMd: {},
-						dashboardChartVisibilitySm: {},
-						dashboardSectionVisibilityLg: {},
-						dashboardSectionVisibilityMd: {},
-						dashboardSectionVisibilitySm: {},
+						dashboardChartVisibilityLg: { ...hiddenChartVisibility },
+						dashboardChartVisibilityMd: { ...hiddenChartVisibility },
+						dashboardChartVisibilitySm: { ...hiddenChartVisibility },
+						dashboardSectionVisibilityLg: { ...hiddenSectionVisibility },
+						dashboardSectionVisibilityMd: { ...hiddenSectionVisibility },
+						dashboardSectionVisibilitySm: { ...hiddenSectionVisibility },
+						dashboardGridLayout: [],
+						dashboardGridLayoutMd: [],
+						dashboardGridLayoutSm: [],
 					}),
 					]
 				}
