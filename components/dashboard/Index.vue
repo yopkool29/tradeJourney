@@ -147,7 +147,7 @@
                 <button
                     v-for="ws in workspaces"
                     :key="ws.id"
-                    class="group relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors rounded-t-md"
+                    class="group relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors rounded-t-md cursor-pointer"
                     :class="activeWorkspaceId === ws.id
                         ? 'text-primary border-b-2 border-primary -mb-px bg-default'
                         : 'text-muted hover:text-default hover:bg-elevated'"
