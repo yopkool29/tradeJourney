@@ -349,7 +349,7 @@ import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
 import type { Component } from 'vue'
-import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter } from '~/type'
+import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter, DashBoardFilters } from '~/type'
 import { useMetricsChartRegistry } from '~/composables/metrics/useChartRegistry'
 import { useMetricsSectionRegistry } from '~/composables/metrics/useSectionRegistry'
 
@@ -601,44 +601,82 @@ const saveGridLayout = () => {
     }
 }
 
-const syncDashboardToOtherDatabases = () => {
-    const { currentDatabase } = useDatabase()
+const syncDashboardToOtherDatabases = async () => {
+    const { currentDatabase, databases, fetchDatabases } = useDatabase()
     const currentDbName = currentDatabase.value?.name || 'default'
 
     const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
     if (!sourceFilters) return
 
+    // Iterate over ALL known databases, not just the ones already present in
+    // dashBoardFiltersPerDb (which only contains databases that have been
+    // visited at least once). Otherwise unvisited databases are skipped.
+    let dbs = databases.value
+    if (dbs.length === 0) {
+        dbs = await fetchDatabases()
+    }
+
+    // Deep clone via JSON so nested arrays (workspaces, grid layouts, ...) are
+    // not shared by reference between databases. structuredClone cannot handle
+    // Vue reactive proxies. Dates become strings but the dashBoardFilters
+    // getter reconverts them to Date objects on access.
     const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
 
-    for (const dbName of Object.keys(newPerDb)) {
-        if (dbName === currentDbName) continue
-        newPerDb[dbName] = { ...sourceFilters }
+    for (const db of dbs) {
+        if (db.name === currentDbName) continue
+        newPerDb[db.name] = JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters
     }
 
     dbStateStore.dashBoardFiltersPerDb = newPerDb
     toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
 }
 
-const syncActiveWorkspaceToOtherDatabases = () => {
+const syncActiveWorkspaceToOtherDatabases = async () => {
     const ws = activeWorkspace.value
     if (!ws) return
 
-    const { currentDatabase } = useDatabase()
+    const { currentDatabase, databases, fetchDatabases } = useDatabase()
     const currentDbName = currentDatabase.value?.name || 'default'
 
+    const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
+    if (!sourceFilters) return
+
+    // Iterate over ALL known databases, not just the ones already present in
+    // dashBoardFiltersPerDb (which only contains databases that have been
+    // visited at least once). Otherwise unvisited databases are skipped.
+    let dbs = databases.value
+    if (dbs.length === 0) {
+        dbs = await fetchDatabases()
+    }
+
+    // Deep clone via JSON (structuredClone cannot handle Vue reactive proxies).
+    // Dates become strings but the dashBoardFilters getter reconverts them to
+    // Date objects on access. Clone per database to avoid sharing references.
     const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
 
-    for (const [dbName, filters] of Object.entries(newPerDb)) {
-        if (dbName === currentDbName || !filters?.workspaces) continue
+    for (const db of dbs) {
+        if (db.name === currentDbName) continue
 
-        const idx = filters.workspaces.findIndex(w => w.id === ws.id)
-        const newWorkspaces = [...filters.workspaces]
-        if (idx >= 0) {
-            newWorkspaces[idx] = { ...ws }
-        } else {
-            newWorkspaces.push({ ...ws })
+        const existing = newPerDb[db.name]
+        if (!existing) {
+            // Unvisited database: bootstrap from current filters so the
+            // workspace has a home.
+            newPerDb[db.name] = JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters
+            continue
         }
-        newPerDb[dbName] = { ...filters, workspaces: newWorkspaces }
+        if (!existing.workspaces) {
+            newPerDb[db.name] = { ...existing, workspaces: [JSON.parse(JSON.stringify(ws)) as WorkspaceConfig] }
+            continue
+        }
+
+        const idx = existing.workspaces.findIndex(w => w.id === ws.id)
+        const newWorkspaces = [...existing.workspaces]
+        if (idx >= 0) {
+            newWorkspaces[idx] = JSON.parse(JSON.stringify(ws)) as WorkspaceConfig
+        } else {
+            newWorkspaces.push(JSON.parse(JSON.stringify(ws)) as WorkspaceConfig)
+        }
+        newPerDb[db.name] = { ...existing, workspaces: newWorkspaces }
     }
 
     dbStateStore.dashBoardFiltersPerDb = newPerDb
