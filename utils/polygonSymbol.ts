@@ -9,13 +9,36 @@ export interface PolygonBar {
     close: number
 }
 
+// Optional instrument type prefix in a spgn value forces the API type regardless of trade instrumentType.
+// Supported prefixes: "ft:" (future), "fx:" (forex), "cr:" (crypto), "st:" (stock)
+const spgnPrefixMap: Record<string, InstrumentType> = {
+    'ft:': InstrumentType.Future,
+    'fx:': InstrumentType.Forex,
+    'cr:': InstrumentType.Crypto,
+    'st:': InstrumentType.Stock,
+}
+
+type SpgnAlias = {
+    ticker: string
+    forcedInstrumentType: InstrumentType | null
+}
+
 // Read the 'spgn' custom field from a symbol's metadata, if defined.
 // This is the explicit Polygon ticker alias for symbols that don't map automatically.
-export const getSpgnAlias = (symbolConfig: SymbolType | undefined): string | null => {
+// Optional prefix (e.g. "ft:MYM") forces the instrument type used for API routing.
+export const getSpgnAlias = (symbolConfig: SymbolType | undefined): SpgnAlias | null => {
     const customFields = symbolConfig?.metadata?.customFields
     if (!customFields) return null
-    const spgnField = customFields.find(f => f.key === 'spgn')
-    return spgnField?.value || null
+    const raw = customFields.find(f => f.key === 'spgn')?.value
+    if (!raw) return null
+
+    for (const [prefix, instrumentType] of Object.entries(spgnPrefixMap)) {
+        if (raw.startsWith(prefix)) {
+            return { ticker: raw.slice(prefix.length), forcedInstrumentType: instrumentType }
+        }
+    }
+
+    return { ticker: raw, forcedInstrumentType: null }
 }
 
 // Common futures base symbols (CME micro/e-mini, commodities, etc.)
@@ -101,16 +124,24 @@ const autoConvert = (symbol: string, instrumentType: InstrumentType): string | n
     }
 }
 
+type PolygonSymbolResult = {
+    ticker: string
+    forcedInstrumentType: InstrumentType | null
+}
+
 // Convert a trade symbol to a Polygon ticker.
 // Priority: explicit 'spgn' alias > automatic conversion by instrument type.
 // Returns null if no mapping is possible (the chart will be skipped).
+// forcedInstrumentType overrides the trade instrumentType for API routing when set via spgn prefix.
 export const tradeToPolygonSymbol = (
     symbol: string,
     instrumentType: InstrumentType,
     symbolConfig: SymbolType | undefined,
-): string | null => {
+): PolygonSymbolResult | null => {
     const alias = getSpgnAlias(symbolConfig)
     if (alias) return alias
 
-    return autoConvert(symbol, instrumentType)
+    const ticker = autoConvert(symbol, instrumentType)
+    if (!ticker) return null
+    return { ticker, forcedInstrumentType: null }
 }

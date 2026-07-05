@@ -258,10 +258,15 @@ const filterBarsToDateRange = (bars: PolygonBar[], fromStr: string, toStr: strin
 export const usePolygonBars = (
     polygonSymbol: Ref<string | null>,
     trade: TradeDateRange,
+    forcedInstrumentType: Ref<InstrumentType | null>,
 ) => {
     const { getCachedRange, setCachedPeriod, clearCachedPeriod } = usePolygonCache()
 
     const isFutures = computed(() => {
+        // spgn prefix override takes priority
+        if (forcedInstrumentType.value === InstrumentType.Future) return true
+        if (forcedInstrumentType.value !== null) return false
+
         if (trade.instrumentType === InstrumentType.Future) return true
         if (trade.instrumentType && trade.instrumentType !== InstrumentType.Any) return false
         return polygonSymbol.value !== null && isFuturesSymbol(polygonSymbol.value)

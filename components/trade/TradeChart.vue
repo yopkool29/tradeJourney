@@ -31,7 +31,7 @@ import {
 import { InstrumentType } from '~/type'
 import type { TradeFilter } from '~/type'
 import type { TradeExtendedType } from '~/schema/trade'
-import { tradeToPolygonSymbol, getSpgnAlias } from '~/utils/polygonSymbol'
+import { tradeToPolygonSymbol } from '~/utils/polygonSymbol'
 import type { PolygonBar } from '~/utils/polygonSymbol'
 
 const props = defineProps<{
@@ -211,18 +211,18 @@ let lastBars: PolygonBar[] = []
 
 // Resolve the Polygon ticker for the trade symbol.
 const symbolConfig = computed(() => symbols.value.find((s) => s.symbol === props.trade.symbol.toUpperCase()))
-const polygonSymbol = computed(() => {
+const polygonSymbolResult = computed(() => {
     const result = tradeToPolygonSymbol(props.trade.symbol, props.trade.instrumentType ?? InstrumentType.Any, symbolConfig.value)
     if (!result) {
         console.warn('[TradeChart] No Polygon symbol resolved', {
             tradeSymbol: props.trade.symbol,
             instrumentType: props.trade.instrumentType,
             hasSymbolConfig: !!symbolConfig.value,
-            spgnAlias: symbolConfig.value ? getSpgnAlias(symbolConfig.value) : null,
         })
     }
     return result
 })
+const polygonSymbol = computed(() => polygonSymbolResult.value?.ticker ?? null)
 
 const shouldRender = computed(() => polygonSymbol.value !== null)
 
@@ -516,7 +516,8 @@ const addTradeMarkers = (data: PolygonBar[]) => {
     }
 }
 
-const { fetchBars, refetchBars } = usePolygonBars(polygonSymbol, props.trade)
+const forcedInstrumentType = computed(() => polygonSymbolResult.value?.forcedInstrumentType ?? null)
+const { fetchBars, refetchBars } = usePolygonBars(polygonSymbol, props.trade, forcedInstrumentType)
 
 // Chart event handlers (declared at component scope so they survive re-init).
 let handleResize: (() => void) | null = null
