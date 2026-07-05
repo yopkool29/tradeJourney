@@ -114,6 +114,19 @@
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_api_key_desc') }}</span>
                                 </template>
                             </UFormField>
+                            <UFormField :label="$t('components.settings.options.polygon_cache')" class="w-lg">
+                                <UButton
+                                    color="neutral"
+                                    variant="soft"
+                                    :loading="clearingCache"
+                                    @click="onClearPolygonCache"
+                                >
+                                    {{ $t('components.settings.options.polygon_cache_clear') }}
+                                </UButton>
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_cache_desc') }}</span>
+                                </template>
+                            </UFormField>
                         </div>
                     </div>
 
@@ -427,6 +440,7 @@
 import type { SettingsContentType } from '~/schema/user'
 import { defaultSettings } from '~/schema/user'
 import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils'
+import { clearAllPolygonCache } from '~/composables/usePolygonCache'
 
 const { success: toastSuccess } = useAppToast()
 const { updateSettings } = useAuth()
@@ -448,6 +462,17 @@ const currentTheme = computed(() => {
 const showToken = ref(false)
 const showPassword = ref(false)
 const showPolygonKey = ref(false)
+const clearingCache = ref(false)
+
+const onClearPolygonCache = async () => {
+	clearingCache.value = true
+	try {
+		await clearAllPolygonCache()
+		toastSuccess({ title: t('components.settings.options.polygon_cache_cleared') })
+	} finally {
+		clearingCache.value = false
+	}
+}
 
 // Copy to clipboard helper
 const copyToClipboard = async (text: string) => {

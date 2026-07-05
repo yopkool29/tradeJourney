@@ -107,7 +107,7 @@ const fetchWithRateLimit = async (url: string): Promise<Response> => {
 // Fetch bars from the standard Polygon aggregates API (stocks, forex, crypto, options).
 const fetchStandardBars = async (
     ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
-): Promise<PolygonBar[]> => {
+): Promise<{ bars: PolygonBar[] }> => {
     const { multiplier, timespan } = timeframeToRange(tf)
     const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/${multiplier}/${timespan}/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=50000&apiKey=${apiKey}`
 
@@ -118,7 +118,7 @@ const fetchStandardBars = async (
 
     const data = await response.json()
     if (!data.results || data.results.length === 0) {
-        return []
+        return { bars: [] }
     }
 
     const bars = data.results.map((bar: { t: number, o: number, h: number, l: number, c: number }): PolygonBar => ({
@@ -129,14 +129,14 @@ const fetchStandardBars = async (
         close: bar.c,
     }))
 
-    return deduplicateBars(bars)
+    return { bars: deduplicateBars(bars) }
 }
 
 // Fetch bars from the Polygon futures API (/futures/v1/aggs/{ticker}).
 // The futures API uses a different URL structure, resolution format, and nanosecond timestamps.
 const fetchFuturesBars = async (
     ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
-): Promise<PolygonBar[]> => {
+): Promise<{ bars: PolygonBar[] }> => {
     const resolution = timeframeToFuturesResolution(tf)
     const url = `https://api.polygon.io/futures/v1/aggs/${ticker}?resolution=${resolution}&window_start.gte=${fromStr}&window_start.lte=${toStr}&sort=window_start.asc&limit=50000&apiKey=${apiKey}`
 
@@ -147,7 +147,7 @@ const fetchFuturesBars = async (
 
     const data = await response.json()
     if (!data.results || data.results.length === 0) {
-        return []
+        return { bars: [] }
     }
 
     const bars = data.results.map((bar: { window_start: number, open: number, high: number, low: number, close: number }): PolygonBar => ({
@@ -159,7 +159,7 @@ const fetchFuturesBars = async (
         close: bar.close,
     }))
 
-    return deduplicateBars(bars)
+    return { bars: deduplicateBars(bars) }
 }
 
 // In-memory cache for futures ticker resolution: {baseSymbol}_{date} -> fullTicker
@@ -214,7 +214,8 @@ const resolveFuturesTicker = async (
     const url = `https://api.polygon.io/futures/v1/contracts?product_code=${upper}&date=${dateStr}&active=true&limit=100&apiKey=${apiKey}`
 
     try {
-        const response = await fetchWithRateLimit(url)
+        // Use plain fetch — contract resolution is a lightweight lookup, not subject to bar data rate limits.
+        const response = await fetch(url)
         if (!response.ok) return null
 
         const data = await response.json()
@@ -307,7 +308,10 @@ export const usePolygonBars = (
 
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
-        // Check which periods are already cached.
+        // List all periods covering the range.
+        const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
+
+        // Check which periods are missing from cache.
         const { bars: cachedBars, missingPeriods } = await getCachedRange(ticker, tf, fromStr, toStr)
 
         // If everything is cached, return directly.
@@ -315,21 +319,18 @@ export const usePolygonBars = (
             return filterBarsToDateRange(deduplicateBars(cachedBars), fromStr, toStr)
         }
 
-        // Fetch the entire trade range in a single API call.
-        // We always fetch fromStr → toStr (not just missing periods) to ensure
-        // the trade itself is always covered, even if Polygon truncates results.
-        const tfMinutes = Number(tf)
-        const fetchDays = (new Date(toStr).getTime() - new Date(fromStr).getTime()) / 86_400_000
-        const estimatedBars = Math.ceil(fetchDays * 24 * 60 / tfMinutes)
-        if (estimatedBars > 40_000) {
-            throw new Error('RANGE_TOO_LARGE')
-        }
+        // Clamp the fetch range to the exact period boundaries (first period start → last period end).
+        // This ensures the fetched data aligns exactly with cache period keys.
+        const { fromStr: fetchFrom } = periodKeyToRange(tf, allPeriods[0])
+        const { toStr: fetchTo } = periodKeyToRange(tf, allPeriods[allPeriods.length - 1])
 
-        const fetchedBars = isFutures.value
-            ? await fetchFuturesBars(ticker, tf, fromStr, toStr, apiKey)
-            : await fetchStandardBars(ticker, tf, fromStr, toStr, apiKey)
+        const { bars: fetchedBars } = isFutures.value
+            ? await fetchFuturesBars(ticker, tf, fetchFrom, fetchTo, apiKey)
+            : await fetchStandardBars(ticker, tf, fetchFrom, fetchTo, apiKey)
 
-        // Split the fetched bars by period and cache each one.
+        // Split the fetched bars by period and overwrite all periods in cache.
+        // Since the fetch range is clamped to period boundaries, we consider all
+        // periods fully covered by this single request.
         const barsByPeriod = new Map<string, PolygonBar[]>()
         for (const bar of fetchedBars) {
             const pk = timestampToPeriodKey(tf, bar.time)
@@ -340,14 +341,10 @@ export const usePolygonBars = (
                 barsByPeriod.set(pk, [bar])
             }
         }
-        for (const [pk, bars] of barsByPeriod) {
-            await setCachedPeriod(ticker, tf, pk, bars)
-        }
 
-        // Merge cached + fetched, deduplicate, filter to exact range.
-        const allBars = [...cachedBars, ...fetchedBars]
-        const deduped = deduplicateBars(allBars)
-        return filterBarsToDateRange(deduped, fromStr, toStr)
+        await Promise.all(allPeriods.map(pk => setCachedPeriod(ticker, tf, pk, barsByPeriod.get(pk) || [])))
+
+        return filterBarsToDateRange(deduplicateBars(fetchedBars), fromStr, toStr)
     }
 
     const refetchBars = async (tf: string): Promise<PolygonBar[]> => {
@@ -360,12 +357,9 @@ export const usePolygonBars = (
 
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
-        // Clear only the periods covering the trade itself (not the full buffer range)
-        // to force a re-fetch from the API while keeping the buffer periods cached.
-        const tradeFromStr = new Date(trade.openDate).toISOString().split('T')[0]
-        const tradeToStr = new Date(trade.closeDate).toISOString().split('T')[0]
-        const tradePeriods = listPeriodsInRange(tf, tradeFromStr, tradeToStr)
-        for (const pk of tradePeriods) {
+        // Clear all periods covering the full range (including buffer) to force a complete re-fetch.
+        const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
+        for (const pk of allPeriods) {
             await clearCachedPeriod(ticker, tf, pk)
         }
 
