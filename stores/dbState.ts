@@ -56,6 +56,7 @@ export const useDbStateStore = defineStore(
 		const lastViewedNoteIdPerDb = ref<Record<string, number | null>>({})
 		const tradeChartTfPerDb = ref<Record<string, string>>({})
 		const tradeChartShowAdjacentPerDb = ref<Record<string, boolean>>({})
+		const tradeChartShowAdjacentLinesPerDb = ref<Record<string, boolean>>({})
 
 		const lastViewedNoteId = computed({
 			get: () => {
@@ -447,6 +448,17 @@ export const useDbStateStore = defineStore(
 			},
 		})
 
+		const tradeChartShowAdjacentLines = computed({
+			get: () => {
+				const dbName = getCurrentDbName()
+				return tradeChartShowAdjacentLinesPerDb.value[dbName] ?? true
+			},
+			set: (val) => {
+				const dbName = getCurrentDbName()
+				tradeChartShowAdjacentLinesPerDb.value[dbName] = val
+			},
+		})
+
 		const setLastViewedNoteId = (id: number | null) => {
 			lastViewedNoteId.value = id
 		}
@@ -525,6 +537,9 @@ export const useDbStateStore = defineStore(
 			tradeChartShowAdjacentPerDb.value = Object.fromEntries(
 				Object.entries(tradeChartShowAdjacentPerDb.value).filter(([key]) => key !== dbName)
 			)
+			tradeChartShowAdjacentLinesPerDb.value = Object.fromEntries(
+				Object.entries(tradeChartShowAdjacentLinesPerDb.value).filter(([key]) => key !== dbName)
+			)
 		}
 
 		const dashBoardLastTrades = computed(() => {
@@ -547,6 +562,7 @@ export const useDbStateStore = defineStore(
 			lastViewedNoteIdPerDb,
 			tradeChartTfPerDb,
 			tradeChartShowAdjacentPerDb,
+			tradeChartShowAdjacentLinesPerDb,
 			// Computed wrappers
 			lastViewedNoteId,
 			customInputs,
@@ -565,6 +581,7 @@ export const useDbStateStore = defineStore(
 			showDetailedNote,
 			tradeChartTf,
 			tradeChartShowAdjacent,
+			tradeChartShowAdjacentLines,
 			// Methods
 			getCustomInput,
 			updateCustomInput,
@@ -592,6 +609,7 @@ export const useDbStateStore = defineStore(
 				'showDetailedNotePerDb',
 				'tradeChartTfPerDb',
 				'tradeChartShowAdjacentPerDb',
+				'tradeChartShowAdjacentLinesPerDb',
 			],
 		},
 	}

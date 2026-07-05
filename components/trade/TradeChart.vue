@@ -4,6 +4,7 @@
             <span class="text-secondary-sm font-semibold">{{ polygonSymbol }}</span>
             <USelect v-model="selectedTf" :items="tfOptions" size="xs" class="w-24" @update:model-value="onTfChange" />
             <UCheckbox v-model="showAdjacent" :label="$t('components.trade.chart.show_adjacent')" size="xs" @update:model-value="onAdjacentToggle" />
+            <UCheckbox v-if="showAdjacent" v-model="showAdjacentLines" :label="$t('components.trade.chart.show_adjacent_lines')" size="xs" @update:model-value="onAdjacentLinesToggle" />
             <UButton icon="i-heroicons-arrow-path" size="xs" color="neutral" variant="ghost" :loading="loading" @click="onReload" />
             <span v-if="loading" class="text-secondary-sm text-gray-500">
                 <UIcon name="i-heroicons-arrow-path" class="animate-spin inline" />
@@ -200,13 +201,14 @@ const tfOptions = [
     { label: 'Daily', value: '1440' },
 ]
 const dbStateStore = useDbStateStore()
-const { tradeChartTf: selectedTf, tradeChartShowAdjacent: showAdjacent, dailyFilters } = storeToRefs(dbStateStore)
+const { tradeChartTf: selectedTf, tradeChartShowAdjacent: showAdjacent, tradeChartShowAdjacentLines: showAdjacentLines, dailyFilters } = storeToRefs(dbStateStore)
 
 let chart: ReturnType<typeof createChart> | null = null
 let candlestickSeries: ISeriesApi<'Candlestick'> | null = null
 let tradeLine: ISeriesApi<'Line'> | null = null
 let seriesMarkers: ISeriesMarkersPluginApi<Time> | null = null
 let priceSegments: ISeriesApi<'Line'>[] = []
+let adjacentLines: ISeriesApi<'Line'>[] = []
 let lastBars: PolygonBar[] = []
 
 // Resolve the Polygon ticker for the trade symbol.
@@ -430,12 +432,21 @@ const addTradeMarkers = (data: PolygonBar[]) => {
         })
     }
 
-    for (const adj of chartAdjacentTrades.value) {
+    // Number adjacent trades by chronological order for clear identification.
+    // Only count trades that have at least one visible marker so numbering stays sequential.
+    const sortedAdjacent = [...chartAdjacentTrades.value].sort((a, b) => new Date(a.openDate).getTime() - new Date(b.openDate).getTime())
+    let visibleNumber = 1
+    for (const adj of sortedAdjacent) {
         const adjEntryTs = Math.floor(new Date(adj.openDate).getTime() / 1000)
         const adjExitTs = Math.floor(new Date(adj.closeDate).getTime() / 1000)
 
         const adjEntryInBounds = isInRange(data, adjEntryTs)
         const adjExitInBounds = isInRange(data, adjExitTs)
+
+        if (!adjEntryInBounds && !adjExitInBounds) continue
+
+        const adjNumber = visibleNumber + 1
+        visibleNumber++
 
         const adjEntryIdx = findBarIndex(data, adjEntryTs)
         const adjExitIdx = findBarIndex(data, adjExitTs)
@@ -449,7 +460,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
                 position: 'belowBar',
                 color: monoColor,
                 shape: 'arrowUp',
-                text: `${adj.type === 'buy' ? 'BUY' : 'SELL'} ${adj.lot}`,
+                text: `[${adjNumber}] ${adj.type === 'buy' ? 'BUY' : 'SELL'} ${adj.lot}`,
             })
         }
 
@@ -459,7 +470,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
                 position: 'aboveBar',
                 color: monoColor,
                 shape: 'arrowDown',
-                text: `EXIT ${adj.lot}`,
+                text: `[${adjNumber}] EXIT ${adj.lot}`,
             })
         }
     }
@@ -481,7 +492,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
     if (entryInBounds) addPriceSegment(data, entryIdx, props.trade.openPrice, entryColor)
     if (exitInBounds) addPriceSegment(data, exitIdx, props.trade.closePrice, colors.exitColor)
 
-    for (const adj of chartAdjacentTrades.value) {
+    for (const adj of sortedAdjacent) {
         const adjEntryTs = Math.floor(new Date(adj.openDate).getTime() / 1000)
         const adjExitTs = Math.floor(new Date(adj.closeDate).getTime() / 1000)
         const adjEntryInBounds = isInRange(data, adjEntryTs)
@@ -490,6 +501,39 @@ const addTradeMarkers = (data: PolygonBar[]) => {
         const adjExitIdx = findBarIndex(data, adjExitTs)
         if (adjEntryInBounds) addPriceSegment(data, adjEntryIdx, adj.openPrice, monoColor)
         if (adjExitInBounds) addPriceSegment(data, adjExitIdx, adj.closePrice, monoColor)
+    }
+
+    // Dashed lines connecting entry and exit of adjacent trades (optional)
+    for (const series of adjacentLines) {
+        if (chart) chart.removeSeries(series)
+    }
+    adjacentLines = []
+    if (showAdjacentLines.value && chart) {
+        for (const adj of sortedAdjacent) {
+            const adjEntryTs = Math.floor(new Date(adj.openDate).getTime() / 1000)
+            const adjExitTs = Math.floor(new Date(adj.closeDate).getTime() / 1000)
+            const adjEntryInBounds = isInRange(data, adjEntryTs)
+            const adjExitInBounds = isInRange(data, adjExitTs)
+            if (!adjEntryInBounds || !adjExitInBounds) continue
+            const adjEntryIdx = findBarIndex(data, adjEntryTs)
+            const adjExitIdx = findBarIndex(data, adjExitTs)
+            const adjEntryTime = data[adjEntryIdx].time as UTCTimestamp
+            const adjExitTime = data[adjExitIdx].time as UTCTimestamp
+            if (adjEntryTime === adjExitTime) continue
+            const line = chart.addSeries(LineSeries, {
+                color: monoColor,
+                lineWidth: 1,
+                lineStyle: 2,
+                crosshairMarkerVisible: false,
+                lastValueVisible: false,
+                priceLineVisible: false,
+            })
+            line.setData([
+                { time: adjEntryTime, value: adj.openPrice },
+                { time: adjExitTime, value: adj.closePrice },
+            ])
+            adjacentLines.push(line)
+        }
     }
 
     // Draw a dashed line connecting entry and exit of the main trade
@@ -742,6 +786,10 @@ const onReload = async () => {
 const destroyChart = () => {
     removeChartListeners()
     clearPriceSegments()
+    for (const series of adjacentLines) {
+        if (chart) chart.removeSeries(series)
+    }
+    adjacentLines = []
     if (tradeLine && chart) {
         chart.removeSeries(tradeLine)
         tradeLine = null
@@ -783,6 +831,12 @@ onUnmounted(() => {
         chart = null
     }
 })
+
+const onAdjacentLinesToggle = () => {
+    if (lastBars.length > 0) {
+        addTradeMarkers(lastBars)
+    }
+}
 
 const onAdjacentToggle = (val: boolean | 'indeterminate') => {
     const enabled = val === true

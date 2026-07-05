@@ -1,77 +1,75 @@
 <template>
-    <CommonModalDefault v-model:open="isOpen" :hideDescription="false" :description="trade?.uniqueId || ''" :title="$t('components.daily.trade_group.trade_details')"
-        :ui="{ content: showChart ? 'max-w-7xl' : ((detailedNote || allScreenshots.length > 0) ? 'max-w-6xl' : 'max-w-3xl') }">
+    <CommonModalDefault
+        v-model:open="isOpen"
+        :hideDescription="false"
+        :description="trade?.uniqueId || ''"
+        :title="$t('components.daily.trade_group.trade_details') + (trade?.account_displayName ? ' — ' + trade.account_displayName : '')"
+        :ui="{ content: showChart ? 'max-w-7xl' : detailedNote || allScreenshots.length > 0 ? 'max-w-6xl' : 'max-w-3xl' }"
+    >
         <template #content>
             <div v-if="trade" class="space-y-4">
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 lg:grid-cols-4 gap-4">
                     <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.symbol')
-                            }}</span>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.symbol') }}</span>
                         <span class="font-semibold">{{ trade.symbol }}</span>
                     </div>
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.type') }}</span>
-                        <UBadge :style="{
-                            backgroundColor: tradeTypeColors[trade.type],
-                            color: 'white',
-                        }">
+                        <UBadge
+                            :style="{
+                                backgroundColor: tradeTypeColors[trade.type],
+                                color: 'white',
+                            }"
+                        >
                             {{ trade.type === 'buy' ? $t('common.trade_types.buy') : $t('common.trade_types.sell') }}
                         </UBadge>
                     </div>
-                    <div>
+                    <div class="">
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.profit') }}</span>
                         <span class="font-semibold" :class="trade.netProfit >= 0 ? 'profit-text' : 'loss-text'">
                             {{ formatCurrency(trade.netProfit) }}
                         </span>
                         <span class="text-secondary-xs text-gray-500 ml-1">
-                            ({{ $t('components.common.columns.headers.grossProfit') }}: {{ formatCurrency(trade.profit) }}, {{ $t('components.common.columns.headers.commission') }}: {{ formatCurrency(trade.commission) }})
+                            ({{ $t('components.common.columns.headers.grossProfit') }}: {{ formatCurrency(trade.profit) }},
+                            {{ $t('components.common.columns.headers.commission') }}: {{ formatCurrency(trade.commission) }})
                         </span>
-                    </div>
-                    <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.account')
-                            }}</span>
-                        <span class="font-semibold">{{ trade.account_displayName }}</span>
                     </div>
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.lot') }}</span>
                         <span class="font-semibold">{{ trade.lot }}</span>
                     </div>
-                    <div></div>
                     <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.openPrice')
-                            }}</span>
-                        <span class="font-semibold">{{ trade.openPrice.toFixed(getDigitFromSymbol(trade.symbol, true))
-                            }}</span>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.openHour') }}</span>
+                        <span>{{
+                            formatDateWithUserTimezone(trade.openDate, userStore.user?.settings_object!, true, locale as 'fr' | 'en' | 'us')
+                        }}</span>
                     </div>
                     <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.closePrice')
-                            }}</span>
-                        <span class="font-semibold">{{ trade.closePrice.toFixed(getDigitFromSymbol(trade.symbol, true))
-                            }}</span>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.closeHour') }}</span>
+                        <span>{{
+                            formatDateWithUserTimezone(trade.closeDate, userStore.user?.settings_object!, true, locale as 'fr' | 'en' | 'us')
+                        }}</span>
                     </div>
-                    <div></div>
+                    <div>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.openPrice') }}</span>
+                        <span class="font-semibold">{{ trade.openPrice.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.closePrice') }}</span>
+                        <span class="font-semibold">{{ trade.closePrice.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                    </div>
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.stopLoss') }}</span>
-                        <span class="font-semibold">{{ !trade.stopLoss ? '---' : trade.stopLoss.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                        <span class="font-semibold">{{
+                            !trade.stopLoss ? '---' : trade.stopLoss.toFixed(getDigitFromSymbol(trade.symbol, true))
+                        }}</span>
                     </div>
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.takeProfit') }}</span>
-                        <span class="font-semibold">{{ !trade.takeProfit ? '---' : trade.takeProfit.toFixed(getDigitFromSymbol(trade.symbol, true)) }}</span>
+                        <span class="font-semibold">{{
+                            !trade.takeProfit ? '---' : trade.takeProfit.toFixed(getDigitFromSymbol(trade.symbol, true))
+                        }}</span>
                     </div>
-                    <div></div>
-                    <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.openHour')
-                            }}</span>
-                        <span>{{ formatDateWithUserTimezone(trade.openDate, userStore.user?.settings_object!, true,
-                            locale as 'fr' | 'en' | 'us') }}</span>
-                    </div>
-                    <div>
-                        <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.closeHour')
-                            }}</span>
-                        <span>{{ formatDateWithUserTimezone(trade.closeDate, userStore.user?.settings_object!, true,
-                            locale as 'fr' | 'en' | 'us') }}</span>
-                    </div>
-                    <div></div>
                 </div>
                 <div v-if="isOption && optionMetadata" class="border-t pt-4">
                     <span class="text-secondary-sm block mb-2 font-semibold">Option Details</span>
@@ -92,8 +90,7 @@
                     <div v-if="optionMetadata.legs && optionMetadata.legs.length > 0" class="mt-3">
                         <span class="text-secondary-sm block mb-2">Legs</span>
                         <div class="space-y-2">
-                            <div v-for="(leg, index) in optionMetadata.legs" :key="index" 
-                                class="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+                            <div v-for="(leg, index) in optionMetadata.legs" :key="index" class="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
                                 <div class="grid grid-cols-4 gap-2">
                                     <div>
                                         <span class="text-xs text-gray-500">Strike</span>
@@ -134,31 +131,26 @@
                     </div>
                 </div>
                 <div v-if="allScreenshots.length > 0" @click.stop>
-                    <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots')
-                        }}</span>
-                    <ScreenshotManager
-                        :model-value="allScreenshots as any"
-                        :readonly="true"
-                        :max-image-width="128"
-                        :max-image-height="128"
-                    />
+                    <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots') }}</span>
+                    <ScreenshotManager :model-value="allScreenshots as any" :readonly="true" :max-image-width="128" :max-image-height="128" />
                 </div>
                 <div v-if="showChart" @click.stop class="border-t pt-4">
                     <TradeChart :key="trade.id" :trade="trade" :adjacent-trades="adjacentTrades" />
                 </div>
                 <div v-if="showDetailedNote && detailedNote">
                     <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
-                    <CommonNoteEditor
-                        :model-value="detailedNote"
-                        :readonly="true"
-                    />
+                    <CommonNoteEditor :model-value="detailedNote" :readonly="true" />
                 </div>
             </div>
         </template>
     </CommonModalDefault>
 
-    <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="allScreenshots"
-        :initial-index="currentScreenshotIndex" @closed="showScreenshots = false" />
+    <CommonModalScreenshotCarousel
+        :open="showScreenshots"
+        :screenshots="allScreenshots"
+        :initial-index="currentScreenshotIndex"
+        @closed="showScreenshots = false"
+    />
 </template>
 
 <script setup lang="ts">
@@ -168,7 +160,7 @@ const { getTagStyle, getTagById } = useTags()
 
 const tradeTags = computed(() => {
     if (!props.trade?.tags?.length) return []
-    return props.trade.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
+    return props.trade.tags.map((tag) => getTagById(tag.id)).filter((tag) => tag !== null)
 })
 
 const props = defineProps<{
@@ -183,7 +175,7 @@ const emit = defineEmits<{
 
 const isOpen = computed({
     get: () => props.isOpen,
-    set: (value: boolean) => emit('update:open', value)
+    set: (value: boolean) => emit('update:open', value),
 })
 
 const { formatCurrency } = useUtils()
@@ -211,7 +203,7 @@ const allScreenshots = computed(() => {
 })
 
 const detailedNote = computed((): string => {
-    return (props.trade?.metadata as Record<string, unknown>)?.detailedNote as string || ''
+    return ((props.trade?.metadata as Record<string, unknown>)?.detailedNote as string) || ''
 })
 
 const isOption = computed(() => {
@@ -223,7 +215,7 @@ const adjacentTrades = computed<TradeExtendedType[]>(() => {
     if (!props.trade || !props.groupTrades) return []
     const tradeOpenDate = new Date(props.trade.openDate)
     const tradeOpenDay = tradeOpenDate.toISOString().split('T')[0]
-    return props.groupTrades.filter(t => {
+    return props.groupTrades.filter((t) => {
         if (t.id === props.trade!.id) return false
         if (t.symbol.toUpperCase() !== props.trade!.symbol.toUpperCase()) return false
         const tOpenDay = new Date(t.openDate).toISOString().split('T')[0]
@@ -245,9 +237,7 @@ const showDetailedNote = computed(() => {
 const optionMetadata = computed(() => {
     if (!props.trade?.metadata) return null
     try {
-        return typeof props.trade.metadata === 'string' 
-            ? JSON.parse(props.trade.metadata) 
-            : props.trade.metadata
+        return typeof props.trade.metadata === 'string' ? JSON.parse(props.trade.metadata) : props.trade.metadata
     } catch (e) {
         console.error('Failed to parse metadata:', e)
         return null

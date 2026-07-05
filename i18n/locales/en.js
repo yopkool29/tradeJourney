@@ -1149,6 +1149,7 @@ export default {
                 missing_api_key: 'Polygon API key is missing. Add it in Settings → Options.',
                 error: 'Error loading chart data',
                 show_adjacent: 'Adjacent trades',
+                show_adjacent_lines: 'Adjacent lines',
             },
             index: {
                 title: 'Trade list',

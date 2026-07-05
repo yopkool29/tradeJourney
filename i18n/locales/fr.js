@@ -1167,6 +1167,7 @@ export default {
                 missing_api_key: 'Clé API Polygon manquante. Ajoutez-la dans Paramètres → Options.',
                 error: 'Erreur lors du chargement des données du graphique',
                 show_adjacent: 'Trades adjacents',
+                show_adjacent_lines: 'Lignes adjacentes',
             },
             index: {
                 title: 'Liste des trades',
