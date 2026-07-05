@@ -251,6 +251,7 @@ const labelColumnsHeader = computed(() => {
         commission: t('components.common.columns.headers.commission'),
         stopLoss: t('components.common.columns.headers.stopLoss'),
         takeProfit: t('components.common.columns.headers.takeProfit'),
+        instrumentType: t('components.common.columns.headers.instrumentType'),
         // Index signature is added via the type assertion below
     }
 })
@@ -417,6 +418,18 @@ const columns = [
             ),
         sortable: true,
         meta: addMeta(),
+    },
+    {
+        id: 'instrumentType',
+        accessorKey: 'instrumentType',
+        header: () => t('components.common.columns.headers.instrumentType'),
+        cell: ({ row }) => {
+            const val = row.original.instrumentType
+            if (!val) return ''
+            return val.charAt(0).toUpperCase() + val.slice(1)
+        },
+        sortable: true,
+        meta: addMeta('w-[120px]'),
     },
     {
         id: 'openDate',

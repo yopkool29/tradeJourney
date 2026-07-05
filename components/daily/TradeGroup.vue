@@ -87,6 +87,7 @@
 
             <!-- Modal pour afficher les détails d'un trade -->
             <DailyTradeDetailModal :is-open="showTradeDetailModal" :trade="selectedTradeDetail"
+                :group-trades="props.groupTrades"
                 @update:open="showTradeDetailModal = $event" />
 
             <div class="flex items-center gap-2 mt-2">

@@ -1,0 +1,6 @@
+{
+	"id": "instrument-type-fixer",
+	"name": "Instrument Type Fixer",
+	"version": "1.0.0",
+	"description": "Permet de fixer le type d'instrument pour tous les trades d'un compte"
+}

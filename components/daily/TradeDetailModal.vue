@@ -1,8 +1,8 @@
 <template>
     <CommonModalDefault v-model:open="isOpen" :hideDescription="false" :description="trade?.uniqueId || ''" :title="$t('components.daily.trade_group.trade_details')"
-        :ui="{ content: (detailedNote || allScreenshots.length > 0) ? 'max-w-6xl' : 'max-w-3xl' }">
+        :ui="{ content: showChart ? 'max-w-7xl' : ((detailedNote || allScreenshots.length > 0) ? 'max-w-6xl' : 'max-w-3xl') }">
         <template #content>
-            <div v-if="trade" class="space-y-4" @click="isOpen = false">
+            <div v-if="trade" class="space-y-4">
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.symbol')
@@ -143,7 +143,10 @@
                         :max-image-height="128"
                     />
                 </div>
-                <div v-if="detailedNote">
+                <div v-if="showChart" @click.stop class="border-t pt-4">
+                    <TradeChart :key="trade.id" :trade="trade" :adjacent-trades="adjacentTrades" />
+                </div>
+                <div v-if="showDetailedNote && detailedNote">
                     <span class="text-secondary-sm block mb-2">{{ $t('components.trade.noteEditor.label') }}</span>
                     <CommonNoteEditor
                         :model-value="detailedNote"
@@ -171,6 +174,7 @@ const tradeTags = computed(() => {
 const props = defineProps<{
     trade: TradeExtendedType | null
     isOpen: boolean
+    groupTrades?: TradeExtendedType[]
 }>()
 
 const emit = defineEmits<{
@@ -212,6 +216,30 @@ const detailedNote = computed((): string => {
 
 const isOption = computed(() => {
     return props.trade?.instrumentType === 'option'
+})
+
+// Adjacent trades: same symbol, same opening day, excluding the current trade.
+const adjacentTrades = computed<TradeExtendedType[]>(() => {
+    if (!props.trade || !props.groupTrades) return []
+    const tradeOpenDate = new Date(props.trade.openDate)
+    const tradeOpenDay = tradeOpenDate.toISOString().split('T')[0]
+    return props.groupTrades.filter(t => {
+        if (t.id === props.trade!.id) return false
+        if (t.symbol.toUpperCase() !== props.trade!.symbol.toUpperCase()) return false
+        const tOpenDay = new Date(t.openDate).toISOString().split('T')[0]
+        return tOpenDay === tradeOpenDay
+    })
+})
+
+// Show the chart only for non-option trades (options have no underlying chart).
+const showChart = computed(() => {
+    if (!props.trade || isOption.value) return false
+    return userStore.user?.settings_object?.showTradeChart ?? true
+})
+
+// Show detailed note based on user settings
+const showDetailedNote = computed(() => {
+    return userStore.user?.settings_object?.showDetailedNote ?? true
 })
 
 const optionMetadata = computed(() => {

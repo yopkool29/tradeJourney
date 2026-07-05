@@ -75,6 +75,48 @@
                         </div>
                     </div>
 
+                    <!-- Section Détail du trade -->
+                    <div class="section-separator">
+                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.trade_detail_section') }}</h3>
+                        <div class="flex flex-col gap-8">
+                            <UFormField name="showTradeChart" class="w-full">
+                                <UCheckbox
+                                    v-model="formState.showTradeChart"
+                                    :label="$t('components.settings.options.show_trade_chart')"
+                                    :description="$t('components.settings.options.show_trade_chart_desc')"
+                                />
+                            </UFormField>
+                            <UFormField name="showDetailedNote" class="w-full">
+                                <UCheckbox
+                                    v-model="formState.showDetailedNote"
+                                    :label="$t('components.settings.options.show_detailed_note')"
+                                    :description="$t('components.settings.options.show_detailed_note_desc')"
+                                />
+                            </UFormField>
+                            <UFormField name="polygonApiKey" :label="$t('components.settings.options.polygon_api_key')" class="w-lg">
+                                <div class="flex gap-2">
+                                    <UInput
+                                        v-model="formState.polygonApiKey"
+                                        class="flex-1"
+                                        :type="showPolygonKey ? 'text' : 'password'"
+                                        placeholder="polygon_api_key"
+                                        autocomplete="off"
+                                    />
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        @click="showPolygonKey = !showPolygonKey"
+                                    >
+                                        {{ showPolygonKey ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
+                                    </UButton>
+                                </div>
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_api_key_desc') }}</span>
+                                </template>
+                            </UFormField>
+                        </div>
+                    </div>
+
                     <!-- Section Tableau de bord -->
                     <div class="section-separator">
                         <h3 class="section-subtitle-lg">{{ $t('components.settings.options.dashboard_section') }}</h3>
@@ -100,7 +142,7 @@
                         <div class="grid grid-cols-1 gap-8">
                             <UFormField name="storageUrl" :label="$t('components.settings.options.storage_url')">
                                 <UInput
-                                    class="w-128"
+                                    class="w-lg"
                                     v-model="formState.storageUrl"
                                     placeholder="https://your-ngrok-url.ngrok.io"
                                 />
@@ -108,7 +150,7 @@
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_url_desc') }}</span>
                                 </template>
                             </UFormField>
-                            <UFormField name="storageToken" :label="$t('components.settings.options.storage_token')" class="w-128">
+                            <UFormField name="storageToken" :label="$t('components.settings.options.storage_token')" class="w-lg">
                                 <div class="flex gap-2">
                                     <UInput
                                         :model-value="userStore.user?.token || ''"
@@ -135,7 +177,7 @@
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_token_desc') }}</span>
                                 </template>
                             </UFormField>
-                            <UFormField name="storagePassword" :label="$t('components.settings.options.storage_password')" class="w-128">
+                            <UFormField name="storagePassword" :label="$t('components.settings.options.storage_password')" class="w-lg">
                                 <div class="flex gap-2">
                                     <UInput
                                         v-model="formState.storagePassword"
@@ -405,6 +447,7 @@ const currentTheme = computed(() => {
 // Visibility toggles for sensitive data
 const showToken = ref(false)
 const showPassword = ref(false)
+const showPolygonKey = ref(false)
 
 // Copy to clipboard helper
 const copyToClipboard = async (text: string) => {
@@ -582,6 +625,9 @@ function resetSettings() {
         showQuickNav: defaultSettings.showQuickNav,
         reverseDaysOrder: defaultSettings.reverseDaysOrder,
         syncAccountSelection: defaultSettings.syncAccountSelection,
+        showTradeChart: defaultSettings.showTradeChart,
+        showDetailedNote: defaultSettings.showDetailedNote,
+        polygonApiKey: defaultSettings.polygonApiKey,
         pnlThreshold: defaultSettings.pnlThreshold,
         ninjaTraderApiPort: defaultSettings.ninjaTraderApiPort,
         ninjaTraderApiDays: defaultSettings.ninjaTraderApiDays,

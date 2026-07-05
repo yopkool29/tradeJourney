@@ -15,7 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { createChart, ColorType, CandlestickSeries, LineSeries, type ISeriesApi, createSeriesMarkers } from 'lightweight-charts'
 
 const colorMode = useColorMode()

@@ -143,20 +143,28 @@ const addMeta = (defaultClass: string = 'w-[80px]') => {
     return {
         class: {
             td: defaultClass,
+            th: defaultClass,
         },
     }
 }
 
 const columns = computed(() => {
     return [
-        { id: 'actions', accessorKey: 'id', header: t('components.settings.tradingSymbols.columns.actions'), meta: addMeta() },
+        { id: 'actions', accessorKey: 'id', header: t('components.settings.tradingSymbols.columns.actions'), meta: addMeta('w-[60px]') },
         { id: 'symbol', accessorKey: 'symbol', header: t('components.settings.tradingSymbols.columns.symbol'), meta: addMeta() },
         { id: 'digit', accessorKey: 'digit', header: t('components.settings.tradingSymbols.columns.digit'), meta: addMeta() },
         { id: 'pricePerPoint', accessorKey: 'pricePerPoint', header: t('components.settings.tradingSymbols.columns.pricePerPoint'), meta: addMeta() },
         { id: 'active', accessorKey: 'active', header: t('components.settings.tradingSymbols.columns.active'), meta: addMeta() },
-        { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.tradingSymbols.columns.aliases') },
+        { id: 'aliases', accessorKey: 'aliases', header: t('components.settings.tradingSymbols.columns.aliases'), meta: addMeta('w-[150px]') },
         // { id: 'createdAt', accessorKey: 'createdAt', header: t('components.settings.tradingSymbols.columns.createdAt'), meta: addMeta() },
-        { id: 'notes', accessorKey: 'notes', header: t('components.settings.tradingSymbols.columns.notes') },
+        { id: 'notes', accessorKey: 'notes', header: t('components.settings.tradingSymbols.columns.notes'), meta: addMeta('w-[120px]') },
+        {
+            id: 'customKeys',
+            accessorKey: 'customKeys',
+            header: t('components.settings.tradingSymbols.columns.customKeys'),
+            cell: ({ row }) => getCustomKeysDisplay(row.original),
+            meta: addMeta('w-[120px]'),
+        },
     ]
 })
 
@@ -176,6 +184,15 @@ const fetchSymbols = async () => {
 const getAliasDisplay = (symbol: SymbolType) => {
     const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'aliases')?.value
     return fromMeta ?? symbol.aliases ?? ''
+}
+
+const getCustomKeysDisplay = (symbol: SymbolType) => {
+    const fields = symbol.metadata?.customFields
+    if (!fields || fields.length === 0) return ''
+    return fields
+        .filter(f => f.key !== 'aliases')
+        .map(f => `${f.key}:${f.value}`)
+        .join(', ')
 }
 
 onMounted(() => {

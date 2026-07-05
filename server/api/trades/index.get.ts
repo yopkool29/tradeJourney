@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
 
                         const type = getColumnType(filter.column)
                         let value: unknown = filter.value
-                        if (type === 'number') value = Number(filter.value)
+                        if (type === 'number' && !Array.isArray(filter.value)) value = Number(filter.value)
                         if (type === 'date') {
                             if (typeof filter.value === 'number') {
                                 value = new Date(filter.value)
@@ -148,9 +148,12 @@ export default defineEventHandler(async (event) => {
 
                         // Gestion spéciale pour l'opérateur 'in' avec les tableaux
                         if (prismaOperator === 'in' && Array.isArray(filter.value)) {
+                            const arr = type === 'number'
+                                ? filter.value.map((v: unknown) => Number(v))
+                                : filter.value
                             return {
                                 [filter.column]: {
-                                    in: filter.value
+                                    in: arr
                                 }
                             }
                         }

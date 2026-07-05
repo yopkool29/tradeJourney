@@ -54,6 +54,8 @@ export const useDbStateStore = defineStore(
 		const columnVisibilityPerDb = ref<Record<string, Record<string, boolean>>>({})
 		const showDetailedNotePerDb = ref<Record<string, boolean>>({})
 		const lastViewedNoteIdPerDb = ref<Record<string, number | null>>({})
+		const tradeChartTfPerDb = ref<Record<string, string>>({})
+		const tradeChartShowAdjacentPerDb = ref<Record<string, boolean>>({})
 
 		const lastViewedNoteId = computed({
 			get: () => {
@@ -401,6 +403,7 @@ export const useDbStateStore = defineStore(
 						commission: false,
 						stopLoss: false,
 						takeProfit: false,
+                        instrumentType: false,
 					}
 				}
 				return columnVisibilityPerDb.value[dbName]
@@ -419,6 +422,28 @@ export const useDbStateStore = defineStore(
 			set: (val) => {
 				const dbName = getCurrentDbName()
 				showDetailedNotePerDb.value[dbName] = val
+			},
+		})
+
+		const tradeChartTf = computed({
+			get: () => {
+				const dbName = getCurrentDbName()
+				return tradeChartTfPerDb.value[dbName] ?? '15'
+			},
+			set: (val) => {
+				const dbName = getCurrentDbName()
+				tradeChartTfPerDb.value[dbName] = val
+			},
+		})
+
+		const tradeChartShowAdjacent = computed({
+			get: () => {
+				const dbName = getCurrentDbName()
+				return tradeChartShowAdjacentPerDb.value[dbName] ?? true
+			},
+			set: (val) => {
+				const dbName = getCurrentDbName()
+				tradeChartShowAdjacentPerDb.value[dbName] = val
 			},
 		})
 
@@ -494,6 +519,12 @@ export const useDbStateStore = defineStore(
 			lastViewedNoteIdPerDb.value = Object.fromEntries(
 				Object.entries(lastViewedNoteIdPerDb.value).filter(([key]) => key !== dbName)
 			)
+			tradeChartTfPerDb.value = Object.fromEntries(
+				Object.entries(tradeChartTfPerDb.value).filter(([key]) => key !== dbName)
+			)
+			tradeChartShowAdjacentPerDb.value = Object.fromEntries(
+				Object.entries(tradeChartShowAdjacentPerDb.value).filter(([key]) => key !== dbName)
+			)
 		}
 
 		const dashBoardLastTrades = computed(() => {
@@ -514,6 +545,8 @@ export const useDbStateStore = defineStore(
 			columnVisibilityPerDb,
 			showDetailedNotePerDb,
 			lastViewedNoteIdPerDb,
+			tradeChartTfPerDb,
+			tradeChartShowAdjacentPerDb,
 			// Computed wrappers
 			lastViewedNoteId,
 			customInputs,
@@ -530,6 +563,8 @@ export const useDbStateStore = defineStore(
 			dashBoardLastTrades,
 			columnVisibility,
 			showDetailedNote,
+			tradeChartTf,
+			tradeChartShowAdjacent,
 			// Methods
 			getCustomInput,
 			updateCustomInput,
@@ -555,6 +590,8 @@ export const useDbStateStore = defineStore(
 				'dashBoardResultPerDb',
 				'columnVisibilityPerDb',
 				'showDetailedNotePerDb',
+				'tradeChartTfPerDb',
+				'tradeChartShowAdjacentPerDb',
 			],
 		},
 	}

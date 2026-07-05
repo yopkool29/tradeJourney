@@ -45,7 +45,7 @@
                         class="min-w-[120px]"
                         @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
-                    
+
                     <!-- Slot pour champ personnalisé (autres colonnes) -->
                     <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => { onValueChange(idx, val); debouncedApply() }">
                         <!-- Champ par défaut -->
@@ -62,12 +62,12 @@
                     <UButton v-if="modelValue.length >= 1" icon="i-heroicons-x-mark" variant="ghost" size="xs" @click="emit('remove', idx)" />
                 </div>
             </div>
-        </div>
 
-        <div class="filter-actions-lg">
-            <UButton icon="i-heroicons-plus" color="primary" variant="outline" size="sm" @click="emit('add')">
-                {{ $t('components.trade.table.advanced_filters.add') }}
-            </UButton>
+            <div class="filter-actions-lg">
+                <UButton icon="i-heroicons-plus" color="primary" variant="outline" size="sm" @click="emit('add')">
+                    {{ $t('components.trade.table.advanced_filters.add') }}
+                </UButton>
+            </div>
         </div>
 
     </div>
