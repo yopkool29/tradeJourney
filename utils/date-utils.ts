@@ -385,6 +385,23 @@ export function formatDate(
   return dt.toFormat(format);
 }
 
+export const getTimeZoneFromSettings = (
+  timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC',
+  timezoneLocal: string = 'Europe/Paris',
+  timezoneUtcOffset: number = 0
+): string => {
+  if (timezoneMode === 'UTC') {
+    const sign = timezoneUtcOffset >= 0 ? '+' : '-'
+    const hours = String(Math.abs(Math.floor(timezoneUtcOffset))).padStart(2, '0')
+    const minutes = String(Math.abs((timezoneUtcOffset % 1) * 60)).padStart(2, '0')
+    return `UTC${sign}${hours}:${minutes}`
+  }
+  if (timezoneMode === 'LOCAL') {
+    return timezoneLocal
+  }
+  return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
 /**
  * Format date with timezone support: 25/10/2025 or 25/10/2025 14:30
  * @param dateString - Date string or Date object (UTC)
@@ -413,22 +430,7 @@ export const formatDateString = (
       return 'Date invalide';
     }
 
-    let timeZone: string | undefined;
-
-    // Déterminer le fuseau horaire à utiliser
-    if (timezoneMode === 'CURRENT') {
-      // Auto-détecter le fuseau horaire du navigateur
-      timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } else if (timezoneMode === 'LOCAL') {
-      // Utiliser le fuseau horaire IANA spécifié
-      timeZone = timezoneLocal;
-    } else if (timezoneMode === 'UTC') {
-      // Convertir l'offset UTC en format Intl (UTC±HH:MM)
-      const sign = timezoneUtcOffset >= 0 ? '+' : '-';
-      const hours = String(Math.abs(Math.floor(timezoneUtcOffset))).padStart(2, '0');
-      const minutes = String(Math.abs((timezoneUtcOffset % 1) * 60)).padStart(2, '0');
-      timeZone = `UTC${sign}${hours}:${minutes}`;
-    }
+    const timeZone = getTimeZoneFromSettings(timezoneMode, timezoneLocal, timezoneUtcOffset)
 
     return new Intl.DateTimeFormat(intlLocale, {
       day: '2-digit',
@@ -533,22 +535,7 @@ export const formatHourString = (
       return 'Date invalide';
     }
 
-    let timeZone: string | undefined;
-
-    // Déterminer le fuseau horaire à utiliser
-    if (timezoneMode === 'CURRENT') {
-      // Auto-détecter le fuseau horaire du navigateur
-      timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } else if (timezoneMode === 'LOCAL') {
-      // Utiliser le fuseau horaire IANA spécifié
-      timeZone = timezoneLocal;
-    } else if (timezoneMode === 'UTC') {
-      // Convertir l'offset UTC en format Intl (UTC±HH:MM)
-      const sign = timezoneUtcOffset >= 0 ? '+' : '-';
-      const hours = String(Math.abs(Math.floor(timezoneUtcOffset))).padStart(2, '0');
-      const minutes = String(Math.abs((timezoneUtcOffset % 1) * 60)).padStart(2, '0');
-      timeZone = `UTC${sign}${hours}:${minutes}`;
-    }
+    const timeZone = getTimeZoneFromSettings(timezoneMode, timezoneLocal, timezoneUtcOffset)
 
     return new Intl.DateTimeFormat(intlLocale, {
       hour: '2-digit',

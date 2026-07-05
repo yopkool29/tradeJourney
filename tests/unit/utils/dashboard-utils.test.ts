@@ -112,25 +112,25 @@ describe('dashboard utils', () => {
 
 	describe('groupTradesByPeriod', () => {
 		it('should group trades by day', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'day')
+			const result = groupTradesByPeriod(mockTrades as any, 'day', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(5)
 		})
 
 		it('should group trades by week', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'week')
+			const result = groupTradesByPeriod(mockTrades as any, 'week', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBeGreaterThan(0)
 		})
 
 		it('should group trades by month', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'month')
+			const result = groupTradesByPeriod(mockTrades as any, 'month', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(1)
 		})
 
 		it('should group trades by year', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'year')
+			const result = groupTradesByPeriod(mockTrades as any, 'year', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(1)
 		})
@@ -152,7 +152,7 @@ describe('dashboard utils', () => {
 
 	describe('generateCumulatedPnlChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateCumulatedPnlChartData(mockTrades as any, 'day', true)
+			const result = generateCumulatedPnlChartData(mockTrades as any, 'day', true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 			expect(Array.isArray(result.labels)).toBe(true)
@@ -161,7 +161,7 @@ describe('dashboard utils', () => {
 		})
 
 		it('should return empty data for no trades', () => {
-			const result = generateCumulatedPnlChartData([], 'day', true)
+			const result = generateCumulatedPnlChartData([], 'day', true, null)
 			expect(result.labels.length).toBe(0)
 			expect(result.datasets[0].data.length).toBe(0)
 		})
@@ -169,40 +169,40 @@ describe('dashboard utils', () => {
 
 	describe('generateApptChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateApptChartData(mockTrades as any, 'day', 3, true)
+			const result = generateApptChartData(mockTrades as any, 'day', 3, true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 			expect(Array.isArray(result.datasets)).toBe(true)
 		})
 
 		it('should return empty data for no trades', () => {
-			const result = generateApptChartData([], 'day', 3, true)
+			const result = generateApptChartData([], 'day', 3, true, null)
 			expect(result.labels.length).toBe(0)
 		})
 	})
 
 	describe('generatePlRatioChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generatePlRatioChartData(mockTrades as any, 'day', 3)
+			const result = generatePlRatioChartData(mockTrades as any, 'day', 3, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 		})
 
 		it('should return empty data for no trades', () => {
-			const result = generatePlRatioChartData([], 'day', 3)
+			const result = generatePlRatioChartData([], 'day', 3, null)
 			expect(result.labels.length).toBe(0)
 		})
 	})
 
 	describe('generateWinrateChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateWinrateChartData(mockTrades as any, 'day', 3, true)
+			const result = generateWinrateChartData(mockTrades as any, 'day', 3, true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 		})
 
 		it('should return empty data for no trades', () => {
-			const result = generateWinrateChartData([], 'day', 3, true)
+			const result = generateWinrateChartData([], 'day', 3, true, null)
 			expect(result.labels.length).toBe(0)
 		})
 	})

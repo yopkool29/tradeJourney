@@ -18,6 +18,24 @@ import {
     getMaxWinningStreak,
     getMaxLosingStreak
 } from '~/utils/tradeStats'
+import {
+    getDailyPnlArray,
+    getOpenTrades,
+    getTotalTradingDays,
+    getWinningDaysCount,
+    getLosingDaysCount,
+    getBreakevenDaysCount,
+    getMaxConsecutiveWinningDays,
+    getMaxConsecutiveLosingDays,
+    getAverageDailyPnl,
+    getAverageWinningDayPnl,
+    getAverageLosingDayPnl,
+    getLargestProfitableDay,
+    getLargestLosingDay,
+    getDailyMaxDrawdownWithPercent,
+    getAverageDrawdown,
+    getAverageDrawdownPercent
+} from '~/utils/dayStats'
 
 export const buildFiltersForApi = (
     startDate: Date | null,
@@ -147,6 +165,33 @@ export const useDashboard = () => {
         const sortedByClose = [...trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())
         dataStore.dashboardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose)
         dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose)
+
+        // DAILY METRICS
+        const dailyPnls = getDailyPnlArray(trades, useNet, userStore.user?.settings_object ?? null)
+        dataStore.dashboardResult.openTrades = getOpenTrades(trades)
+        dataStore.dashboardResult.totalTradingDays = getTotalTradingDays(dailyPnls)
+        dataStore.dashboardResult.winningDays = getWinningDaysCount(dailyPnls)
+        dataStore.dashboardResult.losingDays = getLosingDaysCount(dailyPnls)
+        dataStore.dashboardResult.breakevenDays = getBreakevenDaysCount(dailyPnls)
+        dataStore.dashboardResult.maxConsecutiveWinningDays = getMaxConsecutiveWinningDays(dailyPnls)
+        dataStore.dashboardResult.maxConsecutiveLosingDays = getMaxConsecutiveLosingDays(dailyPnls)
+        dataStore.dashboardResult.averageDailyPnl = getAverageDailyPnl(dailyPnls, 2)
+        dataStore.dashboardResult.averageWinningDayPnl = getAverageWinningDayPnl(dailyPnls, 2)
+        dataStore.dashboardResult.averageLosingDayPnl = getAverageLosingDayPnl(dailyPnls, 2)
+
+        const largestProfitableDay = getLargestProfitableDay(dailyPnls)
+        dataStore.dashboardResult.largestProfitableDayPnl = largestProfitableDay?.pnl ?? 0
+        dataStore.dashboardResult.largestProfitableDayDate = largestProfitableDay ? new Date(largestProfitableDay.date) : null
+
+        const largestLosingDay = getLargestLosingDay(dailyPnls)
+        dataStore.dashboardResult.largestLosingDayPnl = largestLosingDay?.pnl ?? 0
+        dataStore.dashboardResult.largestLosingDayDate = largestLosingDay ? new Date(largestLosingDay.date) : null
+
+        const dailyDrawdown = getDailyMaxDrawdownWithPercent(dailyPnls, 2)
+        dataStore.dashboardResult.dailyMaxDrawdown = dailyDrawdown.maxDrawdown
+        dataStore.dashboardResult.dailyMaxDrawdownPercent = dailyDrawdown.maxDrawdownPercent
+        dataStore.dashboardResult.averageDrawdown = getAverageDrawdown(dailyPnls, 2)
+        dataStore.dashboardResult.averageDrawdownPercent = getAverageDrawdownPercent(dailyPnls, 2)
 
         return trades
     }

@@ -80,6 +80,7 @@ const chartInfo = computed(() => {
 		dataStore.lastTrades as TradeType[],
 		userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
 		displayModeNet.value,
+		userStore.user?.settings_object ?? null
 	)
 
 	let labels: string[] = raw.labels || []

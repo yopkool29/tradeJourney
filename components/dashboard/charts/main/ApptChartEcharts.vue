@@ -29,11 +29,14 @@ const { movingAverageColor, profitColor, lossColor } = useTypeColors('apptChart'
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
 
+const userStore = useUserStore()
+
 const rawData = computed(() => generateApptChartData(
 	dataStore.lastTrades,
 	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
 	5,
-	displayModeNet.value
+	displayModeNet.value,
+	userStore.user?.settings_object ?? null
 ))
 
 const labels = computed(() => rawData.value.labels as string[])

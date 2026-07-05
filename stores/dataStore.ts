@@ -21,7 +21,16 @@ export const useDataStore = defineStore(
 			totalLoss: 0, losingTradesCount: 0, losingContractsCount: 0, largestLoss: 0, avgLoss: 0,
 			stdDevLoss: 0, avgLossDuration: 0, maxLossDuration: 0, losingTradesCommission: 0,
 			maxDrawdown: 0, maxDrawdownDateFrom: null, maxDrawdownDateTo: null, maxLosingStreak: 0,
-			breakevenTradesCount: 0, breakevenContractsCount: 0
+			breakevenTradesCount: 0, breakevenContractsCount: 0,
+
+			// Daily metrics
+			openTrades: 0, totalTradingDays: 0, winningDays: 0, losingDays: 0, breakevenDays: 0,
+			maxConsecutiveWinningDays: 0, maxConsecutiveLosingDays: 0,
+			averageDailyPnl: 0, averageWinningDayPnl: 0, averageLosingDayPnl: 0,
+			largestProfitableDayPnl: 0, largestProfitableDayDate: null,
+			largestLosingDayPnl: 0, largestLosingDayDate: null,
+			dailyMaxDrawdown: 0, dailyMaxDrawdownPercent: 0,
+			averageDrawdown: 0, averageDrawdownPercent: 0
 		})
 
 		// Daily history data (non-persisted) - current DB only

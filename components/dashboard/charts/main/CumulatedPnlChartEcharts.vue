@@ -31,10 +31,13 @@ const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
 
+const userStore = useUserStore()
+
 const rawData = computed(() => generateCumulatedPnlChartData(
 	dataStore.lastTrades,
 	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
-	displayModeNet.value
+	displayModeNet.value,
+	userStore.user?.settings_object ?? null
 ))
 
 const labels = computed(() => {

@@ -78,7 +78,7 @@ export interface TradeOptions {
 }
 
 export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
-export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'tickerTable'
+export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'tickerTable' | 'dayStatistics'
 
 export interface DashboardGridItem {
     x: number
@@ -194,6 +194,26 @@ export interface DashBoardResult {
     maxLosingStreak: number
     breakevenTradesCount: number
     breakevenContractsCount: number
+
+    // Daily metrics
+    openTrades: number
+    totalTradingDays: number
+    winningDays: number
+    losingDays: number
+    breakevenDays: number
+    maxConsecutiveWinningDays: number
+    maxConsecutiveLosingDays: number
+    averageDailyPnl: number
+    averageWinningDayPnl: number
+    averageLosingDayPnl: number
+    largestProfitableDayPnl: number
+    largestProfitableDayDate: Date | null
+    largestLosingDayPnl: number
+    largestLosingDayDate: Date | null
+    dailyMaxDrawdown: number
+    dailyMaxDrawdownPercent: number
+    averageDrawdown: number
+    averageDrawdownPercent: number
 }
 
 import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils';

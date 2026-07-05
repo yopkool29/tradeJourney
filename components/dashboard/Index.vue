@@ -335,6 +335,7 @@ import DashboardSectionsProfitTradesSection from '~/components/dashboard/section
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
 import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
 import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
+import DashboardSectionsDayStatisticsSection from '~/components/dashboard/sections/DayStatisticsSection.vue'
 
 import {
     periodOptions,
@@ -480,6 +481,7 @@ const gridComponents = computed(() => {
         losingTrades: DashboardSectionsLosingTradesSection,
         winLossComparison: DashboardSectionsWinLossComparisonSection,
         tickerTable: DashboardSectionsTickerBreakdownTable,
+        dayStatistics: DashboardSectionsDayStatisticsSection,
     }
     return { ...chartComponentMap, ...sectionComponentMap }
 })
@@ -537,18 +539,45 @@ const gridLayout = computed(() => {
             ? (ws?.dashboardGridLayoutSm?.length ?? 0) > 0
             : (ws?.dashboardGridLayout?.length ?? 0) > 0
 
-    // If saved layout exists, use it (backward compatibility)
+    // If saved layout exists, use it and append any visible template item that is missing
     if (hasSavedLayout) {
         const baseLayout = breakpoint === 'md'
             ? ws!.dashboardGridLayoutMd
             : breakpoint === 'sm'
                 ? ws!.dashboardGridLayoutSm
                 : ws!.dashboardGridLayout
-        return baseLayout.filter((item) => {
+        const savedKeys = new Set(baseLayout.map(item => item.i))
+        const visibleSaved = baseLayout.filter((item) => {
             if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
             if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
             return false
         })
+
+        const templateItems = defaultItemsForBreakpoint.value
+        const missingVisible = templateItems.filter((item) => {
+            if (savedKeys.has(item.i)) return false
+            if (item.i in activeChartVisibility.value) return activeChartVisibility.value[item.i as ChartKey]
+            if (item.i in activeSectionVisibility.value) return activeSectionVisibility.value[item.i as SectionKey]
+            return false
+        })
+
+        const cols = gridColNum.value
+        const maxY = visibleSaved.reduce((max, item) => Math.max(max, (item.y ?? 0) + item.h), 0)
+        const merged = [...visibleSaved]
+        let currentX = 0
+        let currentY = maxY
+        let rowHeight = 0
+        for (const item of missingVisible) {
+            if (currentX + item.w > cols) {
+                currentX = 0
+                currentY += rowHeight
+                rowHeight = 0
+            }
+            merged.push({ ...item, x: currentX, y: currentY })
+            currentX += item.w
+            rowHeight = Math.max(rowHeight, item.h)
+        }
+        return merged
     }
 
     // No saved layout: use templates and stack them

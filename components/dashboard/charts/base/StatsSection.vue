@@ -24,7 +24,7 @@ import { useMetricsBaseSectionPattern } from '~/composables/metrics/useBaseSecti
 
 export interface StatsRow {
 	label: string
-	value?: number | string
+	value?: number | string | Date | null
 	displayValue?: string
 	format?: 'currency' | 'duration' | 'date' | 'percent' | 'number'
 	valueClass?: string
@@ -53,8 +53,11 @@ const formatRowValue = (row: StatsRow): string => {
 			return formatCurrency(typeof row.value === 'number' ? row.value : Number(row.value))
 		case 'duration':
 			return formatDurationMinutes(typeof row.value === 'number' ? row.value : Number(row.value))
-		case 'date':
-			return formatDateWithFallback(typeof row.value === 'string' ? new Date(row.value) : new Date(row.value))
+		case 'date': {
+			if (row.value instanceof Date) return formatDateWithFallback(row.value)
+			if (typeof row.value === 'string') return formatDateWithFallback(new Date(row.value))
+			return formatDateWithFallback(new Date(row.value as number))
+		}
 		case 'percent': {
 			const percentValue = typeof row.value === 'number' ? row.value : Number(row.value)
 			return `${percentValue.toFixed(2)}%`

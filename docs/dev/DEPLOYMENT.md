@@ -379,6 +379,9 @@ npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name
 
 # Backup all
 npx tsx scripts/backup-all.ts 1
+
+# Backup all and copy zip files to a destination directory
+npx tsx scripts/backup-all.ts 1 /path/to/backup/folder
 ```
 
 **Or run in one command:**

@@ -272,13 +272,13 @@ export const usePolygonBars = (
         return polygonSymbol.value !== null && isFuturesSymbol(polygonSymbol.value)
     })
 
-    // Resolve the Polygon API key: prefer user settings, fallback to runtimeConfig (.env)
+    // Resolve the Polygon API key from user settings. The key is no longer
+    // read from runtimeConfig / env files; it must be provided by the user.
     const getApiKey = (): string => {
         const userStore = useUserStore()
         const settingsKey = userStore.user?.settings_object?.polygonApiKey as string | undefined
         if (settingsKey && settingsKey.trim()) return settingsKey.trim()
-        const config = useRuntimeConfig()
-        return config.public.polygonApiKey
+        throw new Error('MISSING_POLYGON_API_KEY')
     }
 
     // Resolve the effective ticker to use for fetching bars.

@@ -65,7 +65,9 @@ const datalabelsSettings = computed(() => {
 const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
         dataStore.lastTrades,
-        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year'
+        userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+        true,
+        userStore.user?.settings_object ?? null
     )
 
     // Appliquer les couleurs et options depuis la configuration

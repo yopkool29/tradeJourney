@@ -63,7 +63,8 @@ const chartData = computed((): ChartData => {
     const data = generatePlRatioChartData(
         userStore.dashBoardFilters.last_results,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
-        3
+        3,
+        userStore.user?.settings_object ?? null
     )
 
     // Appliquer les couleurs et options depuis la configuration

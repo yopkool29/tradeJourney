@@ -1,7 +1,9 @@
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
+import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 import { getPNL, getAPPT, getWinrate, movingAverage, getPLRatio as calculatePLRatio } from './tradeStats'
 import type { TradeType } from '~/schema/trade'
-import { formatDateString } from '~/utils/date-utils'
+import type { SettingsContentType } from '~/schema/user'
+import { formatDateString, getTimeZoneFromSettings } from '~/utils/date-utils'
 
 export interface GridTemplateItem {
 	w: number
@@ -21,6 +23,7 @@ export const defaultGridItemsLg: GridTemplateItem[] = [
 	{ w: 6, h: 8, i: 'tickerPnl' },
 	{ w: 6, h: 6, i: 'tickerWinrate' },
 	{ w: 12, h: 12, i: 'tickerTable' },
+	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ w: 6, h: 6, i: 'hourlyWinrate' },
 	{ w: 6, h: 6, i: 'dayOfWeekPnl' },
@@ -38,6 +41,7 @@ export const defaultGridItemsMd: GridTemplateItem[] = [
 	{ w: 6, h: 8, i: 'tickerPnl' },
 	{ w: 6, h: 6, i: 'tickerWinrate' },
 	{ w: 6, h: 12, i: 'tickerTable' },
+	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ w: 6, h: 6, i: 'hourlyWinrate' },
 	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
@@ -55,6 +59,7 @@ export const defaultGridItemsSm: GridTemplateItem[] = [
 	{ w: 3, h: 8, i: 'tickerPnl' },
 	{ w: 3, h: 6, i: 'tickerWinrate' },
 	{ w: 3, h: 12, i: 'tickerTable' },
+	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 3, h: 6, i: 'hourlyHeatmap' },
 	{ w: 3, h: 6, i: 'hourlyWinrate' },
 	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
@@ -82,7 +87,7 @@ export const defaultDashboardGridLayoutMd = compactItems(defaultGridItemsMd, 6)
 export const defaultDashboardGridLayoutSm = compactItems(defaultGridItemsSm, 3)
 
 // Items that can be resized in the grid layout
-export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']
+export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'dayStatistics', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']
 
 export const getWeekNumber = (date: Date): number => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
@@ -320,7 +325,11 @@ export const generateIntradayPnlChartData = (trades: TradeType[]) => {
  * @param mode Mode de regroupement ('day', 'week', 'month', 'year')
  * @returns Trades groupés par période
  */
-export const groupTradesByPeriod = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'day') => {
+export const groupTradesByPeriod = (
+    trades: TradeType[],
+    mode: 'day' | 'week' | 'month' | 'year',
+    settings: Partial<SettingsContentType> | null
+) => {
     // Trier les trades par date de clôture
     const sortedTrades = [...trades].sort((a, b) => {
         const dateA = new Date(a.closeDate)
@@ -328,35 +337,33 @@ export const groupTradesByPeriod = (trades: TradeType[], mode: 'day' | 'week' | 
         return dateA.getTime() - dateB.getTime()
     })
 
+    const timezoneMode = settings?.timezoneDisplay ?? 'CURRENT'
+    const timezoneLocal = settings?.timezoneLocal ?? 'Europe/Paris'
+    const timezoneUtcOffset = settings?.timezoneUtcOffset ?? 0
+
     const groupedTrades: Record<string, TradeType[]> = {}
 
     sortedTrades.forEach(trade => {
         const closeDate = new Date(trade.closeDate)
         let key: string
 
-        let day: number;
-        let diff: number;
-        let monday: Date;
-
         switch (mode) {
             case 'day':
-                key = formatDateString(closeDate, false, 'en') // ex: DD/MM/YYY
+                key = formatDateString(closeDate, false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset) // ex: DD/MM/YYY
                 key = key.split('/').reverse().join('-') // YYYY-MM-DD
                 break
-            case 'week':
-                // Obtenir le premier jour de la semaine (lundi)
-                day = closeDate.getDay() || 7 // Transformer 0 (dimanche) en 7
-                diff = closeDate.getDate() - day + 1 // Ajuster au lundi
-                monday = new Date(closeDate)
-                monday.setDate(diff)
-
-                key = formatDateString(monday, false, 'en') // ex: DD/MM/YYY
+            case 'week': {
+                // Obtenir le premier jour de la semaine (lundi) dans le fuseau utilisateur
+                const timeZone = getTimeZoneFromSettings(timezoneMode, timezoneLocal, timezoneUtcOffset)
+                const zonedDate = toZonedTime(closeDate, timeZone)
+                const monday = startOfWeek(zonedDate, { weekStartsOn: 1 })
+                key = formatDateString(fromZonedTime(monday, timeZone), false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset)
                 key = key.split('/').reverse().join('-') // YYYY-MM-DD
-
-                // key = monday.toISOString().split('T')[0] // YYYY-MM-DD du lundi
                 break
+            }
             case 'month':
-                key = `${closeDate.getFullYear()}-${String(closeDate.getMonth() + 1).padStart(2, '0')}`
+                key = formatDateString(closeDate, false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset)
+                key = key.split('/').reverse().join('-').slice(0, 7) // YYYY-MM
                 break
             case 'year':
                 key = `${closeDate.getFullYear()}`
@@ -378,7 +385,7 @@ export const groupTradesByPeriod = (trades: TradeType[], mode: 'day' | 'week' | 
  * @param mode Mode de regroupement ('day', 'week', 'month', 'year')
  * @returns Données formatées pour le graphique
  */
-export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', useNet: boolean = true) => {
+export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', useNet: boolean, settings: Partial<SettingsContentType> | null) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -409,7 +416,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode)
+    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer le PnL pour chaque période
@@ -463,7 +470,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
  * @param movingAvgWindow Taille de la fenêtre pour la moyenne mobile (par défaut: 5)
  * @returns Données formatées pour le graphique
  */
-export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5, useNet: boolean = true) => {
+export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -492,7 +499,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode)
+    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer l'APPT pour chaque période
@@ -591,7 +598,7 @@ export const getSmartLabelAnchor = (context: any) => {
  * @param movingAvgWindow Taille de la fenêtre pour la moyenne mobile (par défaut: 5)
  * @returns Données formatées pour le graphique
  */
-export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5) => {
+export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, settings: Partial<SettingsContentType> | null) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -620,7 +627,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode)
+    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer le P/L Ratio pour chaque période
@@ -659,7 +666,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
     }
 }
 
-export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year' = 'week', movingAvgWindow: number = 5, useNet: boolean = true) => {
+export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -676,7 +683,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode)
+    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer le Winrate pour chaque période

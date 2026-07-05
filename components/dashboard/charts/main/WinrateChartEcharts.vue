@@ -63,7 +63,8 @@ const rawData = computed(() => generateWinrateChartData(
 	dataStore.lastTrades,
 	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
 	3,
-	displayModeNet.value
+	displayModeNet.value,
+	userStore.user?.settings_object ?? null
 ))
 
 const labels = computed(() => rawData.value.labels as string[])

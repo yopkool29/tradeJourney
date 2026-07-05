@@ -94,6 +94,7 @@ const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'losingTrades', label: t('components.dashboard.sections.losing_trades') },
 	{ id: 'winLossComparison', label: t('components.dashboard.sections.win_loss_comparison') },
 	{ id: 'tickerTable', label: t('components.dashboard.sections.ticker_table') },
+	{ id: 'dayStatistics', label: t('components.dashboard.sections.day_statistics') },
 ])
 
 const localChartVisibility = ref({ ...props.chartVisibility })

@@ -665,6 +665,8 @@ const loadChartData = async () => {
         const msg = (err as Error).message
         if (msg === 'RANGE_TOO_LARGE') {
             error.value = t('components.trade.chart.range_too_large')
+        } else if (msg === 'MISSING_POLYGON_API_KEY') {
+            error.value = t('components.trade.chart.missing_api_key')
         } else {
             error.value = msg || t('components.trade.chart.error')
         }
@@ -726,6 +728,8 @@ const onReload = async () => {
         const msg = (err as Error).message
         if (msg === 'RANGE_TOO_LARGE') {
             error.value = t('components.trade.chart.range_too_large')
+        } else if (msg === 'MISSING_POLYGON_API_KEY') {
+            error.value = t('components.trade.chart.missing_api_key')
         } else {
             error.value = msg || t('components.trade.chart.error')
         }

@@ -60,7 +60,8 @@ const chartData = computed(() => {
         dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         3, // fenêtre de moyenne mobile
-        displayModeNet.value
+        displayModeNet.value,
+        userStore.user?.settings_object ?? null
     )
 
     // Personnaliser les couleurs et options pour chaque dataset

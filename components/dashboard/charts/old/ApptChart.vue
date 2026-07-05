@@ -63,7 +63,8 @@ const chartData = computed(() => {
         dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
         5,
-        displayModeNet.value
+        displayModeNet.value,
+        userStore.user?.settings_object ?? null
     )
 
     // Appliquer les couleurs et options depuis la configuration

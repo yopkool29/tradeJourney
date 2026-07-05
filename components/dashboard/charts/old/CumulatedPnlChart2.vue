@@ -44,7 +44,8 @@ const chartData = computed(() => {
     const data = generateCumulatedPnlChartData(
         dataStore.lastTrades,
         userStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
-        displayModeNet.value
+        displayModeNet.value,
+        userStore.user?.settings_object ?? null
     )
 
     const profitBgColor = colorToRgba(profitColor.value, 0.2)

@@ -11,6 +11,7 @@ const sectionRegistry: SectionRegistration[] = [
 	{ id: 'losingTrades', defaultVisible: true },
 	{ id: 'winLossComparison', defaultVisible: true },
 	{ id: 'tickerTable', defaultVisible: false },
+	{ id: 'dayStatistics', defaultVisible: false },
 ]
 
 export const useMetricsSectionRegistry = () => {
