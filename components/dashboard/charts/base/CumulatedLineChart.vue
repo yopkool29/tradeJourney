@@ -5,7 +5,12 @@
 		:chart-option="chartOption"
 		:canvas-height="canvasHeight"
 		:loading="loading"
-	/>
+		:subtitle="subtitle"
+	>
+		<template v-if="$slots.settings" #settings>
+			<slot name="settings" />
+		</template>
+	</DashboardChartsBaseEchartsCard>
 </template>
 
 <script setup lang="ts">
@@ -28,6 +33,7 @@ const props = defineProps({
 	tooltipFormatter: { type: Function as PropType<(params: EChartsFormatterParams<number | [number, number]>[], labels: string[]) => string>, default: undefined },
 	loading: { type: Boolean, default: false },
 	canvasHeight: { type: Number, default: undefined },
+	subtitle: { type: String, default: undefined },
 })
 
 const isDark = useIsDark()

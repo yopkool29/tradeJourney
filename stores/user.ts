@@ -1,12 +1,11 @@
 import { defineStore } from 'pinia'
-import type { UserType } from '~/schema/user'
+import type { UserType, SettingsContentType } from '~/schema/user'
 
 export const useUserStore = defineStore(
     'userStore',
     () => {
         // --- Global state (not DB-specific) ---
         const noteAssocMode = ref<'copy' | 'move'>('copy')
-        const chartSettings = ref<Record<string, Record<string, unknown>>>({})
 
         const isLogOpen = ref(false)
         const logOpenFirstInit = ref(true)
@@ -64,6 +63,8 @@ export const useUserStore = defineStore(
             user.value = u
         }
 
+        const settingsObject = computed<Partial<SettingsContentType> | null>(() => user.value?.settings_object as Partial<SettingsContentType> | null ?? null)
+
         function clearUser() {
             user.value = null
         }
@@ -105,7 +106,6 @@ export const useUserStore = defineStore(
 
         return {
             noteAssocMode,
-            chartSettings,
             isLogOpen,
             logOpenFirstInit,
             logMessage,
@@ -130,6 +130,7 @@ export const useUserStore = defineStore(
             addFix,
             setUser,
             clearUser,
+            settingsObject,
             shouldRefreshData,
             clearDataRefresh,
             triggerDataRefresh,
@@ -151,7 +152,6 @@ export const useUserStore = defineStore(
                 'needsDataRefresh',
                 'displayModeNet',
                 'noteAssocMode',
-                'chartSettings',
             ],
         },
     }

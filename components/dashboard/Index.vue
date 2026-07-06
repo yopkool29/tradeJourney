@@ -44,19 +44,6 @@
                                 @click="setHistoryDateRange"
                             />
                         </div>
-                        <!-- Ligne d'options avancées -->
-                        <div class="">
-                            <div class="form-row">
-                                <label for="cumule-mode-select" class="font-medium">{{ $t('components.dashboard.index.aggregation') }}</label>
-                                <USelect
-                                    id="cumule-mode-select"
-                                    v-model="localCumuleMode"
-                                    :items="cumuleOptions"
-                                    class="min-w-[120px] max-w-[200px] w-full"
-                                    @update:model-value="onCumuleModeChange"
-                                />
-                            </div>
-                        </div>
                     </template>
                 </CommonTradeFilters>
             </template>
@@ -630,86 +617,96 @@ const saveGridLayout = () => {
     }
 }
 
+// Deep clone a value to all other databases. structuredClone cannot handle
+// Vue reactive proxies, so JSON is used instead.
+async function cloneToAllDatabases<T>(source: T, perDb: Record<string, T>): Promise<Record<string, T>> {
+	const { currentDatabase, databases, fetchDatabases } = useDatabase()
+	const currentDbName = currentDatabase.value?.name || 'default'
+
+	let dbs = databases.value
+	if (dbs.length === 0) {
+		dbs = await fetchDatabases()
+	}
+
+	const newPerDb = { ...perDb }
+	for (const db of dbs) {
+		if (db.name === currentDbName) continue
+		newPerDb[db.name] = JSON.parse(JSON.stringify(source)) as T
+	}
+	return newPerDb
+}
+
 const syncDashboardToOtherDatabases = async () => {
-    const { currentDatabase, databases, fetchDatabases } = useDatabase()
-    const currentDbName = currentDatabase.value?.name || 'default'
+	const { currentDatabase } = useDatabase()
+	const currentDbName = currentDatabase.value?.name || 'default'
 
-    const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
-    if (!sourceFilters) return
+	const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
+	if (!sourceFilters) return
 
-    // Iterate over ALL known databases, not just the ones already present in
-    // dashBoardFiltersPerDb (which only contains databases that have been
-    // visited at least once). Otherwise unvisited databases are skipped.
-    let dbs = databases.value
-    if (dbs.length === 0) {
-        dbs = await fetchDatabases()
-    }
+	dbStateStore.dashBoardFiltersPerDb = await cloneToAllDatabases(sourceFilters, dbStateStore.dashBoardFiltersPerDb)
 
-    // Deep clone via JSON so nested arrays (workspaces, grid layouts, ...) are
-    // not shared by reference between databases. structuredClone cannot handle
-    // Vue reactive proxies. Dates become strings but the dashBoardFilters
-    // getter reconverts them to Date objects on access.
-    const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
+	// Sync chart settings (per-chart aggregation, display options, etc.)
+	void dbStateStore.chartSettings // touch computed to init
+	const sourceChartSettings = dbStateStore.chartSettingsPerDb[currentDbName]
+	if (sourceChartSettings && Object.keys(sourceChartSettings).length > 0) {
+		dbStateStore.chartSettingsPerDb = await cloneToAllDatabases(sourceChartSettings, dbStateStore.chartSettingsPerDb)
+	}
 
-    for (const db of dbs) {
-        if (db.name === currentDbName) continue
-        newPerDb[db.name] = JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters
-    }
-
-    dbStateStore.dashBoardFiltersPerDb = newPerDb
-    toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
+	toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
 }
 
 const syncActiveWorkspaceToOtherDatabases = async () => {
-    const ws = activeWorkspace.value
-    if (!ws) return
+	const ws = activeWorkspace.value
+	if (!ws) return
 
-    const { currentDatabase, databases, fetchDatabases } = useDatabase()
-    const currentDbName = currentDatabase.value?.name || 'default'
+	const { currentDatabase, databases, fetchDatabases } = useDatabase()
+	const currentDbName = currentDatabase.value?.name || 'default'
 
-    const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
-    if (!sourceFilters) return
+	const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
+	if (!sourceFilters) return
 
-    // Iterate over ALL known databases, not just the ones already present in
-    // dashBoardFiltersPerDb (which only contains databases that have been
-    // visited at least once). Otherwise unvisited databases are skipped.
-    let dbs = databases.value
-    if (dbs.length === 0) {
-        dbs = await fetchDatabases()
-    }
+	let dbs = databases.value
+	if (dbs.length === 0) {
+		dbs = await fetchDatabases()
+	}
 
-    // Deep clone via JSON (structuredClone cannot handle Vue reactive proxies).
-    // Dates become strings but the dashBoardFilters getter reconverts them to
-    // Date objects on access. Clone per database to avoid sharing references.
-    const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
+	const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
 
-    for (const db of dbs) {
-        if (db.name === currentDbName) continue
+	for (const db of dbs) {
+		if (db.name === currentDbName) continue
 
-        const existing = newPerDb[db.name]
-        if (!existing) {
-            // Unvisited database: bootstrap from current filters so the
-            // workspace has a home.
-            newPerDb[db.name] = JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters
-            continue
-        }
-        if (!existing.workspaces) {
-            newPerDb[db.name] = { ...existing, workspaces: [JSON.parse(JSON.stringify(ws)) as WorkspaceConfig] }
-            continue
-        }
+		const existing = newPerDb[db.name]
+		if (!existing) {
+			// Unvisited database: bootstrap from current filters so the
+			// workspace has a home.
+			newPerDb[db.name] = JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters
+			continue
+		}
+		if (!existing.workspaces) {
+			newPerDb[db.name] = { ...existing, workspaces: [JSON.parse(JSON.stringify(ws)) as WorkspaceConfig] }
+			continue
+		}
 
-        const idx = existing.workspaces.findIndex(w => w.id === ws.id)
-        const newWorkspaces = [...existing.workspaces]
-        if (idx >= 0) {
-            newWorkspaces[idx] = JSON.parse(JSON.stringify(ws)) as WorkspaceConfig
-        } else {
-            newWorkspaces.push(JSON.parse(JSON.stringify(ws)) as WorkspaceConfig)
-        }
-        newPerDb[db.name] = { ...existing, workspaces: newWorkspaces }
-    }
+		const idx = existing.workspaces.findIndex(w => w.id === ws.id)
+		const newWorkspaces = [...existing.workspaces]
+		if (idx >= 0) {
+			newWorkspaces[idx] = JSON.parse(JSON.stringify(ws)) as WorkspaceConfig
+		} else {
+			newWorkspaces.push(JSON.parse(JSON.stringify(ws)) as WorkspaceConfig)
+		}
+		newPerDb[db.name] = { ...existing, workspaces: newWorkspaces }
+	}
 
-    dbStateStore.dashBoardFiltersPerDb = newPerDb
-    toastSuccess(t('components.dashboard.index.sync_workspace_success'))
+	dbStateStore.dashBoardFiltersPerDb = newPerDb
+
+	// Also sync chart settings (per-chart aggregation, display options, etc.)
+	void dbStateStore.chartSettings // touch computed to init
+	const sourceChartSettings = dbStateStore.chartSettingsPerDb[currentDbName]
+	if (sourceChartSettings && Object.keys(sourceChartSettings).length > 0) {
+		dbStateStore.chartSettingsPerDb = await cloneToAllDatabases(sourceChartSettings, dbStateStore.chartSettingsPerDb)
+	}
+
+	toastSuccess(t('components.dashboard.index.sync_workspace_success'))
 }
 
 const onSyncVisibilityToAllBreakpoints = (chartVisibility: Record<ChartKey, boolean>, sectionVisibility: Record<SectionKey, boolean>) => {
@@ -782,12 +779,6 @@ const formatValue = (value: number | undefined, decimals: number = 2): string =>
     return value.toFixed(decimals)
 }
 
-const cumuleOptions = computed(() => [
-    { label: t('components.dashboard.index.by_day'), value: 'day' },
-    { label: t('components.dashboard.index.by_week'), value: 'week' },
-    { label: t('components.dashboard.index.by_month'), value: 'month' },
-])
-
 const accountOptions = computed(() => {
     return accounts.value.map((account) => {
         return {
@@ -859,11 +850,11 @@ const fetchingDateRange = ref(false)
 const setHistoryDateRange = async () => {
     fetchingDateRange.value = true
     try {
-        const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
+        const result = await $fetch('/api/trades/date-range', {
             query: {
                 accountIds: JSON.stringify(dbStateStore.dashBoardFilters.accountIds),
             },
-        })
+        }) as { minDate: string | null; maxDate: string | null }
 
         if (result.minDate && result.maxDate) {
             dbStateStore.dashBoardFilters.startDate = new Date(result.minDate)
@@ -904,7 +895,7 @@ const emptySectionVisibility: Record<SectionKey, boolean> = Object.fromEntries(
 const newWorkspaceChartVisibility = emptyChartVisibility
 const newWorkspaceSectionVisibility = emptySectionVisibility
 
-const newWorkspaceGridLayout: any[] = []
+const newWorkspaceGridLayout: DashboardGridItem[] = []
 
 const addWorkspace = () => {
     if (workspaces.value.length >= 5) return
@@ -944,9 +935,6 @@ const cancelRenameWorkspace = () => {
     workspaceRenameValue.value = activeWorkspace.value?.name || ''
 }
 
-// Variable locale pour le mode cumulé (buffer en mode manuel)
-const localCumuleMode = ref(dbStateStore.dashBoardFilters.cumuleMode)
-
 // Fonction pour construire les filtres du dashboard
 const buildDashboardFilters = (): TradeFilter[] => {
     return buildFiltersForApi(
@@ -963,31 +951,16 @@ const {
     filterDirty,
     isAutoApplyMode,
     updateTradeCount,
-    handleFilterChange,
     debouncedHandleFilterChange,
     onExplicitApply,
 } = useFilteredPage({
     pageType: 'dashboard',
     onFetch: async () => {
         await onApplyFilters()
-        dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
     },
     buildFiltersFn: buildDashboardFilters,
     debounceMs: 300,
 })
-
-const onCumuleModeChange = () => {
-    // Laisser l'UI mettre à jour le sélecteur avant de lancer les calculs lourds
-    nextTick(() => {
-        setTimeout(() => {
-            if (isAutoApplyMode.value) {
-                dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
-            }
-            // Recalculer le count et mettre à jour dirty
-            handleFilterChange(false) // false = pas de fetch auto, juste count + dirty
-        }, 20)
-    })
-}
 
 const {
     filterLoading,
@@ -1004,8 +977,6 @@ const {
             displayModeNet.value,
             filters.value
         )
-        // Copier le cumulé APRES le fetch pour éviter le double rendu
-        dbStateStore.dashBoardFilters.cumuleMode = localCumuleMode.value
         return trades
     },
     accounts,

@@ -562,6 +562,7 @@ export default {
             common: {
                 show_bars: 'Show bars',
                 show_moving_average: 'Show moving average',
+                aggregation: 'Aggregation',
             },
             visibility: {
                 title: 'Visibility',

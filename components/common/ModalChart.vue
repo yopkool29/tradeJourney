@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-const modelValue = defineModel<boolean>('modelValue', { required: true })
+const modelValue = defineModel<boolean>('modelValue', { default: false })
 
 const props = defineProps({
     title: {

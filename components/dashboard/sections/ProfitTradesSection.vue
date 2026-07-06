@@ -37,6 +37,5 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.profit_trades.max_run_up', value: result.value.maxRunUp, format: 'currency', valueClass: 'profit-text' },
 	{ label: 'components.dashboard.profit_trades.max_run_up_from', value: maxRunUpDisplayDates.value.start, format: 'date', small: true, condition: !!maxRunUpDisplayDates.value.start },
 	{ label: 'components.dashboard.profit_trades.max_run_up_to', value: maxRunUpDisplayDates.value.end, format: 'date', small: true, condition: !!maxRunUpDisplayDates.value.end },
-	{ label: 'components.dashboard.profit_trades.largest_win_date', value: result.value.largestWinDate, format: 'date', small: true, condition: !!result.value.largestWinDate },
 ])
 </script>

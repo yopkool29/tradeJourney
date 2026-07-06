@@ -5,6 +5,7 @@
 		:chart-option="chartOption"
 		:canvas-height="canvasHeight"
 		:loading="loading"
+		:subtitle="subtitle"
 	>
 		<template v-if="$slots.settings" #settings>
 			<slot name="settings" />
@@ -47,6 +48,7 @@ const props = defineProps({
 	yAxisMax: { type: Number, default: undefined },
 	loading: { type: Boolean, default: false },
 	canvasHeight: { type: Number, default: undefined },
+	subtitle: { type: String, default: undefined },
 	grid: {
 		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 70, right: 16, top: 12, bottom: 28 }),

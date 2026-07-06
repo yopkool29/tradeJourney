@@ -4,6 +4,7 @@
 			<template #header>
 				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold">{{ title }}</span>
+				<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
 					<div class="ml-auto flex items-center gap-1">
 						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
 							<button
@@ -57,7 +58,6 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import { onMounted, onActivated, onDeactivated } from 'vue'
-import { useResizeObserver } from '@vueuse/core'
 
 const props = defineProps<{
 	title: string
@@ -68,6 +68,7 @@ const props = defineProps<{
 	hideChartWhileLoading?: boolean
 	modalMaxWidth?: string
 	modalHeightClass?: string
+	subtitle?: string
 }>()
 
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)
@@ -79,9 +80,26 @@ const chartContainerRef = ref<HTMLElement | null>(null)
 const containerHeight = ref(250)
 const isActive = ref(true)
 
+let resizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
 	if (chartContainerRef.value) {
 		containerHeight.value = chartContainerRef.value.clientHeight
+		resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+			if (!isActive.value) return
+			const entry = entries[0]
+			if (entry) {
+				containerHeight.value = entry.contentRect.height
+			}
+		})
+		resizeObserver.observe(chartContainerRef.value)
+	}
+})
+
+onBeforeUnmount(() => {
+	if (resizeObserver) {
+		resizeObserver.disconnect()
+		resizeObserver = null
 	}
 })
 
@@ -91,13 +109,5 @@ onActivated(() => {
 
 onDeactivated(() => {
 	isActive.value = false
-})
-
-useResizeObserver(chartContainerRef, (entries: ResizeObserverEntry[]) => {
-	if (!isActive.value) return
-	const entry = entries[0]
-	if (entry) {
-		containerHeight.value = entry.contentRect.height
-	}
 })
 </script>

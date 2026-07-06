@@ -23,6 +23,17 @@ export default defineNuxtConfig({
         ],
     },
 
+    components: [
+        {
+            path: '~/components',
+            ignore: ['**/old/**'],
+        },
+        {
+            path: '~/old',
+            ignore: ['**/*'],
+        },
+    ],
+
     fonts: {
         providers: {
             fontshare: false

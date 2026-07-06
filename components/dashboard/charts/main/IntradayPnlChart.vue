@@ -114,11 +114,12 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
             callbacks: {
                 title: () => '',
                 label: (context: TooltipItem<'line'>) => {
-                    let date = props.chartData[parseInt(context.label)].date
+                    const labelIdx = context.label != null ? parseInt(context.label) : NaN
+                    const date = props.chartData[labelIdx]?.date
                     if (date) {
-                        date = formatHourString(date, false, locale.value as 'fr' | 'en' | 'us', userStore.user?.settings_object?.timezoneDisplay, userStore.user?.settings_object?.timezoneLocal, userStore.user?.settings_object?.timezoneUtcOffset)
-                        return [date, context.dataset.label + ': ' + formatCurrency(context.parsed.y)]
-                    } else return [context.dataset.label + ': ' + formatCurrency(context.parsed.y)]
+                        const formatted = formatHourString(date, false, locale.value as 'fr' | 'en' | 'us', userStore.user?.settings_object?.timezoneDisplay, userStore.user?.settings_object?.timezoneLocal, userStore.user?.settings_object?.timezoneUtcOffset)
+                        return [formatted ?? '', context.dataset.label + ': ' + formatCurrency(context.parsed.y ?? 0)]
+                    } else return [context.dataset.label + ': ' + formatCurrency(context.parsed.y ?? 0)]
                 },
             },
         },

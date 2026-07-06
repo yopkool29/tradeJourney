@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { GridLayout, GridItem } from 'vue-grid-layout-v3'
+import type { Component } from 'vue'
 
 interface GridLayoutItem {
     x: number
@@ -34,9 +35,9 @@ interface GridLayoutItem {
 
 const props = defineProps<{
     layout: GridLayoutItem[]
-    components: Record<string, any>
-    sharedProps?: Record<string, any>
-    componentProps?: Record<string, Record<string, any>>
+    components: Record<string, Component>
+    sharedProps?: Record<string, unknown>
+    componentProps?: Record<string, Record<string, unknown>>
     isDraggable?: boolean
     isResizable?: boolean
     resizableItems?: string[]

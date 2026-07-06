@@ -131,7 +131,7 @@
                             :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
                             color="neutral"
                             @click="row.original.active !== false && emit('open-tag-modal', row.original)">
-                            <span class="truncate1 break-words">{{ row.original.note }}</span>
+                            <span class="truncate1 wrap-break-word">{{ row.original.note }}</span>
                         </UBadge>
                     </UTooltip>
                 </div>
@@ -237,7 +237,7 @@
                                 :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
                                 color="neutral"
                                 @click="row.original.active !== false && emit('open-tag-modal', row.original)">
-                                <span class="truncate1 break-words">{{ row.original.note }}</span>
+                                <span class="truncate1 wrap-break-word">{{ row.original.note }}</span>
                             </UBadge>
                         </UTooltip>
                     </div>
@@ -269,7 +269,7 @@ import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateWithUserTimezone, formatHourString } from '~/utils/date-utils'
 
 const { formatCurrency } = useUtils()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 
 const userStore = useUserStore()
 const dbStateStore = useDbStateStore()
@@ -290,12 +290,12 @@ const getTradeTagsById = (trade: TradeExtendedType) => {
 }
 
 const props = defineProps<{
-    columns: any[]
+    columns: { accessorKey: string; header: string }[]
     tableData: TradeExtendedType[]
     labelColumnsHeader: Record<string, string>
     showTable: boolean
     timezoneKey: string
-    getTagStyle: (tag: any) => any
+    getTagStyle: (tag: { name: string; color?: string }) => string
     requireDetailedNoteDeleteConfirmation?: boolean
 }>()
 

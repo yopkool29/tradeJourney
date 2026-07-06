@@ -572,6 +572,7 @@ export default {
             common: {
                 show_bars: 'Afficher les barres',
                 show_moving_average: 'Afficher la moyenne mobile',
+                aggregation: 'Agrégation',
             },
             visibility: {
                 title: 'Visibilité',

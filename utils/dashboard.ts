@@ -385,7 +385,7 @@ export const groupTradesByPeriod = (
  * @param mode Mode de regroupement ('day', 'week', 'month', 'year')
  * @returns Données formatées pour le graphique
  */
-export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', useNet: boolean, settings: Partial<SettingsContentType> | null) => {
+export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', useNet: boolean, settings: Partial<SettingsContentType> | null, preGroupedTrades?: Record<string, TradeType[]>) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -416,7 +416,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
+    const groupedTrades = preGroupedTrades ?? groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer le PnL pour chaque période
@@ -470,7 +470,7 @@ export const generateCumulatedPnlChartData = (trades: TradeType[], mode: 'day' |
  * @param movingAvgWindow Taille de la fenêtre pour la moyenne mobile (par défaut: 5)
  * @returns Données formatées pour le graphique
  */
-export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null) => {
+export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null, preGroupedTrades?: Record<string, TradeType[]>) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -499,7 +499,7 @@ export const generateApptChartData = (trades: TradeType[], mode: 'day' | 'week' 
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
+    const groupedTrades = preGroupedTrades ?? groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer l'APPT pour chaque période
@@ -666,7 +666,7 @@ export const generatePlRatioChartData = (trades: TradeType[], mode: 'day' | 'wee
     }
 }
 
-export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null) => {
+export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'week' | 'month' | 'year', movingAvgWindow: number, useNet: boolean, settings: Partial<SettingsContentType> | null, preGroupedTrades?: Record<string, TradeType[]>) => {
     if (!trades || trades.length === 0) {
         return {
             labels: [],
@@ -683,7 +683,7 @@ export const generateWinrateChartData = (trades: TradeType[], mode: 'day' | 'wee
         }
     }
 
-    const groupedTrades = groupTradesByPeriod(trades, mode, settings)
+    const groupedTrades = preGroupedTrades ?? groupTradesByPeriod(trades, mode, settings)
     const periods = Object.keys(groupedTrades).sort()
 
     // Calculer le Winrate pour chaque période

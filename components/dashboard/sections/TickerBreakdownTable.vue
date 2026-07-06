@@ -6,7 +6,7 @@
 
 		<div class="p-4">
 			<DashboardChartsBaseSortableTable
-				:data="tickerMetrics"
+				:data="tickerMetrics as unknown as Record<string, unknown>[]"
 				:columns="columns"
 				:loading="props.loading"
 				:page-size="12"

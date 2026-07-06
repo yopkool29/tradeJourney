@@ -25,10 +25,10 @@ const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
 const { canvasHeight } = useEchartsChart()
 const { profitColor, lossColor, breakevenColor } = useTypeColors()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const dataStore = useDataStore()
 const userStore = useUserStore()
-const appConfig = useAppConfig()
+const appConfig = useAppConfig() as { charts?: { options?: { pnlBarChart?: { maxTrades?: number } } } }
 
 const displayTrades = computed(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades
@@ -48,11 +48,14 @@ const labels = computed(() => displayTrades.value.map((_, i) => `#${i + 1}`))
 const values = computed(() => displayTrades.value.map(t => displayModeNet.value ? t.netProfit : t.profit))
 const colors = computed(() => buildBarColors(values.value, profitColor.value, lossColor.value, breakevenColor.value))
 
-const series = computed(() => buildBarSeries({
-	data: buildBarData(values.value, colors.value, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]),
-	barMaxWidth: 32,
-	emphasis: { disabled: true },
-}))
+const series = computed(() => {
+	const s = buildBarSeries({
+		data: buildBarData(values.value, colors.value, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]),
+		barMaxWidth: 32,
+		emphasis: { disabled: true },
+	})
+	return (Array.isArray(s) ? s : [s]) as unknown as never[]
+})
 
 const tooltipFormatter = (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 	const p = Array.isArray(params) ? params[0] : params

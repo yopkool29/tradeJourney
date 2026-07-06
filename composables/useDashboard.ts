@@ -167,7 +167,7 @@ export const useDashboard = () => {
         dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose)
 
         // DAILY METRICS
-        const dailyPnls = getDailyPnlArray(trades, useNet, userStore.user?.settings_object ?? null)
+        const dailyPnls = getDailyPnlArray(trades, useNet, userStore.settingsObject)
         dataStore.dashboardResult.openTrades = getOpenTrades(trades)
         dataStore.dashboardResult.totalTradingDays = getTotalTradingDays(dailyPnls)
         dataStore.dashboardResult.winningDays = getWinningDaysCount(dailyPnls)

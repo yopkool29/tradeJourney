@@ -1,4 +1,5 @@
 # Nuxt dev/build outputs
+.vscode
 .output
 .data
 .nuxt
@@ -42,3 +43,7 @@ website/
 
 # plugins
 plugins-dev/_release/
+
+# Old/deprecated components
+old/
+components/dashboard/charts/old/

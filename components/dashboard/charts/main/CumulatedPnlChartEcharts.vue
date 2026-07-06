@@ -11,7 +11,21 @@
 		:y-axis-formatter="formatCurrency"
 		:canvas-height="canvasHeight"
 		:loading="loading"
-	/>
+		:subtitle="aggregationLabel"
+	>
+		<template #settings>
+			<div class="space-y-2">
+				<div class="flex flex-col gap-1">
+					<span class="text-sm font-medium">{{ $t('components.dashboard.common.aggregation') }}</span>
+					<USelect
+						v-model="cumuleMode"
+						:items="aggregationOptions"
+						size="sm"
+					/>
+				</div>
+			</div>
+		</template>
+	</DashboardChartsBaseCumulatedLineChart>
 </template>
 
 <script setup lang="ts">
@@ -30,14 +44,36 @@ const { canvasHeight } = useEchartsChart()
 const { profitColor, lossColor } = useTypeColors('cumulatedPnlChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
+const { getGroupedTrades } = useAggregationCache()
+
+type AggregationMode = 'day' | 'week' | 'month'
+
+const aggregationOptions = computed(() => [
+	{ label: t('components.dashboard.index.by_day'), value: 'day' },
+	{ label: t('components.dashboard.index.by_week'), value: 'week' },
+	{ label: t('components.dashboard.index.by_month'), value: 'month' },
+])
+
+const cumuleMode = computed<AggregationMode>({
+	get: () => (dbStateStore.chartSettings['cumulatedPnl']?.cumuleMode as AggregationMode) ?? 'week',
+	set: (val: AggregationMode) => {
+		dbStateStore.chartSettings['cumulatedPnl'] = { ...dbStateStore.chartSettings['cumulatedPnl'], cumuleMode: val }
+	},
+})
+
+const aggregationLabel = computed(() => {
+	const opt = aggregationOptions.value.find(o => o.value === cumuleMode.value)
+	return opt?.label ?? ''
+})
 
 const userStore = useUserStore()
 
 const rawData = computed(() => generateCumulatedPnlChartData(
 	dataStore.lastTrades,
-	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+	cumuleMode.value,
 	displayModeNet.value,
-	userStore.user?.settings_object ?? null
+	userStore.settingsObject,
+	getGroupedTrades(cumuleMode.value)
 ))
 
 const labels = computed(() => {

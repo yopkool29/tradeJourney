@@ -10,9 +10,18 @@
 		:y-axis-formatter="(v: number) => `${v}%`"
 		:canvas-height="canvasHeight"
 		:loading="loading"
+		:subtitle="aggregationLabel"
 	>
 		<template #settings>
 			<div class="space-y-2">
+				<div class="flex flex-col gap-1">
+					<span class="text-sm font-medium">{{ $t('components.dashboard.common.aggregation') }}</span>
+					<USelect
+						v-model="cumuleMode"
+						:items="aggregationOptions"
+						size="sm"
+					/>
+				</div>
 				<div class="flex items-center gap-2">
 					<UCheckbox v-model="showBars" />
 					<span class="text-sm">{{ $t('components.dashboard.common.show_bars') }}</span>
@@ -42,29 +51,51 @@ const { t } = useI18n()
 const { canvasHeight } = useEchartsChart()
 const { barColor, movingAverageColor } = useTypeColors('winrateChart')
 const dataStore = useDataStore()
-const userStore = useUserStore()
 const dbStateStore = useDbStateStore()
+const userStore = useUserStore()
+const { getGroupedTrades } = useAggregationCache()
+
+type AggregationMode = 'day' | 'week' | 'month'
+
+const aggregationOptions = computed(() => [
+	{ label: t('components.dashboard.index.by_day'), value: 'day' },
+	{ label: t('components.dashboard.index.by_week'), value: 'week' },
+	{ label: t('components.dashboard.index.by_month'), value: 'month' },
+])
+
+const cumuleMode = computed<AggregationMode>({
+	get: () => (dbStateStore.chartSettings['winrate']?.cumuleMode as AggregationMode) ?? 'week',
+	set: (val: AggregationMode) => {
+		dbStateStore.chartSettings['winrate'] = { ...dbStateStore.chartSettings['winrate'], cumuleMode: val }
+	},
+})
+
+const aggregationLabel = computed(() => {
+	const opt = aggregationOptions.value.find(o => o.value === cumuleMode.value)
+	return opt?.label ?? ''
+})
 
 const showBars = computed({
-	get: () => (userStore.chartSettings['winrate']?.showBars as boolean) ?? true,
+	get: () => (dbStateStore.chartSettings['winrate']?.showBars as boolean) ?? true,
 	set: (val: boolean) => {
-		userStore.chartSettings['winrate'] = { ...userStore.chartSettings['winrate'], showBars: val }
+		dbStateStore.chartSettings['winrate'] = { ...dbStateStore.chartSettings['winrate'], showBars: val }
 	},
 })
 
 const showMovingAverage = computed({
-	get: () => (userStore.chartSettings['winrate']?.showMovingAverage as boolean) ?? true,
+	get: () => (dbStateStore.chartSettings['winrate']?.showMovingAverage as boolean) ?? true,
 	set: (val: boolean) => {
-		userStore.chartSettings['winrate'] = { ...userStore.chartSettings['winrate'], showMovingAverage: val }
+		dbStateStore.chartSettings['winrate'] = { ...dbStateStore.chartSettings['winrate'], showMovingAverage: val }
 	},
 })
 
 const rawData = computed(() => generateWinrateChartData(
 	dataStore.lastTrades,
-	dbStateStore.dashBoardFilters.cumuleMode as 'day' | 'week' | 'month' | 'year',
+	cumuleMode.value,
 	3,
 	displayModeNet.value,
-	userStore.user?.settings_object ?? null
+	userStore.settingsObject,
+	getGroupedTrades(cumuleMode.value)
 ))
 
 const labels = computed(() => rawData.value.labels as string[])

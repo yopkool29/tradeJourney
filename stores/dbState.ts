@@ -57,6 +57,7 @@ export const useDbStateStore = defineStore(
 		const tradeChartTfPerDb = ref<Record<string, string>>({})
 		const tradeChartShowAdjacentPerDb = ref<Record<string, boolean>>({})
 		const tradeChartShowAdjacentLinesPerDb = ref<Record<string, boolean>>({})
+		const chartSettingsPerDb = ref<Record<string, Record<string, Record<string, unknown>>>>({})
 
 		const lastViewedNoteId = computed({
 			get: () => {
@@ -459,6 +460,20 @@ export const useDbStateStore = defineStore(
 			},
 		})
 
+		const chartSettings = computed({
+			get: () => {
+				const dbName = getCurrentDbName()
+				if (!chartSettingsPerDb.value[dbName]) {
+					chartSettingsPerDb.value[dbName] = {}
+				}
+				return chartSettingsPerDb.value[dbName]
+			},
+			set: (val) => {
+				const dbName = getCurrentDbName()
+				chartSettingsPerDb.value[dbName] = val
+			},
+		})
+
 		const setLastViewedNoteId = (id: number | null) => {
 			lastViewedNoteId.value = id
 		}
@@ -540,6 +555,9 @@ export const useDbStateStore = defineStore(
 			tradeChartShowAdjacentLinesPerDb.value = Object.fromEntries(
 				Object.entries(tradeChartShowAdjacentLinesPerDb.value).filter(([key]) => key !== dbName)
 			)
+			chartSettingsPerDb.value = Object.fromEntries(
+				Object.entries(chartSettingsPerDb.value).filter(([key]) => key !== dbName)
+			)
 		}
 
 		const dashBoardLastTrades = computed(() => {
@@ -563,6 +581,7 @@ export const useDbStateStore = defineStore(
 			tradeChartTfPerDb,
 			tradeChartShowAdjacentPerDb,
 			tradeChartShowAdjacentLinesPerDb,
+			chartSettingsPerDb,
 			// Computed wrappers
 			lastViewedNoteId,
 			customInputs,
@@ -582,6 +601,7 @@ export const useDbStateStore = defineStore(
 			tradeChartTf,
 			tradeChartShowAdjacent,
 			tradeChartShowAdjacentLines,
+			chartSettings,
 			// Methods
 			getCustomInput,
 			updateCustomInput,
@@ -610,6 +630,7 @@ export const useDbStateStore = defineStore(
 				'tradeChartTfPerDb',
 				'tradeChartShowAdjacentPerDb',
 				'tradeChartShowAdjacentLinesPerDb',
+				'chartSettingsPerDb',
 			],
 		},
 	}

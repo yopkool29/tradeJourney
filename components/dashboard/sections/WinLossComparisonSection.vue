@@ -65,14 +65,12 @@
 </template>
 
 <script setup lang="ts">
-const appConfig = useAppConfig()
+const appConfig = useAppConfig() as { charts?: { chartjs?: boolean } }
 const pieChartComponent = computed(() =>
-    appConfig.charts.chartjs === true
+    appConfig.charts?.chartjs === true
         ? resolveComponent('DashboardChartsOldWinLossPieChart')
         : resolveComponent('DashboardChartsMainWinLossPieChartEcharts')
 )
-
-const userStore = useUserStore()
 
 const { dashBoardResult: result } = useDashboard()
 
