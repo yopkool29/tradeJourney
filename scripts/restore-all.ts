@@ -1,5 +1,5 @@
-// Usage: npx tsx --tsconfig tsconfig.scripts.json scripts/restore-all.ts <userId> <backup-dir>
-// In Docker: docker exec -it <container> npx tsx --tsconfig tsconfig.scripts.json scripts/restore-all.ts <userId> <backup-dir>
+// Usage: npx tsx --require ./scripts/paths-register.cjs scripts/restore-all.ts <userId> <backup-dir>
+// In Docker: docker exec -it <container> npx tsx --require ./scripts/paths-register.cjs scripts/restore-all.ts <userId> <backup-dir>
 
 import { config } from 'dotenv'
 import { getAuthDb, buildShemaName, buildRoleName, createUserDatabase } from '../server/utils/db'

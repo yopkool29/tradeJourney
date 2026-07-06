@@ -118,7 +118,6 @@ RUN apk add --no-cache dos2unix && \
     dos2unix /app/scripts/docker-init-db.sh && \
     chmod +x /app/scripts/docker-init-db.sh && \
     apk del dos2unix
-COPY --from=builder /app/tsconfig.scripts.json /app/tsconfig.scripts.json
 COPY --from=builder /app/server-start.mjs /app/server-start.mjs
 
 EXPOSE 3000
