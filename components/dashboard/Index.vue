@@ -177,15 +177,6 @@
                 />
                 <div class="flex-1" />
                 <UButton
-                    icon="i-lucide-monitor"
-                    size="xs"
-                    variant="ghost"
-                    color="neutral"
-                    class="ml-1 mb-px"
-                    :title="$t('components.dashboard.index.sync_dashboard')"
-                    @click="syncDashboardToOtherDatabases"
-                />
-                <UButton
                     icon="i-lucide-copy"
                     size="xs"
                     variant="ghost"
@@ -193,6 +184,15 @@
                     class="ml-1 mb-px"
                     :title="$t('components.dashboard.index.sync_workspace')"
                     @click="syncActiveWorkspaceToOtherDatabases"
+                />
+                <UButton
+                    icon="i-lucide-monitor"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    class="ml-1 mb-px"
+                    :title="$t('components.dashboard.index.sync_dashboard')"
+                    @click="syncDashboardToOtherDatabases"
                 />
             </div>
 
