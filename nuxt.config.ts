@@ -141,9 +141,9 @@ export default defineNuxtConfig({
     },
     icon: {
         clientBundle: {
-            scan: true
+            scan: true,
+            collections: ['heroicons', 'lucide']
         },
-        provider: 'iconify'
     },
 
     runtimeConfig: {

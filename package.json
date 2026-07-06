@@ -79,6 +79,7 @@
   },
   "packageManager": "pnpm@10.12.4",
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
     "@nuxt/test-utils": "^3.19.1",
     "@types/adm-zip": "^0.5.8",
     "@types/dotenv": "^8.2.3",
