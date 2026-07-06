@@ -47,3 +47,5 @@ plugins-dev/_release/
 # Old/deprecated components
 old/
 components/dashboard/charts/old/
+
+NOTE-private.md

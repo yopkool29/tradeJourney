@@ -101,6 +101,10 @@ COPY --from=builder /app/scripts /app/scripts
 # Copier le dossier server pour les scripts qui en dépendent
 COPY --from=builder /app/server /app/server
 
+# Copier utils et type pour les scripts standalone (imports ~/utils, ~/type)
+COPY --from=builder /app/utils /app/utils
+COPY --from=builder /app/type /app/type
+
 # Copier les clients Prisma générés pour les scripts standalone
 COPY --from=builder /app/generated/prisma-data ./generated/prisma-data
 
