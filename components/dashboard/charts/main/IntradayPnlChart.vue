@@ -17,7 +17,7 @@ const userStore = useUserStore()
 const { locale } = useI18n()
 
 const props = defineProps<{
-    chartData: Array<{ count: number; pnl: number; date: string }>
+    chartData: Array<{ count: number; pnl: number; date?: Date }>
     height?: number
     width?: number
 }>()

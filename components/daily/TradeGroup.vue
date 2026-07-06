@@ -165,6 +165,7 @@ import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateLongString, normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
+import { UIcon } from '#components'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()

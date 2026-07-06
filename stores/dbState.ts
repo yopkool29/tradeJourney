@@ -17,9 +17,9 @@ import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
 const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false, dayStatistics: false }
 const hiddenChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
-const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false }
+const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false, dayStatistics: false }
 
 const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
 	id,
@@ -378,6 +378,24 @@ export const useDbStateStore = defineStore(
 						maxLosingStreak: 0,
 						breakevenTradesCount: 0,
 						breakevenContractsCount: 0,
+						openTrades: 0,
+						totalTradingDays: 0,
+						winningDays: 0,
+						losingDays: 0,
+						breakevenDays: 0,
+						maxConsecutiveWinningDays: 0,
+						maxConsecutiveLosingDays: 0,
+						averageDailyPnl: 0,
+						averageWinningDayPnl: 0,
+						averageLosingDayPnl: 0,
+						largestProfitableDayPnl: 0,
+						largestProfitableDayDate: null as Date | null,
+						largestLosingDayPnl: 0,
+						largestLosingDayDate: null as Date | null,
+						dailyMaxDrawdown: 0,
+						dailyMaxDrawdownPercent: 0,
+						averageDrawdown: 0,
+						averageDrawdownPercent: 0,
 					}
 				}
 				return dashBoardResultPerDb.value[dbName]

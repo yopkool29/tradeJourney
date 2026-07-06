@@ -468,7 +468,7 @@ const onClearPolygonCache = async () => {
 	clearingCache.value = true
 	try {
 		await clearAllPolygonCache()
-		toastSuccess({ title: t('components.settings.options.polygon_cache_cleared') })
+		toastSuccess(t('components.settings.options.polygon_cache_cleared'))
 	} finally {
 		clearingCache.value = false
 	}
