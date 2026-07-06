@@ -1,3 +1,4 @@
+import { watch } from 'vue'
 import * as Vue from 'vue'
 import type { TJPlugin, TJPluginSdk, TJPluginRegistered, TJPluginModalRegistered, TJPluginPageSlotRegistered } from '~/type/plugin'
 import {
@@ -48,6 +49,11 @@ declare global {
 }
 
 export default defineNuxtPlugin(async () => {
+    const config = useRuntimeConfig()
+    if (!config.public.pluginsEnabled) {
+        return
+    }
+
     window.Vue = Vue
     initPluginWindowGlobals()
 
@@ -55,6 +61,9 @@ export default defineNuxtPlugin(async () => {
     pluginPageSlots.value = []
 
     const toast = useAppToast()
+    const i18n = useNuxtApp().$i18n as { locale: { value: string }, t: (key: string, params?: Record<string, unknown>) => string } | undefined
+    const colorMode = useColorMode()
+    const localeChangeCallbacks: (() => void)[] = []
     let currentInstallingPluginId = ''
 
     const sdk: TJPluginSdk = {
@@ -93,6 +102,20 @@ export default defineNuxtPlugin(async () => {
                 success: (message: string) => toast.success(message),
                 error: (message: string) => toast.error(message),
             },
+            getTheme: () => {
+                const theme = colorMode.value
+                return ['dark', 'dark-gold'].includes(theme) ? 'dark' : 'light'
+            },
+            getThemeName: () => colorMode.value as string,
+            getLocale: () => i18n?.locale.value as string,
+            t: (key: string, params?: Record<string, unknown>) => {
+                if (!i18n) return key
+                const result = params ? i18n.t(key, params) : i18n.t(key)
+                return result === key ? key : result
+            },
+            onLocaleChange: (callback: () => void) => {
+                localeChangeCallbacks.push(callback)
+            },
             registerAction: (action) => {
                 addPluginAction(action)
             },
@@ -113,6 +136,13 @@ export default defineNuxtPlugin(async () => {
     }
 
     window.__TJ_SDK__ = sdk
+
+    // Notify plugins when locale changes
+    watch(() => i18n?.locale.value, () => {
+        for (const callback of localeChangeCallbacks) {
+            callback()
+        }
+    })
 
     // Function to load a single plugin
     const loadPlugin = async (pluginId: string, forceReload = false) => {
@@ -161,9 +191,7 @@ export default defineNuxtPlugin(async () => {
 
     try {
         const activePluginIds = await $fetch('/api/plugins/active') as string[]
-        for (const pluginId of activePluginIds) {
-            await loadPlugin(pluginId)
-        }
+        await Promise.allSettled(activePluginIds.map(pluginId => loadPlugin(pluginId)))
     } catch {
         // Silently handle errors loading active plugins
     }

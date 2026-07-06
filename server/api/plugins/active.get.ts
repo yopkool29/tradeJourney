@@ -1,6 +1,7 @@
 import { getDataDb } from '~/server/utils/db'
 import { createAppError } from '~/server/utils/errors'
 import auth from '~/server/utils/auth'
+import { getDevPluginIds } from '~/server/utils/devPlugins'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
@@ -19,7 +20,12 @@ export default defineEventHandler(async (event) => {
 
 		const prisma = await getDataDb(userId, dbName)
 		const plugins = await prisma.plugin.findMany({ where: { enabled: true }, select: { id: true } })
-		return plugins.map(p => p.id)
+		const dbPluginIds = plugins.map(p => p.id)
+
+		const devPluginIds = getDevPluginIds()
+		const allActive = [...new Set([...dbPluginIds, ...devPluginIds])]
+
+		return allActive
 	} catch (error) {
 		const err = error as { statusCode?: number; data?: { tag?: string } }
 		if (err.statusCode && err.data?.tag) {

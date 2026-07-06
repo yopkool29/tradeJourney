@@ -5,6 +5,7 @@ import { createAppError } from '~/server/utils/errors'
 import auth from '~/server/utils/auth'
 import { getPluginUploadPath } from '~/server/utils/index'
 import { validatePluginId } from '~/server/utils/pluginHelpers'
+import { isDevPlugin, getDevPluginFilePath } from '~/server/utils/devPlugins'
 
 export default defineEventHandler(async (event) => {
 	await auth(event)
@@ -24,7 +25,12 @@ export default defineEventHandler(async (event) => {
 			throw createAppError({ statusCode: 400, message: 'No database selected', tag: 'api.plugins.file.no_database' })
 		}
 
-		const filePath = join(resolve(process.cwd(), getPluginUploadPath(userId, dbName)), pluginId as string, 'plugin.umd.cjs')
+		let filePath: string
+		if (isDevPlugin(pluginId as string)) {
+			filePath = getDevPluginFilePath(pluginId as string)
+		} else {
+			filePath = join(resolve(process.cwd(), getPluginUploadPath(userId, dbName)), pluginId as string, 'plugin.umd.cjs')
+		}
 
 		if (!existsSync(filePath)) {
 			throw createAppError({ statusCode: 404, message: 'Plugin file not found', tag: 'api.plugins.file.not_found' })

@@ -13,6 +13,7 @@ export const usePlugins = () => {
 	const loading = ref(false)
 	const error = ref(false)
 	const toggling = ref<string | null>(null)
+	const reloading = ref<string | null>(null)
 
 	const isEnabled = (id: string) => activePluginIds.value.includes(id)
 
@@ -58,8 +59,11 @@ export const usePlugins = () => {
 		cleanupPluginData(id, pluginPageSlots)
 	}
 
-	const reloadPlugin = (id: string) => {
+	const reloadPlugin = async (id: string) => {
+		reloading.value = id
 		dispatchPluginLoadEvent(id)
+		await new Promise(resolve => setTimeout(resolve, 800))
+		reloading.value = null
 	}
 
 	const reloadActivePlugins = async () => {
@@ -96,6 +100,7 @@ export const usePlugins = () => {
 		loading,
 		error,
 		toggling,
+		reloading,
 		isEnabled,
 		fetchPlugins,
 		togglePlugin,

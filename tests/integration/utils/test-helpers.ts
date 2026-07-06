@@ -6,7 +6,6 @@ export const BASE_URL = process.env.TEST_BASE_URL || `http://localhost:${process
 
 export const checkServerRunning = async () => {
 	try {
-		// @ts-expect-error global $fetch is stubbed in setup.ts
 		await $fetch(`${BASE_URL}/api/health`, { ignoreResponseError: true })
 		console.log('Server is running at', BASE_URL)
 		return true
@@ -19,7 +18,6 @@ export const checkServerRunning = async () => {
 
 export const loginTestUser = async () => {
 	try {
-		// @ts-expect-error global $fetch is stubbed in setup.ts
 		const loginResponse = await $fetch.raw('/api/auth/login', {
 			method: 'POST',
 			body: { email: TEST_USER_EMAIL, password: TEST_USER_PASSWORD }
@@ -43,12 +41,10 @@ export const generateTestDbName = () => {
 }
 
 export const cleanupOldTestDatabases = async () => {
-	// @ts-expect-error global $fetch is stubbed in setup.ts
 	const list = await $fetch('/api/database/list') as Array<{ id: number; name: string }>
 	const oldTestDbs = list.filter(db => db.name.startsWith(TEST_DB_NAME_PREFIX))
 	for (const db of oldTestDbs) {
 		try {
-			// @ts-expect-error global $fetch is stubbed in setup.ts
 			await $fetch('/api/database/delete', {
 				method: 'DELETE',
 				body: { databaseId: db.id, password: TEST_USER_PASSWORD }
@@ -63,7 +59,6 @@ export const cleanupOldTestDatabases = async () => {
 export const deleteTestDatabase = async (dbId: number | null) => {
 	if (!dbId) return
 	try {
-		// @ts-expect-error global $fetch is stubbed in setup.ts
 		await $fetch('/api/database/delete', {
 			method: 'DELETE',
 			body: { databaseId: dbId, password: TEST_USER_PASSWORD }

@@ -1,6 +1,7 @@
 <template>
     <button
         :class="[baseClasses, sizeClass, colorClass, variantClass]"
+        :style="buttonStyle"
         :disabled="props.disabled"
         @click="props.onClick"
     >
@@ -9,6 +10,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { usePluginTheme } from './usePluginTheme'
+
 const props = withDefaults(
     defineProps<{
         color?: 'primary' | 'green' | 'red'
@@ -27,9 +31,15 @@ const props = withDefaults(
 )
 
 const colorClasses = {
-    primary: 'bg-primary text-white hover:bg-primary/75 active:bg-primary/75',
-    green: 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700',
-    red: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
+    primary: 'bg-primary hover:bg-primary/75 active:bg-primary/75',
+    green: 'bg-green-500 hover:bg-green-600 active:bg-green-700',
+    red: 'bg-red-500 hover:bg-red-600 active:bg-red-700',
+}
+
+const ghostColorClasses = {
+    primary: 'text-primary hover:bg-primary/10',
+    green: 'text-green-500 hover:bg-green-500/10',
+    red: 'text-red-500 hover:bg-red-500/10',
 }
 
 const variantClasses = {
@@ -45,7 +55,15 @@ const sizeClasses = {
 
 const baseClasses = 'rounded-md font-medium inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-75 cursor-pointer user-select-none transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary gap-1.5'
 
-const colorClass = colorClasses[props.color]
+const isGhost = props.variant === 'ghost'
+const colorClass = isGhost ? ghostColorClasses[props.color] : colorClasses[props.color]
 const variantClass = variantClasses[props.variant]
 const sizeClass = sizeClasses[props.size]
+
+const { isDark } = usePluginTheme()
+
+const buttonStyle = computed(() => {
+    if (isGhost) return {}
+    return { color: isDark() ? '#1f1f2f' : '#ffffff' }
+})
 </script>

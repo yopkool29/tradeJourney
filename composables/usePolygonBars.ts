@@ -2,7 +2,7 @@ import { computed, type Ref } from 'vue'
 import { InstrumentType } from '~/type'
 import type { PolygonBar } from '~/utils/polygonSymbol'
 import { isFuturesSymbol } from '~/utils/polygonSymbol'
-import { listPeriodsInRange, periodKeyToRange, timestampToPeriodKey } from '~/composables/usePolygonCache'
+import { listPeriodsInRange, periodKeyToRange, timestampToPeriodKey } from '~/utils/barCache'
 
 // Use the futures API when instrument type is Future, or when it's Any/undefined
 // and the symbol looks like a futures ticker.

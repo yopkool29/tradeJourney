@@ -18,6 +18,7 @@
                 variantClass,
                 props.disabled ? 'opacity-75 cursor-not-allowed' : ''
             ]"
+            :style="fileStyle"
         >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -29,13 +30,17 @@
         v-else
         :id="props.id"
         :type="props.type"
-        :class="[baseClasses, sizeClass, colorClass, variantClass]"
+        :class="inputClasses"
         :disabled="props.disabled"
-        @change="props.onChange"
+        :value="props.modelValue"
+        @input="onInput"
     />
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { usePluginTheme } from './usePluginTheme'
+
 const props = withDefaults(
     defineProps<{
         id?: string
@@ -44,6 +49,7 @@ const props = withDefaults(
         variant?: 'solid' | 'ghost'
         size?: 'sm' | 'md' | 'lg'
         disabled?: boolean
+        modelValue?: string | number
         onChange?: (event: Event) => void
     }>(),
     {
@@ -53,14 +59,24 @@ const props = withDefaults(
         variant: 'solid',
         size: 'md',
         disabled: false,
+        modelValue: undefined,
         onChange: undefined,
     }
 )
 
+const emit = defineEmits<{
+    'update:modelValue': [value: string]
+}>()
+
+const onInput = (event: Event) => {
+    const target = event.target as HTMLInputElement
+    emit('update:modelValue', target.value)
+}
+
 const colorClasses = {
-    primary: 'bg-primary text-white hover:bg-primary/75 active:bg-primary/75',
-    green: 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700',
-    red: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
+    primary: 'bg-primary hover:bg-primary/75 active:bg-primary/75',
+    green: 'bg-green-500 hover:bg-green-600 active:bg-green-700',
+    red: 'bg-red-500 hover:bg-red-600 active:bg-red-700',
 }
 
 const variantClasses = {
@@ -74,10 +90,29 @@ const sizeClasses = {
     lg: 'px-6 py-3 text-base',
 }
 
-const baseClasses = 'rounded-md font-medium inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-75 cursor-pointer user-select-none transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary gap-1.5'
-
 const colorClass = colorClasses[props.color]
 const variantClass = variantClasses[props.variant]
 const sizeClass = sizeClasses[props.size]
+
+const { isDark } = usePluginTheme()
+
+const fileStyle = computed(() => ({
+    color: isDark() ? '#1f1f2f' : '#ffffff',
+}))
+
+const inputSizeClasses = {
+    sm: 'px-2.5 py-1.5 text-sm',
+    md: 'px-3 py-2 text-sm',
+    lg: 'px-4 py-3 text-base',
+}
+
+const inputClasses = [
+    'w-full rounded-md border border-gray-300 dark:border-gray-600',
+    'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
+    'placeholder-gray-400 dark:placeholder-gray-500',
+    'focus:outline-none focus:border-primary',
+    'disabled:cursor-not-allowed disabled:opacity-75',
+    inputSizeClasses[props.size],
+].join(' ')
 
 </script>

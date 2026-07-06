@@ -32,10 +32,15 @@
 					<div class="flex items-center gap-3">
 						<UIcon name="i-heroicons-puzzle-piece" class="text-xl text-primary" />
 						<div>
-							<div class="font-medium">{{ plugin.name }}</div>
+							<div class="flex items-center gap-1.5">
+								<span class="font-medium">{{ plugin.name }}</span>
+								<UIcon v-if="plugin.isDev" name="i-heroicons-bug-beaker" class="text-sm text-yellow-500" title="Dev plugin" />
+							</div>
 							<div class="text-sm text-gray-500 dark:text-gray-400">{{ plugin.description }}</div>
-							<UBadge :label="`v${plugin.version}`" color="neutral" variant="soft" size="xs"
-								class="mt-1" />
+							<div class="flex items-center gap-1.5 mt-1">
+								<UBadge :label="`v${plugin.version}`" color="neutral" variant="soft" size="xs" />
+								<UBadge v-if="plugin.isDev" label="DEV" color="warning" variant="soft" size="xs" />
+							</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-2">
@@ -43,11 +48,13 @@
 							<UButton icon="i-heroicons-play" color="primary" variant="soft" size="sm"
 								@click="runPlugin(plugin.id)" />
 							<UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" size="sm"
+								:loading="reloading === plugin.id"
 								title="Reload plugin" @click="reloadPlugin(plugin.id)" />
 						</template>
 						<USwitch :model-value="isEnabled(plugin.id)" :loading="toggling === plugin.id"
+							:disabled="plugin.isDev"
 							@update:model-value="togglePluginWithCleanup(plugin.id, $event)" />
-						<UButton v-if="plugin.isUploaded" icon="i-heroicons-trash" color="error" variant="ghost"
+						<UButton v-if="plugin.isUploaded && !plugin.isDev" icon="i-heroicons-trash" color="error" variant="ghost"
 							size="sm" :loading="deleting === plugin.id" @click="handleDelete(plugin.id)" />
 					</div>
 				</div>
@@ -75,6 +82,7 @@ const {
 	loading,
 	error,
 	toggling,
+	reloading,
 	isEnabled,
 	fetchPlugins,
 	togglePluginWithCleanup,

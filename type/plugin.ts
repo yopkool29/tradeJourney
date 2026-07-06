@@ -24,6 +24,11 @@ type TJPluginUi = {
 		success: ToastFn
 		error: ToastFn
 	}
+	getTheme: () => 'light' | 'dark'
+	getThemeName: () => string
+	getLocale: () => string
+	t: (key: string, params?: Record<string, unknown>) => string
+	onLocaleChange: (callback: () => void) => void
 	registerAction: (action: TJPluginAction) => void
 	registerModal: (modal: TJPluginModal) => void
 	openModal: (id: string) => void
@@ -110,6 +115,7 @@ export type TJPluginManifest = {
 	version: string
 	description: string
 	isUploaded?: boolean
+	isDev?: boolean
 }
 
 export type TJPluginRegistered = TJPluginAction

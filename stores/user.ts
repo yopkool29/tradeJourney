@@ -17,7 +17,6 @@ export const useUserStore = defineStore(
 
         const isLoading = ref(false)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
-        const conversionType = ref<{ label: string; value: 'schwab-options' | 'tradingview' }>({ label: 'Schwab Options', value: 'schwab-options' })
         const displayModeNet = ref<boolean>(true)
         const auth = useAuth()
 
@@ -115,7 +114,6 @@ export const useUserStore = defineStore(
             logFix,
             isLoading,
             quickNavHistory,
-            conversionType,
             displayModeNet,
             user,
             needsDataRefresh,
@@ -151,7 +149,6 @@ export const useUserStore = defineStore(
                 'logDebug2',
                 'fixdebug',
                 'needsDataRefresh',
-                'conversionType',
                 'displayModeNet',
                 'noteAssocMode',
                 'chartSettings',

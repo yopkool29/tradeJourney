@@ -46,6 +46,14 @@ export default defineEventHandler(async (event) => {
                     ? fields.importName[0]
                     : fields.importName
 
+                const symbol = Array.isArray(fields.symbol)
+                    ? fields.symbol[0]
+                    : fields.symbol
+
+                const commissionPercent = Array.isArray(fields.commissionPercent)
+                    ? fields.commissionPercent[0]
+                    : fields.commissionPercent
+
                 const fileList = Object.values(files)[0]
                 const file = Array.isArray(fileList) ? fileList[0] : fileList
 
@@ -95,7 +103,9 @@ export default defineEventHandler(async (event) => {
                             outputPath,
                             '--account-name', accountName,
                             '--account-fullname', accountFullname,
-                            '--import-name', importName
+                            '--import-name', importName,
+                            '--symbol', symbol || 'US30',
+                            '--commission-percent', commissionPercent || '0',
                         ]
                         break
                     default:

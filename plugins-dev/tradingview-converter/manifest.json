@@ -1,0 +1,6 @@
+{
+	"id": "tradingview-converter",
+	"name": "TradingView Converter",
+	"version": "1.0.0",
+	"description": "Convert TradingView CSV export to PnlTracker standard format"
+}

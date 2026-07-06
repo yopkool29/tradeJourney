@@ -12,28 +12,20 @@
 			<!-- Account selection -->
 			<div>
 				<label class="block text-sm font-medium mb-2">Compte</label>
-				<select
+				<UISelect
 					v-model="selectedAccountId"
-					class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
-				>
-					<option :value="null" disabled>-- Sélectionner un compte --</option>
-					<option v-for="account in accounts" :key="account.id" :value="account.id">
-						{{ account.name }}
-					</option>
-				</select>
+					:options="accountOptions"
+					placeholder="-- Sélectionner un compte --"
+				/>
 			</div>
 
 			<!-- Instrument type selection -->
 			<div>
 				<label class="block text-sm font-medium mb-2">Type d'instrument</label>
-				<select
+				<UISelect
 					v-model="selectedInstrumentType"
-					class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
-				>
-					<option v-for="opt in instrumentTypeOptions" :key="opt.value" :value="opt.value">
-						{{ opt.label }}
-					</option>
-				</select>
+					:options="instrumentTypeOptions"
+				/>
 			</div>
 
 			<!-- Trade count info -->
@@ -52,13 +44,18 @@
 					{{ applying ? 'Application...' : 'Appliquer' }}
 				</UIButton>
 			</div>
+
+			<div v-if="successMessage" class="p-3 rounded bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm">
+				{{ successMessage }}
+			</div>
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import UIButton from '../ui/UIButton.vue'
+import UISelect from '../ui/UISelect.vue'
 import type { TJPluginSdk } from '~/type/plugin'
 
 // InstrumentType enum duplicated from ~/type because plugins can't
@@ -94,6 +91,9 @@ const selectedInstrumentType = ref<InstrumentType>(InstrumentType.Any)
 const tradeCount = ref(0)
 const countLoading = ref(false)
 const applying = ref(false)
+const successMessage = ref('')
+
+const accountOptions = computed(() => accounts.value.map(a => ({ value: a.id, label: a.name })))
 
 const instrumentTypeOptions = [
 	{ value: InstrumentType.Stock, label: 'Stock' },
@@ -139,6 +139,7 @@ const apply = async () => {
 			},
 		)
 		console.log('[instrument-type-fixer] response', result)
+		successMessage.value = `${result.count} trade(s) mis à jour avec succès`
 		props.sdk.ui.toast.success(`${result.count} trade(s) mis à jour`)
 	} catch (err) {
 		console.error('[instrument-type-fixer] error', err)

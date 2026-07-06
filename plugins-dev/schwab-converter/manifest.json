@@ -1,0 +1,6 @@
+{
+	"id": "schwab-converter",
+	"name": "Schwab Options Converter",
+	"version": "1.0.0",
+	"description": "Convert Schwab Options account statement CSV to PnlTracker standard format"
+}

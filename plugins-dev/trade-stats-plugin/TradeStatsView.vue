@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import type { TJPluginSdk } from '../type/plugin'
+import { useSdk } from '../ui/useSdk'
 
 type Trade = {
 	id: number
@@ -73,7 +73,7 @@ type Trade = {
 	isWin: number
 }
 
-const props = defineProps<{ sdk: TJPluginSdk }>()
+const sdk = useSdk()
 
 const trades = ref<Trade[]>([])
 const loading = ref(true)
@@ -83,7 +83,7 @@ const stats = computed(() => {
 	const total = trades.value.length
 	if (total === 0) return { total: 0, winRate: 0, netProfit: 0, profitFactor: 0 }
 
-	const { utils } = props.sdk
+	const { utils } = sdk
 	const winRate = utils.getWinrate(trades.value, 0, true)
 	const netProfit = utils.getPNL(trades.value, -1, true)
 	const profitFactor = utils.getProfitFactor(trades.value, 0, true)
@@ -95,7 +95,7 @@ const recentTrades = computed(() => trades.value.slice(0, 5))
 
 onMounted(async () => {
 	try {
-		const result = await props.sdk.api.get<Trade[]>('/api/trades?limit=50')
+		const result = await sdk.api.get<Trade[]>('/api/trades?limit=50')
 		trades.value = result
 	} catch {
 		error.value = 'Impossible de charger les trades'

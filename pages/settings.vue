@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, SettingsTools, Backup, SettingsPlugins } from '#components'
+import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, Backup, SettingsPlugins } from '#components'
 import { markRaw } from 'vue'
 
 const { t } = useI18n()
@@ -54,7 +54,7 @@ async function clearCachedViews() {
 // Utiliser computed pour rendre les labels réactifs aux changements de langue
 
 const items = computed(() => {
-    const baseItems: { label: string; value: 'accounts' | 'trading-symbols' | 'tags' | 'backup' | 'tools' | 'plugins' | 'options'; icon: string; component: ReturnType<typeof markRaw> }[] = [
+    const baseItems: { label: string; value: 'accounts' | 'trading-symbols' | 'tags' | 'backup' | 'plugins' | 'options'; icon: string; component: ReturnType<typeof markRaw> }[] = [
         {
             label: t('pages.settings.tabs.accounts'),
             value: 'accounts' as const,
@@ -79,12 +79,6 @@ const items = computed(() => {
             icon: 'i-lucide-database-backup',
             component: markRaw(Backup),
         },
-        {
-            label: t('pages.settings.tabs.tools'),
-            value: 'tools' as const,
-            icon: 'i-lucide-wrench',
-            component: markRaw(SettingsTools),
-        }
     ]
 
     if (config.public.pluginsEnabled) {

@@ -2,9 +2,6 @@ import { get, set, del, keys, delMany } from 'idb-keyval'
 import type { PolygonBar } from '~/utils/polygonSymbol'
 import { createBarCache, type StorageAdapter, type CachedEntry } from '~/utils/barCache'
 
-// Re-export helpers for use in usePolygonBars
-export { listPeriodsInRange, periodKeyToRange, timestampToPeriodKey } from '~/utils/barCache'
-
 // Polygon free plan rate limit: 5 requests per minute.
 // For data touching today, we refresh at most once per minute.
 const todayRefreshMs = 60_000
