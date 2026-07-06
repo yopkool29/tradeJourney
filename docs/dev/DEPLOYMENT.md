@@ -382,11 +382,18 @@ npx tsx scripts/backup-all.ts 1
 
 # Backup all and copy zip files to a destination directory
 npx tsx scripts/backup-all.ts 1 /path/to/backup/folder
+
+# Restore all databases from a folder of zip files (deletes all existing DBs first)
+npx tsx scripts/restore-all.ts 1 /path/to/backup/folder
 ```
 
-**Or run in one command:**
+**Or run via Docker:**
 ```bash
-docker exec -it <container_name> npx tsx scripts/migrate-image-urls-standalone.ts 1 database_name --dry-run
+# Backup all and copy zip files to a mounted volume
+docker exec -it <container_name> npx tsx scripts/backup-all.ts 1 /path/to/backup/folder
+
+# Restore all databases from a mounted volume
+docker exec -it <container_name> npx tsx scripts/restore-all.ts 1 /path/to/backup/folder
 ```
 
 **What it does:**
