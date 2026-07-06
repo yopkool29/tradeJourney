@@ -224,9 +224,12 @@ const adjacentTrades = computed<TradeExtendedType[]>(() => {
 })
 
 // Show the chart only for non-option trades (options have no underlying chart).
+// Also requires a Polygon API key to be configured.
 const showChart = computed(() => {
     if (!props.trade || isOption.value) return false
-    return userStore.user?.settings_object?.showTradeChart ?? true
+    if (!userStore.user?.settings_object?.showTradeChart) return false
+    const apiKey = userStore.user?.settings_object?.polygonApiKey
+    return !!(apiKey && apiKey.trim())
 })
 
 // Show detailed note based on user settings
