@@ -139,7 +139,6 @@ const userStore = useUserStore()
 const { fetchDatabases, selectDatabase, currentDatabase, deleteDatabase } = useDatabase()
 const { updateUserSettings, getUserSetting } = useAuth()
 const { errorStr, successStr, displayMessage } = useAlert()
-const { log_error } = useLogView()
 
 interface Database {
     id: number

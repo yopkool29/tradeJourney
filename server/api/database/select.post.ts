@@ -45,6 +45,12 @@ export default defineEventHandler(async (event) => {
             })
         }
 
+        // Update lastUsedAt timestamp
+        await authDb.database.update({
+            where: { id: database.id },
+            data: { updatedAt: new Date() }
+        })
+
         // Check and apply pending migrations for this database
         const { ensureMigrationsApplied } = await import('../../utils/check-migrations')
         await ensureMigrationsApplied(event, parseInt(userId), database.name)

@@ -20,8 +20,7 @@ export default defineEventHandler(async (event) => {
         const databases = await authDb.database.findMany({
             where: { userId: parseInt(userId) },
             orderBy: [
-                { isDefault: 'desc' },
-                { createdAt: 'asc' }
+                { updatedAt: 'desc' }
             ]
         })
 
