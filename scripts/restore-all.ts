@@ -1,10 +1,12 @@
+// Usage: npx tsx --tsconfig tsconfig.scripts.json scripts/restore-all.ts <userId> <backup-dir>
+// In Docker: docker exec -it <container> npx tsx --tsconfig tsconfig.scripts.json scripts/restore-all.ts <userId> <backup-dir>
+
 import { config } from 'dotenv'
 import { getAuthDb, buildShemaName, buildRoleName, createUserDatabase } from '../server/utils/db'
 import { restoreBackup } from '../server/utils/myexport'
 import { readdir, rm, readFile, mkdtemp } from 'fs/promises'
 import { join, resolve, basename } from 'path'
-import { homedir } from 'os'
-import { tmpdir } from 'os'
+import { homedir, tmpdir } from 'os'
 import extract from 'extract-zip'
 import { existsSync } from 'fs'
 
@@ -133,8 +135,6 @@ async function main() {
 	// Recreate and restore each database
 	console.log('\nRestoring databases...')
 	const results: { dbName: string; success: boolean; error?: string }[] = []
-	const appVersion = process.env.APP_VERSION || '0.0.0'
-
 	for (const { path: zipPath, dbName } of backups) {
 		console.log(`\n  Restoring "${dbName}"...`)
 		try {

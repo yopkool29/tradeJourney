@@ -390,10 +390,10 @@ npx tsx scripts/restore-all.ts 1 /path/to/backup/folder
 **Or run via Docker:**
 ```bash
 # Backup all and copy zip files to a mounted volume
-docker exec -it <container_name> npx tsx scripts/backup-all.ts 1 /path/to/backup/folder
+docker exec -it <container_name> npx tsx --tsconfig tsconfig.scripts.json scripts/backup-all.ts 1 /path/to/backup/folder
 
 # Restore all databases from a mounted volume
-docker exec -it <container_name> npx tsx scripts/restore-all.ts 1 /path/to/backup/folder
+docker exec -it <container_name> npx tsx --tsconfig tsconfig.scripts.json scripts/restore-all.ts 1 /path/to/backup/folder
 ```
 
 **What it does:**
