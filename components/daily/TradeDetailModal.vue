@@ -1,7 +1,7 @@
 <template>
     <CommonModalDefault
         v-model:open="isOpen"
-        :hideDescription="false"
+        :hide-description="false"
         :description="trade?.uniqueId || ''"
         :title="$t('components.daily.trade_group.trade_details') + (trade?.account_displayName ? ' — ' + trade.account_displayName : '')"
         :ui="{ content: showChart ? 'max-w-7xl' : detailedNote || allScreenshots.length > 0 ? 'max-w-6xl' : 'max-w-3xl' }"
@@ -134,7 +134,7 @@
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots') }}</span>
                     <ScreenshotManager :model-value="allScreenshots as any" :readonly="true" :max-image-width="128" :max-image-height="128" />
                 </div>
-                <div v-if="showChart" @click.stop class="border-t pt-4">
+                <div v-if="showChart" class="border-t pt-4" @click.stop>
                     <TradeChart :key="trade.id" :trade="trade" :adjacent-trades="adjacentTrades" />
                 </div>
                 <div v-if="showDetailedNote && detailedNote">
@@ -253,7 +253,7 @@ const formatDate = (dateStr: string) => {
     return date.toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const openScreenshotsModal = (screenshots: Array<{ id?: number; url: string }>, index: number = 0) => {
+const _openScreenshotsModal = (screenshots: Array<{ id?: number; url: string }>, index: number = 0) => {
     currentScreenshotIndex.value = index
     showScreenshots.value = true
 }

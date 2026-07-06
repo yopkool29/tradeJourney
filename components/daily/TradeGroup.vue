@@ -3,42 +3,44 @@
         <template #header>
             <div class="flex justify-between items-start">
                 <div>
-                    <div v-if="displayTitle" class="flex items-center gap-2">
-                        <div class="section-title-semibold">
-                            {{ groupDate ? formatDateLongString(groupDate, locale, true) : '' }}
+                    <div class="cursor-pointer" @click="() => { displayTitle ? showTable = !showTable : null}">
+                        <div v-if="displayTitle" class="flex items-center gap-2">
+                            <div class="section-title-semibold">
+                                {{ groupDate ? formatDateLongString(groupDate, locale as any, true) : '' }}
+                            </div>
+                            <div v-if="totalScreenshots > 0" class="stat-item items-center gap-1">
+                                <UIcon name="i-heroicons-photo" class="w-4 h-4 text-primary-500" />
+                                <!-- <span class="stat-value text-sm">{{ totalScreenshots }}</span> -->
+                            </div>
+                            <div v-if="hasDetailedNote" class="stat-item items-center">
+                                <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-primary-500" />
+                            </div>
                         </div>
-                        <div v-if="totalScreenshots > 0" class="stat-item items-center gap-1">
-                            <UIcon name="i-heroicons-photo" class="w-4 h-4 text-primary-500" />
-                            <!-- <span class="stat-value text-sm">{{ totalScreenshots }}</span> -->
-                        </div>
-                        <div v-if="hasDetailedNote" class="stat-item items-center">
-                            <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-primary-500" />
-                        </div>
-                    </div>
-                    <div class="tag-container-lg items-center mb-2 text-sm">
-                        <div class="stat-item items-center">
-                            <span class="stat-label">{{ $t('components.daily.trade_group.trades') }}:</span>
-                            <span class="stat-value">{{ groupTrades.length }}</span>
-                        </div>
-                        <div class="stat-item items-center">
-                            <span class="stat-label">{{ $t('components.daily.trade_group.win') }}:</span>
-                            <span class="stat-value">{{ winLoss.wins }}</span>
-                        </div>
-                        <div class="stat-item items-center">
-                            <span class="stat-label">{{ $t('components.daily.trade_group.loss') }}:</span>
-                            <span class="stat-value">{{ winLoss.losses }}</span>
-                        </div>
-                        <div class="stat-item items-center">
-                            <span class="stat-label">{{ $t('components.daily.trade_group.winrate') }}:</span>
-                            <span class="stat-value">{{ winrate }}%</span>
-                        </div>
-                        <div class="stat-item gap-x-1 items-center">
-                            <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
-                            <span class="stat-value text-lg leading-none" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
-                                {{ formatCurrency(pnl) }}
-                                <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{
-                                    formatCurrency(totalCommission) }}]</span>
-                            </span>
+                        <div class="tag-container-lg items-center mb-2 text-sm">
+                            <div class="stat-item items-center">
+                                <span class="stat-label">{{ $t('components.daily.trade_group.trades') }}:</span>
+                                <span class="stat-value">{{ groupTrades.length }}</span>
+                            </div>
+                            <div class="stat-item items-center">
+                                <span class="stat-label">{{ $t('components.daily.trade_group.win') }}:</span>
+                                <span class="stat-value">{{ winLoss.wins }}</span>
+                            </div>
+                            <div class="stat-item items-center">
+                                <span class="stat-label">{{ $t('components.daily.trade_group.loss') }}:</span>
+                                <span class="stat-value">{{ winLoss.losses }}</span>
+                            </div>
+                            <div class="stat-item items-center">
+                                <span class="stat-label">{{ $t('components.daily.trade_group.winrate') }}:</span>
+                                <span class="stat-value">{{ winrate }}%</span>
+                            </div>
+                            <div class="stat-item gap-x-1 items-center">
+                                <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
+                                <span class="stat-value text-lg leading-none" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
+                                    {{ formatCurrency(pnl) }}
+                                    <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{
+                                        formatCurrency(totalCommission) }}]</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -133,9 +135,9 @@
 
                 <template #content>
                     <div ref="tableContainer">
-                        <DailyTradeGroupTable v-if="tableVisible" :columns="columns" :table-data="tableData"
+                        <DailyTradeGroupTable v-if="tableVisible" :columns="columns as any" :table-data="tableData"
                             :label-columns-header="labelColumnsHeader" :show-table="showTable" :timezone-key="timezoneKey"
-                            :get-tag-style="getTagStyle" @activate="onActivate" @deactivate="onDeactivate"
+                            :get-tag-style="getTagStyle as any" @activate="onActivate" @deactivate="onDeactivate"
                             @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
                             @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
                             @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
@@ -163,14 +165,12 @@ import type { TradeExtendedType } from '~/schema/trade'
 import { formatDateLongString, normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
-import { UIcon } from '#components'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
 
 const userStore = useUserStore()
 const dbStateStore = useDbStateStore()
-const appConfig = useAppConfig()
 
 const { log_error } = useLogView()
 
@@ -354,14 +354,14 @@ const columns = computed(() => {
             id: 'grossProfit',
             accessorKey: 'profit',
             header: labelColumnsHeader.value.grossProfit,
-            cell: ({ row }) => formatCurrency(row.original.profit || 0),
+            cell: ({ row }: { row: { original: TradeExtendedType } }) => formatCurrency(row.original.profit || 0),
             meta: addMeta('w-[100px]')
         },
         {
             id: 'commission',
             accessorKey: 'commission',
             header: labelColumnsHeader.value.commission,
-            cell: ({ row }) => formatCurrency(row.original.commission || 0),
+            cell: ({ row }: { row: { original: TradeExtendedType } }) => formatCurrency(row.original.commission || 0),
             meta: addMeta('w-[100px]')
         },
         {
@@ -478,7 +478,7 @@ const onClearDayNoteTags = async () => {
 const showTable = defineModel('showTable', { type: Boolean, default: false })
 
 // Instance pour la table (declenchee par showTable)
-const { isVisible: tableVisible, triggerRender: renderTable, forceRender: forceTableRender, setOverrideDelay, reset: resetTableRender } = useConditionalLazyRender(
+const { isVisible: tableVisible, setOverrideDelay } = useConditionalLazyRender(
     showTable,
     { index: props.index, baseDelay: 500, delayIncrement: 100, maxIndexedDelay: 1000 }
 )

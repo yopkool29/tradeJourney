@@ -274,24 +274,9 @@ export const getPeriodDates = (period: string) => {
  * @param interval Intervalle de temps en minutes (défaut: 15 minutes)
  * @returns Données formatées pour un graphique Chart.js
  */
-export const generateIntradayPnlChartData = (trades: TradeType[]) => {
+export const generateIntradayPnlChartData = (trades: TradeType[]): Array<{ count: number; pnl: number; date?: Date }> => {
     if (!trades || trades.length === 0) {
-        return {
-            labels: [],
-            datasets: [
-                {
-                    label: 'PnL Cumulé',
-                    data: [],
-                    borderColor: '#4ade80',
-                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
-                    tension: 0.4,
-                    fill: false,
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
-                    borderWidth: 2
-                }
-            ]
-        };
+        return [];
     }
 
     // Calculer le PnL cumulé

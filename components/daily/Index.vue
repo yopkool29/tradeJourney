@@ -125,7 +125,7 @@ const fetchingDateRange = ref(false)
 const setHistoryDateRange = async () => {
     fetchingDateRange.value = true
     try {
-        const result = await $fetch<{ minDate: string | null; maxDate: string | null }>('/api/trades/date-range', {
+        const result = await $fetch('/api/trades/date-range', {
             query: {
                 accountIds: JSON.stringify(dbStateStore.dailyFilters.accountIds)
             }
@@ -153,7 +153,7 @@ const calendarMonth = computed(() => {
     return { year, month }
 })
 
-const calendarValue = ref<any>(null)
+const calendarValue = ref<unknown>(null)
 
 const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounced } = usePageDataManager({
     fetchFn: async () => {
@@ -171,7 +171,7 @@ const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounce
     setAccountIds: (ids) => { dbStateStore.dailyFilters.accountIds = ids },
 })
 
-const { t, locale } = useI18n()
+const { t: _t, locale: _locale } = useI18n()
 
 const filters = computed({
     get: () => dbStateStore.dailyFilters.filters || [],
@@ -215,7 +215,7 @@ function resetFilters() {
 
 const getDaysStats = () => {
     // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
-    refreshTrigger.value
+    void refreshTrigger.value
 
     const trades = displayResults.value as TradeExtendedType[]
 
