@@ -92,6 +92,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9.29.0",
     "happy-dom": "^20.8.9",
+    "knip": "^6.25.0",
     "mcp-remote": "^0.1.17",
     "node-html-parser": "^7.0.1",
     "nuxi": "^3.25.1",
