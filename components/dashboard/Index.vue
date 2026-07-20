@@ -637,20 +637,28 @@ async function cloneToAllDatabases<T>(source: T, perDb: Record<string, T>): Prom
 }
 
 const syncDashboardToOtherDatabases = async () => {
-	const { currentDatabase } = useDatabase()
+	const { currentDatabase, databases, fetchDatabases } = useDatabase()
 	const currentDbName = currentDatabase.value?.name || 'default'
 
 	const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
-	if (!sourceFilters) return
+	if (!sourceFilters || !sourceFilters.workspaces) return
 
-	dbStateStore.dashBoardFiltersPerDb = await cloneToAllDatabases(sourceFilters, dbStateStore.dashBoardFiltersPerDb)
-
-	// Sync chart settings (per-chart aggregation, display options, etc.)
-	void dbStateStore.chartSettings // touch computed to init
-	const sourceChartSettings = dbStateStore.chartSettingsPerDb[currentDbName]
-	if (sourceChartSettings && Object.keys(sourceChartSettings).length > 0) {
-		dbStateStore.chartSettingsPerDb = await cloneToAllDatabases(sourceChartSettings, dbStateStore.chartSettingsPerDb)
+	let dbs = databases.value
+	if (dbs.length === 0) {
+		dbs = await fetchDatabases()
 	}
+
+	const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
+	const clonedWorkspaces = JSON.parse(JSON.stringify(sourceFilters.workspaces)) as WorkspaceConfig[]
+
+	for (const db of dbs) {
+		if (db.name === currentDbName) continue
+		const existing = newPerDb[db.name]
+		if (!existing) continue
+		newPerDb[db.name] = { ...existing, workspaces: clonedWorkspaces }
+	}
+
+	dbStateStore.dashBoardFiltersPerDb = newPerDb
 
 	toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
 }

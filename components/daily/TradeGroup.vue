@@ -166,6 +166,7 @@ import { formatDateLongString, formatDateToYYYYMMDD, normalizeDateToUTCString } 
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
 import { UIcon } from '#components'
+import DashboardChartsOldWinratePie from '~/components/dashboard/charts/old/WinratePie.vue'
 
 const { formatCurrency } = useUtils()
 const { t, locale } = useI18n()
