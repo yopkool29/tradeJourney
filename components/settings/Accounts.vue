@@ -38,6 +38,10 @@
                                 <UInputNumber class="md:w-2/3" v-model="startingCapital" :min="100" :max="5000000" :step="100"
                                     :placeholder="$t('components.settings.accounts.starting_capital_placeholder')" />
                             </UFormField>
+                            <UFormField name="defaultPlannedRisk" :label="$t('components.settings.accounts.default_planned_risk_label')">
+                                <UInputNumber class="md:w-2/3" v-model="defaultPlannedRisk" :min="0" :step="1"
+                                    :placeholder="$t('components.settings.accounts.default_planned_risk_placeholder')" />
+                            </UFormField>
                             <UFormField name="customFields" :label="$t('components.common.customFields.label')">
                                 <CommonCustomFields
                                     v-model="customFields"
@@ -236,6 +240,7 @@ const showAddAccount = ref(false)
 const newAccountState = ref<CreateAccountType>(getDefaultCreateAccount())
 const editingAccountId = ref<number | null>(null)
 const startingCapital = ref<number | null>(null)
+const defaultPlannedRisk = ref<number | null>(null)
 const customFields = ref<CustomField[]>([{ key: 'aliases', value: '' }])
 
 const customFieldsHasErrors = computed(() => {
@@ -305,6 +310,7 @@ const newAccount = () => {
     editingAccountId.value = null
     newAccountState.value = getDefaultCreateAccount()
     startingCapital.value = null
+    defaultPlannedRisk.value = null
     customFields.value = [{ key: 'aliases', value: '' }]
     showAddAccount.value = true
 }
@@ -322,8 +328,9 @@ const editAccount = (account: AccountType) => {
     displayMessage(null, null)
     editingAccountId.value = account.id
     newAccountState.value = { ...account }
-    // Extraire le capital de départ depuis metadata
+    // Extraire le capital de départ et le planned risk par défaut depuis metadata
     startingCapital.value = metadataHelpers.get(account.metadata, 'startingCapital') ?? null
+    defaultPlannedRisk.value = metadataHelpers.get<number>(account.metadata, 'defaultPlannedRisk') ?? null
     initCustomFieldsFromAccount(account)
     showAddAccount.value = true
 }
@@ -334,6 +341,7 @@ const onSubmitAccount = async (event: FormSubmitEvent<CreateAccountType | Update
         const dataToSend = {
             ...event.data,
             startingCapital: startingCapital.value ?? null,
+            defaultPlannedRisk: defaultPlannedRisk.value ?? null,
             customFields: customFields.value,
         }
         

@@ -51,6 +51,7 @@ export interface TradesImport {
     optionType?: string;
     premium?: number;
     metadata?: string;
+    plannedRisk?: number | null;
 }
 
 // export const updateFuturesTradesProfit = async (trades: TradesImport[], symbolFilter?: string) => {

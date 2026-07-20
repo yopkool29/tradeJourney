@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
         const id = parsed.id
         const { id: _, customFields: _customFields, ...updateData } = parsed
 
-        // Merger startingCapital et customFields dans metadata côté serveur
-        const needsMetadataUpdate = body.startingCapital !== undefined || body.customFields !== undefined
+        // Merger startingCapital, defaultPlannedRisk et customFields dans metadata côté serveur
+        const needsMetadataUpdate = body.startingCapital !== undefined || body.customFields !== undefined || body.defaultPlannedRisk !== undefined
         if (needsMetadataUpdate) {
             const existing = await prisma.account.findUnique({ where: { id }, select: { metadata: true } })
             let currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
@@ -36,6 +36,15 @@ export default defineEventHandler(async (event) => {
                     currentMetadata = { ...currentMetadata, startingCapital: body.startingCapital }
                 } else {
                     const { startingCapital: _, ...rest } = currentMetadata
+                    currentMetadata = rest
+                }
+            }
+
+            if (body.defaultPlannedRisk !== undefined) {
+                if (body.defaultPlannedRisk !== null && !isNaN(body.defaultPlannedRisk)) {
+                    currentMetadata = { ...currentMetadata, defaultPlannedRisk: body.defaultPlannedRisk }
+                } else {
+                    const { defaultPlannedRisk: _, ...rest } = currentMetadata
                     currentMetadata = rest
                 }
             }

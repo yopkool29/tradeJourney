@@ -20,7 +20,7 @@ Légende :
 > | Niveau | Champ | Stockage | Rôle |
 > |---|---|---|---|
 > | **Trade** | `metadata.plannedRisk` (nullable) | JSON dans `trade.metadata` (champ existant, pas de migration DB) | Risk prévu pour ce trade spécifique |
-> | **Compte** | `defaultPlannedRisk` (nullable) | Nouveau champ sur le compte, éditable dans les paramètres du compte | Override tous les plannedRisk des trades de ce compte |
+> | **Compte** | `metadata.defaultPlannedRisk` (nullable) | JSON dans `account.metadata` (champ existant, pas de migration DB) | Override tous les plannedRisk des trades de ce compte |
 >
 > **Logique de résolution du plannedRisk pour un trade** :
 > ```
@@ -348,13 +348,12 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 
 Phase 1 — **Fondations R-multiple** (prérequis pour toutes les versions R)
 1. ✅ Décision validée sur `plannedRisk` (modèle trade + compte, voir section 1)
-2. Ajouter `defaultPlannedRisk` au schéma compte (`schema/account.ts`) + migration DB (colonne nullable)
-3. Étendre le formulaire de trade : champ `plannedRisk` stocké dans `metadata`
-4. Étendre les paramètres du compte : champ `defaultPlannedRisk`
-5. Étendre les profils d'import : mapping colonne → `metadata.plannedRisk`
-6. Calculer R-multiple par trade avec logique de résolution (compte override trade)
-7. Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
-8. **Tests** : étendre `mockTrades` avec `plannedRisk` (dans metadata) + comptes avec `defaultPlannedRisk`, ajouter tests R-multiple dans `tests/unit/utils/tradeStats.test.ts` (inclure test override compte)
+2. Étendre le formulaire de trade : champ `plannedRisk` stocké dans `metadata` (pas de migration DB — `metadata` est déjà JSONB)
+3. Étendre les paramètres du compte : champ `defaultPlannedRisk` stocké dans `metadata` (pas de migration DB — `metadata` est déjà JSONB)
+4. Étendre les profils d'import : mapping colonne → `metadata.plannedRisk`
+5. Calculer R-multiple par trade avec logique de résolution (compte override trade)
+6. Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
+7. **Tests** : étendre `mockTrades` avec `plannedRisk` (dans metadata) + comptes avec `defaultPlannedRisk`, ajouter tests R-multiple dans `tests/unit/utils/tradeStats.test.ts` (inclure test override compte)
 
 Phase 2 — **Ratios risque-rendement manquants**
 6. Sortino Ratio
@@ -417,7 +416,7 @@ Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
 
 | Phase | Fichier de test | Métriques à tester | Edge cases |
 |---|---|---|---|
-| 1 — R-multiples | `tests/unit/utils/tradeStats.test.ts` | R-multiple par trade, Total P&L en R, APPT en R, PF en R, P/L Ratio en R, Avg Win/Loss en R, Largest Win/Loss en R | `plannedRisk` null/0, tous les trades sans plannedRisk |
+| 1 — R-multiples | `tests/unit/utils/tradeStats.test.ts` | R-multiple par trade, Total P&L en R, APPT en R, PF en R, P/L Ratio en R, Avg Win/Loss en R, Largest Win/Loss en R | `plannedRisk` null/0, tous les trades sans plannedRisk, override par compte |
 | 2 — Ratios | `tests/unit/utils/tradeStats.test.ts` | Sortino, Calmar, SQN, Ulcer Index | Empty trades, 1 trade, division par zéro, < 30 trades pour SQN |
 | 3 — Drawdown | `tests/unit/utils/tradeStats.test.ts` | Drawdown Duration, Recovery Time, Max DD Duration | Drawdown non récupéré, drawdown instantané |
 | 4 — Agrégations | `tests/unit/utils/dayStats.test.ts` (à créer) | Stats mensuelles, hebdo, annuelles | Période vide, chevauchement de mois |

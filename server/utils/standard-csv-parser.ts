@@ -164,6 +164,14 @@ export function parseStandardCSV(
                 trade.metadata = values[colIndex['metadata']]
             }
 
+            // plannedRisk (colonne optionnelle) — stocké dans metadata.plannedRisk côté serveur
+            if (colIndex['plannedRisk'] !== undefined && values[colIndex['plannedRisk']]) {
+                const riskVal = parseFloat(values[colIndex['plannedRisk']])
+                if (!isNaN(riskVal) && riskVal > 0) {
+                    trade.plannedRisk = riskVal
+                }
+            }
+
             // Valider le type
             if (trade.type !== 'buy' && trade.type !== 'sell') {
                 throw new Error(`Type de trade invalide à la ligne ${i + 1}: ${trade.type}`)

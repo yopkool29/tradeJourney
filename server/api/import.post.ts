@@ -194,14 +194,25 @@ const processTrades = async (
             const normalizedSymbol = symbolConfig ? symbolConfig.symbol : trade.symbol.toUpperCase()
 
             const tradeWithAccount = { ...trade, symbol: normalizedSymbol, accountId }
-            const parsedTrade = CreateTradeSchema.parse(tradeWithAccount)
+            const parsedTrade = CreateTradeSchema.parse(tradeWithAccount) as any
             const uniqueId = generateUniqueId(importName, accountId, parsedTrade.symbol, parsedTrade.openDate, parsedTrade.closeDate, trade.extendId)
+
+            // Extraire plannedRisk (champ virtuel du schéma) pour le stocker dans metadata
+            const { plannedRisk, ...tradeDataForPrisma } = parsedTrade
+            let importMetadata = parsedTrade.metadata
+            if (plannedRisk !== undefined && plannedRisk !== null && !isNaN(plannedRisk)) {
+                const existingMeta = (typeof importMetadata === 'string' ? JSON.parse(importMetadata) : importMetadata) as Record<string, unknown> | null
+                importMetadata = { ...(existingMeta || {}), plannedRisk }
+            }
+            if (importMetadata !== parsedTrade.metadata) {
+                ;(tradeDataForPrisma as any).metadata = importMetadata
+            }
 
             const existingTrade = await dataDb.trade.findUnique({ where: { uniqueId } })
             if (!existingTrade) {
                 const createdTrade = await dataDb.trade.create({
                     data: {
-                        ...parsedTrade,
+                        ...tradeDataForPrisma,
                         uniqueId,
                         importName,
                         active: true,

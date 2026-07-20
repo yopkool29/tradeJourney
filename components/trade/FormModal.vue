@@ -100,6 +100,9 @@
                             <div class="field-help-text">{{ $t('components.trade.formModal.profit.subhelp') }}</div>
                             <UInput v-model="newState.profit" type="number" step="0.01" :placeholder="$t('components.trade.formModal.profit.placeholder')" size="lg" />
                         </UFormField>
+                        <UFormField :label="$t('components.trade.formModal.plannedRisk.label')" name="plannedRisk" :help="$t('components.trade.formModal.plannedRisk.help')" class="text-base">
+                            <UInput v-model="plannedRisk" type="number" step="0.01" :placeholder="$t('components.trade.formModal.plannedRisk.placeholder')" size="lg" />
+                        </UFormField>
                     </div>
                     <div class="screenshot-container">
                         <UFormField :label="$t('components.trade.formModal.screenshots.label')" name="screenshots" class="text-base">
@@ -237,12 +240,17 @@ function initializeScreenshotsFrom(trade: TradeType) {
 function newForm() {
     errorStr.value = null
     newState.value = getDefaultForm()
+    plannedRisk.value = null
     initializeScreenshots([])
 }
 
 function editForm(trade: TradeType) {
     errorStr.value = null
     newState.value = { ...trade }
+    const meta = trade.metadata as Record<string, unknown> | null
+    const val = meta?.plannedRisk
+    plannedRisk.value = (val === null || val === undefined || val === '') ? null : Number(val)
+    if (plannedRisk.value !== null && isNaN(plannedRisk.value)) plannedRisk.value = null
     initializeScreenshotsFrom(trade)
 }
 
@@ -257,12 +265,17 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
             const updateData = {
                 ...event.data,
                 screenshots: existingScreenshotsToKeep,
+                plannedRisk: plannedRisk.value,
             }
             saved = await updateTrade(updateData as UpdateTradeType)
             const msg = t('components.trade.formModal.success.updated_title')
             displayMessage(msg, null)
         } else {
-            saved = await createTrade(event.data as CreateTradeType)
+            const createData = {
+                ...event.data,
+                plannedRisk: plannedRisk.value,
+            }
+            saved = await createTrade(createData as CreateTradeType)
             const msg = t('components.trade.formModal.success.created_title')
             displayMessage(msg, null)
         }
@@ -330,6 +343,9 @@ const step = computed(() => {
     }
     return 0.00001
 })
+
+// plannedRisk est un champ séparé du formulaire, le serveur le stocke dans metadata.plannedRisk
+const plannedRisk = ref<number | null>(null)
 
 const emit = defineEmits<{
     saved: []

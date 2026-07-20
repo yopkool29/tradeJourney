@@ -1041,6 +1041,8 @@ export default {
                 aliases_placeholder: 'Comma-separated aliases (e.g., account1, account2)',
                 starting_capital_label: 'Starting Capital',
                 starting_capital_placeholder: 'Initial account capital',
+                default_planned_risk_label: 'Default Planned Risk',
+                default_planned_risk_placeholder: 'Default risk per trade (used for R-multiples)',
                 column_aliases: 'Aliases',
                 column_starting_capital: 'Starting Capital',
                 accounts_list: 'Accounts list',
@@ -1212,6 +1214,11 @@ export default {
                     help: 'Profit/loss (in base currency)',
                     subhelp: 'Amount won or lost on this position',
                     placeholder: 'e.g.: 10.50',
+                },
+                plannedRisk: {
+                    label: 'Planned Risk',
+                    help: 'Amount planned to risk on this trade (used to calculate R-multiples). Overrides the account default if set.',
+                    placeholder: 'e.g.: 200',
                 },
                 screenshots: {
                     label: 'Screenshots',

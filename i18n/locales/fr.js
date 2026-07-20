@@ -1055,6 +1055,8 @@ export default {
                 aliases_placeholder: 'Alias séparés par des virgules (ex: compte1, compte2)',
                 starting_capital_label: 'Capital de départ',
                 starting_capital_placeholder: 'Capital initial du compte',
+                default_planned_risk_label: 'Risque prévu par défaut',
+                default_planned_risk_placeholder: 'Risque par trade par défaut (utilisé pour les R-multiples)',
                 column_aliases: 'Alias',
                 column_starting_capital: 'Capital de départ',
                 accounts_list: 'Liste des comptes',
@@ -1230,6 +1232,11 @@ export default {
                     help: 'Profit/perte (en devise de base)',
                     subhelp: 'Montant gagné ou perdu sur cette position',
                     placeholder: 'ex: 10.50',
+                },
+                plannedRisk: {
+                    label: 'Risque prévu',
+                    help: "Montant prévu de risque pour ce trade (utilisé pour calculer les R-multiples). Surcharge la valeur par défaut du compte si renseigné.",
+                    placeholder: 'ex: 200',
                 },
                 screenshots: {
                     label: "Captures d'écran",

@@ -37,12 +37,14 @@ export type AccountType = z.output<typeof AccountSchema>;
 
 export const CreateAccountSchema = AccountSchema.omit({ id: true, createdAt: true, metadata: true }).extend({
     customFields: z.array(CustomFieldSchema).optional(),
+    defaultPlannedRisk: z.number().nullable().optional(),
 });
 
 export type CreateAccountType = z.output<typeof CreateAccountSchema>;
 
 export const UpdateAccountSchema = AccountSchema.partial().required({ id: true }).omit({ createdAt: true, metadata: true }).extend({
     customFields: z.array(CustomFieldSchema).optional(),
+    defaultPlannedRisk: z.number().nullable().optional(),
 });
 
 export type UpdateAccountType = z.output<typeof UpdateAccountSchema>;
