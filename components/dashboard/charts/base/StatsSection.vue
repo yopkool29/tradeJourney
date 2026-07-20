@@ -26,7 +26,7 @@ export interface StatsRow {
 	label: string
 	value?: number | string | Date | null
 	displayValue?: string
-	format?: 'currency' | 'duration' | 'date' | 'percent' | 'number'
+	format?: 'currency' | 'duration' | 'date' | 'dateOnly' | 'percent' | 'number'
 	valueClass?: string
 	condition?: boolean
 	small?: boolean
@@ -41,7 +41,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { formatCurrency, formatDurationMinutes, formatDateWithFallback } = useMetricsBaseSectionPattern()
+const { formatCurrency, formatDurationMinutes, formatDateOrDash } = useMetricsBaseSectionPattern()
 
 const visibleRows = computed(() => props.rows.filter(r => r.condition !== false))
 
@@ -54,9 +54,14 @@ const formatRowValue = (row: StatsRow): string => {
 		case 'duration':
 			return formatDurationMinutes(typeof row.value === 'number' ? row.value : Number(row.value))
 		case 'date': {
-			if (row.value instanceof Date) return formatDateWithFallback(row.value)
-			if (typeof row.value === 'string') return formatDateWithFallback(new Date(row.value))
-			return formatDateWithFallback(new Date(row.value as number))
+			if (row.value instanceof Date) return formatDateOrDash(row.value)
+			if (typeof row.value === 'string') return formatDateOrDash(new Date(row.value))
+			return formatDateOrDash(new Date(row.value as number))
+		}
+		case 'dateOnly': {
+			if (row.value instanceof Date) return formatDateOrDash(row.value, false)
+			if (typeof row.value === 'string') return formatDateOrDash(new Date(row.value), false)
+			return formatDateOrDash(new Date(row.value as number), false)
 		}
 		case 'percent': {
 			const percentValue = typeof row.value === 'number' ? row.value : Number(row.value)

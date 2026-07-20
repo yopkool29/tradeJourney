@@ -11,16 +11,16 @@ export const useMetricsBaseSectionPattern = () => {
 		return `${settings?.timezoneDisplay}-${settings?.timezoneLocal}-${settings?.timezoneUtcOffset}`
 	})
 
-	const formatDateWithFallback = (date: Date | null): string => {
+	const formatDateOrDash = (date: Date | null, withHour: boolean = true): string => {
 		void timezoneKey.value
 		if (!date) return '—'
-		return formatDateWithUserTimezone(date, userStore.user?.settings_object, true, locale.value as 'fr' | 'en' | 'us')
+		return formatDateWithUserTimezone(date, userStore.user?.settings_object, withHour, locale.value as 'fr' | 'en' | 'us')
 	}
 
 	return {
 		formatCurrency,
 		formatDurationMinutes,
-		formatDateWithFallback,
+		formatDateOrDash,
 		result,
 	}
 }

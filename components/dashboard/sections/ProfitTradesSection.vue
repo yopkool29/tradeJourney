@@ -35,7 +35,7 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.profit_trades.longest_win_time', value: result.value.maxWinDuration, format: 'duration' },
 	{ label: 'components.dashboard.profit_trades.max_winning_streak', value: result.value.maxWinningStreak, format: 'number', valueClass: 'profit-text' },
 	{ label: 'components.dashboard.profit_trades.max_run_up', value: result.value.maxRunUp, format: 'currency', valueClass: 'profit-text' },
-	{ label: 'components.dashboard.profit_trades.max_run_up_from', value: maxRunUpDisplayDates.value.start, format: 'date', small: true, condition: !!maxRunUpDisplayDates.value.start },
-	{ label: 'components.dashboard.profit_trades.max_run_up_to', value: maxRunUpDisplayDates.value.end, format: 'date', small: true, condition: !!maxRunUpDisplayDates.value.end },
+	{ label: 'components.dashboard.profit_trades.max_run_up_from', value: maxRunUpDisplayDates.value.start, format: 'dateOnly', condition: !!maxRunUpDisplayDates.value.start } satisfies StatsRow,
+	{ label: 'components.dashboard.profit_trades.max_run_up_to', value: maxRunUpDisplayDates.value.end, format: 'dateOnly', condition: !!maxRunUpDisplayDates.value.end } satisfies StatsRow,
 ])
 </script>

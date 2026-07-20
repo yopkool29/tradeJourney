@@ -40,7 +40,7 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.losing_trades.longest_loss_time', value: result.value.maxLossDuration, format: 'duration' },
 	{ label: 'components.dashboard.losing_trades.max_losing_streak', value: result.value.maxLosingStreak, format: 'number', valueClass: 'loss-text' },
 	{ label: 'components.dashboard.losing_trades.max_drawdown', displayValue: formatLossValue(result.value.maxDrawdown), valueClass: result.value.maxDrawdown !== 0 ? 'loss-text' : '' },
-	{ label: 'components.dashboard.losing_trades.max_drawdown_from', value: maxDrawdownDisplayDates.value.start, format: 'date', small: true, condition: !!maxDrawdownDisplayDates.value.start },
-	{ label: 'components.dashboard.losing_trades.max_drawdown_to', value: maxDrawdownDisplayDates.value.end, format: 'date', small: true, condition: !!maxDrawdownDisplayDates.value.end },
+	{ label: 'components.dashboard.losing_trades.max_drawdown_from', value: maxDrawdownDisplayDates.value.start, format: 'dateOnly', condition: !!maxDrawdownDisplayDates.value.start } satisfies StatsRow,
+	{ label: 'components.dashboard.losing_trades.max_drawdown_to', value: maxDrawdownDisplayDates.value.end, format: 'dateOnly', condition: !!maxDrawdownDisplayDates.value.end } satisfies StatsRow,
 ])
 </script>
