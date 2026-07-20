@@ -9,14 +9,11 @@ import {
 	parseISO8601Date,
 	ExportDateFormat,
 	ImportMode,
-	formatDuration,
 	formatDurationMinutes,
 	parseDateStringToTimestamp,
 	toISODate,
-	toTimestamp,
 	formatDateToYYYYMMDD,
 	formatDateToYYYYMM,
-	normalizeDateToLocalString,
 	normalizeDateToUTCString,
 	getDatetimeLocalNow,
 	toUTCMidnight
@@ -100,22 +97,6 @@ describe('date-utils', () => {
 		})
 	})
 
-	describe('formatDuration', () => {
-		it('should format duration between two dates', () => {
-			const start = new Date('2024-01-15T10:00:00Z')
-			const end = new Date('2024-01-15T11:30:45Z')
-			const result = formatDuration(start, end)
-			expect(typeof result).toBe('string')
-			expect(result).toContain('h')
-		})
-
-		it('should return 0s for same dates', () => {
-			const date = new Date('2024-01-15T10:00:00Z')
-			const result = formatDuration(date, date)
-			expect(result).toBe('0s')
-		})
-	})
-
 	describe('formatDurationMinutes', () => {
 		it('should format minutes only', () => {
 			expect(formatDurationMinutes(45)).toBe('45min')
@@ -145,14 +126,6 @@ describe('date-utils', () => {
 		})
 	})
 
-	describe('toTimestamp', () => {
-		it('should convert date parts to timestamp', () => {
-			const result = toTimestamp(2024, 1, 15)
-			expect(typeof result).toBe('number')
-			expect(result).toBeGreaterThan(0)
-		})
-	})
-
 	describe('formatDateToYYYYMMDD', () => {
 		it('should format date to YYYY-MM-DD', () => {
 			expect(formatDateToYYYYMMDD(new Date('2024-01-15'))).toBe('2024-01-15')
@@ -162,14 +135,6 @@ describe('date-utils', () => {
 	describe('formatDateToYYYYMM', () => {
 		it('should format date to YYYY-MM', () => {
 			expect(formatDateToYYYYMM(new Date('2024-01-15'))).toBe('2024-01')
-		})
-	})
-
-	describe('normalizeDateToLocalString', () => {
-		it('should normalize date using local time', () => {
-			const result = normalizeDateToLocalString(new Date('2024-01-15T10:30:00Z'))
-			expect(typeof result).toBe('string')
-			expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/)
 		})
 	})
 

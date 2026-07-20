@@ -3,7 +3,7 @@ import { parseMT5Xls } from '../../server/utils/mt5-parser'
 import type { MT5XlsRawRow } from '../../server/utils/mt5-parser'
 import * as XLSX from 'xlsx'
 import path from 'path'
-import { formatDate, ImportMode } from '../../utils/date-utils';
+import { formatDateString, ImportMode } from '../../utils/date-utils';
 
 const filePath = path.resolve(__dirname, '../../data/tests/mt5-report-3000078208.xlsx')
 const workbook = XLSX.readFile(filePath)
@@ -78,8 +78,8 @@ describe('Date Parsing Comparison', () => {
 
         // 6. Afficher les résultats formatés en heure de Paris pour comparaison
         console.log(`\n--- Date Comparison ---`);
-        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeLocal.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus2.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+3)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus3.openDate, 'Europe/Paris')}`);
+        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeLocal.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus2.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+3)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus3.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
     });
 });

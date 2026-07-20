@@ -24,7 +24,7 @@ export const useDataStore = defineStore(
 			breakevenTradesCount: 0, breakevenContractsCount: 0,
 
 			// Daily metrics
-			openTrades: 0, totalTradingDays: 0, winningDays: 0, losingDays: 0, breakevenDays: 0,
+			totalTradingDays: 0, winningDays: 0, losingDays: 0, breakevenDays: 0,
 			maxConsecutiveWinningDays: 0, maxConsecutiveLosingDays: 0,
 			averageDailyPnl: 0, averageWinningDayPnl: 0, averageLosingDayPnl: 0,
 			largestProfitableDayPnl: 0, largestProfitableDayDate: null,

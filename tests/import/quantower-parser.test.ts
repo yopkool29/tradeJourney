@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseQuantowerExecutions } from '../../server/utils/quantower-parser'
 import { readFileSync } from 'fs'
-import { ImportMode, formatDate } from '../../utils/date-utils'
+import { ImportMode, formatDateString } from '../../utils/date-utils'
 
 // Chemin vers le fichier CSV Quantower
 const filePath = __dirname + '/../../data/tests/quantower-trades.csv'
@@ -171,8 +171,8 @@ describe('Date Parsing Comparison (Quantower)', () => {
         expect(firstTradeUtcPlus3.openDate.getTime()).toBeLessThan(firstTradeLocal.openDate.getTime());
 
         console.log(`\n--- Quantower Date Comparison ---`);
-        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeLocal.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus2.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+3)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus3.openDate, 'Europe/Paris')}`);
+        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeLocal.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus2.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+3)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus3.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
     });
 });

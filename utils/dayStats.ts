@@ -17,11 +17,6 @@ export const getDailyPnlArray = (trades: TradeExtendedType[], useNet: boolean, s
     return entries.sort((a, b) => a.date.localeCompare(b.date))
 }
 
-export const getOpenTrades = (trades: TradeExtendedType[]): number => {
-    const now = Date.now()
-    return trades.filter(t => new Date(t.closeDate).getTime() > now).length
-}
-
 export const getTotalTradingDays = (dailyPnls: DailyPnl[]): number => dailyPnls.length
 
 export const getWinningDaysCount = (dailyPnls: DailyPnl[]): number => dailyPnls.filter(d => d.pnl > 0).length

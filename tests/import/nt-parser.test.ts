@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseNTExecutions } from '../../server/utils/nt-parser'
 import { readFileSync } from 'fs'
-import { ImportMode, formatDate } from '../../utils/date-utils'
+import { ImportMode, formatDateString } from '../../utils/date-utils'
 import { generateUniqueId } from '../../schema/trade'
 
 // Chemin vers le fichier CSV d'exécution
@@ -120,8 +120,8 @@ describe('Date Parsing Comparison (NinjaTrader)', () => {
         expect(firstTradeUtcPlus2.openDate.getTime()).toBeLessThan(firstTradeLocal.openDate.getTime());
 
         console.log(`\n--- NT Date Comparison ---`);
-        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeLocal.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+1)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus1.openDate, 'Europe/Paris')}`);
-        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDate(firstTradeUtcPlus2.openDate, 'Europe/Paris')}`);
+        console.log(`Input (as Europe/Paris) -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeLocal.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+1)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus1.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
+        console.log(`Input (as UTC+2)        -> UTC -> Display (in Europe/Paris): ${formatDateString(firstTradeUtcPlus2.openDate, true, 'fr', 'LOCAL', 'Europe/Paris')}`);
     });
 });

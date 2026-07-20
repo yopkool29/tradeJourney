@@ -378,7 +378,6 @@ export const useDbStateStore = defineStore(
 						maxLosingStreak: 0,
 						breakevenTradesCount: 0,
 						breakevenContractsCount: 0,
-						openTrades: 0,
 						totalTradingDays: 0,
 						winningDays: 0,
 						losingDays: 0,

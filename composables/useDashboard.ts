@@ -20,7 +20,6 @@ import {
 } from '~/utils/tradeStats'
 import {
     getDailyPnlArray,
-    getOpenTrades,
     getTotalTradingDays,
     getWinningDaysCount,
     getLosingDaysCount,
@@ -168,7 +167,6 @@ export const useDashboard = () => {
 
         // DAILY METRICS
         const dailyPnls = getDailyPnlArray(trades, useNet, userStore.settingsObject)
-        dataStore.dashboardResult.openTrades = getOpenTrades(trades)
         dataStore.dashboardResult.totalTradingDays = getTotalTradingDays(dailyPnls)
         dataStore.dashboardResult.winningDays = getWinningDaysCount(dailyPnls)
         dataStore.dashboardResult.losingDays = getLosingDaysCount(dailyPnls)

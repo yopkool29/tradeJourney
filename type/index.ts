@@ -196,7 +196,6 @@ export interface DashBoardResult {
     breakevenContractsCount: number
 
     // Daily metrics
-    openTrades: number
     totalTradingDays: number
     winningDays: number
     losingDays: number

@@ -33,7 +33,7 @@ import type { DayTagType, CreateDayTagType, UpdateDayTagType } from '~/schema/da
 import type { TagType } from '~/schema/tag'
 import { CreateDayTagSchema } from '~/schema/dayTag'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
-import { normalizeDateToLocalString } from '~/utils/date-utils'
+import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 
 const { t } = useI18n()
 const { errorStr, successStr, displayMessage } = useAlert()
@@ -105,7 +105,7 @@ const onSubmit = async (event: FormSubmitEvent<CreateDayTagType | UpdateDayTagTy
         // Normaliser la date en format YYYY-MM-DD pour éviter les problèmes de timezone
         const normalizedDate = typeof props.date === 'string' 
             ? props.date 
-            : normalizeDateToLocalString(props.date)
+            : formatDateToYYYYMMDD(props.date)
         
         if (props.dayTag) {
             result = await updateDayTag({ ...event.data, id: props.dayTag.id } as UpdateDayTagType)

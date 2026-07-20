@@ -171,7 +171,7 @@ import type { TradeType } from '~/schema/trade'
 import type { TradeFilter } from '~/type'
 import { UIcon } from '#components'
 import { OPERATOR_EQUAL } from '~/utils'
-import { formatDateWithUserTimezone } from '~/utils/date-utils'
+import { formatDateWithUserTimezone, formatDateString } from '~/utils/date-utils'
 import { transformAdvancedFilters } from '~/utils/filter-utils'
 import type { Value } from '@prisma/client/runtime/library'
 import { defaultSettings } from '~/schema/user'
@@ -458,7 +458,7 @@ const columns = [
                     }),
                 ]
             ),
-        cell: ({ row }) => formatDate(row.getValue('openDate')),
+        cell: ({ row }) => formatDateString(row.getValue('openDate'), true, locale as 'fr' | 'en' | 'us'),
         sortable: true,
         meta: addMeta('w-[150px]'),
     },
@@ -489,7 +489,7 @@ const columns = [
                     }),
                 ]
             ),
-        cell: ({ row }) => formatDate(row.getValue('closeDate')),
+        cell: ({ row }) => formatDateString(row.getValue('closeDate'), true, locale as 'fr' | 'en' | 'us'),
         sortable: true,
         meta: addMeta('w-[150px]'),
     },

@@ -29,6 +29,5 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.day_statistics.daily_max_drawdown_percent', value: result.value.dailyMaxDrawdownPercent, format: 'percent', valueClass: 'loss-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.average_drawdown', value: result.value.averageDrawdown, format: 'currency', valueClass: 'loss-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.average_drawdown_percent', value: result.value.averageDrawdownPercent, format: 'percent', valueClass: 'loss-text' } satisfies StatsRow,
-	{ label: 'components.dashboard.day_statistics.open_trades', value: result.value.openTrades, format: 'number', borderTop: true } satisfies StatsRow,
 ])
 </script>

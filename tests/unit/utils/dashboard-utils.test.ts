@@ -145,8 +145,8 @@ describe('dashboard utils', () => {
 		})
 
 		it('should return empty data for no trades', () => {
-			const result = generateIntradayPnlChartData([]) as { labels: []; datasets: any[] }
-			expect(result.labels.length).toBe(0)
+			const result = generateIntradayPnlChartData([])
+			expect(result.length).toBe(0)
 		})
 	})
 

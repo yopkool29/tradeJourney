@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { DayTagSchema } from '~/schema/dayTag'
-import { normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
+import { formatDateToYYYYMMDD, normalizeDateToUTCString } from '~/utils/date-utils'
 
 import type { CreateDayTagType, UpdateDayTagType, DayTagType } from '~/schema/dayTag'
 export const useDayTags = () => {
@@ -30,7 +30,7 @@ export const useDayTags = () => {
 
         // Normaliser la date d'entrée en format YYYY-MM-DD
         // On utilise l'heure locale car group.day vient du calendrier en heure locale
-        const dateStr = normalizeDateToLocalString(date)
+        const dateStr = formatDateToYYYYMMDD(date)
 
         // Chercher dans le cache en comparant les dates normalisées
         return dbStateStore.dayTags.find((dt: DayTagType) => {

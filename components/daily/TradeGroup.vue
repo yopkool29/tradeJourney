@@ -162,7 +162,7 @@ import { getWinLossNb, getWinrate, getPNL } from '~/utils/tradeStats'
 import type { DayTagType } from '~/schema/dayTag'
 import type { TradeExtendedType } from '~/schema/trade'
 
-import { formatDateLongString, normalizeDateToLocalString, normalizeDateToUTCString } from '~/utils/date-utils'
+import { formatDateLongString, formatDateToYYYYMMDD, normalizeDateToUTCString } from '~/utils/date-utils'
 import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
 import { UIcon } from '#components'
@@ -231,7 +231,7 @@ const currentDayTag = computed(() => {
     if (!props.groupDate) return null
     return dbStateStore.dayTags.find((dt: DayTagType) => {
         const dtDateStr = normalizeDateToUTCString(new Date(dt.date))
-        const dateStr = normalizeDateToLocalString(props.groupDate)
+        const dateStr = formatDateToYYYYMMDD(props.groupDate)
         return dtDateStr === dateStr
     }) || null
 })

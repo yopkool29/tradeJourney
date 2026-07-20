@@ -3,7 +3,7 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 import { getPNL, getAPPT, getWinrate, movingAverage, getPLRatio as calculatePLRatio } from './tradeStats'
 import type { TradeType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
-import { formatDateString, getTimeZoneFromSettings } from '~/utils/date-utils'
+import { getTimeZoneFromSettings, formatDateKeyForGrouping } from '~/utils/date-utils'
 
 export interface GridTemplateItem {
 	w: number
@@ -334,21 +334,18 @@ export const groupTradesByPeriod = (
 
         switch (mode) {
             case 'day':
-                key = formatDateString(closeDate, false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset) // ex: DD/MM/YYY
-                key = key.split('/').reverse().join('-') // YYYY-MM-DD
+                key = formatDateKeyForGrouping(closeDate, 'day', timezoneMode, timezoneLocal, timezoneUtcOffset)
                 break
             case 'week': {
                 // Obtenir le premier jour de la semaine (lundi) dans le fuseau utilisateur
                 const timeZone = getTimeZoneFromSettings(timezoneMode, timezoneLocal, timezoneUtcOffset)
                 const zonedDate = toZonedTime(closeDate, timeZone)
                 const monday = startOfWeek(zonedDate, { weekStartsOn: 1 })
-                key = formatDateString(fromZonedTime(monday, timeZone), false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset)
-                key = key.split('/').reverse().join('-') // YYYY-MM-DD
+                key = formatDateKeyForGrouping(fromZonedTime(monday, timeZone), 'day', timezoneMode, timezoneLocal, timezoneUtcOffset)
                 break
             }
             case 'month':
-                key = formatDateString(closeDate, false, 'en', timezoneMode, timezoneLocal, timezoneUtcOffset)
-                key = key.split('/').reverse().join('-').slice(0, 7) // YYYY-MM
+                key = formatDateKeyForGrouping(closeDate, 'month', timezoneMode, timezoneLocal, timezoneUtcOffset)
                 break
             case 'year':
                 key = `${closeDate.getFullYear()}`

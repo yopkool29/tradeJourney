@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { parseIBKRTrades } from '../../server/utils/ibkr-parser'
 import { readFileSync } from 'fs'
 import path from 'path'
-import { formatDate, ImportMode } from '../../utils/date-utils'
+import { formatDateString, ImportMode } from '../../utils/date-utils'
 
 const filePath = path.resolve(__dirname, '../../data/tests/ibkr-flex-results.csv')
 const csvContent = readFileSync(filePath, 'utf-8')
@@ -29,8 +29,8 @@ trades.forEach((t, idx) => {
     console.log(`  Symbol: ${t.symbol}`)
     console.log(`  Type: ${t.type}`)
     console.log(`  Quantity: ${t.lot}`)
-    console.log(`  Open: ${formatDate(t.openDate, 'America/New_York')} @ ${t.openPrice}`)
-    console.log(`  Close: ${formatDate(t.closeDate, 'America/New_York')} @ ${t.closePrice}`)
+    console.log(`  Open: ${formatDateString(t.openDate, true, 'us', 'LOCAL', 'America/New_York')} @ ${t.openPrice}`)
+    console.log(`  Close: ${formatDateString(t.closeDate, true, 'us', 'LOCAL', 'America/New_York')} @ ${t.closePrice}`)
     console.log(`  Profit: ${t.profit.toFixed(2)}`)
     console.log(`  Commission: ${t.commission.toFixed(2)}`)
     console.log(`  Profit Points: ${t.profit_points}`)
@@ -142,8 +142,8 @@ describe('Date Parsing Comparison', () => {
 
         // 5. Afficher les résultats formatés
         console.log(`\n--- Date Comparison ---`)
-        console.log(`Input (as America/New_York) -> UTC -> Display (in America/New_York): ${formatDate(firstTradeLocal.openDate, 'America/New_York')}`)
-        console.log(`Input (as UTC-5)             -> UTC -> Display (in America/New_York): ${formatDate(firstTradeUtcMinus5.openDate, 'America/New_York')}`)
-        console.log(`Input (as UTC-4)             -> UTC -> Display (in America/New_York): ${formatDate(firstTradeUtcMinus4.openDate, 'America/New_York')}`)
+        console.log(`Input (as America/New_York) -> UTC -> Display (in America/New_York): ${formatDateString(firstTradeLocal.openDate, true, 'us', 'LOCAL', 'America/New_York')}`)
+        console.log(`Input (as UTC-5)             -> UTC -> Display (in America/New_York): ${formatDateString(firstTradeUtcMinus5.openDate, true, 'us', 'LOCAL', 'America/New_York')}`)
+        console.log(`Input (as UTC-4)             -> UTC -> Display (in America/New_York): ${formatDateString(firstTradeUtcMinus4.openDate, true, 'us', 'LOCAL', 'America/New_York')}`)
     })
 })

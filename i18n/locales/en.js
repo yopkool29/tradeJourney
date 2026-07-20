@@ -785,7 +785,6 @@ export default {
                 daily_max_drawdown_percent: 'Daily Max Drawdown %',
                 average_drawdown: 'Average Drawdown',
                 average_drawdown_percent: 'Average Drawdown %',
-                open_trades: 'Open Trades',
             },
             net_gross_toggle: {
                 label: 'P&L Display',
