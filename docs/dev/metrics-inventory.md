@@ -15,11 +15,28 @@ Légende :
 
 > Principe : chaque métrique en €/devise doit aussi pouvoir être exprimée en **R** (R-multiple), c'est-à-dire normalisée par le risk initial prévu du trade. Cela permet de comparer des trades de tailles différentes et de raisonner en unités de risque plutôt qu'en montant absolu. Si le planned risk n'est pas renseigné pour un trade, la version R n'est pas calculée pour ce trade.
 >
-> **Prérequis schéma** : le schéma actuel (`schema/trade.ts`) n'a pas de champ `plannedRisk` (montant risqué en devise). Il a `stopLoss` (prix) et `takeProfit` (prix). Pour calculer le R-multiple il faut donc soit :
-> - **Option A** : ajouter un champ `plannedRisk: z.number().nullable()` au schéma (montant en devise, saisi par l'utilisateur ou importé)
-> - **Option B** : calculer le risk à partir de `stopLoss` + prix d'entrée + taille de position : `|entryPrice − stopLoss| × quantity`
+> **Modèle de plannedRisk** (décision validée) :
 >
-> Option A recommandée (plus simple, plus fiable, ne dépend pas de la disponibilité du prix d'entrée). À valider avant implémentation.
+> | Niveau | Champ | Stockage | Rôle |
+> |---|---|---|---|
+> | **Trade** | `metadata.plannedRisk` (nullable) | JSON dans `trade.metadata` (champ existant, pas de migration DB) | Risk prévu pour ce trade spécifique |
+> | **Compte** | `defaultPlannedRisk` (nullable) | Nouveau champ sur le compte, éditable dans les paramètres du compte | Override tous les plannedRisk des trades de ce compte |
+>
+> **Logique de résolution du plannedRisk pour un trade** :
+> ```
+> 1. Si compte.defaultPlannedRisk renseigné → l'utiliser (override le trade)
+> 2. Sinon si trade.metadata.plannedRisk renseigné → l'utiliser
+> 3. Sinon → R-multiple non calculé pour ce trade
+> ```
+>
+> **Comptes multiples** : quand plusieurs comptes sont affichés dans le dashboard, chaque compte applique son propre `defaultPlannedRisk` à ses trades. Pas d'override global dashboard.
+>
+> **Saisie** :
+> - Trade : champ `plannedRisk` dans le formulaire de trade (stocké dans `metadata`)
+> - Compte : champ `defaultPlannedRisk` dans les paramètres du compte
+> - Import : mapping configurable dans les profils d'import (colonne → `metadata.plannedRisk`)
+>
+> **Note technique** : `metadata` est un champ JSON libre (`z.any().nullable()` dans `schema/trade.ts:141`). `plannedRisk` ne sera pas validé par le schéma — valider à la lecture (`Number(metadata?.plannedRisk) || null`). Pas queryable en SQL directement mais pas nécessaire pour l'usage prévu (calcul en mémoire sur les trades chargés).
 
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
@@ -101,7 +118,7 @@ Légende :
 | Max Trade Duration | ✅ | `getMaxTradeDuration()` — `utils/tradeStats.ts:207` | Durée max en minutes |
 | Average Win / Loss Duration | ✅ | `getWinningTradesMetrics` / `getLosingTradesMetrics` | Durée moyenne par issue |
 | Max Win / Loss Duration | ✅ | idem | Durée max par issue |
-| Average Hold Time (Scratch/Breakeven) | ⚠️ | À vérifier | Mentionné dans `docs/dev/new-metrics.md` |
+| Average Hold Time (Scratch/Breakeven) | ❌ | — | `getBreakevenTradesMetrics` ne calcule que `count` + `totalContracts` — à étendre avec `avgDuration` / `maxDuration` |
 
 > Time in Market et Average Holding Period by Symbol écartés — faible valeur ajoutée pour un journal de trading.
 
@@ -134,8 +151,38 @@ Légende :
 | Metrics by Day of Week | ⚠️ | Partiellement via heatmap | Pas de breakdown dédié |
 | Metrics by Month | ❌ | — | Performance par mois calendaire |
 | Metrics by Side (Long/Short) | ❌ | — | Performance long vs short |
+| **Metrics by Tag** | ❌ | — | Performance par tag (setup, stratégie, erreur, contexte…) — voir note ci-dessous |
 
-> Breakdowns écartés (nécessitent des champs non présents dans le schéma actuel) : Setup/Tag, Session (Asie/Europe/US), Strategy, A/B/C class. Pourront être ajoutés plus tard si ces champs sont introduits dans `schema/trade.ts`.
+> Breakdowns écartés (nécessitent des champs non présents dans le schéma actuel) : Session (Asie/Europe/US), Strategy, A/B/C class. Pourront être ajoutés plus tard si ces champs sont introduits dans `schema/trade.ts`.
+
+### Notes sur "Metrics by Tag"
+
+Les tags sont déjà implémentés dans PnlTracker et constituent une dimension de breakdown très pertinente — typiquement utilisés pour marquer :
+- Le **setup** (breakout, pullback, fade…)
+- La **stratégie** (scalping, swing…)
+- L'**erreur** (FOMO, revenge, no stop…)
+- Le **contexte** (news, range, trend…)
+- La **qualité** (A+, A, B, C — classification Van Tharp)
+
+**Infrastructure existante** :
+- `schema/tag.ts` — `TagSchema` (définition d'un tag)
+- `schema/tagGroup.ts` — `TagGroupSchema` (un groupe contient plusieurs tags)
+- `schema/trade.ts:201,229` — `tagIds` / `tags` sur les trades (un trade peut avoir plusieurs tags)
+- `schema/dayTag.ts` — tags au niveau d'un jour de trading
+- `components/common/TagFilterInput.vue`, `AdvancedFilters.vue` — filtre par tag déjà disponible
+- `components/settings/TagsManager.vue` — gestion des tags et groupes
+- `stores/dbState.ts`, `stores/dataStore.ts` — `tagGroupsPerDb` etc.
+
+**À implémenter** :
+- `calculateMetricsByTag(trades, useNet)` dans `composables/useAnalytics.ts` — similaire à `calculateMetricsByTicker` mais groupé par tag
+- Un trade avec plusieurs tags apparaît dans chaque groupe (overlap) — comportement attendu pour un système de tags
+- Possibilité de filtrer par tag group (ex: voir tous les tags du groupe "Setup") en plus du tag individuel
+- Nouveau composant `TagBreakdownTable` (similaire à `TickerBreakdownTable`) ou bar chart P&L par tag
+
+**Décisions UX à valider** :
+- Comportement multi-tags : un trade avec 2 tags compte dans les 2 groupes (overlap) — à confirmer
+- Niveau de breakdown : par tag individuel, par tag group, ou les deux
+- Métriques affichées : mêmes que `TickerBreakdownTable` (PnL, winrate, profit factor, avg win/loss, avg duration) ?
 
 ---
 
@@ -158,7 +205,7 @@ Légende :
 | Total Contracts / Lots | ✅ | `getTotalContracts()` — `utils/tradeStats.ts:263` | Somme des volumes |
 | Moving Average | ✅ | `movingAverage()` — `utils/tradeStats.ts:57` | Moyenne mobile sur série |
 | Group Trades by Period | ✅ | `groupTradesByPeriod()` — `utils/dashboard.ts` | Regroupement temporel |
-| Average Daily Volume | ⚠️ | À vérifier | Mentionné dans `docs/dev/new-metrics.md` |
+| Average Daily Volume | ❌ | — | Non calculé actuellement — à implémenter (`getTotalContracts / totalTradingDays`) |
 | Equity Curve | ✅ | — | Courbe de capital cumulé |
 
 > Monte Carlo Drawdown, Buy & Hold Return, Benchmark vs marché, VaR, CVaR écartés — nécessitent un benchmark marché ou des simulations statistiques hors périmètre d'un journal de trading.
@@ -173,9 +220,10 @@ Métriques les plus citées comme "indispensables" dans la littérature et **man
 2. **R-Multiple & expectancy en R** — métrique n°1 selon Van Tharp / PropScorer, normalise entre trades
 3. **Calmar Ratio** — rendement par unité de drawdown (complément du Recovery Factor)
 4. **SQN (Van Tharp)** — qualité globale du système, combine expectancy + consistance + opportunités
-5. **Stats mensuelles** (best/lowest/avg month) — déjà listées dans `docs/dev/new-metrics.md`
-6. **Drawdown duration / recovery time** — complément du max DD
-7. **MAE / MFE Ratio** — qualité des entrées (les champs sont déjà stockés, juste le ratio à calculer)
+5. **Metrics by Tag** — breakdown par tag (setup, stratégie, erreur…) — infrastructure déjà existante, dimension très pertinente pour un journal de trading
+6. **Stats mensuelles** (best/lowest/avg month) — déjà listées dans `docs/dev/new-metrics.md`
+7. **Drawdown duration / recovery time** — complément du max DD
+8. **MAE / MFE Ratio** — qualité des entrées (les champs sont déjà stockés, juste le ratio à calculer)
 
 > Métriques écartées comme non pertinentes pour un tracker de trading personnel : MAR, UPI, Omega, Sterling, Burke, K-Ratio, Treynor, Jensen, Information Ratio, Z-Score, Consistency Score, Coefficient of Variation, MAE/MFE avancées (at exit, distribution, capture %), Monte Carlo, VaR/CVaR, Buy & Hold benchmark. Raisons : nécessitent un benchmark marché, calcul complexe pour faible valeur ajoutée, ou académiques.
 
@@ -265,118 +313,21 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 
 ---
 
-## 11. Duplication + reparamétrage de charts
+## 11. Duplication + reparamétrage de charts (écarté)
 
-Besoin : pouvoir **dupliquer un chart existant** et **changer ses paramètres** (métrique affichée, dimension, agrégation, etc.) indépendamment de l'original. Permet à l'utilisateur de créer des vues personnalisées sans modifier les charts par défaut.
-
-### Architecture actuelle
-
-PnlTracker a déjà une base solide mais conçue pour "un chart par type" — pas pour des instances multiples.
-
-#### ✅ Ce qui existe
-
-| Élément | Fichier | Rôle |
-|---|---|---|
-| Slot `#settings` par chart | `components/dashboard/charts/base/BaseEchartsCard.vue:9-21` | Popover de config avec icône engrenage |
-| Store de settings par chart | `stores/dbState.ts:480-492` (`chartSettingsPerDb`) | `Record<chartId, Record<setting, value>>` persisté |
-| Grille drag-and-drop | `components/dashboard/GridLayout.vue` + `utils/dashboard.ts:14-66` | `vue-grid-layout-v3`, layouts par breakpoint (lg/md/sm) |
-| Workspaces multiples | `components/dashboard/Index.vue:130-286` | Onglets, max 5, layout + visibilité par workspace |
-| Menu de visibilité | `components/dashboard/DashboardVisibilityMenu.vue` | Show/hide par chart et par breakpoint |
-| Registry de charts | `composables/metrics/useChartRegistry.ts:9-19` | Liste des `ChartKey` avec `category` et `defaultVisible` |
-| Persistance localStorage | `stores/dbState.ts:632-653` | Pinia persist sur `dashBoardFiltersPerDb`, `chartSettingsPerDb` |
-| Multi-database | `stores/dbState.ts` | Toutes les configs sont stockées par `dbName` dans des `*PerDb` |
-| Cache d'agrégation | `composables/useAggregationCache.ts` | Mémoïse les trades groupés par day/week/month |
-
-#### Exemples de settings déjà implémentés
-
-| Chart | Settings | Stockage |
-|---|---|---|
-| `CumulatedPnlChartEcharts` | `cumuleMode` (day/week/month) | `chartSettings['cumulatedPnl'].cumuleMode` |
-| `WinrateChartEcharts` | `cumuleMode`, `showBars`, `showMovingAverage` | `chartSettings['winrate']` |
-| `ApptChartEcharts` | `cumuleMode` | `chartSettings['appt'].cumuleMode` |
-
-Charts **sans** settings aujourd'hui : `PnlBarChartEcharts`, `WinLossPieChartEcharts`, tous les charts `ticker/*`, `IntradayPnlChart`.
-
-### ❌ Ce qui manque pour la duplication + reparamétrage
-
-| # | Manque | Impact | Solution proposée |
-|---|---|---|---|
-| 1 | **Identifiant d'instance** — `ChartKey` identifie le TYPE (`'cumulatedPnl'`), pas l'instance | Impossible d'avoir 2 instances du même chart avec des params différents | Ajouter `instanceId` (ex: `'cumulatedPnl-1'`, `'cumulatedPnl-2'`) |
-| 2 | **Settings par instance dans le layout** — `DashboardGridItem = {x, y, w, h, i}` n'a pas de champ settings | Les settings sont globaux par ChartKey, partagés entre toutes les instances | Étendre en `{x, y, w, h, i, instanceId, settings}` |
-| 3 | **Générateur d'ID d'instance** | Pas d'utilitaire pour créer des IDs uniques | `uuid()` ou counter incrémental |
-| 4 | **UI "Dupliquer"** sur chaque chart | L'utilisateur ne peut pas cloner un chart | Bouton duplicate dans `BaseEchartsCard` à côté de l'engrenage settings |
-| 5 | **Mapping instance → composant + settings** — `gridComponents` mappe `ChartKey → Component` | Le layout ne sait pas quels settings passer à quelle instance | Mapping `instanceId → {component, settings}` |
-| 6 | **Registry étendue avec schéma de settings** — la registry actuelle n'a que `id`, `category`, `defaultVisible` | Pas de description des settings possibles par chart | Ajouter `settingsSchema` + `defaultSettings` par chart |
-| 7 | **Fusion des settings global/instance** | Conflit entre `chartSettingsPerDb` (global) et settings d'instance | Settings d'instance override les globaux ; fallback sur global si non défini |
-| 8 | **UI de reparamétrage dynamique** | Pas de formulaire générique basé sur le schéma | Composant `ChartSettingsModal` piloté par `settingsSchema` |
-| 9 | **Suppression d'instance** | Pas de bouton remove + nettoyage des settings associés | Bouton remove sur chaque instance + cleanup |
-| 10 | **Migration des layouts existants** | Les layouts actuels utilisent `i = ChartKey` sans `instanceId` | Script de migration : `i → instanceId`, settings globaux → settings d'instance |
-
-### Schéma de données proposé
-
-```typescript
-// type/index.ts
-interface DashboardGridItem {
-	x: number
-	y: number
-	w: number
-	h: number
-	i: string              // ChartKey (type de chart) — gardé pour compat
-	instanceId: string     // Nouveau : identifiant unique d'instance
-	settings?: Record<string, unknown>  // Nouveau : settings propres à l'instance
-}
-
-interface ChartDefinition {
-	id: ChartKey
-	component: Component
-	category: 'main' | 'ticker'
-	defaultVisible: boolean
-	settingsSchema: Record<string, SettingDefinition>  // Nouveau
-	defaultSettings: Record<string, unknown>            // Nouveau
-}
-
-interface SettingDefinition {
-	type: 'select' | 'boolean' | 'number' | 'string'
-	label: string
-	options?: { value: string; label: string }[]  // pour 'select'
-	default: unknown
-}
-```
-
-### Exemple de flow utilisateur
-
-1. L'utilisateur ouvre le menu d'un chart `CumulatedPnl` (engrenage)
-2. Il voit un bouton **"Dupliquer"** à côté des settings existants
-3. Il clique → une nouvelle instance `cumulatedPnl-2` est créée à côté dans la grille
-4. La nouvelle instance hérite des settings de l'originale
-5. L'utilisateur ouvre les settings de la nouvelle instance, change `cumuleMode` → `month` (l'original reste en `week`)
-6. Les deux charts sont visibles simultanément, indépendants
-7. L'utilisateur peut supprimer l'instance dupliquée sans affecter l'originale
-
-### Recommandations d'implémentation
-
-1. **Étendre `DashboardGridItem`** avec `instanceId` et `settings`
-2. **Créer une `ChartInstanceRegistry`** qui mappe `instanceId → {chartKey, settings}`
-3. **Ajouter bouton duplicate** dans `BaseEchartsCard` (à côté de l'engrenage)
-4. **Créer `ChartSettingsModal`** générique piloté par `settingsSchema`
-5. **Mettre à jour `GridLayout`** pour passer les settings d'instance au composant
-6. **Étendre la persistance** pour stocker instances + settings par workspace
-7. **Script de migration** des layouts existants (un chart par type → instances uniques)
-
-### Lien avec les métriques
-
-Une fois ce système en place, chaque instance de chart peut pointer sur **n'importe quelle métrique** de l'inventaire ci-dessus. Le chart paramétré devient :
-
-```
-Chart instance
-├── chartType (line / bar / area / scatter / heatmap / ...)
-├── dimension (ticker / hour / day / week / month / setup / session / side)
-├── metric (pnl / winrate / profitFactor / expectancy / rMultiple / sharpe / ...)
-├── aggregation (day / week / month)
-└── displayOptions (showBars / showMA / showLabels / ...)
-```
-
-C'est là que les **nombreuses métriques** deviennent utiles : elles ne sont plus "un chart par métrique" mais "un chart paramétrable qui peut afficher n'importe quelle métrique". La quantité de métriques devient alors un atout (richesse du sélecteur) plutôt qu'une surcharge de composants.
+> **Décision** : fonctionnalité **écartée** pour l'instant. La duplication de charts n'apporte que peu de valeur sans filtres par instance (période/side/compte différents par chart) ou sans chart paramétrable (métrique/dimension au choix). Avec l'approche actuelle (templates prédefinis, un chart par type), dupliquer un chart donnerait deux instances identiques ou quasi-identiques (seule l'agrégation diffère sur 3 charts).
+>
+> Pourrait revenir plus tard si on introduit :
+> - Des filtres par instance (période / side / compte différents par chart)
+> - Ou un bar chart paramétrable (dimension + métrique au choix)
+>
+> **Architecture actuelle conservée** :
+> - Slot `#settings` par chart dans `BaseEchartsCard.vue` (engrenage)
+> - Store `chartSettingsPerDb` persisté (`Record<chartId, Record<setting, value>>`)
+> - Settings existants : `cumuleMode` (CumulatedPnl, Winrate, Appt), `showBars` + `showMovingAverage` (Winrate)
+> - Grille drag-and-drop + workspaces multiples + visibilité par breakpoint
+>
+> Voir les paramètres par chart envisagés (non planifiés pour l'instant) dans l'historique de discussion : `cumuleMode` étendu, `movingAveragePeriod` (select), `chartType` (line/bar/area), `sortBy`/`topN` pour les breakdowns, `metric` dans les breakdowns, `colorBy` pour les scatter.
 
 ---
 
@@ -386,51 +337,94 @@ C'est là que les **nombreuses métriques** deviennent utiles : elles ne sont pl
 
 | # | Décision | Options | Recommandation |
 |---|---|---|---|
-| 1 | **Planned risk pour R-multiples** | A) Nouveau champ `plannedRisk` dans `schema/trade.ts` / B) Calcul depuis `stopLoss` + entry + qty | Option A (champ explicite, plus fiable) |
+| 1 | **Planned risk pour R-multiples** | ✅ Validé — `metadata.plannedRisk` sur le trade + `defaultPlannedRisk` sur le compte (override). Voir section 1. | Validé |
 | 2 | **ROI / Return on Investment** (section 1) | À implémenter ou écarter | À implémenter — simple (% retour sur capital), nécessite de connaître le capital initial |
 | 3 | **Stats hebdomadaires / annuelles** (section 6) | À implémenter ou écarter | À implémenter en même temps que les stats mensuelles (même mécanisme d'agrégation) |
 | 4 | **Lib de charts** | Rester sur ECharts ou migrer vers ApexCharts | Décision séparée — les métriques sont indépendantes de la lib de chart |
-| 5 | **Average Daily Volume** (section 9, ⚠️) | Vérifier si déjà calculé | À vérifier dans le code avant implémentation |
-| 6 | **Average Hold Time (Scratch/Breakeven)** (section 5, ⚠️) | Vérifier si couvert par les métriques de durée existantes | À vérifier dans le code |
+| 5 | **Average Daily Volume** (section 9) | Vérifié — non calculé dans le code | À implémenter (simple : `getTotalContracts / totalTradingDays`) |
+| 6 | **Average Hold Time (Scratch/Breakeven)** (section 5) | Vérifié — `getBreakevenTradesMetrics` ne calcule que `count` + `totalContracts`, pas de duration | À implémenter en étendant `getBreakevenTradesMetrics` (ajouter `avgDuration`, `maxDuration`) |
 
 ### Ordre d'implémentation proposé
 
 Phase 1 — **Fondations R-multiple** (prérequis pour toutes les versions R)
-1. Valider décision sur `plannedRisk` (point 1 ci-dessus)
-2. Ajouter `plannedRisk` au schéma + migration DB
-3. Calculer R-multiple par trade (`pnl / plannedRisk`)
-4. Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
+1. ✅ Décision validée sur `plannedRisk` (modèle trade + compte, voir section 1)
+2. Ajouter `defaultPlannedRisk` au schéma compte (`schema/account.ts`) + migration DB (colonne nullable)
+3. Étendre le formulaire de trade : champ `plannedRisk` stocké dans `metadata`
+4. Étendre les paramètres du compte : champ `defaultPlannedRisk`
+5. Étendre les profils d'import : mapping colonne → `metadata.plannedRisk`
+6. Calculer R-multiple par trade avec logique de résolution (compte override trade)
+7. Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
+8. **Tests** : étendre `mockTrades` avec `plannedRisk` (dans metadata) + comptes avec `defaultPlannedRisk`, ajouter tests R-multiple dans `tests/unit/utils/tradeStats.test.ts` (inclure test override compte)
 
 Phase 2 — **Ratios risque-rendement manquants**
-5. Sortino Ratio
-6. Calmar Ratio
-7. SQN (Van Tharp)
-8. Ulcer Index
+6. Sortino Ratio
+7. Calmar Ratio
+8. SQN (Van Tharp)
+9. Ulcer Index
+10. **Tests** : ajouter tests pour chaque ratio (valeurs attendues, edge cases : empty trades, 1 trade, division par zéro, < 30 trades pour SQN)
 
 Phase 3 — **Drawdown avancé**
-9. Drawdown Duration
-10. Recovery Time
-11. Max DD Duration
+11. Drawdown Duration
+12. Recovery Time
+13. Max DD Duration
+14. **Tests** : ajouter tests avec scénarios de drawdown connus (peak → trough → recovery)
 
 Phase 4 — **Agrégations par période**
-12. Stats mensuelles (best/lowest/avg month)
-13. Stats hebdomadaires / annuelles
+15. Stats mensuelles (best/lowest/avg month)
+16. Stats hebdomadaires / annuelles
+17. **Tests** : créer `tests/unit/utils/dayStats.test.ts` si n'existe pas, ajouter tests agrégations par période
 
 Phase 5 — **Distribution & divers**
-14. Skewness
-15. Kurtosis
-16. MAE / MFE Ratio
-17. ROI (si capital initial disponible)
+18. Skewness
+19. Kurtosis
+20. MAE / MFE Ratio
+21. ROI (si capital initial disponible)
+22. Average Daily Volume
+23. Average Hold Time (Scratch/Breakeven) — étendre `getBreakevenTradesMetrics`
+24. **Tests** : ajouter tests pour chaque métrique (valeurs de référence, distributions symétriques/asymétriques)
 
 Phase 6 — **Breakdowns par dimension**
-18. Metrics by Day of Week (breakdown dédié)
-19. Metrics by Month
-20. Metrics by Side (Long/Short)
+25. **Metrics by Tag** (priorité — infrastructure déjà existante, voir section 7)
+26. Metrics by Day of Week (breakdown dédié)
+27. Metrics by Month
+28. Metrics by Side (Long/Short)
+29. **Tests** : créer `tests/unit/composables/useAnalytics.test.ts`, ajouter tests `calculateMetricsByTag` (multi-tags overlap, tag group filtering)
 
-Phase 7 — **Dashboard paramétrable** (section 11)
-21. Identifiant d'instance + bouton duplicate
-22. Schéma de settings par chart
-23. Migration des layouts existants
+Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
+30. Remplacer le popover à checkboxes par 2 dropdowns `USelectMenu` multiselect (Charts / Sections)
+31. Ajouter les nouvelles sections au dropdown Sections (sous-groupes Standard / Advanced)
+32. Option "Sync to all breakpoints" à repositionner
+
+> Phase "Dashboard paramétrable" (duplication de charts, instances multiples) **écartée** pour l'instant — voir section 11. Pourrait revenir plus tard si on introduit des filtres par instance ou un bar chart paramétrable.
+
+### Tests unitaires
+
+**Infrastructure existante** :
+- Framework : **Vitest** (`vitest`)
+- Tests unitaires : `tests/unit/` (ex: `tests/unit/utils/tradeStats.test.ts`)
+- Tests d'intégration : `tests/integration/`
+- Tests d'import : `tests/import/`
+- Fichier de référence : `tests/unit/utils/tradeStats.test.ts` — contient déjà les tests pour `getPNL`, `getAPPT`, `getWinrate`, `getPLRatio`, `getProfitFactor`, `getRecoveryFactor`, `getSharpeRatio`, `getExpectancy`, `getStdDev`, `getWinningTradesMetrics`, `getLosingTradesMetrics`, `getBreakevenTradesMetrics`, `getMaxWinningStreak`, `getMaxLosingStreak`, `getMaxDrawdownWithDates`, `getMaxRunUpWithDates`, `movingAverage`
+- `mockTrades` : 12 trades couvrant streaks, drawdown, breakeven — avec commentaires détaillés sur les valeurs attendues
+
+**Conventions à suivre** (voir `.devin/rules/pnltracker-guidelines.md`) :
+- Un seul `describe()` par fichier
+- Tester le comportement essentiel + edge cases, pas chaque détail
+- Utiliser `test.each` ou shared helpers pour éviter la duplication
+- Éviter les mocks — tester avec de vraies données d'entrée
+
+**Plan de tests par phase** :
+
+| Phase | Fichier de test | Métriques à tester | Edge cases |
+|---|---|---|---|
+| 1 — R-multiples | `tests/unit/utils/tradeStats.test.ts` | R-multiple par trade, Total P&L en R, APPT en R, PF en R, P/L Ratio en R, Avg Win/Loss en R, Largest Win/Loss en R | `plannedRisk` null/0, tous les trades sans plannedRisk |
+| 2 — Ratios | `tests/unit/utils/tradeStats.test.ts` | Sortino, Calmar, SQN, Ulcer Index | Empty trades, 1 trade, division par zéro, < 30 trades pour SQN |
+| 3 — Drawdown | `tests/unit/utils/tradeStats.test.ts` | Drawdown Duration, Recovery Time, Max DD Duration | Drawdown non récupéré, drawdown instantané |
+| 4 — Agrégations | `tests/unit/utils/dayStats.test.ts` (à créer) | Stats mensuelles, hebdo, annuelles | Période vide, chevauchement de mois |
+| 5 — Distribution | `tests/unit/utils/tradeStats.test.ts` | Skewness, Kurtosis, MAE/MFE Ratio, ROI, Avg Daily Volume, Avg Hold Time Scratch | Distribution symétrique, asymétrique, MAE/MFE null |
+| 6 — Breakdowns | `tests/unit/composables/useAnalytics.test.ts` (à créer) | `calculateMetricsByTag` | Multi-tags overlap, tag group filtering, trade sans tag |
+
+**Règle** : chaque nouvelle métrique doit avoir son test dans la même phase que son implémentation. Pas de test = pas de merge.
 
 ### Critères de "prêt"
 
