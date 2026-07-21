@@ -567,6 +567,9 @@ export default {
             visibility: {
                 title: 'Visibility',
                 charts: 'Charts',
+                time_charts: 'Time Analysis',
+                breakdown_charts: 'Breakdowns',
+                breakdown_tables: 'Breakdown Tables',
                 ticker_charts: 'Ticker Analysis',
                 sections: 'Statistics Sections',
                 sync_all_breakpoints: 'Sync to all breakpoints',
@@ -576,7 +579,10 @@ export default {
                 profit_trades: 'Winning Trades',
                 losing_trades: 'Losing Trades',
                 win_loss_comparison: 'Winning vs Losing',
+                risk_ratios: 'Risk Ratios',
                 ticker_table: 'Ticker Breakdown',
+                tag_table: 'Tag Breakdown',
+                side_table: 'Long/Short Breakdown',
                 day_statistics: 'Day Statistics',
             },
             charts: {
@@ -587,6 +593,10 @@ export default {
                 visibility: 'Chart Visibility',
                 ticker_pnl: 'P&L by Ticker',
                 ticker_winrate: 'Winrate vs Trades',
+                tag_pnl: 'P&L by Tag',
+                tag_winrate: 'Winrate by Tag',
+                side_pnl: 'P&L by Side',
+                side_winrate: 'Winrate by Side',
                 hourly_heatmap: 'Hour × Day Heatmap',
                 hourly_winrate: 'Winrate by Hour',
                 day_of_week_pnl: 'Average PnL by Day of Week',
@@ -622,6 +632,22 @@ export default {
                 title: 'Winrate vs Trades',
                 enlarged_title: 'Winrate vs Trades (enlarged)',
             },
+            tag_pnl_chart: {
+                title: 'P&L by Tag',
+                enlarged_title: 'P&L by Tag (enlarged)',
+            },
+            tag_winrate_chart: {
+                title: 'Winrate by Tag',
+                enlarged_title: 'Winrate by Tag (enlarged)',
+            },
+            side_pnl_chart: {
+                title: 'P&L by Side',
+                enlarged_title: 'P&L by Side (enlarged)',
+            },
+            side_winrate_chart: {
+                title: 'Winrate by Side',
+                enlarged_title: 'Winrate by Side (enlarged)',
+            },
             ticker_table: {
                 title: 'Ticker Breakdown',
                 sort_by: 'Sort by',
@@ -635,6 +661,14 @@ export default {
                 avg_duration: 'Avg Duration',
                 empty_state: 'No tickers',
                 multiple_tickers: 'multiple tickers grouped',
+            },
+            tag_table: {
+                title: 'Tag Breakdown',
+                empty_state: 'No tags',
+            },
+            side_table: {
+                title: 'Long/Short Breakdown',
+                empty_state: 'No trades',
             },
             hourly_heatmap: {
                 title: 'Hour × Day Heatmap',
@@ -784,6 +818,17 @@ export default {
                 sharpe_ratio: 'Sharpe Ratio',
                 profit_factor_r: 'Profit Factor (R)',
                 pl_ratio_r: 'P/L Ratio (R)',
+            },
+            risk_ratios: {
+                title: 'RISK RATIOS',
+                profit_factor: 'Profit Factor',
+                pl_ratio: 'P/L Ratio',
+                recovery_factor: 'Recovery Factor',
+                sharpe_ratio: 'Sharpe Ratio',
+                sortino_ratio: 'Sortino Ratio',
+                calmar_ratio: 'Calmar Ratio',
+                sqn: 'SQN (Van Tharp)',
+                ulcer_index: 'Ulcer Index',
             },
             day_statistics: {
                 title: 'DAY STATISTICS',

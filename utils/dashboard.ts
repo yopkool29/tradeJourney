@@ -20,13 +20,20 @@ export const defaultGridItemsLg: GridTemplateItem[] = [
 	{ w: 3, h: 10, i: 'profitTrades' },
 	{ w: 3, h: 10, i: 'losingTrades' },
 	{ w: 3, h: 9, i: 'winLossComparison' },
+	{ w: 3, h: 6, i: 'riskRatios' },
 	{ w: 6, h: 8, i: 'tickerPnl' },
 	{ w: 6, h: 6, i: 'tickerWinrate' },
 	{ w: 12, h: 12, i: 'tickerTable' },
-	{ w: 3, h: 12, i: 'dayStatistics' },
+	{ w: 6, h: 12, i: 'tagTable' },
+	{ w: 6, h: 6, i: 'sideTable' },
+	{ w: 3, h: 11, i: 'dayStatistics' },
 	{ w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ w: 6, h: 6, i: 'hourlyWinrate' },
 	{ w: 6, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 6, h: 8, i: 'tagPnl' },
+	{ w: 6, h: 6, i: 'tagWinrate' },
+	{ w: 6, h: 6, i: 'sidePnl' },
+	{ w: 6, h: 6, i: 'sideWinrate' },
 ]
 
 export const defaultGridItemsMd: GridTemplateItem[] = [
@@ -38,13 +45,20 @@ export const defaultGridItemsMd: GridTemplateItem[] = [
 	{ w: 3, h: 10, i: 'profitTrades' },
 	{ w: 3, h: 10, i: 'losingTrades' },
 	{ w: 3, h: 10, i: 'winLossComparison' },
+	{ w: 3, h: 10, i: 'riskRatios' },
 	{ w: 6, h: 8, i: 'tickerPnl' },
 	{ w: 6, h: 6, i: 'tickerWinrate' },
 	{ w: 6, h: 12, i: 'tickerTable' },
+	{ w: 6, h: 12, i: 'tagTable' },
+	{ w: 6, h: 6, i: 'sideTable' },
 	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 6, h: 6, i: 'hourlyHeatmap' },
 	{ w: 6, h: 6, i: 'hourlyWinrate' },
 	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 6, h: 8, i: 'tagPnl' },
+	{ w: 6, h: 6, i: 'tagWinrate' },
+	{ w: 6, h: 6, i: 'sidePnl' },
+	{ w: 6, h: 6, i: 'sideWinrate' },
 ]
 
 export const defaultGridItemsSm: GridTemplateItem[] = [
@@ -56,13 +70,20 @@ export const defaultGridItemsSm: GridTemplateItem[] = [
 	{ w: 3, h: 10, i: 'profitTrades' },
 	{ w: 3, h: 10, i: 'losingTrades' },
 	{ w: 3, h: 10, i: 'winLossComparison' },
+	{ w: 3, h: 10, i: 'riskRatios' },
 	{ w: 3, h: 8, i: 'tickerPnl' },
 	{ w: 3, h: 6, i: 'tickerWinrate' },
 	{ w: 3, h: 12, i: 'tickerTable' },
+	{ w: 3, h: 12, i: 'tagTable' },
+	{ w: 3, h: 6, i: 'sideTable' },
 	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 3, h: 6, i: 'hourlyHeatmap' },
 	{ w: 3, h: 6, i: 'hourlyWinrate' },
 	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 3, h: 8, i: 'tagPnl' },
+	{ w: 3, h: 6, i: 'tagWinrate' },
+	{ w: 3, h: 6, i: 'sidePnl' },
+	{ w: 3, h: 6, i: 'sideWinrate' },
 ]
 
 const compactItems = (items: GridTemplateItem[], cols: number) => {
@@ -87,7 +108,7 @@ export const defaultDashboardGridLayoutMd = compactItems(defaultGridItemsMd, 6)
 export const defaultDashboardGridLayoutSm = compactItems(defaultGridItemsSm, 3)
 
 // Items that can be resized in the grid layout
-export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'dayStatistics', 'tickerPnl', 'tickerWinrate', 'tickerTable', 'hourlyHeatmap', 'hourlyWinrate']
+export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics', 'tickerPnl', 'tickerWinrate', 'tagPnl', 'tagWinrate', 'sidePnl', 'sideWinrate', 'tickerTable', 'tagTable', 'sideTable', 'hourlyHeatmap', 'hourlyWinrate']
 
 export const getWeekNumber = (date: Date): number => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1)

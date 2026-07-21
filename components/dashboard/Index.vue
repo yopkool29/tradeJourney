@@ -314,6 +314,10 @@ import DashboardChartsMainApptChartEcharts from '~/components/dashboard/charts/m
 import DashboardChartsMainWinrateChartEcharts from '~/components/dashboard/charts/main/WinrateChartEcharts.vue'
 import DashboardChartsTickerTickerPnlBarChart from '~/components/dashboard/charts/ticker/TickerPnlBarChart.vue'
 import DashboardChartsTickerTickerWinrateScatterChart from '~/components/dashboard/charts/ticker/TickerWinrateScatterChart.vue'
+import DashboardChartsTagTagPnlBarChart from '~/components/dashboard/charts/tag/TagPnlBarChart.vue'
+import DashboardChartsTagTagWinrateScatterChart from '~/components/dashboard/charts/tag/TagWinrateScatterChart.vue'
+import DashboardChartsSideSidePnlBarChart from '~/components/dashboard/charts/side/SidePnlBarChart.vue'
+import DashboardChartsSideSideWinrateScatterChart from '~/components/dashboard/charts/side/SideWinrateScatterChart.vue'
 import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
 import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
 import DashboardChartsTickerDayOfWeekPnlChart from '~/components/dashboard/charts/ticker/DayOfWeekPnlChart.vue'
@@ -321,7 +325,10 @@ import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/A
 import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
 import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
+import DashboardSectionsRiskRatiosSection from '~/components/dashboard/sections/RiskRatiosSection.vue'
 import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
+import DashboardSectionsTagBreakdownTable from '~/components/dashboard/sections/TagBreakdownTable.vue'
+import DashboardSectionsSideBreakdownTable from '~/components/dashboard/sections/SideBreakdownTable.vue'
 import DashboardSectionsDayStatisticsSection from '~/components/dashboard/sections/DayStatisticsSection.vue'
 
 import {
@@ -458,6 +465,10 @@ const gridComponents = computed(() => {
         winrate: DashboardChartsMainWinrateChartEcharts,
         tickerPnl: DashboardChartsTickerTickerPnlBarChart,
         tickerWinrate: DashboardChartsTickerTickerWinrateScatterChart,
+        tagPnl: DashboardChartsTagTagPnlBarChart,
+        tagWinrate: DashboardChartsTagTagWinrateScatterChart,
+        sidePnl: DashboardChartsSideSidePnlBarChart,
+        sideWinrate: DashboardChartsSideSideWinrateScatterChart,
         hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
         hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
         dayOfWeekPnl: DashboardChartsTickerDayOfWeekPnlChart,
@@ -467,7 +478,10 @@ const gridComponents = computed(() => {
         profitTrades: DashboardSectionsProfitTradesSection,
         losingTrades: DashboardSectionsLosingTradesSection,
         winLossComparison: DashboardSectionsWinLossComparisonSection,
+        riskRatios: DashboardSectionsRiskRatiosSection,
         tickerTable: DashboardSectionsTickerBreakdownTable,
+        tagTable: DashboardSectionsTagBreakdownTable,
+        sideTable: DashboardSectionsSideBreakdownTable,
         dayStatistics: DashboardSectionsDayStatisticsSection,
     }
     return { ...chartComponentMap, ...sectionComponentMap }

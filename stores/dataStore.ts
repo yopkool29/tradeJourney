@@ -14,6 +14,7 @@ export const useDataStore = defineStore(
 
 		const dashboardResult = ref<DashBoardResult>({
 			pnl: 0, appt: 0, plRatio: 0, winrate: 0, profitFactor: 0, recoveryFactor: 0, sharpeRatio: 0,
+			sortinoRatio: 0, calmarRatio: 0, sqn: 0, ulcerIndex: 0,
 			tradesCount: 0, grossPnl: 0, totalContracts: 0, avgTradeDuration: 0, maxTradeDuration: 0,
 			expectancy: 0, totalCommission: 0, totalProfit: 0, winningTradesCount: 0, winningContractsCount: 0,
 			largestWin: 0, avgWin: 0, stdDevWin: 0, avgWinDuration: 0, maxWinDuration: 0, winningTradesCommission: 0,

@@ -19,7 +19,11 @@ import {
     getMaxLosingStreak,
     getTotalContracts,
     getMaxTradeDuration,
-    getExpectancy
+    getExpectancy,
+    getSortinoRatio,
+    getCalmarRatio,
+    getSQN,
+    getUlcerIndex
 } from '~/utils/tradeStats'
 import {
     getTotalRMultiple,
@@ -126,6 +130,9 @@ export const useDashboard = () => {
         dataStore.dashboardResult.profitFactor = getProfitFactor(trades, 2, useNet)
         dataStore.dashboardResult.recoveryFactor = getRecoveryFactor(trades, 2, useNet)
         dataStore.dashboardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
+        dataStore.dashboardResult.sortinoRatio = getSortinoRatio(trades, 0, 2, useNet)
+        dataStore.dashboardResult.calmarRatio = getCalmarRatio(trades, 2, useNet)
+        dataStore.dashboardResult.ulcerIndex = getUlcerIndex(trades, 2, useNet)
         dataStore.dashboardResult.tradesCount = trades.length
 
         // ALL TRADES - Nouvelles métriques
@@ -232,6 +239,7 @@ export const useDashboard = () => {
             dataStore.dashboardResult.totalProfitR = null
             dataStore.dashboardResult.totalLossR = null
             dataStore.dashboardResult.tradesWithRMultiple = 0
+            dataStore.dashboardResult.sqn = 0
         } else {
             dataStore.dashboardResult.totalR = getTotalRMultiple(rTrades, 2, useNet)
             dataStore.dashboardResult.apptR = getAPPTInR(rTrades, 2, useNet)
@@ -247,6 +255,8 @@ export const useDashboard = () => {
             dataStore.dashboardResult.totalProfitR = totalProfitLossR.totalProfit
             dataStore.dashboardResult.totalLossR = totalProfitLossR.totalLoss
             dataStore.dashboardResult.tradesWithRMultiple = rMultiples.length
+            // SQN nécessite les R-multiples (Van Tharp)
+            dataStore.dashboardResult.sqn = getSQN(rMultiples, 2)
         }
 
         return trades

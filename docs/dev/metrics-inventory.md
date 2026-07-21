@@ -75,11 +75,11 @@ Légende :
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
 | Sharpe Ratio | ✅ | `getSharpeRatio()` — `utils/tradeStats.ts:151` | (Rendement moyen − taux sans risque) / écart-type, annualisé |
+| Sortino Ratio | ✅ | `getSortinoRatio()` — `utils/tradeStats.ts` | Variante Sharpe ne pénalisant que la volatilité négative — préféré par les traders |
 | Recovery Factor | ✅ | `getRecoveryFactor()` — `utils/tradeStats.ts:116` | Profit net / max drawdown |
-| Sortino Ratio | ❌ | — | Variante Sharpe ne pénalisant que la volatilité négative — souvent préféré par les traders |
-| Calmar Ratio | ❌ | — | CAGR / Max Drawdown (sur 36 mois glissants) |
-| SQN (System Quality Number) | ❌ | — | `√N × Mean(R) / StdDev(R)` — Van Tharp, nécessite ≥30 trades |
-| Ulcer Index | ❌ | — | `sqrt(mean(drawdown²))` — profondeur × durée des drawdowns |
+| Calmar Ratio | ✅ | `getCalmarRatio()` — `utils/tradeStats.ts` | Rendement annualisé / max drawdown (complément du Recovery Factor) |
+| SQN (System Quality Number) | ✅ | `getSQN()` — `utils/tradeStats.ts` | `√N × Mean(R) / StdDev(R)` — Van Tharp, nécessite ≥30 trades |
+| Ulcer Index | ✅ | `getUlcerIndex()` — `utils/tradeStats.ts` | `sqrt(mean(drawdown²))` — profondeur × durée des drawdowns |
 
 > Métriques de portefeuille/fonds **non pertinentes** pour un tracker de trading personnel (nécessitent un benchmark marché, calcul complexe, peu de valeur ajoutée) : MAR, UPI, Omega, Sterling, Burke, K-Ratio, Treynor, Jensen's Alpha, Information Ratio. Écartées volontairement.
 
@@ -150,44 +150,42 @@ Légende :
 
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
-| Metrics by Ticker | ✅ | `calculateMetricsByTicker()` — `composables/useAnalytics.ts:20` | PnL, winrate, profit factor, avg win/loss, avg duration, avg MAE/MFE par symbole |
+| Metrics by Ticker | ✅ | `calculateMetricsByDimension(trades, groupByTicker)` — `composables/useAnalytics.ts` | PnL, winrate, profit factor, avg win/loss, avg duration, avg MAE/MFE par symbole |
 | Metrics by Hour | ✅ | `calculateMetricsByHour()` — `composables/useAnalytics.ts:128` | Métriques par heure de la journée |
 | Hourly Heatmap (hour × day of week) | ✅ | `calculateHourlyHeatmapData()` — `composables/useAnalytics.ts:191` | Heatmap PnL/winrate |
 | Metrics by Day of Week | ⚠️ | Partiellement via heatmap | Pas de breakdown dédié |
 | Metrics by Month | ❌ | — | Performance par mois calendaire |
-| Metrics by Side (Long/Short) | ❌ | — | Performance long vs short |
-| **Metrics by Tag** | ❌ | — | Performance par tag (setup, stratégie, erreur, contexte…) — voir note ci-dessous |
+| Metrics by Side (Long/Short) | ✅ | `calculateMetricsByDimension(trades, groupBySide)` — `composables/useAnalytics.ts` | Performance long vs short |
+| **Metrics by Tag** | ✅ | `calculateMetricsByDimension(trades, groupByTag)` — `composables/useAnalytics.ts` | Performance par tag (setup, stratégie, erreur, contexte…) — overlap multi-tags |
 
 > Breakdowns écartés (nécessitent des champs non présents dans le schéma actuel) : Session (Asie/Europe/US), Strategy, A/B/C class. Pourront être ajoutés plus tard si ces champs sont introduits dans `schema/trade.ts`.
 
-### Notes sur "Metrics by Tag"
+### Notes sur "Metrics by Tag" ✅ Implémenté
 
-Les tags sont déjà implémentés dans PnlTracker et constituent une dimension de breakdown très pertinente — typiquement utilisés pour marquer :
+Les tags sont implémentés dans PnlTracker et constituent une dimension de breakdown très pertinente — typiquement utilisés pour marquer :
 - Le **setup** (breakout, pullback, fade…)
 - La **stratégie** (scalping, swing…)
 - L'**erreur** (FOMO, revenge, no stop…)
 - Le **contexte** (news, range, trend…)
 - La **qualité** (A+, A, B, C — classification Van Tharp)
 
-**Infrastructure existante** :
+**Infrastructure utilisée** :
 - `schema/tag.ts` — `TagSchema` (définition d'un tag)
 - `schema/tagGroup.ts` — `TagGroupSchema` (un groupe contient plusieurs tags)
-- `schema/trade.ts:201,229` — `tagIds` / `tags` sur les trades (un trade peut avoir plusieurs tags)
-- `schema/dayTag.ts` — tags au niveau d'un jour de trading
-- `components/common/TagFilterInput.vue`, `AdvancedFilters.vue` — filtre par tag déjà disponible
-- `components/settings/TagsManager.vue` — gestion des tags et groupes
-- `stores/dbState.ts`, `stores/dataStore.ts` — `tagGroupsPerDb` etc.
+- `schema/trade.ts:229` — `tags: TagSchema[]` sur `TradeExtendedShema`
+- `composables/useAnalytics.ts` — `groupByTag` + `calculateMetricsByDimension` (générique)
+- `components/dashboard/sections/BreakdownTable.vue` — composant générique paramétrable par dimension
+- `components/dashboard/sections/TagBreakdownTable.vue` — wrapper `dimension="tag"`
 
-**À implémenter** :
-- `calculateMetricsByTag(trades, useNet)` dans `composables/useAnalytics.ts` — similaire à `calculateMetricsByTicker` mais groupé par tag
+**Comportement** :
 - Un trade avec plusieurs tags apparaît dans chaque groupe (overlap) — comportement attendu pour un système de tags
-- Possibilité de filtrer par tag group (ex: voir tous les tags du groupe "Setup") en plus du tag individuel
-- Nouveau composant `TagBreakdownTable` (similaire à `TickerBreakdownTable`) ou bar chart P&L par tag
+- Un trade sans tag va dans le groupe "untagged"
+- Métriques affichées : mêmes que `TickerBreakdownTable` (PnL, winrate, PF, avg win/loss, avg duration, MAE/MFE)
 
-**Décisions UX à valider** :
-- Comportement multi-tags : un trade avec 2 tags compte dans les 2 groupes (overlap) — à confirmer
-- Niveau de breakdown : par tag individuel, par tag group, ou les deux
-- Métriques affichées : mêmes que `TickerBreakdownTable` (PnL, winrate, profit factor, avg win/loss, avg duration) ?
+**Architecture générique** :
+- `calculateMetricsByDimension(trades, groupFn, useNet)` — fonction unique pour tous les breakdowns
+- `GroupFn = (trade) => string[]` — la dimension est définie par la fonction de grouping
+- Ajouter une nouvelle dimension = 1 fonction de grouping + 1 entrée dans `dimensionConfig` de `BreakdownTable.vue`
 
 ---
 
@@ -358,12 +356,13 @@ Phase 1 — **Fondations R-multiple** ✅ Terminé
 4. ✅ Indicateur de fiabilité adaptatif (% de trades avec SL)
 5. ✅ Tests unitaires : `tests/unit/utils/rMultiple.test.ts` (30 tests)
 
-Phase 2 — **Ratios risque-rendement manquants**
-6. Sortino Ratio
-7. Calmar Ratio
-8. SQN (Van Tharp)
-9. Ulcer Index
-10. **Tests** : ajouter tests pour chaque ratio (valeurs attendues, edge cases : empty trades, 1 trade, division par zéro, < 30 trades pour SQN)
+Phase 2 — **Ratios risque-rendement manquants** ✅ Terminé
+6. ✅ Sortino Ratio — `getSortinoRatio()` dans `utils/tradeStats.ts`
+7. ✅ Calmar Ratio — `getCalmarRatio()` dans `utils/tradeStats.ts`
+8. ✅ SQN (Van Tharp) — `getSQN()` dans `utils/tradeStats.ts` (nécessite R-multiples, < 30 trades → 0)
+9. ✅ Ulcer Index — `getUlcerIndex()` dans `utils/tradeStats.ts`
+10. ✅ Tests : 15 nouveaux tests dans `tests/unit/utils/tradeStats.test.ts` (Sortino, SQN, Calmar, Ulcer — edge cases : empty, < 30 trades, stdDev=0, all winners)
+11. ✅ UI : nouvelle section `RiskRatiosSection.vue` (PF, P/L Ratio, Recovery, Sharpe, Sortino, Calmar, SQN, Ulcer) — déplacée depuis `WinLossComparisonSection.vue`
 
 Phase 3 — **Drawdown avancé**
 11. Drawdown Duration
@@ -385,12 +384,18 @@ Phase 5 — **Distribution & divers**
 23. Average Hold Time (Scratch/Breakeven) — étendre `getBreakevenTradesMetrics`
 24. **Tests** : ajouter tests pour chaque métrique (valeurs de référence, distributions symétriques/asymétriques)
 
-Phase 6 — **Breakdowns par dimension**
-25. **Metrics by Tag** (priorité — infrastructure déjà existante, voir section 7)
-26. Metrics by Day of Week (breakdown dédié)
-27. Metrics by Month
-28. Metrics by Side (Long/Short)
-29. **Tests** : créer `tests/unit/composables/useAnalytics.test.ts`, ajouter tests `calculateMetricsByTag` (multi-tags overlap, tag group filtering)
+Phase 6 — **Breakdowns par dimension** ✅ Terminé (Tag + Side + charts génériques)
+25. ✅ **Metrics by Tag** — `groupByTag` + `calculateMetricsByDimension` (overlap multi-tags, "untagged" pour trades sans tag)
+26. ☐ Metrics by Day of Week (breakdown dédié) — reporté (chart existe déjà)
+27. ☐ Metrics by Month — reporté (Phase 4)
+28. ✅ Metrics by Side (Long/Short) — `groupBySide` + `calculateMetricsByDimension`
+29. ✅ Architecture générique : `calculateMetricsByDimension(trades, groupFn, useNet)` + `BreakdownTable.vue` paramétrable
+30. ✅ Migration : `TickerBreakdownTable` refactorisé en wrapper du générique
+31. ✅ Tests : `tests/unit/composables/useAnalytics.test.ts` (14 tests — by ticker, by tag, by side, edge cases)
+32. ✅ Charts génériques : `BreakdownPnlBarChart.vue` + `BreakdownWinrateScatterChart.vue` (prop `dimension`)
+33. ✅ Migration charts : `TickerPnlBarChart` + `TickerWinrateScatterChart` refactorisés en wrappers
+34. ✅ Nouveaux charts : Tag (P&L + Winrate), Side (P&L + Winrate) — 4 nouveaux charts
+35. ✅ Menu visibilité : réorganisé en 4 colonnes (Charts | Time | Breakdowns | Sections)
 
 Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
 30. Remplacer le popover à checkboxes par 2 dropdowns `USelectMenu` multiselect (Charts / Sections)

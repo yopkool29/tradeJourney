@@ -343,6 +343,7 @@ export const useDbStateStore = defineStore(
 						profitFactor: 0,
 						recoveryFactor: 0,
 						sharpeRatio: 0,
+						sortinoRatio: 0, calmarRatio: 0, sqn: 0, ulcerIndex: 0,
 						tradesCount: 0,
 						grossPnl: 0,
 						totalContracts: 0,

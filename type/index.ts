@@ -77,8 +77,8 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
-export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
-export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'tickerTable' | 'dayStatistics'
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate' | 'tagPnl' | 'tagWinrate' | 'sidePnl' | 'sideWinrate' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
+export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'riskRatios' | 'tickerTable' | 'tagTable' | 'sideTable' | 'dayStatistics'
 
 export interface DashboardGridItem {
     x: number
@@ -159,6 +159,10 @@ export interface DashBoardResult {
     profitFactor: number
     recoveryFactor: number
     sharpeRatio: number
+    sortinoRatio: number
+    calmarRatio: number
+    sqn: number
+    ulcerIndex: number
     tradesCount: number
     grossPnl: number
     totalContracts: number

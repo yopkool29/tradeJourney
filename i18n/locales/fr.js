@@ -577,6 +577,9 @@ export default {
             visibility: {
                 title: 'Visibilité',
                 charts: 'Graphiques',
+                time_charts: 'Analyse temporelle',
+                breakdown_charts: 'Breakdowns',
+                breakdown_tables: 'Tables de breakdown',
                 ticker_charts: 'Analyse par Ticker',
                 sections: 'Sections statistiques',
                 sync_all_breakpoints: 'Synchroniser sur tous les breakpoints',
@@ -586,7 +589,10 @@ export default {
                 profit_trades: 'Trades gagnants',
                 losing_trades: 'Trades perdants',
                 win_loss_comparison: 'Gagnants vs perdants',
+                risk_ratios: 'Ratios risque-rendement',
                 ticker_table: 'Détail par Ticker',
+                tag_table: 'Détail par Tag',
+                side_table: 'Détail Long/Short',
                 day_statistics: 'Statistiques journalières',
             },
             charts: {
@@ -597,6 +603,10 @@ export default {
                 visibility: 'Visibilité des graphiques',
                 ticker_pnl: 'P&L par Ticker',
                 ticker_winrate: 'Taux de Gain (wr) vs Trades',
+                tag_pnl: 'P&L par Tag',
+                tag_winrate: 'Taux de Gain (wr) par Tag',
+                side_pnl: 'P&L Long/Short',
+                side_winrate: 'Taux de Gain (wr) Long/Short',
                 hourly_heatmap: 'Heatmap Heure × Jour',
                 hourly_winrate: 'Taux de Gain (wr) par heure',
                 day_of_week_pnl: 'PnL moyen par jour de semaine',
@@ -632,6 +642,22 @@ export default {
                 title: 'Taux de Gain vs Trades',
                 enlarged_title: 'Taux de Gain vs Trades (agrandi)',
             },
+            tag_pnl_chart: {
+                title: 'P&L par Tag',
+                enlarged_title: 'P&L par Tag (agrandi)',
+            },
+            tag_winrate_chart: {
+                title: 'Taux de Gain par Tag',
+                enlarged_title: 'Taux de Gain par Tag (agrandi)',
+            },
+            side_pnl_chart: {
+                title: 'P&L Long/Short',
+                enlarged_title: 'P&L Long/Short (agrandi)',
+            },
+            side_winrate_chart: {
+                title: 'Taux de Gain Long/Short',
+                enlarged_title: 'Taux de Gain Long/Short (agrandi)',
+            },
             ticker_table: {
                 title: 'Détail par Ticker',
                 sort_by: 'Trier par',
@@ -645,6 +671,14 @@ export default {
                 avg_duration: 'Durée Moyenne',
                 empty_state: 'Aucun ticker',
                 multiple_tickers: 'plusieurs tickers groupés',
+            },
+            tag_table: {
+                title: 'Détail par Tag',
+                empty_state: 'Aucun tag',
+            },
+            side_table: {
+                title: 'Détail Long/Short',
+                empty_state: 'Aucun trade',
             },
             hourly_heatmap: {
                 title: 'Heatmap Heure × Jour',
@@ -795,6 +829,17 @@ export default {
                 sharpe_ratio: 'Ratio de Sharpe',
                 profit_factor_r: 'Facteur de Profit (R)',
                 pl_ratio_r: 'Ratio P/L (R)',
+            },
+            risk_ratios: {
+                title: 'RATIOS RISQUE-RENDEMENT',
+                profit_factor: 'Facteur de Profit',
+                pl_ratio: 'Ratio P/L',
+                recovery_factor: 'Facteur de Récupération',
+                sharpe_ratio: 'Ratio de Sharpe',
+                sortino_ratio: 'Ratio de Sortino',
+                calmar_ratio: 'Ratio de Calmar',
+                sqn: 'SQN (Van Tharp)',
+                ulcer_index: 'Index Ulcer',
             },
             day_statistics: {
                 title: 'STATISTIQUES JOURNALIÈRES',

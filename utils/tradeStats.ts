@@ -182,9 +182,136 @@ export const getSharpeRatio = (trades: { profit: number; netProfit: number; open
     return _round(result, round)
 }
 
-/**
- * Calcule la durée moyenne des trades en minutes
- */
+// Sortino Ratio : variante du Sharpe ne pénalisant que la volatilité négative (downside deviation)
+// Préféré par les traders car les gains ne sont pas "risqués"
+// downsideDeviation = sqrt(mean(min(0, return - target)²)) — seul les rendements sous le target comptent
+export const getSortinoRatio = (trades: { profit: number; netProfit: number; openDate?: Date | string }[], riskFreeRate = 0, round = -1, useNet = true) => {
+    if (trades.length < 2) return 0
+
+    const returns = trades.map(trade => useNet ? trade.netProfit : trade.profit)
+
+    const meanReturn = returns.reduce((sum, val) => sum + val, 0) / returns.length
+
+    // Downside deviation : seul les rendements sous le riskFreeRate (target) sont pénalisés
+    const downsideDiffs = returns.map(val => {
+        const excess = val - riskFreeRate
+        return excess < 0 ? Math.pow(excess, 2) : 0
+    })
+    const downsideVariance = downsideDiffs.reduce((sum, val) => sum + val, 0) / downsideDiffs.length
+    const downsideDeviation = Math.sqrt(downsideVariance)
+
+    const rawSortino = downsideDeviation === 0 ? 0 : (meanReturn - riskFreeRate) / downsideDeviation
+
+    // Annualisation : même logique que Sharpe
+    const tradesWithDates = trades.filter(t => t.openDate)
+    let annualizationFactor = 1
+    if (tradesWithDates.length >= 2) {
+        const dates = tradesWithDates.map(t => new Date(t.openDate!).getTime())
+        const minDate = Math.min(...dates)
+        const maxDate = Math.max(...dates)
+        const years = (maxDate - minDate) / (365.25 * 24 * 60 * 60 * 1000)
+        if (years > 0) {
+            const tradesPerYear = Math.min(trades.length / years, 252)
+            annualizationFactor = Math.sqrt(tradesPerYear)
+        }
+    }
+
+    const result = rawSortino * annualizationFactor
+
+    if (round < 0)
+        return result
+    return _round(result, round)
+}
+
+// SQN (System Quality Number) — Van Tharp
+// Mesure la qualité globale du système : √N × mean(R) / stdDev(R)
+// N = nombre de trades, R = R-multiple de chaque trade
+// Seuils : < 1.6 mauvais, 1.6-2.0 marginal, 2.0-2.5 bon, > 2.5 excellent
+// Nécessite ≥ 30 trades pour être significatif (sinon retourne 0)
+export const getSQN = (rMultiples: number[], round = -1): number => {
+    if (rMultiples.length < 30) return 0
+
+    const n = rMultiples.length
+    const meanR = rMultiples.reduce((sum, r) => sum + r, 0) / n
+
+    const squaredDiffs = rMultiples.map(r => Math.pow(r - meanR, 2))
+    const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (n - 1)
+    const stdDev = Math.sqrt(variance)
+
+    if (stdDev === 0) return 0
+
+    const result = Math.sqrt(n) * meanR / stdDev
+
+    if (round < 0)
+        return result
+    return _round(result, round)
+}
+
+// Calmar Ratio : rendement annualisé / max drawdown
+// Mesure le rendement par unité de risque de drawdown (complément du Recovery Factor)
+// Seuils : < 0.5 mauvais, 0.5-1.0 marginal, 1.0-2.0 bon, > 2.0 excellent
+export const getCalmarRatio = (trades: { profit: number; netProfit: number; openDate?: Date | string }[], round = -1, useNet = true): number => {
+    if (trades.length < 2) return 0
+
+    const totalPnl = trades.reduce((sum, t) => sum + (useNet ? t.netProfit : t.profit), 0)
+
+    // Max drawdown (valeur absolue)
+    const ddResult = getMaxDrawdownWithDates(trades, useNet)
+    const maxDrawdown = Math.abs(ddResult.maxDrawdown)
+    if (maxDrawdown === 0) return 0
+
+    // Annualisation du rendement
+    const tradesWithDates = trades.filter(t => t.openDate)
+    let annualizationFactor = 1
+    if (tradesWithDates.length >= 2) {
+        const dates = tradesWithDates.map(t => new Date(t.openDate!).getTime())
+        const minDate = Math.min(...dates)
+        const maxDate = Math.max(...dates)
+        const years = (maxDate - minDate) / (365.25 * 24 * 60 * 60 * 1000)
+        if (years > 0) {
+            annualizationFactor = 1 / years
+        }
+    }
+
+    const annualizedReturn = totalPnl * annualizationFactor
+    const result = annualizedReturn / maxDrawdown
+
+    if (round < 0)
+        return result
+    return _round(result, round)
+}
+
+// Ulcer Index : sqrt(mean(drawdown²)) — mesure la profondeur × durée des drawdowns
+// Plus l'Ulcer Index est bas, moins la stratégie est "stressante"
+// Calcul : pour chaque trade, on calcule le drawdown courant depuis le peak,
+//          puis on fait la moyenne des carrés et on prend la racine
+export const getUlcerIndex = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true): number => {
+    if (trades.length === 0) return 0
+
+    const returns = trades.map(t => useNet ? t.netProfit : t.profit)
+
+    // Construire la courbe d'equity et calculer le drawdown à chaque point
+    let equity = 0
+    let peak = 0
+    const drawdowns: number[] = []
+
+    for (const ret of returns) {
+        equity += ret
+        if (equity > peak) peak = equity
+        // Drawdown en % par rapport au peak (0 si on est au peak)
+        const drawdown = peak > 0 ? ((peak - equity) / peak) * 100 : 0
+        drawdowns.push(drawdown)
+    }
+
+    // Ulcer Index = sqrt(mean(drawdown²))
+    const squaredDrawdowns = drawdowns.map(dd => dd * dd)
+    const meanSquaredDrawdown = squaredDrawdowns.reduce((sum, val) => sum + val, 0) / squaredDrawdowns.length
+    const result = Math.sqrt(meanSquaredDrawdown)
+
+    if (round < 0)
+        return result
+    return _round(result, round)
+}
 export const getAvgTradeDuration = (trades: { openDate: Date | string, closeDate: Date | string }[], round = -1) => {
     if (trades.length === 0) return 0
     

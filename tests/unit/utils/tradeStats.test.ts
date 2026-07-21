@@ -19,7 +19,11 @@ import {
 	getMaxLosingStreak,
 	getMaxDrawdownWithDates,
 	getMaxRunUpWithDates,
-	movingAverage
+	movingAverage,
+	getSortinoRatio,
+	getCalmarRatio,
+	getSQN,
+	getUlcerIndex
 } from '~/utils/tradeStats'
 
 // 12 trades avec des cas couvrant : streaks multiples, drawdown profond, breakeven
@@ -353,6 +357,112 @@ describe('tradeStats', () => {
 		it('should return original data if window <= 1', () => {
 			const data = [1, 2, 3]
 			expect(movingAverage(data, 1)).toEqual([1, 2, 3])
+		})
+	})
+
+	describe('getSortinoRatio', () => {
+		it('should return 0 for less than 2 trades', () => {
+			expect(getSortinoRatio([mockTrades[0]])).toBe(0)
+		})
+
+		it('should return 0 when all trades are positive (no downside)', () => {
+			const allWinners = mockTrades.filter(t => t.netProfit > 0)
+			expect(getSortinoRatio(allWinners, 0, 2)).toBe(0)
+		})
+
+		it('should calculate a positive Sortino for profitable trades with losses', () => {
+			const result = getSortinoRatio(mockTrades, 0, 2)
+			expect(result).toBeGreaterThan(0)
+		})
+
+		it('should be >= Sharpe when there are positive outliers (gains not penalized)', () => {
+			const sharpe = getSharpeRatio(mockTrades, 0, 2)
+			const sortino = getSortinoRatio(mockTrades, 0, 2)
+			// Sortino penalise uniquement la downside → devrait être >= Sharpe
+			expect(sortino).toBeGreaterThanOrEqual(sharpe)
+		})
+	})
+
+	describe('getSQN', () => {
+		it('should return 0 for less than 30 trades', () => {
+			const rMultiples = [1, -1, 2, -1, 0.5]
+			expect(getSQN(rMultiples)).toBe(0)
+		})
+
+		it('should return 0 when all R are identical (stdDev=0)', () => {
+			const rMultiples = Array(50).fill(1)
+			expect(getSQN(rMultiples)).toBe(0)
+		})
+
+		it('should calculate a positive SQN for a profitable system', () => {
+			// 50 trades : 30 gagnants à +1.5R, 20 perdants à -1R
+			const rMultiples = [
+				...Array(30).fill(1.5),
+				...Array(20).fill(-1),
+			]
+			const result = getSQN(rMultiples, 2)
+			expect(result).toBeGreaterThan(0)
+			// meanR = (30*1.5 + 20*(-1)) / 50 = 25/50 = 0.5
+			// SQN = √50 × 0.5 / stdDev → devrait être > 2 (bon système)
+			expect(result).toBeGreaterThan(2)
+		})
+
+		it('should return negative SQN for a losing system', () => {
+			// 50 trades : 20 gagnants à +1R, 30 perdants à -1.5R
+			const rMultiples = [
+				...Array(20).fill(1),
+				...Array(30).fill(-1.5),
+			]
+			const result = getSQN(rMultiples, 2)
+			expect(result).toBeLessThan(0)
+		})
+	})
+
+	describe('getCalmarRatio', () => {
+		it('should return 0 for less than 2 trades', () => {
+			expect(getCalmarRatio([mockTrades[0]])).toBe(0)
+		})
+
+		it('should return 0 when max drawdown is 0', () => {
+			const allWinners = mockTrades.filter(t => t.netProfit > 0)
+			expect(getCalmarRatio(allWinners, 2)).toBe(0)
+		})
+
+		it('should calculate a positive Calmar for profitable trades with drawdown', () => {
+			const result = getCalmarRatio(mockTrades, 2)
+			expect(result).toBeGreaterThan(0)
+		})
+	})
+
+	describe('getUlcerIndex', () => {
+		it('should return 0 for empty trades', () => {
+			expect(getUlcerIndex([])).toBe(0)
+		})
+
+		it('should return 0 when all trades are positive (no drawdown)', () => {
+			const allWinners = mockTrades.filter(t => t.netProfit > 0)
+			expect(getUlcerIndex(allWinners, 2)).toBe(0)
+		})
+
+		it('should return a positive value when there are drawdowns', () => {
+			const result = getUlcerIndex(mockTrades, 2)
+			expect(result).toBeGreaterThan(0)
+		})
+
+		it('should be higher for deeper drawdowns', () => {
+			// Trades avec un gros drawdown
+			const deepDd = [
+				{ profit: 100, netProfit: 100 },
+				{ profit: -200, netProfit: -200 },
+				{ profit: 50, netProfit: 50 },
+			]
+			// Trades avec un petit drawdown
+			const shallowDd = [
+				{ profit: 100, netProfit: 100 },
+				{ profit: -10, netProfit: -10 },
+				{ profit: 50, netProfit: 50 },
+			]
+			expect(getUlcerIndex(deepDd, 2)).toBeGreaterThan(getUlcerIndex(shallowDd, 2))
 		})
 	})
 })
