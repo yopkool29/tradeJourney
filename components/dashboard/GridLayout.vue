@@ -3,14 +3,23 @@
         <grid-layout :key="gridKey" v-model:layout="localLayout" :col-num="colNum" :row-height="50" :is-draggable="isDraggable"
             :is-resizable="isResizable" :vertical-compact="true" :use-css-transforms="true" :is-bounded="true"
             :responsive="false" :use-style-cursor="false"
-            :class="{ 'layout-ready': layoutReady, 'select-none': isDraggable }"
+            :class="{ 'layout-ready': layoutReady, 'select-none': isDraggable, 'drag-mode': isDraggable }"
             @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
                 :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
-                <div class="h-full w-full relative" @mousedown="onMouseDown" @click.capture="onContentClick">
+                <div class="h-full w-full relative group" @mousedown="onMouseDown" @click.capture="onContentClick">
                     <UIcon v-if="isDraggable" name="i-lucide-grip"
-                        class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 pointer-events-none z-10"
+                        class="absolute top-2 text-gray-800 dark:text-gray-200 opacity-50 cursor-pointer z-10"
                         size="xs" />
+                    <!-- Bouton close (X) pour tous les items -->
+                    <button
+                        v-if="removableItems?.includes(item.i)"
+                        class="absolute top-1 right-2 z-30 px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 opacity-70 group-hover:opacity-100"
+                        :title="$t('common.close')"
+                        @click.stop="$emit('remove-item', item.i)"
+                    >
+                        <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                    </button>
                     <component :is="components[item.i]" class="h-full" v-bind="{
                         ...(sharedProps || {}),
                         ...(componentProps?.[item.i] || {})
@@ -41,7 +50,13 @@ const props = defineProps<{
     isDraggable?: boolean
     isResizable?: boolean
     resizableItems?: string[]
+    // Items qui peuvent être supprimés via le bouton X (ex: instances de breakdown)
+    removableItems?: string[]
     colNum?: number
+}>()
+
+defineEmits<{
+    'remove-item': [itemId: string]
 }>()
 
 const localLayout = ref(props.layout.map(item => ({ ...item })))
@@ -170,6 +185,11 @@ const onContentClick = (e: MouseEvent) => {
 
 :deep(.vue-grid-item.vue-draggable-dragging) {
     cursor: grabbing !important;
+}
+
+/* Curseur pointer sur les grid-items quand le mode drag est activé */
+:deep(.drag-mode) .vue-grid-item {
+    cursor: pointer;
 }
 
 /* Resize handles - more visible */

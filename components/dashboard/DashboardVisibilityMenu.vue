@@ -29,22 +29,23 @@
 						</div>
 					</div>
 
-					<!-- Colonne 3 : Breakdowns (par dimension) -->
+					<!-- Colonne 3 : Breakdowns (création) -->
 					<div>
 						<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.breakdown_charts') }}</div>
-						<div class="space-y-2">
-							<label v-for="chart in breakdownChartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
-								<UCheckbox v-model="localChartVisibility[chart.id]" />
-								<span class="text-sm">{{ chart.label }}</span>
-							</label>
+						<!-- Types de breakdown avec bouton "créer" -->
+						<div class="space-y-1">
+							<div v-for="bt in breakdownTypes" :key="bt.baseKey" class="flex items-center gap-1">
+								<span class="text-sm flex-1">{{ $t(bt.labelKey) }}</span>
+								<UButton
+									icon="i-lucide-plus"
+									size="xs"
+									variant="ghost"
+									color="neutral"
+									@click="onCreateBreakdown(bt.baseKey)"
+								/>
+							</div>
 						</div>
-						<div class="text-xs font-semibold text-secondary mt-3 mb-2">{{ $t('components.dashboard.visibility.breakdown_tables') }}</div>
-						<div class="space-y-2">
-							<label v-for="section in breakdownTableOptions" :key="section.id" class="flex items-center gap-2 cursor-pointer">
-								<UCheckbox v-model="localSectionVisibility[section.id]" />
-								<span class="text-sm">{{ section.label }}</span>
-							</label>
-						</div>
+						<p class="text-xs text-muted mt-2">{{ $t('components.dashboard.visibility.breakdown_hint') }}</p>
 					</div>
 
 					<!-- Colonne 4 : Sections -->
@@ -83,22 +84,24 @@
 </template>
 
 <script setup lang="ts">
-import type { ChartKey, SectionKey } from '~/type'
+import type { ChartKey, SectionKey, BreakdownBaseKey } from '~/type'
+import { breakdownTypes, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
 
 const props = defineProps<{
-	chartVisibility: Record<ChartKey, boolean>
+	chartVisibility: Record<string, boolean>
 	sectionVisibility: Record<SectionKey, boolean>
 }>()
 
 const emit = defineEmits<{
-	'update:chartVisibility': [value: Record<ChartKey, boolean>]
+	'update:chartVisibility': [value: Record<string, boolean>]
 	'update:sectionVisibility': [value: Record<SectionKey, boolean>]
-	'syncToAllBreakpoints': [chartVisibility: Record<ChartKey, boolean>, sectionVisibility: Record<SectionKey, boolean>]
+	'syncToAllBreakpoints': [chartVisibility: Record<string, boolean>, sectionVisibility: Record<SectionKey, boolean>]
 }>()
 
 const { t } = useI18n()
+const { createInstance } = useBreakdownInstances()
 
-type ChartOption = { id: ChartKey; label: string }
+type ChartOption = { id: string; label: string }
 type SectionOption = { id: SectionKey; label: string }
 
 const chartOptions = computed<ChartOption[]>(() => [
@@ -114,15 +117,6 @@ const timeChartOptions = computed<ChartOption[]>(() => [
 	{ id: 'dayOfWeekPnl', label: t('components.dashboard.charts.day_of_week_pnl') },
 ])
 
-const breakdownChartOptions = computed<ChartOption[]>(() => [
-	{ id: 'tickerPnl', label: t('components.dashboard.charts.ticker_pnl') },
-	{ id: 'tickerWinrate', label: t('components.dashboard.charts.ticker_winrate') },
-	{ id: 'tagPnl', label: t('components.dashboard.charts.tag_pnl') },
-	{ id: 'tagWinrate', label: t('components.dashboard.charts.tag_winrate') },
-	{ id: 'sidePnl', label: t('components.dashboard.charts.side_pnl') },
-	{ id: 'sideWinrate', label: t('components.dashboard.charts.side_winrate') },
-])
-
 const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'allTrades', label: t('components.dashboard.sections.all_trades') },
 	{ id: 'profitTrades', label: t('components.dashboard.sections.profit_trades') },
@@ -132,11 +126,11 @@ const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'dayStatistics', label: t('components.dashboard.sections.day_statistics') },
 ])
 
-const breakdownTableOptions = computed<SectionOption[]>(() => [
-	{ id: 'tickerTable', label: t('components.dashboard.sections.ticker_table') },
-	{ id: 'tagTable', label: t('components.dashboard.sections.tag_table') },
-	{ id: 'sideTable', label: t('components.dashboard.sections.side_table') },
-])
+const onCreateBreakdown = (baseKey: BreakdownBaseKey) => {
+	const newKey = createInstance(baseKey)
+	// Ajoute la nouvelle clé à la visibilité locale
+	localChartVisibility.value[newKey] = true
+}
 
 const localChartVisibility = ref({ ...props.chartVisibility })
 const localSectionVisibility = ref({ ...props.sectionVisibility })

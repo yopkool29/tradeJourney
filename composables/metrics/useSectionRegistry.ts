@@ -11,9 +11,6 @@ const sectionRegistry: SectionRegistration[] = [
 	{ id: 'losingTrades', defaultVisible: true },
 	{ id: 'winLossComparison', defaultVisible: true },
 	{ id: 'riskRatios', defaultVisible: true },
-	{ id: 'tickerTable', defaultVisible: false },
-	{ id: 'tagTable', defaultVisible: false },
-	{ id: 'sideTable', defaultVisible: false },
 	{ id: 'dayStatistics', defaultVisible: false },
 ]
 

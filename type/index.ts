@@ -77,8 +77,69 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
-export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'tickerPnl' | 'tickerWinrate' | 'tagPnl' | 'tagWinrate' | 'sidePnl' | 'sideWinrate' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
-export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'riskRatios' | 'tickerTable' | 'tagTable' | 'sideTable' | 'dayStatistics'
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'breakdownBar' | 'breakdownScatter' | 'breakdownTable' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
+export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'riskRatios' | 'dayStatistics'
+
+// Préfixes des types de breakdown (base key sans l'ID d'instance)
+export type BreakdownBaseKey = 'breakdownBar' | 'breakdownScatter' | 'breakdownTable'
+
+// Dimensions disponibles pour les breakdowns configurables
+export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'dayOfWeek' | 'hour' | 'account'
+
+// Métriques mesurables sur un breakdown
+export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount'
+
+// Types de charts disponibles pour les breakdowns
+export type BreakdownChartType = 'bar' | 'scatter' | 'table'
+
+// Génère une clé unique pour une nouvelle instance de breakdown
+// Format : breakdownBar_a3f_1699999999
+export const generateBreakdownKey = (baseKey: BreakdownBaseKey): string => {
+	const randomId = Math.random().toString(36).substring(2, 5)
+	const timestamp = Date.now()
+	return `${baseKey}_${randomId}_${timestamp}`
+}
+
+// Détecte le type de breakdown depuis une clé d'instance (ex: 'breakdownBar_abc_123' → 'bar')
+export const getBreakdownChartType = (key: string): BreakdownChartType | null => {
+	if (key.startsWith('breakdownBar')) return 'bar'
+	if (key.startsWith('breakdownScatter')) return 'scatter'
+	if (key.startsWith('breakdownTable')) return 'table'
+	return null
+}
+
+// Vérifie si une clé est une instance de breakdown
+export const isBreakdownKey = (key: string): boolean => getBreakdownChartType(key) !== null
+
+// Retourne la base key d'une clé d'instance (ex: 'breakdownBar_abc_123' → 'breakdownBar')
+export const getBreakdownBaseKey = (key: string): BreakdownBaseKey | null => {
+	if (key.startsWith('breakdownBar')) return 'breakdownBar'
+	if (key.startsWith('breakdownScatter')) return 'breakdownScatter'
+	if (key.startsWith('breakdownTable')) return 'breakdownTable'
+	return null
+}
+
+// Filtre optionnel appliqué au breakdown (ex: limiter à certains tags, top N tickers...)
+export interface BreakdownFilter {
+	// Limiter à une liste de clés explicites (ex: ['AAPL', 'MSFT'] ou tag IDs convertis en noms)
+	includeKeys?: string[]
+	// Limiter aux N premiers groupes selon la métrique affichée (ex: top 10 par P&L)
+	topN?: number
+	// Pour les tags : filtrer par groupe de tags (tagGroupId)
+	tagGroupId?: number
+}
+
+// Configuration complète d'un widget breakdown (persistée par item ID)
+export interface BreakdownConfig {
+	dimension: BreakdownDimension
+	// Métrique affichée par le chart (bar/scatter). Ignoré pour la table.
+	metric: BreakdownMetric
+	chartType: BreakdownChartType
+	filter?: BreakdownFilter
+	// Colonnes affichées par la table (utilisé seulement quand chartType === 'table').
+	// Si non défini, utilise les colonnes par défaut.
+	columns?: BreakdownMetric[]
+}
 
 export interface DashboardGridItem {
     x: number
@@ -93,15 +154,19 @@ export type WorkspaceId = string
 export interface WorkspaceConfig {
     id: WorkspaceId
     name: string
-    dashboardChartVisibilityLg: Record<ChartKey, boolean>
-    dashboardChartVisibilityMd: Record<ChartKey, boolean>
-    dashboardChartVisibilitySm: Record<ChartKey, boolean>
+    // Record<string, boolean> au lieu de Record<ChartKey, boolean> pour supporter
+    // les clés dynamiques des instances de breakdown (breakdownBar_abc_123...)
+    dashboardChartVisibilityLg: Record<string, boolean>
+    dashboardChartVisibilityMd: Record<string, boolean>
+    dashboardChartVisibilitySm: Record<string, boolean>
     dashboardSectionVisibilityLg: Record<SectionKey, boolean>
     dashboardSectionVisibilityMd: Record<SectionKey, boolean>
     dashboardSectionVisibilitySm: Record<SectionKey, boolean>
     dashboardGridLayout: DashboardGridItem[]
     dashboardGridLayoutMd: DashboardGridItem[]
     dashboardGridLayoutSm: DashboardGridItem[]
+    // Configs des widgets breakdown configurables (clé = item ID dans le grid)
+    breakdownConfigs?: Record<string, BreakdownConfig>
 }
 
 export interface DashBoardFilters {

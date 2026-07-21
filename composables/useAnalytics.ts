@@ -1,4 +1,5 @@
 import type { TradeExtendedType } from '~/schema/trade'
+import type { BreakdownDimension } from '~/type'
 import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
 
 export interface TickerMetrics {
@@ -31,11 +32,38 @@ export interface BreakdownMetrics {
 	avgMae: number | null
 	winningTradesCount: number
 	losingTradesCount: number
+	// Métriques additionnelles pour les widgets configurables
+	expectancy: number
+	// Max drawdown : pire creux depuis un peak (négatif ou 0)
+	drawdown: number
+	// Drawdown actuel : distance entre le dernier peak et le P&L cumulé actuel (négatif ou 0)
+	// Si on est à un nouveau peak, currentDrawdown = 0
+	currentDrawdown: number
 }
 
 // Fonction de grouping : retourne la/les clé(s) d'un trade
 // Un trade peut appartenir à plusieurs groupes (ex: multi-tags) → retourne un tableau
 export type GroupFn = (trade: TradeExtendedType) => string[]
+
+// Calcule le max drawdown et le drawdown actuel d'une série de trades (triés par date)
+// dd = max(peak - cumulative) — négatif ou 0
+// Retourne [maxDrawdown, currentDrawdown]
+const calculateDrawdowns = (trades: TradeExtendedType[], pnlField: 'netProfit' | 'profit'): { maxDrawdown: number, currentDrawdown: number } => {
+	if (trades.length === 0) return { maxDrawdown: 0, currentDrawdown: 0 }
+	const sorted = [...trades].sort((a, b) => new Date(a.openDate).getTime() - new Date(b.openDate).getTime())
+	let peak = 0
+	let cumulative = 0
+	let maxDd = 0
+	for (const t of sorted) {
+		cumulative += t[pnlField] || 0
+		if (cumulative > peak) peak = cumulative
+		const dd = cumulative - peak
+		if (dd < maxDd) maxDd = dd
+	}
+	// currentDrawdown = distance entre le dernier peak et le cumul actuel
+	const currentDrawdown = cumulative - peak
+	return { maxDrawdown: maxDd, currentDrawdown }
+}
 
 // Calcule les métriques pour un ensemble de trades groupés par dimension
 // groupFn détermine la dimension (ticker, tag, side, month, day of week...)
@@ -57,9 +85,9 @@ export const calculateMetricsByDimension = (
 	}
 
 	const metrics: BreakdownMetrics[] = []
+	const pnlField = useNet ? 'netProfit' : 'profit'
 
 	for (const [key, groupTrades] of tradesByKey) {
-		const pnlField = useNet ? 'netProfit' : 'profit'
 		const winningTrades = groupTrades.filter(t => (t[pnlField] || 0) > 0)
 		const losingTrades = groupTrades.filter(t => (t[pnlField] || 0) < 0)
 
@@ -80,6 +108,11 @@ export const calculateMetricsByDimension = (
 			? totalProfit / totalLoss
 			: totalProfit > 0 ? Infinity : 0
 
+		// Expectancy = (winrate * avgWin) - (lossrate * avgLoss)
+		const lossRate = tradesCount > 0 ? losingTradesCount / tradesCount : 0
+		const winRate = tradesCount > 0 ? winningTradesCount / tradesCount : 0
+		const expectancy = (winRate * avgWin) - (lossRate * avgLoss)
+
 		const avgDuration = groupTrades.length > 0
 			? groupTrades.reduce((sum, t) => {
 				const open = new Date(t.openDate).getTime()
@@ -99,6 +132,8 @@ export const calculateMetricsByDimension = (
 			? tradesWithMae.reduce((sum, t) => sum + (t.mae || 0), 0) / tradesWithMae.length
 			: null
 
+		const { maxDrawdown, currentDrawdown } = calculateDrawdowns(groupTrades, pnlField)
+
 		metrics.push({
 			key,
 			pnl,
@@ -112,6 +147,9 @@ export const calculateMetricsByDimension = (
 			avgMae,
 			winningTradesCount,
 			losingTradesCount,
+			expectancy,
+			drawdown: maxDrawdown,
+			currentDrawdown,
 		})
 	}
 
@@ -130,6 +168,39 @@ export const groupByTag: GroupFn = (t) => {
 
 // By Side : Long (buy) / Short (sell)
 export const groupBySide: GroupFn = (t) => [t.type === 'buy' ? 'Long' : 'Short']
+
+// By Month : 'YYYY-MM'
+export const groupByMonth: GroupFn = (t) => {
+	const d = new Date(t.openDate)
+	return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`]
+}
+
+// By Day of Week : 'Monday', 'Tuesday'... (utilise le timezone utilisateur)
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+export const groupByDayOfWeek: GroupFn = (t) => {
+	const { weekday } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
+	return [dayNames[weekday]]
+}
+
+// By Hour : '08h', '09h'... (utilise le timezone utilisateur)
+export const groupByHour: GroupFn = (t) => {
+	const { hour } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
+	return [`${String(hour).padStart(2, '0')}h`]
+}
+
+// By Account : nom du compte
+export const groupByAccount: GroupFn = (t) => [t.account_displayName || 'Unknown']
+
+// Map dimension → groupFn (utilisé par BreakdownWidget)
+export const dimensionGroupFns: Record<BreakdownDimension, GroupFn> = {
+	ticker: groupByTicker,
+	tag: groupByTag,
+	side: groupBySide,
+	month: groupByMonth,
+	dayOfWeek: groupByDayOfWeek,
+	hour: groupByHour,
+	account: groupByAccount,
+}
 
 export const useAnalytics = () => {
 	// calculateMetricsByTicker délègue au générique calculateMetricsByDimension

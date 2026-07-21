@@ -11,8 +11,8 @@ export const getEchartsBaseOption = (fontFamily?: string): Partial<EChartsOption
 })
 
 export const getEchartsAxisColors = (isDark: boolean) => ({
-	axisColor: isDark ? '#666' : '#ccc',
-	textColor: isDark ? '#aaa' : '#666',
+	axisColor: isDark ? '#4b5563' : '#ccc',
+	textColor: isDark ? '#eeeeee' : '#444',
 })
 
 export const getEchartsTooltipColors = () => ({

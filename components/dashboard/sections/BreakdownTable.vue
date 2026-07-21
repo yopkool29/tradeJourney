@@ -1,5 +1,5 @@
 <template>
-	<div class="h-full overflow-y-auto bg-surface rounded-lg">
+	<div class="h-full overflow-y-auto rounded-lg">
 		<div class="flex items-center justify-between px-4 py-3 border-b border-default">
 			<h3 class="text-base font-semibold text-primary">{{ $t(titleKey) }}</h3>
 		</div>
@@ -14,30 +14,13 @@
 				table-class="table-fixed"
 			>
 				<template #key-cell="{ row }">
-					<span class="font-semibold">{{ (row.original as BreakdownMetrics).key }}</span>
+					<span class="font-semibold">{{ asMetrics(row.original).key }}</span>
 				</template>
-				<template #pnl-cell="{ row }">
-					<span :class="(row.original as BreakdownMetrics).pnl >= 0 ? 'profit-text' : 'loss-text'">
-						{{ formatCurrency((row.original as BreakdownMetrics).pnl) }}
+				<!-- Cellules génériques pour chaque métrique sélectionnée -->
+				<template v-for="col in metricColumns" :key="col" #[`${col}-cell`]="{ row }">
+					<span :class="cellClass(col, asMetrics(row.original))">
+						{{ formatMetric(col, asMetrics(row.original)) }}
 					</span>
-				</template>
-				<template #tradesCount-cell="{ row }">
-					<span>{{ (row.original as BreakdownMetrics).tradesCount }}</span>
-				</template>
-				<template #winrate-cell="{ row }">
-					<span>{{ (row.original as BreakdownMetrics).winrate.toFixed(1) }}%</span>
-				</template>
-				<template #profitFactor-cell="{ row }">
-					<span>{{ (row.original as BreakdownMetrics).profitFactor === Infinity ? '∞' : (row.original as BreakdownMetrics).profitFactor.toFixed(2) }}</span>
-				</template>
-				<template #avgWin-cell="{ row }">
-					<span class="profit-text">{{ formatCurrency((row.original as BreakdownMetrics).avgWin) }}</span>
-				</template>
-				<template #avgLoss-cell="{ row }">
-					<span class="loss-text">{{ formatCurrency((row.original as BreakdownMetrics).avgLoss) }}</span>
-				</template>
-				<template #avgDuration-cell="{ row }">
-					<span>{{ formatDurationSeconds((row.original as BreakdownMetrics).avgDuration * 60) }}</span>
 				</template>
 			</DashboardChartsBaseSortableTable>
 		</div>
@@ -46,61 +29,92 @@
 
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
-import type { BreakdownMetrics, GroupFn } from '~/composables/useAnalytics'
+import type { BreakdownMetrics } from '~/composables/useAnalytics'
+import type { BreakdownDimension, BreakdownMetric } from '~/type'
+import { dimensionGroupFns } from '~/composables/useAnalytics'
+import { defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
 import { formatDurationSeconds } from '~/utils/date-utils'
 
-type Dimension = 'ticker' | 'tag' | 'side'
-
 const props = defineProps<{
-	dimension: Dimension
+	dimension: BreakdownDimension
+	// Colonnes à afficher (métriques). Si non défini, utilise les colonnes par défaut.
+	columns?: BreakdownMetric[]
 	loading?: boolean
 }>()
 
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
+const { t } = useI18n()
 const dataStore = useDataStore()
 
-// Mapping dimension → groupFn + clés i18n
-const dimensionConfig: Record<Dimension, { groupFn: GroupFn; titleKey: string; emptyStateKey: string; keyHeader: string }> = {
-	ticker: {
-		groupFn: groupByTicker,
-		titleKey: 'components.dashboard.ticker_table.title',
-		emptyStateKey: 'components.dashboard.ticker_table.empty_state',
-		keyHeader: 'Symbol',
-	},
-	tag: {
-		groupFn: groupByTag,
-		titleKey: 'components.dashboard.tag_table.title',
-		emptyStateKey: 'components.dashboard.tag_table.empty_state',
-		keyHeader: 'Tag',
-	},
-	side: {
-		groupFn: groupBySide,
-		titleKey: 'components.dashboard.side_table.title',
-		emptyStateKey: 'components.dashboard.side_table.empty_state',
-		keyHeader: 'Side',
-	},
-}
+const groupFn = computed(() => dimensionGroupFns[props.dimension])
 
-const config = computed(() => dimensionConfig[props.dimension])
+// Cast helper pour les rows du tableau (typées Record<string, unknown> par le SortableTable)
+const asMetrics = (row: Record<string, unknown>): BreakdownMetrics => row as unknown as BreakdownMetrics
 
 const metrics = computed<BreakdownMetrics[]>(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
 	if (!trades.length) return []
-	return calculateMetricsByDimension(trades, config.value.groupFn, displayModeNet.value)
+	return calculateMetricsByDimension(trades, groupFn.value, displayModeNet.value)
 })
 
+const keyHeader = computed(() => t(`components.dashboard.breakdown.dimensions.${props.dimension}`))
+
+// Colonnes de métriques sélectionnées par l'utilisateur (ou défaut)
+const metricColumns = computed<BreakdownMetric[]>(() => props.columns ?? defaultTableColumns)
+
+// Construit la liste des colonnes pour le SortableTable : clé + métriques sélectionnées
 const columns = computed(() => [
-	{ accessorKey: 'key', header: config.value.keyHeader },
-	{ accessorKey: 'pnl', header: 'P&L' },
-	{ accessorKey: 'tradesCount', header: 'Trades' },
-	{ accessorKey: 'winrate', header: 'Winrate' },
-	{ accessorKey: 'profitFactor', header: 'PF' },
-	{ accessorKey: 'avgWin', header: 'Avg Win' },
-	{ accessorKey: 'avgLoss', header: 'Avg Loss' },
-	{ accessorKey: 'avgDuration', header: 'Avg Duration' },
+	{ accessorKey: 'key', header: keyHeader.value },
+	...metricColumns.value.map(metric => ({
+		accessorKey: metric,
+		header: t(`components.dashboard.breakdown.metrics.${metric}`),
+	})),
 ])
 
-const titleKey = computed(() => config.value.titleKey)
-const emptyStateKey = computed(() => config.value.emptyStateKey)
+// Formate la valeur d'une métrique pour l'affichage
+const formatMetric = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
+	switch (metric) {
+		case 'pnl':
+		case 'avgWin':
+		case 'avgLoss':
+		case 'expectancy':
+		case 'drawdown':
+		case 'currentDrawdown':
+			return formatCurrency(m[metric])
+		case 'winrate':
+			return `${m.winrate.toFixed(1)}%`
+		case 'profitFactor':
+			return m.profitFactor === Infinity ? '∞' : m.profitFactor.toFixed(2)
+		case 'avgDuration':
+			return formatDurationSeconds(m.avgDuration * 60)
+		case 'tradesCount':
+			return String(m.tradesCount)
+		default:
+			return formatCurrency(m[metric])
+	}
+}
+
+// Classe CSS selon la métrique (profit/loss/neutre)
+const cellClass = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
+	switch (metric) {
+		case 'pnl':
+		case 'expectancy':
+			return m[metric] >= 0 ? 'profit-text' : 'loss-text'
+		case 'avgWin':
+			return 'profit-text'
+		case 'avgLoss':
+		case 'drawdown':
+		case 'currentDrawdown':
+			return 'loss-text'
+		default:
+			return ''
+	}
+}
+
+const titleKey = computed(() => {
+	const dimLabel = t(`components.dashboard.breakdown.dimensions.${props.dimension}`)
+	return `${t('components.dashboard.breakdown.table_title')} ${dimLabel}`
+})
+const emptyStateKey = computed(() => 'components.dashboard.breakdown.empty_state')
 </script>

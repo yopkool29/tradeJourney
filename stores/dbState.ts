@@ -16,10 +16,12 @@ import type {
 import { formatDateToYYYYMM } from '~/utils/date-utils'
 import { defaultDashboardGridLayout, defaultDashboardGridLayoutMd, defaultDashboardGridLayoutSm } from '~/utils/dashboard'
 
-const defaultChartVisibility: Record<ChartKey, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
-const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, tickerTable: false, dayStatistics: false }
-const hiddenChartVisibility: Record<ChartKey, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, tickerPnl: false, tickerWinrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
-const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, tickerTable: false, dayStatistics: false }
+// Les breakdowns ne sont plus dans les defaults — ils sont créés dynamiquement
+// par l'utilisateur via le menu visibilité (clés uniques par instance)
+const defaultChartVisibility: Record<string, boolean> = { pnlBar: true, cumulatedPnl: true, appt: true, winrate: true, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
+const defaultSectionVisibility: Record<SectionKey, boolean> = { allTrades: true, profitTrades: true, losingTrades: true, winLossComparison: true, riskRatios: true, dayStatistics: false }
+const hiddenChartVisibility: Record<string, boolean> = { pnlBar: false, cumulatedPnl: false, appt: false, winrate: false, hourlyHeatmap: false, hourlyWinrate: false, dayOfWeekPnl: false }
+const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false, profitTrades: false, losingTrades: false, winLossComparison: false, riskRatios: false, dayStatistics: false }
 
 const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<WorkspaceConfig>): WorkspaceConfig => ({
 	id,
@@ -33,6 +35,8 @@ const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<Works
 	dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
 	dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
 	dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
+	// Pas de breakdowns par défaut — l'utilisateur les crée via le menu visibilité
+	breakdownConfigs: {},
 	...partial,
 })
 

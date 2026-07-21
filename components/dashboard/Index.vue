@@ -1,5 +1,16 @@
 <template>
     <div>
+        <!-- Bouton fixe pour reverrouiller le layout (visible seulement en mode déverrouillé) -->
+        <UButton
+            v-if="isGridDraggable"
+            icon="i-lucide-lock"
+            size="lg"
+            color="warning"
+            variant="solid"
+            class="fixed left-4 top-1/2 -translate-y-1/2 z-50 shadow-lg"
+            :title="$t('components.dashboard.index.lock_layout')"
+            @click="() => { saveGridLayout(); isGridDraggable = false }"
+        />
         <UCard class="card-container-xl">
             <template #default>
                 <CommonTradeFilters
@@ -275,11 +286,13 @@
                         :layout="gridLayout"
                         :components="gridComponents"
                         :shared-props="{ loading: filterLoading || switchingToWorkspaceId !== null }"
-                        :component-props="{ cumulatedPnl: { startingCapital: startingCapital } }"
+                        :component-props="breakdownComponentProps"
                         :is-draggable="isGridDraggable"
                         :is-resizable="isGridDraggable"
-                        :resizable-items="resizableGridItems"
+                        :resizable-items="allResizableItems"
+                        :removable-items="allRemovableItems"
                         :col-num="gridColNum"
+                        @remove-item="onRemoveItem"
                     />
                 </KeepAlive>
             </div>
@@ -312,12 +325,7 @@ import DashboardChartsMainPnlBarChartEcharts from '~/components/dashboard/charts
 import DashboardChartsMainCumulatedPnlChartEcharts from '~/components/dashboard/charts/main/CumulatedPnlChartEcharts.vue'
 import DashboardChartsMainApptChartEcharts from '~/components/dashboard/charts/main/ApptChartEcharts.vue'
 import DashboardChartsMainWinrateChartEcharts from '~/components/dashboard/charts/main/WinrateChartEcharts.vue'
-import DashboardChartsTickerTickerPnlBarChart from '~/components/dashboard/charts/ticker/TickerPnlBarChart.vue'
-import DashboardChartsTickerTickerWinrateScatterChart from '~/components/dashboard/charts/ticker/TickerWinrateScatterChart.vue'
-import DashboardChartsTagTagPnlBarChart from '~/components/dashboard/charts/tag/TagPnlBarChart.vue'
-import DashboardChartsTagTagWinrateScatterChart from '~/components/dashboard/charts/tag/TagWinrateScatterChart.vue'
-import DashboardChartsSideSidePnlBarChart from '~/components/dashboard/charts/side/SidePnlBarChart.vue'
-import DashboardChartsSideSideWinrateScatterChart from '~/components/dashboard/charts/side/SideWinrateScatterChart.vue'
+import DashboardChartsBreakdownBreakdownWidget from '~/components/dashboard/charts/breakdown/BreakdownWidget.vue'
 import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
 import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
 import DashboardChartsTickerDayOfWeekPnlChart from '~/components/dashboard/charts/ticker/DayOfWeekPnlChart.vue'
@@ -326,9 +334,6 @@ import DashboardSectionsProfitTradesSection from '~/components/dashboard/section
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
 import DashboardSectionsWinLossComparisonSection from '~/components/dashboard/sections/WinLossComparisonSection.vue'
 import DashboardSectionsRiskRatiosSection from '~/components/dashboard/sections/RiskRatiosSection.vue'
-import DashboardSectionsTickerBreakdownTable from '~/components/dashboard/sections/TickerBreakdownTable.vue'
-import DashboardSectionsTagBreakdownTable from '~/components/dashboard/sections/TagBreakdownTable.vue'
-import DashboardSectionsSideBreakdownTable from '~/components/dashboard/sections/SideBreakdownTable.vue'
 import DashboardSectionsDayStatisticsSection from '~/components/dashboard/sections/DayStatisticsSection.vue'
 
 import {
@@ -368,16 +373,48 @@ const { getDefaultSectionVisibility } = useMetricsSectionRegistry()
 const defaultChartVisibility = getDefaultChartVisibility()
 const defaultSectionVisibility = getDefaultSectionVisibility()
 
-// --- Workspace helpers ---
+// --- Workspace helpers (depuis useDashboardWorkspace composable) ---
 
-const workspaces = computed(() => dbStateStore.dashBoardFilters.workspaces || [])
+const { workspaces, activeWorkspaceId, activeWorkspace, updateActiveWorkspace } = useDashboardWorkspace()
+const breakdownInstances = useBreakdownInstances()
 
-const activeWorkspaceId = computed({
-    get: () => dbStateStore.dashBoardFilters.activeWorkspaceId || 'summary',
-    set: (val: WorkspaceId) => {
-        dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, activeWorkspaceId: val }
-    },
+// Items resizable : liste fixe + clés dynamiques des breakdowns
+const allResizableItems = computed(() => [
+    ...resizableGridItems,
+    ...breakdownInstances.instanceKeys.value,
+])
+
+// Tous les items sont removables (bouton X)
+// Pour les breakdowns : deleteInstance ; pour les charts/sections fixes : visibilité à false
+const allRemovableItems = computed(() => {
+    const layout = activeWorkspace.value?.dashboardGridLayout || []
+    return layout.map(item => item.i)
 })
+
+const onRemoveItem = (itemId: string) => {
+    // Si c'est une instance de breakdown → deleteInstance
+    if (breakdownInstances.instanceKeys.value.includes(itemId)) {
+        breakdownInstances.deleteInstance(itemId)
+        return
+    }
+    // Détermine si c'est une section ou un chart
+    const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
+    const isSection = sectionKeys.includes(itemId as SectionKey)
+
+    const patch: Partial<WorkspaceConfig> = {}
+    if (isSection) {
+        // Section → dashboardSectionVisibility* (ne pas polluer dashboardChartVisibility*)
+        patch.dashboardSectionVisibilityLg = { ...(activeWorkspace.value?.dashboardSectionVisibilityLg || {}), [itemId]: false } as Record<SectionKey, boolean>
+        patch.dashboardSectionVisibilityMd = { ...(activeWorkspace.value?.dashboardSectionVisibilityMd || {}), [itemId]: false } as Record<SectionKey, boolean>
+        patch.dashboardSectionVisibilitySm = { ...(activeWorkspace.value?.dashboardSectionVisibilitySm || {}), [itemId]: false } as Record<SectionKey, boolean>
+    } else {
+        // Chart → dashboardChartVisibility*
+        patch.dashboardChartVisibilityLg = { ...(activeWorkspace.value?.dashboardChartVisibilityLg || {}), [itemId]: false }
+        patch.dashboardChartVisibilityMd = { ...(activeWorkspace.value?.dashboardChartVisibilityMd || {}), [itemId]: false }
+        patch.dashboardChartVisibilitySm = { ...(activeWorkspace.value?.dashboardChartVisibilitySm || {}), [itemId]: false }
+    }
+    updateActiveWorkspace(patch)
+}
 
 const switchWorkspace = async (id: WorkspaceId) => {
     if (id === activeWorkspaceId.value) return
@@ -398,40 +435,29 @@ const switchWorkspace = async (id: WorkspaceId) => {
     }, 0)
 }
 
-const activeWorkspace = computed(() =>
-    workspaces.value.find(w => w.id === activeWorkspaceId.value) || workspaces.value[0]
-)
-
-const updateActiveWorkspace = (patch: Partial<WorkspaceConfig>) => {
-    const updated = workspaces.value.map(w =>
-        w.id === activeWorkspaceId.value ? { ...w, ...patch } : w
-    )
-    dbStateStore.dashBoardFilters = { ...dbStateStore.dashBoardFilters, workspaces: updated }
-}
-
 const chartVisibilityLg = computed({
-    get: () => activeWorkspace.value?.dashboardChartVisibilityLg || {},
+    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilityLg || {} as Record<ChartKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilityLg: val }),
 })
 const chartVisibilityMd = computed({
-    get: () => activeWorkspace.value?.dashboardChartVisibilityMd || {},
+    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilityMd || {} as Record<ChartKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilityMd: val }),
 })
 const chartVisibilitySm = computed({
-    get: () => activeWorkspace.value?.dashboardChartVisibilitySm || {},
+    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilitySm || {} as Record<ChartKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardChartVisibilitySm: val }),
 })
 
 const sectionVisibilityLg = computed({
-    get: () => activeWorkspace.value?.dashboardSectionVisibilityLg || {},
+    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilityLg || {} as Record<SectionKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityLg: val }),
 })
 const sectionVisibilityMd = computed({
-    get: () => activeWorkspace.value?.dashboardSectionVisibilityMd || {},
+    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilityMd || {} as Record<SectionKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityMd: val }),
 })
 const sectionVisibilitySm = computed({
-    get: () => activeWorkspace.value?.dashboardSectionVisibilitySm || {},
+    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilitySm || {} as Record<SectionKey, boolean>,
     set: (val) => updateActiveWorkspace({ dashboardSectionVisibilitySm: val }),
 })
 
@@ -458,33 +484,39 @@ const activeSectionVisibility = computed(() => {
 })
 
 const gridComponents = computed(() => {
-    const chartComponentMap: Record<ChartKey, Component> = {
+    // Map fixe pour les charts principaux et sections
+    const fixedComponentMap: Record<string, Component> = {
         pnlBar: DashboardChartsMainPnlBarChartEcharts,
         cumulatedPnl: DashboardChartsMainCumulatedPnlChartEcharts,
         appt: DashboardChartsMainApptChartEcharts,
         winrate: DashboardChartsMainWinrateChartEcharts,
-        tickerPnl: DashboardChartsTickerTickerPnlBarChart,
-        tickerWinrate: DashboardChartsTickerTickerWinrateScatterChart,
-        tagPnl: DashboardChartsTagTagPnlBarChart,
-        tagWinrate: DashboardChartsTagTagWinrateScatterChart,
-        sidePnl: DashboardChartsSideSidePnlBarChart,
-        sideWinrate: DashboardChartsSideSideWinrateScatterChart,
         hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
         hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
         dayOfWeekPnl: DashboardChartsTickerDayOfWeekPnlChart,
-    }
-    const sectionComponentMap: Record<SectionKey, Component> = {
         allTrades: DashboardSectionsAllTradesSection,
         profitTrades: DashboardSectionsProfitTradesSection,
         losingTrades: DashboardSectionsLosingTradesSection,
         winLossComparison: DashboardSectionsWinLossComparisonSection,
         riskRatios: DashboardSectionsRiskRatiosSection,
-        tickerTable: DashboardSectionsTickerBreakdownTable,
-        tagTable: DashboardSectionsTagBreakdownTable,
-        sideTable: DashboardSectionsSideBreakdownTable,
         dayStatistics: DashboardSectionsDayStatisticsSection,
     }
-    return { ...chartComponentMap, ...sectionComponentMap }
+    // Map dynamique pour les instances de breakdown (clés dynamiques type breakdownBar_abc_123)
+    const breakdownMap: Record<string, Component> = {}
+    for (const key of breakdownInstances.instanceKeys.value) {
+        breakdownMap[key] = DashboardChartsBreakdownBreakdownWidget
+    }
+    return { ...fixedComponentMap, ...breakdownMap }
+})
+
+// Props passées à chaque widget : itemId pour les breakdowns (clé dynamique)
+const breakdownComponentProps = computed(() => {
+    const props: Record<string, { itemId: string } | { startingCapital: number }> = {
+        cumulatedPnl: { startingCapital: startingCapital.value },
+    }
+    for (const key of breakdownInstances.instanceKeys.value) {
+        props[key] = { itemId: key }
+    }
+    return props
 })
 
 const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)

@@ -6,6 +6,7 @@
 		:loading="loading"
 		:modal-max-width="modalMaxWidth"
 		:modal-height-class="modalHeightClass"
+		:transparent="transparent"
 	/>
 </template>
 
@@ -32,6 +33,7 @@ const props = defineProps({
 	},
 	modalMaxWidth: { type: String, default: undefined },
 	modalHeightClass: { type: String, default: undefined },
+	transparent: { type: Boolean, default: false },
 })
 
 const isDark = useIsDark()

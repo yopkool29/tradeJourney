@@ -4,6 +4,7 @@
 		:enlarged-title="enlargedTitle"
 		:chart-option="chartOption"
 		:loading="loading"
+		:transparent="transparent"
 	/>
 </template>
 
@@ -30,6 +31,7 @@ const props = defineProps({
 		type: Object as PropType<EChartsGridOption>,
 		default: () => ({ left: 60, right: 16, top: 24, bottom: 40 }),
 	},
+	transparent: { type: Boolean, default: false },
 })
 
 const isDark = useIsDark()
