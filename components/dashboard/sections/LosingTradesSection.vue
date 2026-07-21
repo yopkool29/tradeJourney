@@ -25,7 +25,12 @@ const maxDrawdownDisplayDates = computed(() => {
 
 const formatLossValue = (value: number): string => {
 	if (value === 0) return formatCurrency(0)
-	return formatCurrency(Math.abs(value))
+	return formatCurrency(-Math.abs(value))
+}
+
+const formatLossR = (value: number | null): string => {
+	if (value === null || value === undefined || !isFinite(value)) return '—'
+	return `${value.toFixed(2)}R`
 }
 
 const rows = computed<StatsRow[]>(() => [
@@ -42,5 +47,9 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.losing_trades.max_drawdown', displayValue: formatLossValue(result.value.maxDrawdown), valueClass: result.value.maxDrawdown !== 0 ? 'loss-text' : '' },
 	{ label: 'components.dashboard.losing_trades.max_drawdown_from', value: maxDrawdownDisplayDates.value.start, format: 'dateOnly', condition: !!maxDrawdownDisplayDates.value.start } satisfies StatsRow,
 	{ label: 'components.dashboard.losing_trades.max_drawdown_to', value: maxDrawdownDisplayDates.value.end, format: 'dateOnly', condition: !!maxDrawdownDisplayDates.value.end } satisfies StatsRow,
+	// R-multiple versions (affichées seulement si un R est calculable)
+	{ label: 'components.dashboard.losing_trades.total_loss_r', displayValue: formatLossR(result.value.totalLossR), valueClass: 'loss-text', borderTop: true, condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.losing_trades.largest_loss_r', displayValue: formatLossR(result.value.largestLossR), valueClass: 'loss-text', condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.losing_trades.avg_loss_r', displayValue: formatLossR(result.value.avgLossR), condition: result.value.tradesWithRMultiple > 0 },
 ])
 </script>

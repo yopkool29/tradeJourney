@@ -4,7 +4,7 @@
 			<component :is="activeModal.component" v-if="activeModal.component" :sdk="sdk" />
 			<p v-else>{{ activeModal.message }}</p>
 		</template>
-		<template #footer>
+		<template v-if="!activeModal.hideCloseButton" #footer>
 			<div class="flex justify-end">
 				<UButton :label="activeModal.closeLabel ?? $t('common.actions.close')" :color="activeModal.closeColor ?? 'primary'" :variant="activeModal.closeVariant ?? 'solid'" @click="onClose(false)" />
 			</div>

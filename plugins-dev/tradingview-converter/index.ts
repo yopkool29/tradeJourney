@@ -18,6 +18,7 @@ const plugin = {
 			id: 'tradingview-converter-modal',
 			title: 'TradingView Converter',
 			component: markRaw(TradingViewConverterView),
+            hideCloseButton: true,
 		})
 	},
 }

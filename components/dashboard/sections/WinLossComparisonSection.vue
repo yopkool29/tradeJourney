@@ -59,6 +59,11 @@
                     <span class="text-secondary">{{ $t('components.dashboard.comparison.sharpe_ratio') }}:</span>
                     <span class="font-semibold">{{ result.sharpeRatio?.toFixed(2) }}</span>
                 </div>
+
+                <!-- R-multiple versions (affichées seulement si un R est calculable) -->
+                <!-- Profit Factor (R) et Ratio P/L (R) retirés : ce sont des ratios sans unité,
+                     le suffixe R est trompeur (R/R s'annule). De plus, P/L Ratio (R) est
+                     redondant avec Gain Moyen (R) car perte moyenne R ≈ -1R par définition. -->
             </div>
         </div>
     </UCard>
@@ -96,5 +101,10 @@ const formatValue = (value: number | undefined, decimals: number = 2): string =>
     if (value === undefined || value === null) return '---'
     if (!isFinite(value)) return '---'
     return value.toFixed(decimals)
+}
+
+const formatR = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || !isFinite(value)) return '—'
+    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}R`
 }
 </script>

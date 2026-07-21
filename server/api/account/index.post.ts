@@ -37,9 +37,6 @@ export default defineEventHandler(async (event) => {
         if (body.startingCapital !== undefined && body.startingCapital !== null) {
             metadata = { startingCapital: body.startingCapital }
         }
-        if (body.defaultPlannedRisk !== undefined && body.defaultPlannedRisk !== null && !isNaN(body.defaultPlannedRisk)) {
-            metadata = { ...(metadata ?? {}), defaultPlannedRisk: body.defaultPlannedRisk }
-        }
         if (customFields) {
             metadata = { ...(metadata ?? {}), customFields }
         }

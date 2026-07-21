@@ -733,7 +733,18 @@ export default {
                 total_pnl: 'PnL Total',
                 winning: 'Gagnants',
                 losing: 'Perdants',
-                breakeven: 'Equilibré'                
+                breakeven: 'Equilibré',
+                total_r: 'PnL Total (R)',
+                appt_r: 'Espérance (R)',
+                profit_factor_r: 'Profit Factor (R)',
+                pl_ratio_r: 'Ratio P/L (R)',
+                trades_with_r: 'Trades avec R-multiple',
+                reliability_label: 'Fiabilité du R-multiple',
+                reliability_reliable: 'Fiable',
+                reliability_partial: 'Partiel',
+                reliability_approximate: 'Approximatif',
+                reliability_none: 'Aucun stop loss',
+                reliability_coverage: '{label} — {percent}% avec SL ({withSl}/{total})'
             },
             profit_trades: {
                 title: 'TRADES GAGNANTS',
@@ -750,6 +761,9 @@ export default {
                 max_run_up_from: 'Max Run-Up du',
                 max_run_up_to: 'Max Run-Up au',
                 max_winning_streak: 'Série Gagnante Maximale',
+                total_profit_r: 'Profit Total (R)',
+                largest_win_r: 'Plus Grand Gain (R)',
+                avg_win_r: 'Gain Moyen (R)',
             },
             losing_trades: {
                 title: 'TRADES PERDANTS',
@@ -766,6 +780,9 @@ export default {
                 max_drawdown: 'Max Drawdown',
                 max_drawdown_from: 'Max Drawdown du',
                 max_drawdown_to: 'Max Drawdown au',
+                total_loss_r: 'Perte Totale (R)',
+                largest_loss_r: 'Plus Grande Perte (R)',
+                avg_loss_r: 'Perte Moyenne (R)',
             },
             comparison: {
                 title: 'GAGNANTS VS PERDANTS',
@@ -776,6 +793,8 @@ export default {
                 pl_ratio: 'Ratio P/L',
                 recovery_factor: 'Facteur de Récupération',
                 sharpe_ratio: 'Ratio de Sharpe',
+                profit_factor_r: 'Facteur de Profit (R)',
+                pl_ratio_r: 'Ratio P/L (R)',
             },
             day_statistics: {
                 title: 'STATISTIQUES JOURNALIÈRES',
@@ -1055,8 +1074,6 @@ export default {
                 aliases_placeholder: 'Alias séparés par des virgules (ex: compte1, compte2)',
                 starting_capital_label: 'Capital de départ',
                 starting_capital_placeholder: 'Capital initial du compte',
-                default_planned_risk_label: 'Risque prévu par défaut',
-                default_planned_risk_placeholder: 'Risque par trade par défaut (utilisé pour les R-multiples)',
                 column_aliases: 'Alias',
                 column_starting_capital: 'Capital de départ',
                 accounts_list: 'Liste des comptes',
@@ -1233,10 +1250,15 @@ export default {
                     subhelp: 'Montant gagné ou perdu sur cette position',
                     placeholder: 'ex: 10.50',
                 },
-                plannedRisk: {
-                    label: 'Risque prévu',
-                    help: "Montant prévu de risque pour ce trade (utilisé pour calculer les R-multiples). Surcharge la valeur par défaut du compte si renseigné.",
-                    placeholder: 'ex: 200',
+                stopLoss: {
+                    label: 'Stop Loss',
+                    help: 'Prix auquel le stop loss a été placé',
+                    placeholder: 'ex: 1.0500',
+                },
+                takeProfit: {
+                    label: 'Take Profit',
+                    help: 'Prix auquel le take profit a été placé',
+                    placeholder: 'ex: 1.0600',
                 },
                 screenshots: {
                     label: "Captures d'écran",

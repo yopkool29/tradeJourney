@@ -213,6 +213,23 @@ export interface DashBoardResult {
     dailyMaxDrawdownPercent: number
     averageDrawdown: number
     averageDrawdownPercent: number
+
+    // R-multiple metrics (nullable — non calculable si aucun trade n'a de SL ni d'historique)
+    totalR: number | null
+    apptR: number | null
+    profitFactorR: number | null
+    plRatioR: number | null
+    avgWinR: number | null
+    avgLossR: number | null
+    largestWinR: number | null
+    largestLossR: number | null
+    totalProfitR: number | null
+    totalLossR: number | null
+    tradesWithRMultiple: number
+    tradesWithStopLoss: number
+    // Indicateur de fiabilité : % de trades avec SL réel et label qualitatif
+    rMultipleCoverage: number
+    rMultipleReliability: 'reliable' | 'partial' | 'approximate' | 'none'
 }
 
 import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils';

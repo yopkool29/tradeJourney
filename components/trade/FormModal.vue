@@ -40,7 +40,6 @@
                                     : ''
                             "
                         >
-                            <div class="field-help-text">{{ $t('components.trade.formModal.symbol.help') }}</div>
                             <div class="flex gap-2 items-center">
                                 <USelect
                                     v-model="newState.symbol"
@@ -63,9 +62,9 @@
                                     </template>
                                 </SymbolCreateModal>
                             </div>
+                            <div class="field-help-text">{{ $t('components.trade.formModal.symbol.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.type.label')" name="type" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.type.help') }}</div>
                             <USelect
                                 v-model="newState.type"
                                 :items="[
@@ -75,33 +74,39 @@
                                 type="radio"
                                 class="space-y-2"
                             />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.type.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.instrumentType.label')" name="instrumentType" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.instrumentType.help') }}</div>
                             <USelect
                                 v-model="newState.instrumentType"
                                 :items="INSTRUMENT_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))"
                                 class="min-w-[150px]"
                             />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.instrumentType.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.openPrice.label')" name="openPrice" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.openPrice.help') }}</div>
                             <UInput v-model="newState.openPrice" :step="step" type="number" :placeholder="$t('components.trade.formModal.openPrice.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.openPrice.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.closePrice.label')" name="closePrice" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.closePrice.help') }}</div>
                             <UInput v-model="newState.closePrice" :step="step" type="number" :placeholder="$t('components.trade.formModal.closePrice.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.closePrice.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.lot.label')" name="lot" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.lot.help') }}</div>
                             <UInput v-model="newState.lot" type="number" step="0.01" :placeholder="$t('components.trade.formModal.lot.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.lot.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.profit.label')" name="profit" :help="$t('components.trade.formModal.profit.help')" class="text-base">
-                            <div class="field-help-text">{{ $t('components.trade.formModal.profit.subhelp') }}</div>
                             <UInput v-model="newState.profit" type="number" step="0.01" :placeholder="$t('components.trade.formModal.profit.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.profit.subhelp') }}</div>
                         </UFormField>
-                        <UFormField :label="$t('components.trade.formModal.plannedRisk.label')" name="plannedRisk" :help="$t('components.trade.formModal.plannedRisk.help')" class="text-base">
-                            <UInput v-model="plannedRisk" type="number" step="0.01" :placeholder="$t('components.trade.formModal.plannedRisk.placeholder')" size="lg" />
+                        <UFormField :label="$t('components.trade.formModal.stopLoss.label')" name="stopLoss" class="text-base">
+                            <UInput v-model="newState.stopLoss" :step="step" type="number" :placeholder="$t('components.trade.formModal.stopLoss.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.stopLoss.help') }}</div>
+                        </UFormField>
+                        <UFormField :label="$t('components.trade.formModal.takeProfit.label')" name="takeProfit" class="text-base">
+                            <UInput v-model="newState.takeProfit" :step="step" type="number" :placeholder="$t('components.trade.formModal.takeProfit.placeholder')" size="lg" />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.takeProfit.help') }}</div>
                         </UFormField>
                     </div>
                     <div class="screenshot-container">
@@ -240,17 +245,12 @@ function initializeScreenshotsFrom(trade: TradeType) {
 function newForm() {
     errorStr.value = null
     newState.value = getDefaultForm()
-    plannedRisk.value = null
     initializeScreenshots([])
 }
 
 function editForm(trade: TradeType) {
     errorStr.value = null
     newState.value = { ...trade }
-    const meta = trade.metadata as Record<string, unknown> | null
-    const val = meta?.plannedRisk
-    plannedRisk.value = (val === null || val === undefined || val === '') ? null : Number(val)
-    if (plannedRisk.value !== null && isNaN(plannedRisk.value)) plannedRisk.value = null
     initializeScreenshotsFrom(trade)
 }
 
@@ -265,7 +265,6 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
             const updateData = {
                 ...event.data,
                 screenshots: existingScreenshotsToKeep,
-                plannedRisk: plannedRisk.value,
             }
             saved = await updateTrade(updateData as UpdateTradeType)
             const msg = t('components.trade.formModal.success.updated_title')
@@ -273,7 +272,6 @@ async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType
         } else {
             const createData = {
                 ...event.data,
-                plannedRisk: plannedRisk.value,
             }
             saved = await createTrade(createData as CreateTradeType)
             const msg = t('components.trade.formModal.success.created_title')
@@ -343,9 +341,6 @@ const step = computed(() => {
     }
     return 0.00001
 })
-
-// plannedRisk est un champ séparé du formulaire, le serveur le stocke dans metadata.plannedRisk
-const plannedRisk = ref<number | null>(null)
 
 const emit = defineEmits<{
     saved: []

@@ -37,5 +37,9 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.profit_trades.max_run_up', value: result.value.maxRunUp, format: 'currency', valueClass: 'profit-text' },
 	{ label: 'components.dashboard.profit_trades.max_run_up_from', value: maxRunUpDisplayDates.value.start, format: 'dateOnly', condition: !!maxRunUpDisplayDates.value.start } satisfies StatsRow,
 	{ label: 'components.dashboard.profit_trades.max_run_up_to', value: maxRunUpDisplayDates.value.end, format: 'dateOnly', condition: !!maxRunUpDisplayDates.value.end } satisfies StatsRow,
+	// R-multiple versions (affichées seulement si un R est calculable)
+	{ label: 'components.dashboard.profit_trades.total_profit_r', value: result.value.totalProfitR, format: 'rMultiple', valueClass: 'profit-text', borderTop: true, condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.profit_trades.largest_win_r', value: result.value.largestWinR, format: 'rMultiple', valueClass: 'profit-text', condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.profit_trades.avg_win_r', value: result.value.avgWinR, format: 'rMultiple', condition: result.value.tradesWithRMultiple > 0 },
 ])
 </script>

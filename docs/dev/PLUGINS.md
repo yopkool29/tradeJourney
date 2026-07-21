@@ -8,6 +8,8 @@ PLUGIN=trade-stats-plugin npx vite build --config plugins-dev/vite.config.plugin
 PLUGIN=file-processor-plugin npx vite build --config plugins-dev/vite.config.plugin.ts
 
 PLUGIN=instrument-type-fixer npx vite build --config plugins-dev/vite.config.plugin.ts
+
+PLUGIN=tradingview-converter npx vite build --config plugins-dev/vite.config.plugin.ts
 ```
 
 # Build a release version
@@ -19,4 +21,6 @@ PLUGIN=trade-stats-plugin RELEASE=true npx vite build --config plugins-dev/vite.
 PLUGIN=file-processor-plugin RELEASE=true npx vite build --config plugins-dev/vite.config.plugin.ts
 
 PLUGIN=instrument-type-fixer RELEASE=true npx vite build --config plugins-dev/vite.config.plugin.ts
+
+PLUGIN=tradingview-converter RELEASE=true npx vite build --config plugins-dev/vite.config.plugin.ts
 ```

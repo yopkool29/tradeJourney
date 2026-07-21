@@ -33,18 +33,8 @@ export default defineEventHandler(async (event) => {
 
         const uniqueId = generateUniqueId("Default", body.accountId, body.symbol, body.openDate, body.closeDate)
 
-        // Extraire screenshots et plannedRisk du body pour les formater correctement
-        const { screenshots, plannedRisk, ...tradeData } = body
-
-        // Stocker plannedRisk dans metadata.plannedRisk (comme detailedNote côté patch)
-        let metadata = tradeData.metadata
-        if (plannedRisk !== undefined && plannedRisk !== null && !isNaN(plannedRisk)) {
-            const existingMeta = (typeof metadata === 'string' ? JSON.parse(metadata) : metadata) as Record<string, unknown> | null
-            metadata = { ...(existingMeta || {}), plannedRisk }
-        }
-        if (metadata !== tradeData.metadata) {
-            tradeData.metadata = metadata
-        }
+        // Extraire screenshots du body pour les formater correctement
+        const { screenshots, ...tradeData } = body
 
         // Créer le trade avec le format correct pour les relations Prisma
         const trade = await prisma.trade.create({

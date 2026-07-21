@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-	extractPlannedRiskFromMetadata,
-	resolvePlannedRisk,
 	getRMultiple,
 	getRMultiples,
 	getTotalRMultiple,
@@ -11,269 +9,215 @@ import {
 	getAvgWinLossInR,
 	getLargestWinLossInR,
 	getTotalProfitLossInR,
+	countTradesWithStopLoss,
+	getRMultipleCoverage,
+	getRMultipleReliability,
 } from '~/utils/rMultiple'
-import type { RMultipleTrade, RMultipleAccount } from '~/utils/rMultiple'
+import type { RMultipleTrade } from '~/utils/rMultiple'
 
-// 6 trades avec plannedRisk variés pour tester tous les cas
-// Trade 1: +200€ / risk 100€ = +2R (winner)
-// Trade 2: -100€ / risk 100€ = -1R (loser)
-// Trade 3: +400€ / risk 200€ = +2R (winner)
-// Trade 4: -300€ / risk 100€ = -3R (loser)
-// Trade 5: +50€ / risk null = non calculable
-// Trade 6: +150€ / risk 50€ = +3R (winner)
-const mockTrades: RMultipleTrade[] = [
-	{ profit: 200, netProfit: 200, metadata: { plannedRisk: 100 } },
-	{ profit: -100, netProfit: -100, metadata: { plannedRisk: 100 } },
-	{ profit: 400, netProfit: 400, metadata: { plannedRisk: 200 } },
-	{ profit: -300, netProfit: -300, metadata: { plannedRisk: 100 } },
-	{ profit: 50, netProfit: 50, metadata: null },
-	{ profit: 150, netProfit: 150, metadata: { plannedRisk: 50 } },
-]
+// Helper pour construire un trade rapidement
+const makeTrade = (overrides: Partial<RMultipleTrade>): RMultipleTrade => ({
+	profit: 0,
+	netProfit: 0,
+	openPrice: 100,
+	closePrice: 100,
+	stopLoss: 0,
+	type: 'buy',
+	...overrides,
+})
 
-// Compte sans defaultPlannedRisk (utilise le plannedRisk du trade)
-const accountWithoutDefault: RMultipleAccount = { id: 1, metadata: null }
-
-// Compte avec defaultPlannedRisk = 100 (override tous les trades)
-const accountWithDefault: RMultipleAccount = { id: 1, metadata: { defaultPlannedRisk: 100 } }
-
-// Helper : tous les trades appartiennent au même compte
-const accountForAll = (account: RMultipleAccount | null) => () => account
+// Long gagnant avec SL : entry=100, SL=95, close=110 → risk=5, gain=10 → R=+2
+const longWinWithSL = makeTrade({ openPrice: 100, closePrice: 110, stopLoss: 95, type: 'buy', profit: 10, netProfit: 10 })
+// Long perdant avec SL : entry=100, SL=95, close=93 → risk=5, perte=7 → R=-1.4
+const longLossWithSL = makeTrade({ openPrice: 100, closePrice: 93, stopLoss: 95, type: 'buy', profit: -7, netProfit: -7 })
+// Short gagnant avec SL : entry=100, SL=105, close=90 → risk=5, gain=10 → R=+2
+const shortWinWithSL = makeTrade({ openPrice: 100, closePrice: 90, stopLoss: 105, type: 'sell', profit: 10, netProfit: 10 })
+// Short perdant avec SL : entry=100, SL=105, close=108 → risk=5, perte=8 → R=-1.6
+const shortLossWithSL = makeTrade({ openPrice: 100, closePrice: 108, stopLoss: 105, type: 'sell', profit: -8, netProfit: -8 })
 
 describe('rMultiple', () => {
-	describe('extractPlannedRiskFromMetadata', () => {
-		it('should extract plannedRisk from object metadata', () => {
-			expect(extractPlannedRiskFromMetadata({ plannedRisk: 200 })).toBe(200)
-		})
-
-		it('should extract plannedRisk from string metadata', () => {
-			expect(extractPlannedRiskFromMetadata('{"plannedRisk": 150}')).toBe(150)
-		})
-
-		it('should return null for null/undefined metadata', () => {
-			expect(extractPlannedRiskFromMetadata(null)).toBeNull()
-			expect(extractPlannedRiskFromMetadata(undefined)).toBeNull()
-		})
-
-		it('should return null for metadata without plannedRisk', () => {
-			expect(extractPlannedRiskFromMetadata({ otherKey: 'value' })).toBeNull()
-		})
-
-		it('should return null for invalid plannedRisk values', () => {
-			expect(extractPlannedRiskFromMetadata({ plannedRisk: null })).toBeNull()
-			expect(extractPlannedRiskFromMetadata({ plannedRisk: '' })).toBeNull()
-			expect(extractPlannedRiskFromMetadata({ plannedRisk: 'abc' })).toBeNull()
-		})
-
-		it('should handle invalid JSON string', () => {
-			expect(extractPlannedRiskFromMetadata('not json')).toBeNull()
-		})
+	// --- getRMultiple : cas avec SL valide (R réel) ---
+	it.each([
+		['long gagnant', longWinWithSL, 2],
+		['long perdant', longLossWithSL, -1.4],
+		['short gagnant', shortWinWithSL, 2],
+		['short perdant', shortLossWithSL, -1.6],
+	])('calcule R réel depuis le SL pour un trade %s', (_label, trade, expected) => {
+		expect(getRMultiple(trade, 0)).toBeCloseTo(expected, 5)
 	})
 
-	describe('resolvePlannedRisk', () => {
-		it('should use account defaultPlannedRisk when set (override trade)', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: { plannedRisk: 50 } }
-			expect(resolvePlannedRisk(trade, accountWithDefault)).toBe(100)
-		})
-
-		it('should use trade plannedRisk when account has no default', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: { plannedRisk: 50 } }
-			expect(resolvePlannedRisk(trade, accountWithoutDefault)).toBe(50)
-		})
-
-		it('should return null when neither account nor trade has plannedRisk', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: null }
-			expect(resolvePlannedRisk(trade, accountWithoutDefault)).toBeNull()
-		})
-
-		it('should return null when account is null and trade has no plannedRisk', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: null }
-			expect(resolvePlannedRisk(trade, null)).toBeNull()
-		})
-
-		it('should ignore account defaultPlannedRisk if zero or negative', () => {
-			const account: RMultipleAccount = { id: 1, metadata: { defaultPlannedRisk: 0 } }
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: { plannedRisk: 50 } }
-			expect(resolvePlannedRisk(trade, account)).toBe(50)
-		})
+	// --- getRMultiple : cas sans SL (hypothèse) ---
+	it('retourne -1R pour un trade perdant sans SL (hypothèse SL touché)', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: -150, netProfit: -150 })
+		expect(getRMultiple(trade, 100)).toBe(-1)
 	})
 
-	describe('getRMultiple', () => {
-		it('should calculate R-multiple for a trade with plannedRisk', () => {
-			const trade: RMultipleTrade = { profit: 400, netProfit: 400, metadata: { plannedRisk: 200 } }
-			expect(getRMultiple(trade, accountWithoutDefault)).toBe(2)
-		})
-
-		it('should return null when plannedRisk is not available', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: null }
-			expect(getRMultiple(trade, accountWithoutDefault)).toBeNull()
-		})
-
-		it('should return null when plannedRisk is zero', () => {
-			const trade: RMultipleTrade = { profit: 100, netProfit: 100, metadata: { plannedRisk: 0 } }
-			expect(getRMultiple(trade, accountWithoutDefault)).toBeNull()
-		})
-
-		it('should use account override when set', () => {
-			const trade: RMultipleTrade = { profit: 200, netProfit: 200, metadata: { plannedRisk: 50 } }
-			// Account default = 100, so R = 200/100 = 2 (not 200/50 = 4)
-			expect(getRMultiple(trade, accountWithDefault)).toBe(2)
-		})
-
-		it('should use net profit by default', () => {
-			const trade: RMultipleTrade = { profit: 200, netProfit: 180, metadata: { plannedRisk: 100 } }
-			expect(getRMultiple(trade, accountWithoutDefault, true)).toBe(1.8)
-		})
-
-		it('should use gross profit when useNet=false', () => {
-			const trade: RMultipleTrade = { profit: 200, netProfit: 180, metadata: { plannedRisk: 100 } }
-			expect(getRMultiple(trade, accountWithoutDefault, false)).toBe(2)
-		})
+	it('estime R = profit / avgLoss pour un trade gagnant sans SL', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 })
+		expect(getRMultiple(trade, 100)).toBe(2)
 	})
 
-	describe('getRMultiples', () => {
-		it('should return R-multiples only for trades with calculable plannedRisk', () => {
-			const result = getRMultiples(mockTrades, accountForAll(accountWithoutDefault))
-			// Trade 5 (no plannedRisk) is excluded
-			expect(result).toHaveLength(5)
-			expect(result).toEqual([2, -1, 2, -3, 3])
-		})
-
-		it('should return empty array when no trades have plannedRisk', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: 100, netProfit: 100, metadata: null },
-				{ profit: -50, netProfit: -50, metadata: null },
-			]
-			expect(getRMultiples(trades, accountForAll(accountWithoutDefault))).toEqual([])
-		})
-
-		it('should apply account override to all trades', () => {
-			// Account default = 100, so:
-			// Trade 1: 200/100 = 2R
-			// Trade 2: -100/100 = -1R
-			// Trade 3: 400/100 = 4R (was 2R with trade-level risk)
-			// Trade 4: -300/100 = -3R
-			// Trade 5: 50/100 = 0.5R (was non-calculable, now calculable via account override)
-			// Trade 6: 150/100 = 1.5R (was 3R with trade-level risk)
-			const result = getRMultiples(mockTrades, accountForAll(accountWithDefault))
-			expect(result).toHaveLength(6)
-			expect(result).toEqual([2, -1, 4, -3, 0.5, 1.5])
-		})
+	it('retourne null pour un trade gagnant sans SL ni avgLoss (premier trade)', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 })
+		expect(getRMultiple(trade, 0)).toBeNull()
 	})
 
-	describe('getTotalRMultiple', () => {
-		it('should sum all R-multiples', () => {
-			// 2 + (-1) + 2 + (-3) + 3 = 3
-			expect(getTotalRMultiple(mockTrades, accountForAll(accountWithoutDefault))).toBe(3)
-		})
-
-		it('should return 0 when no trades have plannedRisk', () => {
-			expect(getTotalRMultiple([], accountForAll(accountWithoutDefault))).toBe(0)
-		})
-
-		it('should round when round >= 0', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: 100, netProfit: 100, metadata: { plannedRisk: 3 } },
-			]
-			// 100/3 = 33.333...
-			expect(getTotalRMultiple(trades, accountForAll(accountWithoutDefault), 2)).toBe(33.33)
-		})
+	it('retourne 0 pour un trade breakeven sans SL', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: 0, netProfit: 0 })
+		expect(getRMultiple(trade, 100)).toBe(0)
 	})
 
-	describe('getAPPTInR', () => {
-		it('should calculate average R per trade', () => {
-			// 5 R-multiples: [2, -1, 2, -3, 3], sum = 3, avg = 3/5 = 0.6
-			expect(getAPPTInR(mockTrades, accountForAll(accountWithoutDefault))).toBe(0.6)
-		})
-
-		it('should return 0 when no trades have plannedRisk', () => {
-			expect(getAPPTInR([], accountForAll(accountWithoutDefault))).toBe(0)
-		})
+	// --- getRMultiple : SL invalide → traité comme sans SL ---
+	it.each([
+		['SL = 0', makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 })],
+		['SL = openPrice (distance nulle)', makeTrade({ openPrice: 100, closePrice: 110, stopLoss: 100, type: 'buy', profit: 10, netProfit: 10 })],
+		['SL du mauvais côté (buy avec SL au-dessus)', makeTrade({ openPrice: 100, closePrice: 110, stopLoss: 105, type: 'buy', profit: -100, netProfit: -100 })],
+		['SL du mauvais côté (sell avec SL en-dessous)', makeTrade({ openPrice: 100, closePrice: 90, stopLoss: 95, type: 'sell', profit: -100, netProfit: -100 })],
+	])('traite un SL invalide (%s) comme sans SL', (_label, trade) => {
+		// Trade perdant → hypothèse -1R
+		if (trade.profit < 0) {
+			expect(getRMultiple(trade, 100)).toBe(-1)
+		}
+		// Trade gagnant → estimation
+		if (trade.profit > 0) {
+			expect(getRMultiple(trade, 100)).toBe(trade.profit / 100)
+		}
 	})
 
-	describe('getProfitFactorInR', () => {
-		it('should calculate profit factor in R', () => {
-			// Winning R: [2, 2, 3] = 7
-			// Losing R: [-1, -3] = -4, |sum| = 4
-			// PF = 7/4 = 1.75
-			expect(getProfitFactorInR(mockTrades, accountForAll(accountWithoutDefault))).toBe(1.75)
-		})
-
-		it('should return 0 when no losing trades', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: 100, netProfit: 100, metadata: { plannedRisk: 50 } },
-				{ profit: 200, netProfit: 200, metadata: { plannedRisk: 100 } },
-			]
-			expect(getProfitFactorInR(trades, accountForAll(accountWithoutDefault))).toBe(0)
-		})
+	// --- getRMultiple : useNet vs profit brut ---
+	it('utilise netProfit quand useNet=true', () => {
+		const trade = makeTrade({ openPrice: 100, closePrice: 110, stopLoss: 95, type: 'buy', profit: 10, netProfit: 8 })
+		// R = (110 - 100) / (100 - 95) = 2 (basé sur les prix, pas sur le P&L)
+		// Le useNet n'affecte pas le calcul depuis SL car c'est un ratio de prix
+		expect(getRMultiple(trade, 0, true)).toBe(2)
 	})
 
-	describe('getPLRatioInR', () => {
-		it('should calculate P/L ratio in R', () => {
-			// Winning R: [2, 2, 3], avg = 7/3 ≈ 2.333
-			// Losing R: [-1, -3], avg = |-4|/2 = 2
-			// Ratio = 2.333/2 = 1.1666...
-			expect(getPLRatioInR(mockTrades, accountForAll(accountWithoutDefault), 4)).toBe(1.1667)
-		})
-
-		it('should return 0 when no losing trades', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: 100, netProfit: 100, metadata: { plannedRisk: 50 } },
-			]
-			expect(getPLRatioInR(trades, accountForAll(accountWithoutDefault))).toBe(0)
-		})
+	it('utilise netProfit pour l\'estimation quand useNet=true', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: 200, netProfit: 180 })
+		expect(getRMultiple(trade, 100, true)).toBe(1.8)
 	})
 
-	describe('getAvgWinLossInR', () => {
-		it('should calculate average win and loss in R', () => {
-			// Winning R: [2, 2, 3], avg = 7/3 ≈ 2.333
-			// Losing R: [-1, -3], avg = |-4|/2 = 2
-			const result = getAvgWinLossInR(mockTrades, accountForAll(accountWithoutDefault), 4)
-			expect(result.avgWin).toBe(2.3333)
-			expect(result.avgLoss).toBe(2)
-		})
-
-		it('should return 0 for avgWin when no winning trades', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: -100, netProfit: -100, metadata: { plannedRisk: 50 } },
-			]
-			const result = getAvgWinLossInR(trades, accountForAll(accountWithoutDefault))
-			expect(result.avgWin).toBe(0)
-			expect(result.avgLoss).toBe(2)
-		})
+	it('utilise profit brut pour l\'estimation quand useNet=false', () => {
+		const trade = makeTrade({ stopLoss: 0, profit: 200, netProfit: 180 })
+		expect(getRMultiple(trade, 100, false)).toBe(2)
 	})
 
-	describe('getLargestWinLossInR', () => {
-		it('should find largest win and loss in R', () => {
-			// Winning R: [2, 2, 3], largest = 3
-			// Losing R: [-1, -3], largest (most negative) = -3
-			const result = getLargestWinLossInR(mockTrades, accountForAll(accountWithoutDefault))
-			expect(result.largestWin).toBe(3)
-			expect(result.largestLoss).toBe(-3)
-		})
-
-		it('should return null when no winning or losing trades', () => {
-			const trades: RMultipleTrade[] = [
-				{ profit: 0, netProfit: 0, metadata: { plannedRisk: 50 } },
-			]
-			const result = getLargestWinLossInR(trades, accountForAll(accountWithoutDefault))
-			expect(result.largestWin).toBeNull()
-			expect(result.largestLoss).toBeNull()
-		})
+	// --- getRMultiples (batch) ---
+	it('calcule les R-multiples pour un ensemble mixte de trades', () => {
+		const trades = [
+			longWinWithSL,       // +2R (réel)
+			longLossWithSL,      // -1.4R (réel)
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }), // -1R (hypothèse)
+			makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),   // estimation: 200/avgLoss
+		]
+		// avgLoss = (7 + 100) / 2 = 53.5 (pertes : -7 et -100)
+		// R du 4e trade = 200 / 53.5 ≈ 3.738
+		const result = getRMultiples(trades)
+		expect(result).toHaveLength(4)
+		expect(result[0]).toBeCloseTo(2, 5)
+		expect(result[1]).toBeCloseTo(-1.4, 5)
+		expect(result[2]).toBe(-1)
+		expect(result[3]).toBeCloseTo(200 / 53.5, 5)
 	})
 
-	describe('getTotalProfitLossInR', () => {
-		it('should sum winning and losing R separately', () => {
-			// Winning R: [2, 2, 3] = 7
-			// Losing R: [-1, -3] = -4, |sum| = 4
-			const result = getTotalProfitLossInR(mockTrades, accountForAll(accountWithoutDefault))
-			expect(result.totalProfit).toBe(7)
-			expect(result.totalLoss).toBe(4)
-		})
+	// --- Coverage et fiabilité ---
+	it.each([
+		['100% avec SL', [longWinWithSL, longLossWithSL], 1, 'reliable'],
+		['80% avec SL', [
+			longWinWithSL, longLossWithSL, shortWinWithSL, shortLossWithSL,
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }),
+		], 0.8, 'reliable'],
+		['50% avec SL', [
+			longWinWithSL, longLossWithSL,
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }),
+			makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),
+		], 0.5, 'partial'],
+		['25% avec SL', [
+			longWinWithSL,
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }),
+			makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),
+			makeTrade({ stopLoss: 0, profit: -50, netProfit: -50 }),
+		], 0.25, 'approximate'],
+		['0% avec SL', [
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }),
+			makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),
+		], 0, 'none'],
+	])('coverage et fiabilité pour %s', (_label, trades, expectedCoverage, expectedReliability) => {
+		expect(getRMultipleCoverage(trades)).toBeCloseTo(expectedCoverage, 5)
+		expect(getRMultipleReliability(trades)).toBe(expectedReliability)
+	})
 
-		it('should return 0/0 when no trades with plannedRisk', () => {
-			const result = getTotalProfitLossInR([], accountForAll(accountWithoutDefault))
-			expect(result.totalProfit).toBe(0)
-			expect(result.totalLoss).toBe(0)
-		})
+	it('retourne coverage 0 et reliability "none" pour un tableau vide', () => {
+		expect(getRMultipleCoverage([])).toBe(0)
+		expect(getRMultipleReliability([])).toBe('none')
+	})
+
+	it('compte correctement le nombre de trades avec SL valide', () => {
+		const trades = [longWinWithSL, longLossWithSL, makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 })]
+		expect(countTradesWithStopLoss(trades)).toBe(2)
+	})
+
+	it('coverage est cohérent avec countTradesWithStopLoss (coverage = withSl / total)', () => {
+		const trades = [
+			longWinWithSL, longLossWithSL,
+			makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }),
+			makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),
+		]
+		const withSl = countTradesWithStopLoss(trades)
+		const coverage = getRMultipleCoverage(trades)
+		expect(coverage).toBe(withSl / trades.length)
+	})
+
+	// --- Métriques agrégées ---
+	// Trades : +2R, -1.4R, -1R, +3.738R (estimé)
+	const mixedTrades = [
+		longWinWithSL,       // +2R
+		longLossWithSL,      // -1.4R
+		makeTrade({ stopLoss: 0, profit: -100, netProfit: -100 }), // -1R
+		makeTrade({ stopLoss: 0, profit: 200, netProfit: 200 }),   // 200/53.5 ≈ 3.738R
+	]
+
+	it('calcule le Total R (somme)', () => {
+		const total = getTotalRMultiple(mixedTrades, 2)
+		// 2 + (-1.4) + (-1) + 3.738 ≈ 3.34
+		expect(total).toBeCloseTo(3.34, 1)
+	})
+
+	it('calcule l\'APPT en R (R moyen)', () => {
+		const appt = getAPPTInR(mixedTrades, 2)
+		// 3.34 / 4 ≈ 0.83
+		expect(appt).toBeCloseTo(0.83, 1)
+	})
+
+	it('calcule le Profit Factor en R', () => {
+		const pf = getProfitFactorInR(mixedTrades, 2)
+		// sumWin = 2 + 3.738 = 5.738, sumLoss = 1.4 + 1 = 2.4
+		// PF = 5.738 / 2.4 ≈ 2.39
+		expect(pf).toBeCloseTo(2.39, 1)
+	})
+
+	it('calcule le P/L Ratio en R', () => {
+		const plr = getPLRatioInR(mixedTrades, 2)
+		// avgWin = 5.738 / 2 = 2.869, avgLoss = 2.4 / 2 = 1.2
+		// PLR = 2.869 / 1.2 ≈ 2.39
+		expect(plr).toBeCloseTo(2.39, 1)
+	})
+
+	it('calcule Avg Win/Loss en R (avgLoss négatif)', () => {
+		const { avgWin, avgLoss } = getAvgWinLossInR(mixedTrades, 2)
+		expect(avgWin).toBeCloseTo(2.87, 1)
+		expect(avgLoss).toBeCloseTo(-1.2, 1)
+	})
+
+	it('calcule Largest Win/Loss en R (largestLoss négatif)', () => {
+		const { largestWin, largestLoss } = getLargestWinLossInR(mixedTrades, 2)
+		expect(largestWin).toBeCloseTo(3.74, 1)
+		expect(largestLoss).toBeCloseTo(-1.4, 1)
+	})
+
+	it('calcule Total Profit/Loss en R (totalLoss négatif)', () => {
+		const { totalProfit, totalLoss } = getTotalProfitLossInR(mixedTrades, 2)
+		expect(totalProfit).toBeCloseTo(5.74, 1)
+		expect(totalLoss).toBeCloseTo(-2.4, 1)
 	})
 })

@@ -13,52 +13,57 @@ Légende :
 
 ## 1. Rentabilité (Profitability)
 
-> Principe : chaque métrique en €/devise doit aussi pouvoir être exprimée en **R** (R-multiple), c'est-à-dire normalisée par le risk initial prévu du trade. Cela permet de comparer des trades de tailles différentes et de raisonner en unités de risque plutôt qu'en montant absolu. Si le planned risk n'est pas renseigné pour un trade, la version R n'est pas calculée pour ce trade.
+> Principe : chaque métrique en €/devise doit aussi pouvoir être exprimée en **R** (R-multiple), c'est-à-dire normalisée par le risk initial prévu du trade. Cela permet de comparer des trades de tailles différentes et de raisonner en unités de risque plutôt qu'en montant absolu.
 >
-> **Modèle de plannedRisk** (décision validée) :
+> **Modèle de calcul du R-multiple** (décision validée — voir `docs/dev/rr-design.md`) :
 >
-> | Niveau | Champ | Stockage | Rôle |
-> |---|---|---|---|
-> | **Trade** | `metadata.plannedRisk` (nullable) | JSON dans `trade.metadata` (champ existant, pas de migration DB) | Risk prévu pour ce trade spécifique |
-> | **Compte** | `metadata.defaultPlannedRisk` (nullable) | JSON dans `account.metadata` (champ existant, pas de migration DB) | Override tous les plannedRisk des trades de ce compte |
+> Le R-multiple se calcule automatiquement depuis le stopLoss, sans saisie manuelle. C'est un **ratio de prix** : `lot` et `pricePerPoint` s'annulent.
 >
-> **Logique de résolution du plannedRisk pour un trade** :
 > ```
-> 1. Si compte.defaultPlannedRisk renseigné → l'utiliser (override le trade)
-> 2. Sinon si trade.metadata.plannedRisk renseigné → l'utiliser
-> 3. Sinon → R-multiple non calculé pour ce trade
+> Long  (buy)  : R = (closePrice - openPrice) / (openPrice - stopLoss)
+> Short (sell) : R = (openPrice - closePrice) / (stopLoss - openPrice)
 > ```
 >
-> **Comptes multiples** : quand plusieurs comptes sont affichés dans le dashboard, chaque compte applique son propre `defaultPlannedRisk` à ses trades. Pas d'override global dashboard.
+> **Résolution du R par trade** (3 cas) :
+> ```
+> 1. SL valide (bon côté, non nul) → R réel (ratio de prix, exact)
+> 2. Trade perdant sans SL → R = -1R (hypothèse : SL touché)
+> 3. Trade gagnant sans SL → R = profit / avgLoss (estimation)
+> 4. Breakeven → R = 0
+> ```
 >
-> **Saisie** :
-> - Trade : champ `plannedRisk` dans le formulaire de trade (stocké dans `metadata`)
-> - Compte : champ `defaultPlannedRisk` dans les paramètres du compte
-> - Import : mapping configurable dans les profils d'import (colonne → `metadata.plannedRisk`)
+> **Indicateur de fiabilité** basé sur le % de trades avec SL réel :
+> - ≥ 80% → "Fiable" (vert)
+> - 50-79% → "Partiel" (orange)
+> - 1-49% → "Approximatif" (rouge)
+> - 0% → métriques R masquées, fallback sur P/L Ratio
 >
-> **Note technique** : `metadata` est un champ JSON libre (`z.any().nullable()` dans `schema/trade.ts:141`). `plannedRisk` ne sera pas validé par le schéma — valider à la lecture (`Number(metadata?.plannedRisk) || null`). Pas queryable en SQL directement mais pas nécessaire pour l'usage prévu (calcul en mémoire sur les trades chargés).
+> **Plus besoin de `plannedRisk` ni `defaultPlannedRisk`** — supprimés. Le R-multiple est entièrement automatique.
+>
+> **Note technique** : champs requis déjà présents sur le trade : `openPrice`, `closePrice`, `stopLoss`, `type` ('buy'|'sell'). Implémentation dans `utils/rMultiple.ts`.
 
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
 | Total P&L (net / brut) | ✅ | `getPNL()` — `utils/tradeStats.ts:4` | Somme des profits/pertes |
-| **Total P&L en R** (cumul R) | ❌ | — | Somme des R-multiples — performance totale en unités de risque |
-| Total Commission | ✅ | inline — `composables/useDashboard.ts:120` | Somme des commissions |
+| **Total P&L en R** (cumul R) | ✅ | `getTotalRMultiple()` — `utils/rMultiple.ts` | Somme des R-multiples — performance totale en unités de risque |
+| Total Commission | ✅ | inline — `composables/useDashboard.ts` | Somme des commissions |
 | Average Profit Per Trade (APPT) | ✅ | `getAPPT()` — `utils/tradeStats.ts:11` | Profit moyen par trade |
-| **APPT en R** (expectancy en R) | ❌ | — | R moyen par trade — seuil de viabilité: >+0.3R pour A+ setups (Van Tharp) |
+| **APPT en R** (expectancy en R) | ✅ | `getAPPTInR()` — `utils/rMultiple.ts` | R moyen par trade — seuil de viabilité: >+0.3R pour A+ setups (Van Tharp) |
 | Win Rate | ✅ | `getWinrate()` — `utils/tradeStats.ts:33` | % de trades gagnants |
 | Profit Factor | ✅ | `getProfitFactor()` — `utils/tradeStats.ts:86` | Profit brut / perte brute (formule MT5) |
-| **Profit Factor en R** | ❌ | — | Somme des R gagnants / |somme des R perdants| — version normalisée du PF |
+| **Profit Factor en R** | ✅ | `getProfitFactorInR()` — `utils/rMultiple.ts` | Somme des R gagnants / \|somme des R perdants\| — version normalisée du PF |
 | Expectancy | ✅ | `getExpectancy()` — `utils/tradeStats.ts:227` | (Win% × Avg Win) − (Loss% × Avg Loss) |
-| P/L Ratio | ✅ | `getPLRatio()` — `utils/tradeStats.ts:21` | Gain moyen / perte moyenne |
-| **P/L Ratio en R** | ❌ | — | R moyen gagnant / |R moyen perdant| |
+| P/L Ratio | ✅ | `getPLRatio()` — `utils/tradeStats.ts:21` | Gain moyen / perte moyenne — proxy du RR moyen réalisé |
+| **P/L Ratio en R** | ✅ | `getPLRatioInR()` — `utils/rMultiple.ts` | R moyen gagnant / \|R moyen perdant\| |
 | Total Profit / Total Loss | ✅ | `getWinningTradesMetrics` / `getLosingTradesMetrics` | Sommes des gains / pertes |
-| **Total Profit / Loss en R** | ❌ | — | Sommes des R gagnants / perdants |
+| **Total Profit / Loss en R** | ✅ | `getTotalProfitLossInR()` — `utils/rMultiple.ts` | Sommes des R gagnants / perdants |
 | Average Win / Average Loss | ✅ | idem | Gain / perte moyenne |
-| **Average Win / Loss en R** | ❌ | — | R moyen gagnant / perdant |
+| **Average Win / Loss en R** | ✅ | `getAvgWinLossInR()` — `utils/rMultiple.ts` | R moyen gagnant / perdant |
 | Largest Win / Largest Loss | ✅ | idem | Meilleur / pire trade |
-| **Largest Win / Loss en R** | ❌ | — | Meilleur / pire trade en unités de risque |
+| **Largest Win / Loss en R** | ✅ | `getLargestWinLossInR()` — `utils/rMultiple.ts` | Meilleur / pire trade en unités de risque |
 | Total / Winning / Losing / Breakeven trades | ✅ | `getWinningTradesMetrics`, `getLosingTradesMetrics`, `getBreakevenTradesMetrics` | Comptages |
-| R-Multiple par trade | ❌ | — | PnL / planned risk — base de toutes les versions R ci-dessus |
+| R-Multiple par trade | ✅ | `getRMultiple()` — `utils/rMultiple.ts` | Ratio de prix (SL) ou hypothèse (perte=SL) — base de toutes les versions R ci-dessus |
+| **Fiabilité du R-multiple** | ✅ | `getRMultipleReliability()` — `utils/rMultiple.ts` | Indicateur adaptatif basé sur le % de trades avec SL |
 | ROI / Return on Investment | ❌ | — | % de retour sur capital |
 
 > Kelly Criterion et Risk of Ruin écartés — nécessitent des hypothèses statistiques fortes et une taille de position variable, peu utiles pour un tracker de journal.
@@ -337,7 +342,7 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 
 | # | Décision | Options | Recommandation |
 |---|---|---|---|
-| 1 | **Planned risk pour R-multiples** | ✅ Validé — `metadata.plannedRisk` sur le trade + `defaultPlannedRisk` sur le compte (override). Voir section 1. | Validé |
+| 1 | **R-multiples** | ✅ Validé — calcul automatique depuis `stopLoss` (ratio de prix) + hypothèse "perte = SL touché" pour les trades sans SL. Plus de `plannedRisk` manuel. Voir section 1 et `docs/dev/rr-design.md`. | Validé |
 | 2 | **ROI / Return on Investment** (section 1) | À implémenter ou écarter | À implémenter — simple (% retour sur capital), nécessite de connaître le capital initial |
 | 3 | **Stats hebdomadaires / annuelles** (section 6) | À implémenter ou écarter | À implémenter en même temps que les stats mensuelles (même mécanisme d'agrégation) |
 | 4 | **Lib de charts** | Rester sur ECharts ou migrer vers ApexCharts | Décision séparée — les métriques sont indépendantes de la lib de chart |
@@ -346,14 +351,12 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 
 ### Ordre d'implémentation proposé
 
-Phase 1 — **Fondations R-multiple** (prérequis pour toutes les versions R)
-1. ✅ Décision validée sur `plannedRisk` (modèle trade + compte, voir section 1)
-2. Étendre le formulaire de trade : champ `plannedRisk` stocké dans `metadata` (pas de migration DB — `metadata` est déjà JSONB)
-3. Étendre les paramètres du compte : champ `defaultPlannedRisk` stocké dans `metadata` (pas de migration DB — `metadata` est déjà JSONB)
-4. Étendre les profils d'import : mapping colonne → `metadata.plannedRisk`
-5. Calculer R-multiple par trade avec logique de résolution (compte override trade)
-6. Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
-7. **Tests** : étendre `mockTrades` avec `plannedRisk` (dans metadata) + comptes avec `defaultPlannedRisk`, ajouter tests R-multiple dans `tests/unit/utils/tradeStats.test.ts` (inclure test override compte)
+Phase 1 — **Fondations R-multiple** ✅ Terminé
+1. ✅ Décision validée : calcul automatique depuis `stopLoss` (pas de plannedRisk manuel)
+2. ✅ Calcul R-multiple par trade : `getRMultiple()` dans `utils/rMultiple.ts` (SL réel + hypothèse perte=SL)
+3. ✅ Implémenter les versions R de la section 1 (Total P&L en R, APPT en R, PF en R, etc.)
+4. ✅ Indicateur de fiabilité adaptatif (% de trades avec SL)
+5. ✅ Tests unitaires : `tests/unit/utils/rMultiple.test.ts` (30 tests)
 
 Phase 2 — **Ratios risque-rendement manquants**
 6. Sortino Ratio
@@ -416,7 +419,7 @@ Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
 
 | Phase | Fichier de test | Métriques à tester | Edge cases |
 |---|---|---|---|
-| 1 — R-multiples | `tests/unit/utils/tradeStats.test.ts` | R-multiple par trade, Total P&L en R, APPT en R, PF en R, P/L Ratio en R, Avg Win/Loss en R, Largest Win/Loss en R | `plannedRisk` null/0, tous les trades sans plannedRisk, override par compte |
+| 1 — R-multiples ✅ | `tests/unit/utils/rMultiple.test.ts` | R-multiple par trade, Total P&L en R, APPT en R, PF en R, P/L Ratio en R, Avg Win/Loss en R, Largest Win/Loss en R, coverage, fiabilité | SL invalide (0, mauvais côté, distance nulle), trade sans SL (hypothèse -1R), gagnant sans SL (estimation), breakeven, premier trade sans avgLoss |
 | 2 — Ratios | `tests/unit/utils/tradeStats.test.ts` | Sortino, Calmar, SQN, Ulcer Index | Empty trades, 1 trade, division par zéro, < 30 trades pour SQN |
 | 3 — Drawdown | `tests/unit/utils/tradeStats.test.ts` | Drawdown Duration, Recovery Time, Max DD Duration | Drawdown non récupéré, drawdown instantané |
 | 4 — Agrégations | `tests/unit/utils/dayStats.test.ts` (à créer) | Stats mensuelles, hebdo, annuelles | Période vide, chevauchement de mois |
@@ -428,7 +431,7 @@ Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
 ### Critères de "prêt"
 
 - ✅ Toutes les métriques listées ont un statut clair (✅/❌/⚠️/écarté)
-- ✅ Les prérequis schéma sont identifiés (plannedRisk)
+- ✅ Les prérequis sont identifiés (calcul R depuis `stopLoss` — pas de champ manuel)
 - ✅ Les points à valider sont listés
 - ✅ L'ordre d'implémentation est proposé par phase
 - ⏳ Décisions en attente : points 1 à 6 du tableau ci-dessus

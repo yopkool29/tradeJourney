@@ -54,6 +54,18 @@ export default defineEventHandler(async (event) => {
                     ? fields.commissionPercent[0]
                     : fields.commissionPercent
 
+                const stopLossPoints = Array.isArray(fields.stopLossPoints)
+                    ? fields.stopLossPoints[0]
+                    : fields.stopLossPoints
+
+                const autoEstimate = Array.isArray(fields.autoEstimate)
+                    ? fields.autoEstimate[0]
+                    : fields.autoEstimate
+
+                const estimateOnly = Array.isArray(fields.estimateOnly)
+                    ? fields.estimateOnly[0]
+                    : fields.estimateOnly
+
                 const fileList = Object.values(files)[0]
                 const file = Array.isArray(fileList) ? fileList[0] : fileList
 
@@ -69,6 +81,35 @@ export default defineEventHandler(async (event) => {
                         statusCode: 400,
                         message: 'No conversion type provided',
                     })
+                }
+
+                // Mode estimation uniquement (bouton "Auto-estimate" du plugin TradingView)
+                // Court-circuite la conversion : appelle le script Python avec --estimate-only
+                // et retourne le résultat en JSON au lieu d'un fichier CSV.
+                if (estimateOnly === 'true' && conversionType === 'tradingview') {
+                    const scriptPath = join(process.cwd(), 'pnltracker-tools/python', 'tradingview_to_standard-csv.py')
+                    try {
+                        const result = await execa('uv', ['run', 'python', scriptPath, file.filepath, '/tmp/dummy.csv', '--estimate-only'], {
+                            cwd: join(process.cwd(), 'pnltracker-tools/python'),
+                        })
+                        // Le script affiche le JSON sur stdout (les logs vont sur stderr)
+                        const jsonLine = result.stdout.split('\n').find(l => l.trim().startsWith('{'))
+                        if (!jsonLine) {
+                            throw createError({ statusCode: 500, message: 'No JSON output from estimation script' })
+                        }
+                        const parsed = JSON.parse(jsonLine)
+                        // Nettoyer le fichier temporaire
+                        try { await unlink(file.filepath) } catch {}
+                        resolve(parsed)
+                    } catch (execError: unknown) {
+                        try { await unlink(file.filepath) } catch {}
+                        const execErr = execError as { stderr?: string; message?: string }
+                        throw createError({
+                            statusCode: 500,
+                            message: `Estimation failed: ${execErr.stderr || execErr.message}`,
+                        })
+                    }
+                    return
                 }
 
                 if (!accountName || !accountFullname || !importName) {
@@ -104,9 +145,17 @@ export default defineEventHandler(async (event) => {
                             '--account-name', accountName,
                             '--account-fullname', accountFullname,
                             '--import-name', importName,
-                            '--symbol', symbol || 'US30',
+                            '--symbol', symbol || 'MYM',
                             '--commission-percent', commissionPercent || '0',
                         ]
+                        // Stop loss en points depuis l'entry (active le R-multiple fiable)
+                        if (stopLossPoints) {
+                            scriptArgs.push('--stop-loss-points', stopLossPoints)
+                        }
+                        // Auto-estimate du SL depuis les trades perdants à la conversion
+                        if (autoEstimate === 'true') {
+                            scriptArgs.push('--auto-estimate-stop-loss')
+                        }
                         break
                     default:
                         throw createError({

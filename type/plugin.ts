@@ -17,6 +17,7 @@ type TJPluginModal = {
 	closeLabel?: string
 	closeColor?: 'primary' | 'secondary' | 'neutral' | 'error' | 'warning' | 'success'
 	closeVariant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link'
+	hideCloseButton?: boolean
 }
 
 type TJPluginUi = {

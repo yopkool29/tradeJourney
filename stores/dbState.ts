@@ -395,6 +395,11 @@ export const useDbStateStore = defineStore(
 						dailyMaxDrawdownPercent: 0,
 						averageDrawdown: 0,
 						averageDrawdownPercent: 0,
+						// R-multiple metrics
+						totalR: null, apptR: null, profitFactorR: null, plRatioR: null,
+						avgWinR: null, avgLossR: null, largestWinR: null, largestLossR: null,
+						totalProfitR: null, totalLossR: null, tradesWithRMultiple: 0,
+						tradesWithStopLoss: 0, rMultipleCoverage: 0, rMultipleReliability: 'none',
 					}
 				}
 				return dashBoardResultPerDb.value[dbName]

@@ -1,7 +1,7 @@
 import type { AccountType } from '~/schema/account'
 import type { TradeFilter } from '~/type'
 import { transformAdvancedFilters } from '~/utils/filter-utils'
-import { 
+import {
     getPNL,
     getAPPT,
     getWinrate,
@@ -16,8 +16,25 @@ import {
     getMaxDrawdownWithDates,
     getPLRatio,
     getMaxWinningStreak,
-    getMaxLosingStreak
+    getMaxLosingStreak,
+    getTotalContracts,
+    getMaxTradeDuration,
+    getExpectancy
 } from '~/utils/tradeStats'
+import {
+    getTotalRMultiple,
+    getAPPTInR,
+    getProfitFactorInR,
+    getPLRatioInR,
+    getAvgWinLossInR,
+    getLargestWinLossInR,
+    getTotalProfitLossInR,
+    getRMultiples,
+    getRMultipleCoverage,
+    getRMultipleReliability,
+    countTradesWithStopLoss
+} from '~/utils/rMultiple'
+import type { RMultipleTrade } from '~/utils/rMultiple'
 import {
     getDailyPnlArray,
     getTotalTradingDays,
@@ -190,6 +207,47 @@ export const useDashboard = () => {
         dataStore.dashboardResult.dailyMaxDrawdownPercent = dailyDrawdown.maxDrawdownPercent
         dataStore.dashboardResult.averageDrawdown = getAverageDrawdown(dailyPnls, 2)
         dataStore.dashboardResult.averageDrawdownPercent = getAverageDrawdownPercent(dailyPnls, 2)
+
+        // R-MULTIPLE METRICS
+        // Le R-multiple est calculé depuis le stopLoss (ratio de prix) ou par hypothèse (perte = SL touché)
+        // Pas besoin de plannedRisk manuel — voir docs/dev/rr-design.md
+        const rTrades = trades as unknown as RMultipleTrade[]
+        const reliability = getRMultipleReliability(rTrades)
+        const coverage = getRMultipleCoverage(rTrades)
+        const withSlCount = countTradesWithStopLoss(rTrades)
+        dataStore.dashboardResult.rMultipleCoverage = Math.round(coverage * 100)
+        dataStore.dashboardResult.rMultipleReliability = reliability
+        dataStore.dashboardResult.tradesWithStopLoss = withSlCount
+
+        const rMultiples = getRMultiples(rTrades, useNet)
+        if (rMultiples.length === 0 || reliability === 'none') {
+            dataStore.dashboardResult.totalR = null
+            dataStore.dashboardResult.apptR = null
+            dataStore.dashboardResult.profitFactorR = null
+            dataStore.dashboardResult.plRatioR = null
+            dataStore.dashboardResult.avgWinR = null
+            dataStore.dashboardResult.avgLossR = null
+            dataStore.dashboardResult.largestWinR = null
+            dataStore.dashboardResult.largestLossR = null
+            dataStore.dashboardResult.totalProfitR = null
+            dataStore.dashboardResult.totalLossR = null
+            dataStore.dashboardResult.tradesWithRMultiple = 0
+        } else {
+            dataStore.dashboardResult.totalR = getTotalRMultiple(rTrades, 2, useNet)
+            dataStore.dashboardResult.apptR = getAPPTInR(rTrades, 2, useNet)
+            dataStore.dashboardResult.profitFactorR = getProfitFactorInR(rTrades, 2, useNet)
+            dataStore.dashboardResult.plRatioR = getPLRatioInR(rTrades, 2, useNet)
+            const avgWinLossR = getAvgWinLossInR(rTrades, 2, useNet)
+            dataStore.dashboardResult.avgWinR = avgWinLossR.avgWin
+            dataStore.dashboardResult.avgLossR = avgWinLossR.avgLoss
+            const largestWinLossR = getLargestWinLossInR(rTrades, 2, useNet)
+            dataStore.dashboardResult.largestWinR = largestWinLossR.largestWin
+            dataStore.dashboardResult.largestLossR = largestWinLossR.largestLoss
+            const totalProfitLossR = getTotalProfitLossInR(rTrades, 2, useNet)
+            dataStore.dashboardResult.totalProfitR = totalProfitLossR.totalProfit
+            dataStore.dashboardResult.totalLossR = totalProfitLossR.totalLoss
+            dataStore.dashboardResult.tradesWithRMultiple = rMultiples.length
+        }
 
         return trades
     }

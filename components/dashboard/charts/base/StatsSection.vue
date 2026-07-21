@@ -26,7 +26,7 @@ export interface StatsRow {
 	label: string
 	value?: number | string | Date | null
 	displayValue?: string
-	format?: 'currency' | 'duration' | 'date' | 'dateOnly' | 'percent' | 'number'
+	format?: 'currency' | 'duration' | 'date' | 'dateOnly' | 'percent' | 'number' | 'rMultiple'
 	valueClass?: string
 	condition?: boolean
 	small?: boolean
@@ -69,6 +69,12 @@ const formatRowValue = (row: StatsRow): string => {
 		}
 		case 'number':
 			return String(row.value)
+		case 'rMultiple': {
+			if (row.value === null || row.value === undefined) return '—'
+			const rVal = typeof row.value === 'number' ? row.value : Number(row.value)
+			if (isNaN(rVal)) return '—'
+			return `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R`
+		}
 		default:
 			return String(row.value)
 	}

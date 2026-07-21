@@ -30,7 +30,13 @@ export const useDataStore = defineStore(
 			largestProfitableDayPnl: 0, largestProfitableDayDate: null,
 			largestLosingDayPnl: 0, largestLosingDayDate: null,
 			dailyMaxDrawdown: 0, dailyMaxDrawdownPercent: 0,
-			averageDrawdown: 0, averageDrawdownPercent: 0
+			averageDrawdown: 0, averageDrawdownPercent: 0,
+
+			// R-multiple metrics
+			totalR: null, apptR: null, profitFactorR: null, plRatioR: null,
+			avgWinR: null, avgLossR: null, largestWinR: null, largestLossR: null,
+			totalProfitR: null, totalLossR: null, tradesWithRMultiple: 0,
+			tradesWithStopLoss: 0, rMultipleCoverage: 0, rMultipleReliability: 'none'
 		})
 
 		// Daily history data (non-persisted) - current DB only
