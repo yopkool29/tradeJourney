@@ -277,7 +277,7 @@
             </div>
 
             <!-- Workspaces with KeepAlive -->
-            <div class="relative">
+            <div class="relative min-h-[400px]">
                 <KeepAlive>
                     <DashboardGridLayout
                         v-if="gridReady"
