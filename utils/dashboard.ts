@@ -13,10 +13,10 @@ export interface GridTemplateItem {
 }
 
 export const defaultGridItemsLg: GridTemplateItem[] = [
-	{ w: 6, h: 5, i: 'timeSeries_defaultPnlByTrade' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultCumulatedPnl' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultAppt' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultWinrate' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultPnlByTrade' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultCumulatedPnl' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultAppt' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultWinrate' },
 	{ w: 3, h: 12, i: 'allTrades' },
 	{ w: 3, h: 12, i: 'profitTrades' },
 	{ w: 3, h: 12, i: 'losingTrades' },
@@ -29,10 +29,10 @@ export const defaultGridItemsLg: GridTemplateItem[] = [
 ]
 
 export const defaultGridItemsMd: GridTemplateItem[] = [
-	{ w: 6, h: 5, i: 'timeSeries_defaultPnlByTrade' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultCumulatedPnl' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultAppt' },
-	{ w: 6, h: 5, i: 'timeSeries_defaultWinrate' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultPnlByTrade' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultCumulatedPnl' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultAppt' },
+	{ w: 6, h: 6, i: 'timeSeries_defaultWinrate' },
 	{ w: 3, h: 12, i: 'allTrades' },
 	{ w: 3, h: 12, i: 'profitTrades' },
 	{ w: 3, h: 12, i: 'losingTrades' },
@@ -45,10 +45,10 @@ export const defaultGridItemsMd: GridTemplateItem[] = [
 ]
 
 export const defaultGridItemsSm: GridTemplateItem[] = [
-	{ w: 3, h: 5, i: 'pnlBar' },
-	{ w: 3, h: 5, i: 'cumulatedPnl' },
-	{ w: 3, h: 5, i: 'appt' },
-	{ w: 3, h: 5, i: 'winrate' },
+	{ w: 3, h: 6, i: 'timeSeries_defaultPnlByTrade' },
+	{ w: 3, h: 6, i: 'timeSeries_defaultCumulatedPnl' },
+	{ w: 3, h: 6, i: 'timeSeries_defaultAppt' },
+	{ w: 3, h: 6, i: 'timeSeries_defaultWinrate' },
 	{ w: 3, h: 12, i: 'allTrades' },
 	{ w: 3, h: 12, i: 'profitTrades' },
 	{ w: 3, h: 12, i: 'losingTrades' },

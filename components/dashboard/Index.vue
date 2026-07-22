@@ -209,7 +209,7 @@
 
             <!-- Barre de contrôle du workspace actif -->
             <div class="flex items-center justify-between gap-2 mb-2">
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 pl-3">
                     <DashboardVisibilityMenu
                         v-if="currentBreakpoint === 'lg'"
                         v-model:chart-visibility="chartVisibilityLg"
@@ -339,6 +339,7 @@ import {
     resizableGridItems,
     type GridTemplateItem,
 } from '~/utils/dashboard'
+import { getDefaultSummaryState } from '~/stores/dbState'
 import type { SettingsContentType } from '~/schema/user'
 import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
@@ -793,18 +794,8 @@ const onCancelSwitch = () => {
 
 const onResetLayout = () => {
     if (activeWorkspaceId.value === 'summary') {
-        // Sur summary: restaure la visibilité par défaut sur tous les breakpoints
-        updateActiveWorkspace({
-            dashboardChartVisibilityLg: { ...defaultChartVisibility },
-            dashboardChartVisibilityMd: { ...defaultChartVisibility },
-            dashboardChartVisibilitySm: { ...defaultChartVisibility },
-            dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
-            dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
-            dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
-            dashboardGridLayout: [],
-            dashboardGridLayoutMd: [],
-            dashboardGridLayoutSm: [],
-        })
+        // Sur summary: restaure la configuration par défaut (visibilité + layout + configs)
+        updateActiveWorkspace(getDefaultSummaryState())
     } else {
         // Autres workspaces: vide tout
         updateActiveWorkspace({

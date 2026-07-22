@@ -1,89 +1,75 @@
 <template>
-	<DashboardChartsBaseWidgetCard
-		:title="chartTitle"
-		:enlarged-title="chartTitle + ' (enlarged)'"
-		:chart-option="chartOption"
-		:loading="loading"
-		:modal-height-class="modalHeightClass"
-		:subtitle="aggregationLabel"
-	>
-		<!-- Dropdown métrique dans le header (barMA et area) -->
-		<template #header-extra>
-			<div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="flex items-center gap-1.5">
-				<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
-				<USelectMenu
-					v-model="selectedMetric"
-					:items="metricItems"
-					value-key="value"
-					class="w-32"
-					size="xs"
-				/>
-			</div>
-		</template>
-		<!-- Menu settings : paramètres selon le type de chart -->
-		<template #settings>
-			<div class="space-y-2">
-				<!-- Agrégation (sauf pour bar = par trade) -->
-				<div v-if="config.seriesType !== 'bar'" class="flex flex-col gap-1">
-					<span class="text-sm font-medium">{{ $t('components.dashboard.common.aggregation') }}</span>
-					<USelect
-						v-model="aggregation"
-						:items="aggregationOptions"
-						size="sm"
-					/>
-				</div>
-				<!-- Max trades (bar = par trade seulement) -->
-				<div v-if="config.seriesType === 'bar'" class="flex flex-col gap-1">
-					<span class="text-sm font-medium">{{ $t('components.dashboard.common.max_trades') }}</span>
-					<USelect
-						v-model="maxTrades"
-						:items="maxTradesOptions"
-						size="sm"
-					/>
-				</div>
-				<!-- Show bars (barMA) -->
-				<div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
-					<UCheckbox v-model="showBars" />
-					<span class="text-sm">{{ $t('components.dashboard.common.show_bars') }}</span>
-				</div>
-				<!-- Show MA (barMA) -->
-				<div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
-					<UCheckbox v-model="showMovingAverage" />
-					<span class="text-sm">{{ $t('components.dashboard.common.show_moving_average') }}</span>
-				</div>
-				<!-- Show threshold (area) -->
-				<div v-if="config.seriesType === 'area'" class="flex items-center gap-2">
-					<UCheckbox v-model="showThreshold" />
-					<span class="text-sm">{{ $t('components.dashboard.common.show_threshold') }}</span>
-				</div>
-			</div>
-		</template>
-		<!-- Réticule : 2 boutons icônes à gauche du menu settings -->
-		<template #header-actions>
-			<button
-				class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-				:class="crosshairType === 'cross' ? 'text-primary' : 'text-gray-400'"
-				:title="$t('components.dashboard.common.crosshair_cross')"
-				@click="crosshairType = 'cross'"
-			>
-				<UIcon name="i-lucide-cross" class="w-4 h-4" />
-			</button>
-			<button
-				class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-				:class="crosshairType === 'line' ? 'text-primary' : 'text-gray-400'"
-				:title="$t('components.dashboard.common.crosshair_line')"
-				@click="crosshairType = 'line'"
-			>
-				<UIcon name="i-lucide-minus" class="w-4 h-4" />
-			</button>
-		</template>
-	</DashboardChartsBaseWidgetCard>
+    <DashboardChartsBaseWidgetCard
+        :title="chartTitle"
+        :enlarged-title="chartTitle + ' (enlarged)'"
+        :chart-option="chartOption"
+        :loading="loading"
+        :modal-height-class="modalHeightClass"
+        :subtitle="aggregationLabel"
+    >
+        <!-- Dropdown métrique dans le header (barMA et area) -->
+        <template #header-extra>
+            <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="flex items-center gap-1.5">
+                <span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
+                <USelectMenu v-model="selectedMetric" :items="metricItems" value-key="value" class="w-32" size="xs" />
+            </div>
+        </template>
+        <!-- Menu settings : paramètres selon le type de chart -->
+        <template #settings>
+            <div class="space-y-2">
+                <!-- Agrégation (sauf pour bar = par trade) -->
+                <div v-if="config.seriesType !== 'bar'" class="flex flex-col gap-1">
+                    <span class="text-sm font-medium">{{ $t('components.dashboard.common.aggregation') }}</span>
+                    <USelect v-model="aggregation" :items="aggregationOptions" size="sm" />
+                </div>
+                <!-- Max trades (bar = par trade seulement) -->
+                <div v-if="config.seriesType === 'bar'" class="flex flex-col gap-1">
+                    <span class="text-sm font-medium">{{ $t('components.dashboard.common.max_trades') }}</span>
+                    <USelect v-model="maxTrades" :items="maxTradesOptions" size="sm" />
+                </div>
+                <!-- Show bars (barMA) -->
+                <div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
+                    <UCheckbox v-model="showBars" />
+                    <span class="text-sm">{{ $t('components.dashboard.common.show_bars') }}</span>
+                </div>
+                <!-- Show MA (barMA) -->
+                <div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
+                    <UCheckbox v-model="showMovingAverage" />
+                    <span class="text-sm">{{ $t('components.dashboard.common.show_moving_average') }}</span>
+                </div>
+                <!-- Show threshold (area + pnl seulement) -->
+                <div v-if="config.seriesType === 'area' && config.metric === 'pnl'" class="flex items-center gap-2">
+                    <UCheckbox v-model="showThreshold" />
+                    <span class="text-sm">{{ $t('components.dashboard.common.show_threshold') }}</span>
+                </div>
+            </div>
+        </template>
+        <!-- Réticule : 2 boutons icônes à gauche du menu settings -->
+        <template #header-actions>
+            <button
+                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
+                :class="crosshairType === 'cross' ? 'text-primary' : 'text-gray-400'"
+                :title="$t('components.dashboard.common.crosshair_cross')"
+                @click="crosshairType = 'cross'"
+            >
+                <UIcon name="i-lucide-cross" class="w-4 h-4" />
+            </button>
+            <button
+                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
+                :class="crosshairType === 'line' ? 'text-primary' : 'text-gray-400'"
+                :title="$t('components.dashboard.common.crosshair_line')"
+                @click="crosshairType = 'line'"
+            >
+                <UIcon name="i-lucide-minus" class="w-4 h-4" />
+            </button>
+        </template>
+    </DashboardChartsBaseWidgetCard>
 </template>
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import type { TimeSeriesConfig, TimeSeriesAggregation, BreakdownMetric } from '~/type'
-import { calculateMetricsByDimension, getMetricValueForMetric } from '~/composables/useAnalytics'
+import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
 import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
 import { buildBarData, buildBarSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption, EChartsAreaStyle } from '~/utils/echarts-builders'
@@ -93,9 +79,9 @@ import { formatDateWithUserTimezone } from '~/utils/date-utils'
 import type { TradeExtendedType } from '~/schema/trade'
 
 const props = defineProps<{
-	itemId: string
-	loading?: boolean
-	startingCapital?: number | null
+    itemId: string
+    loading?: boolean
+    startingCapital?: number | null
 }>()
 
 // Récupère la config depuis breakdownConfigs (même mécanisme que BreakdownWidget)
@@ -115,488 +101,517 @@ const cumulatedColors = useTypeColors('cumulatedPnlChart')
 const timeSeriesColors = useTypeColors('timeSeriesChart')
 
 const config = computed<TimeSeriesConfig>(() => {
-	const configs = activeWorkspace.value?.breakdownConfigs || {}
-	return (configs[props.itemId] as TimeSeriesConfig) || { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency' }
+    const configs = activeWorkspace.value?.breakdownConfigs || {}
+    return (
+        (configs[props.itemId] as TimeSeriesConfig) || {
+            seriesType: 'bar',
+            metric: 'pnl',
+            chartType: 'timeSeries',
+            maxTrades: 50,
+            yAxisFormat: 'currency',
+        }
+    )
 })
 
 const updateConfig = (partial: Partial<TimeSeriesConfig>) => {
-	const configs = { ...(activeWorkspace.value?.breakdownConfigs || {}) }
-	configs[props.itemId] = { ...config.value, ...partial } as TimeSeriesConfig
-	updateActiveWorkspace({ breakdownConfigs: configs } as never)
+    const configs = { ...(activeWorkspace.value?.breakdownConfigs || {}) }
+    configs[props.itemId] = { ...config.value, ...partial } as TimeSeriesConfig
+    updateActiveWorkspace({ breakdownConfigs: configs } as never)
 }
 
-// --- Dropdown métrique dans le header (barMA seulement, utilise la même liste que les breakdowns) ---
-const metricItems = computed(() =>
-	metricOptions.map(m => ({ value: m.value, label: t(m.labelKey) }))
-)
+// --- Dropdown métrique dans le header ---
+// En area : pnl → "P&L cumulé", appt → "APPT cumulé" ; les autres restent inchangés
+const metricItems = computed(() => {
+    const isArea = config.value.seriesType === 'area'
+    return metricOptions.map((m) => {
+        if (isArea && m.value === 'pnl') return { value: m.value, label: t('components.dashboard.cumulated_pnl_chart.title') }
+        if (isArea && m.value === 'appt')
+            return {
+                value: m.value,
+                label: t('components.dashboard.appt_chart.title') + ' (' + t('components.dashboard.index.cumulated_label') + ')',
+            }
+        return { value: m.value, label: t(m.labelKey) }
+    })
+})
 
 const selectedMetric = computed<BreakdownMetric>({
-	get: () => config.value.metric,
-	set: (val: BreakdownMetric) => updateConfig({ metric: val }),
+    get: () => config.value.metric,
+    set: (val: BreakdownMetric) => updateConfig({ metric: val }),
 })
 
 // --- Options pour les selects ---
 type AggregationMode = 'day' | 'week' | 'month'
 
 const aggregationOptions = computed(() => [
-	{ label: t('components.dashboard.index.by_day'), value: 'day' },
-	{ label: t('components.dashboard.index.by_week'), value: 'week' },
-	{ label: t('components.dashboard.index.by_month'), value: 'month' },
+    { label: t('components.dashboard.index.by_day'), value: 'day' },
+    { label: t('components.dashboard.index.by_week'), value: 'week' },
+    { label: t('components.dashboard.index.by_month'), value: 'month' },
 ])
 
 const maxTradesOptions = [
-	{ label: '20', value: 20 },
-	{ label: '50', value: 50 },
-	{ label: '100', value: 100 },
-	{ label: '200', value: 200 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
+    { label: '200', value: 200 },
 ]
 
 // --- v-model wrappers ---
 const aggregation = computed<AggregationMode>({
-	get: () => (config.value.aggregation as AggregationMode) ?? 'week',
-	set: (val: AggregationMode) => updateConfig({ aggregation: val as TimeSeriesAggregation }),
+    get: () => (config.value.aggregation as AggregationMode) ?? 'week',
+    set: (val: AggregationMode) => updateConfig({ aggregation: val as TimeSeriesAggregation }),
 })
 
 const maxTrades = computed<number>({
-	get: () => config.value.maxTrades ?? 50,
-	set: (val: number) => updateConfig({ maxTrades: val }),
+    get: () => config.value.maxTrades ?? 50,
+    set: (val: number) => updateConfig({ maxTrades: val }),
 })
 
 const showBars = computed<boolean>({
-	get: () => config.value.showBars ?? true,
-	set: (val: boolean) => updateConfig({ showBars: val }),
+    get: () => config.value.showBars ?? true,
+    set: (val: boolean) => updateConfig({ showBars: val }),
 })
 
 const showMovingAverage = computed<boolean>({
-	get: () => config.value.showMovingAverage ?? true,
-	set: (val: boolean) => updateConfig({ showMovingAverage: val }),
+    get: () => config.value.showMovingAverage ?? true,
+    set: (val: boolean) => updateConfig({ showMovingAverage: val }),
 })
 
 const showThreshold = computed<boolean>({
-	get: () => config.value.showThreshold ?? true,
-	set: (val: boolean) => updateConfig({ showThreshold: val }),
+    get: () => config.value.showThreshold ?? true,
+    set: (val: boolean) => updateConfig({ showThreshold: val }),
 })
 
 const crosshairType = computed<'cross' | 'line'>({
-	get: () => config.value.crosshairType ?? 'cross',
-	set: (val: 'cross' | 'line') => updateConfig({ crosshairType: val }),
+    get: () => config.value.crosshairType ?? 'cross',
+    set: (val: 'cross' | 'line') => updateConfig({ crosshairType: val }),
 })
 
 // --- Titre ---
 const chartTitle = computed(() => {
-	const st = config.value.seriesType
-	if (st === 'bar') return t('components.dashboard.pnl_bar_chart.title')
-	if (st === 'area') return t('components.dashboard.cumulated_pnl_chart.title')
-	// barMA : titre basé sur la métrique
-	const m = config.value.metric
-	const opt = metricOptions.find(o => o.value === m)
-	return opt ? t(opt.labelKey) : t('components.dashboard.appt_chart.title')
+    const st = config.value.seriesType
+    if (st === 'bar') return t('components.dashboard.pnl_bar_chart.title')
+    // area et barMA : titre basé sur la métrique
+    const m = config.value.metric
+    const opt = metricOptions.find((o) => o.value === m)
+    return opt ? t(opt.labelKey) : t('components.dashboard.appt_chart.title')
 })
 
 const modalHeightClass = computed(() => undefined)
 
 // --- Subtitle (label d'agrégation) ---
 const aggregationLabel = computed(() => {
-	if (config.value.seriesType === 'bar') return undefined
-	const opt = aggregationOptions.value.find(o => o.value === aggregation.value)
-	return opt?.label ?? ''
+    if (config.value.seriesType === 'bar') return undefined
+    const opt = aggregationOptions.value.find((o) => o.value === aggregation.value)
+    return opt?.label ?? ''
 })
 
-// --- Formatage axe Y ---
+// --- Formatage axe Y (utilise le même formatage que les breakdowns) ---
 const yAxisFormatter = computed<(v: number) => string>(() => {
-	const fmt = config.value.yAxisFormat || 'currency'
-	if (fmt === 'percent') return (v: number) => `${v}%`
-	if (fmt === 'currency') return (v: number) => formatCurrency(v)
-	return (v: number) => String(v)
+    const metric = config.value.metric
+    return (v: number) => formatMetricValueForMetric(v, metric)
 })
 
 // --- Données PnL par trade (seriesType: 'bar') ---
 const pnlData = computed(() => {
-	if (config.value.seriesType !== 'bar') return null
-	const trades: TradeExtendedType[] = dataStore.lastTrades || []
-	const sorted = [...trades].sort((a, b) => {
-		const aClose = a.closeDate ? new Date(a.closeDate).getTime() : 0
-		const bClose = b.closeDate ? new Date(b.closeDate).getTime() : 0
-		if (aClose !== bClose) return aClose - bClose
-		const aOpen = a.openDate ? new Date(a.openDate).getTime() : 0
-		const bOpen = b.openDate ? new Date(b.openDate).getTime() : 0
-		if (aOpen !== bOpen) return aOpen - bOpen
-		return (a.id || 0) - (b.id || 0)
-	})
-	const max = config.value.maxTrades ?? 50
-	const display = sorted.slice(-max)
-	return {
-		trades: display,
-		labels: display.map((_, i) => `#${i + 1}`),
-		values: display.map(tr => displayModeNet.value ? (tr.netProfit || 0) : (tr.profit || 0)),
-	}
+    if (config.value.seriesType !== 'bar') return null
+    const trades: TradeExtendedType[] = dataStore.lastTrades || []
+    const sorted = [...trades].sort((a, b) => {
+        const aClose = a.closeDate ? new Date(a.closeDate).getTime() : 0
+        const bClose = b.closeDate ? new Date(b.closeDate).getTime() : 0
+        if (aClose !== bClose) return aClose - bClose
+        const aOpen = a.openDate ? new Date(a.openDate).getTime() : 0
+        const bOpen = b.openDate ? new Date(b.openDate).getTime() : 0
+        if (aOpen !== bOpen) return aOpen - bOpen
+        return (a.id || 0) - (b.id || 0)
+    })
+    const max = config.value.maxTrades ?? 50
+    const display = sorted.slice(-max)
+    return {
+        trades: display,
+        labels: display.map((_, i) => `#${i + 1}`),
+        values: display.map((tr) => (displayModeNet.value ? tr.netProfit || 0 : tr.profit || 0)),
+    }
 })
 
 // --- Données cumulées (seriesType: 'area') ---
-// Cumule la métrique choisie au fil du temps (equity curve générique)
+// --- Données area chart (seriesType: 'area') ---
+// Cumul uniquement pour pnl et appt, valeur brute pour les autres métriques
 const cumulatedData = computed(() => {
-	if (config.value.seriesType !== 'area') return null
-	const trades = dataStore.lastTrades || []
-	if (!trades.length) return null
-	const mode = aggregation.value
-	const grouped = getGroupedTrades(mode)
-	const useNet = displayModeNet.value
-	const metric = config.value.metric
-	// Calcule la métrique pour chaque période, puis cumule
-	const sortedKeys = Object.keys(grouped).sort()
-	const labels: string[] = []
-	const periodValues: number[] = []
-	for (const key of sortedKeys) {
-		const groupTrades = grouped[key]
-		if (!groupTrades || groupTrades.length === 0) continue
-		labels.push(key)
-		const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
-		periodValues.push(metrics ? getMetricValueForMetric(metrics, metric) : 0)
-	}
-	// Cumul
-	const cumulatedValues: number[] = []
-	let runningSum = 0
-	for (const v of periodValues) {
-		runningSum += v
-		cumulatedValues.push(runningSum)
-	}
-	return { labels, values: cumulatedValues }
+    if (config.value.seriesType !== 'area') return null
+    const trades = dataStore.lastTrades || []
+    if (!trades.length) return null
+    const mode = aggregation.value
+    const grouped = getGroupedTrades(mode)
+    const useNet = displayModeNet.value
+    const metric = config.value.metric
+    const shouldCumulate = metric === 'pnl' || metric === 'appt'
+    // Calcule la métrique pour chaque période
+    const sortedKeys = Object.keys(grouped).sort()
+    const labels: string[] = []
+    const periodValues: number[] = []
+    for (const key of sortedKeys) {
+        const groupTrades = grouped[key]
+        if (!groupTrades || groupTrades.length === 0) continue
+        labels.push(key)
+        const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
+        periodValues.push(metrics ? getMetricValueForMetric(metrics, metric) : 0)
+    }
+    // Cumul si pnl ou appt, sinon valeur brute
+    const values = shouldCumulate
+        ? periodValues.reduce((acc: number[], v) => {
+              acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + v)
+              return acc
+          }, [])
+        : periodValues
+    return { labels, values }
 })
 
 // --- Données agrégées par période (seriesType: 'barMA') ---
 // Utilise calculateMetricsByDimension avec un groupFn par période pour calculer n'importe quelle métrique
 const periodMetricsData = computed(() => {
-	if (config.value.seriesType !== 'barMA') return null
-	const trades: TradeExtendedType[] = dataStore.lastTrades || []
-	if (!trades.length) return null
-	const mode = aggregation.value
-	const grouped = getGroupedTrades(mode)
-	const useNet = displayModeNet.value
-	// Calcule les métriques pour chaque groupe de période
-	const labels: string[] = []
-	const values: number[] = []
-	const metric = config.value.metric
-	// Trie les clés de période par ordre chronologique
-	const sortedKeys = Object.keys(grouped).sort()
-	for (const key of sortedKeys) {
-		const groupTrades = grouped[key]
-		if (!groupTrades || groupTrades.length === 0) continue
-		labels.push(key)
-		// Calcule la métrique pour ce groupe via calculateMetricsByDimension
-		const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
-		if (!metrics) {
-			values.push(0)
-			continue
-		}
-		values.push(getMetricValueForMetric(metrics, metric))
-	}
-	// Calcule la moyenne mobile
-	const maWindow = config.value.movingAverageWindow ?? 5
-	const maValues: number[] = []
-	for (let i = 0; i < values.length; i++) {
-		const start = Math.max(0, i - maWindow + 1)
-		const window = values.slice(start, i + 1)
-		maValues.push(window.reduce((a, b) => a + b, 0) / window.length)
-	}
-	return { labels, values, maValues }
+    if (config.value.seriesType !== 'barMA') return null
+    const trades: TradeExtendedType[] = dataStore.lastTrades || []
+    if (!trades.length) return null
+    const mode = aggregation.value
+    const grouped = getGroupedTrades(mode)
+    const useNet = displayModeNet.value
+    // Calcule les métriques pour chaque groupe de période
+    const labels: string[] = []
+    const values: number[] = []
+    const metric = config.value.metric
+    // Trie les clés de période par ordre chronologique
+    const sortedKeys = Object.keys(grouped).sort()
+    for (const key of sortedKeys) {
+        const groupTrades = grouped[key]
+        if (!groupTrades || groupTrades.length === 0) continue
+        labels.push(key)
+        // Calcule la métrique pour ce groupe via calculateMetricsByDimension
+        const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
+        if (!metrics) {
+            values.push(0)
+            continue
+        }
+        values.push(getMetricValueForMetric(metrics, metric))
+    }
+    // Calcule la moyenne mobile
+    const maWindow = config.value.movingAverageWindow ?? 5
+    const maValues: number[] = []
+    for (let i = 0; i < values.length; i++) {
+        const start = Math.max(0, i - maWindow + 1)
+        const window = values.slice(start, i + 1)
+        maValues.push(window.reduce((a, b) => a + b, 0) / window.length)
+    }
+    return { labels, values, maValues }
 })
 
 // --- Chart option ---
 const chartOption = computed<EChartsOption | undefined>(() => {
-	const st = config.value.seriesType
-	const base = getEchartsBaseOption()
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-	const grid: EChartsGridOption = { left: 70, right: 16, top: 12, bottom: 28 }
-	const yFmt = yAxisFormatter.value
-	const localeVal = locale.value as 'fr' | 'en' | 'us'
+    const st = config.value.seriesType
+    const base = getEchartsBaseOption()
+    const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
+    const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
+    const grid: EChartsGridOption = { left: 70, right: 16, top: 12, bottom: 28 }
+    const yFmt = yAxisFormatter.value
+    const localeVal = locale.value as 'fr' | 'en' | 'us'
 
-	// Configuration du réticule (crosshair) selon le type
-	// Lignes pointillées + labels sur les axes
-	// Light : lignes gris clair, labels fond gris foncé
-	// Dark : lignes gris clair, labels fond gris foncé
-	const pointerLineColor = isDark.value ? '#9ca3af' : '#888'
-	const pointerLabelBg = isDark.value ? '#374151' : '#666'
-	const axisPointerConfig = crosshairType.value === 'cross'
-		? {
-			type: 'cross' as const,
-			snap: true,
-			lineStyle: { color: pointerLineColor, type: 'dashed' as const },
-			crossStyle: { color: pointerLineColor, type: 'dashed' as const },
-			label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
-		}
-		: {
-			type: 'line' as const,
-			snap: true,
-			lineStyle: { color: pointerLineColor, type: 'dashed' as const },
-			label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
-		}
+    // Configuration du réticule (crosshair) selon le type
+    // Lignes pointillées + labels sur les axes
+    // Light : lignes gris clair, labels fond gris foncé
+    // Dark : lignes gris clair, labels fond gris foncé
+    const pointerLineColor = isDark.value ? '#9ca3af' : '#888'
+    const pointerLabelBg = isDark.value ? '#374151' : '#666'
+    const axisPointerConfig =
+        crosshairType.value === 'cross'
+            ? {
+                  type: 'cross' as const,
+                  snap: true,
+                  lineStyle: { color: pointerLineColor, type: 'dashed' as const },
+                  crossStyle: { color: pointerLineColor, type: 'dashed' as const },
+                  label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
+              }
+            : {
+                  type: 'line' as const,
+                  snap: true,
+                  lineStyle: { color: pointerLineColor, type: 'dashed' as const },
+                  label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
+              }
 
-	// --- PnL par trade : bar chart (seriesType: 'bar') ---
-	if (st === 'bar' && pnlData.value) {
-		const { labels, values, trades } = pnlData.value
-		const { profitColor, lossColor, breakevenColor } = pnlColors
-		const colors = values.map(v => v > 0 ? profitColor.value : v < 0 ? lossColor.value : breakevenColor.value)
-		const data = buildBarData(values, colors, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
-		const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
-		return {
-			...base,
-			tooltip: {
-				backgroundColor, borderColor,
-				textStyle: { color: tooltipTextColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'axis',
-				axisPointer: axisPointerConfig,
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const trade = trades[p.dataIndex]
-					if (!trade) return ''
-					const val = p.value as number
-					let date = ''
-					if (trade.closeDate) {
-						date = formatDateWithUserTimezone(trade.closeDate, userStore.user?.settings_object || {}, true, localeVal)
-					}
-					return [date ? `Date: ${date}` : '', `P&L: ${formatCurrency(val)}`, trade.account_displayName || ''].filter(Boolean).join('<br/>')
-				},
-			},
-			grid,
-			xAxis: {
-				type: 'category',
-				data: labels,
-				axisLine: { lineStyle: { color: axisColor } },
-				axisTick: { show: false },
-				axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: labels.length > 30 ? 45 : 0 },
-				splitLine: { show: false },
-			},
-			yAxis: {
-				type: 'value',
-				axisLine: { lineStyle: { color: axisColor } },
-				axisTick: { show: false },
-				axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
-				splitLine: { lineStyle: { color: axisColor } },
-			},
-			series,
-		}
-	}
+    // --- PnL par trade : bar chart (seriesType: 'bar') ---
+    if (st === 'bar' && pnlData.value) {
+        const { labels, values, trades } = pnlData.value
+        const { profitColor, lossColor, breakevenColor } = pnlColors
+        const colors = values.map((v) => (v > 0 ? profitColor.value : v < 0 ? lossColor.value : breakevenColor.value))
+        const data = buildBarData(values, colors, (v) => (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]))
+        const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
+        return {
+            ...base,
+            tooltip: {
+                backgroundColor,
+                borderColor,
+                textStyle: { color: tooltipTextColor, fontSize: 13 },
+                appendTo: document.body,
+                className: 'echarts-custom-tooltip',
+                trigger: 'axis',
+                axisPointer: axisPointerConfig,
+                formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+                    const p = Array.isArray(params) ? params[0] : params
+                    const trade = trades[p.dataIndex]
+                    if (!trade) return ''
+                    const val = p.value as number
+                    let date = ''
+                    if (trade.closeDate) {
+                        date = formatDateWithUserTimezone(trade.closeDate, userStore.user?.settings_object || {}, true, localeVal)
+                    }
+                    return [date ? `Date: ${date}` : '', `P&L: ${formatCurrency(val)}`, trade.account_displayName || ''].filter(Boolean).join('<br/>')
+                },
+            },
+            grid,
+            xAxis: {
+                type: 'category',
+                data: labels,
+                axisLine: { lineStyle: { color: axisColor } },
+                axisTick: { show: false },
+                axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: labels.length > 30 ? 45 : 0 },
+                splitLine: { show: false },
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { lineStyle: { color: axisColor } },
+                axisTick: { show: false },
+                axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
+                splitLine: { lineStyle: { color: axisColor } },
+            },
+            series,
+        }
+    }
 
-	// --- Cumulated PnL : area chart bicolore (seriesType: 'area') ---
-	if (st === 'area' && cumulatedData.value) {
-		const baseLabels = cumulatedData.value.labels
-		const baseValues = cumulatedData.value.values
-		const { profitColor, lossColor } = cumulatedColors
-		const pColor = profitColor.value
-		const lColor = lossColor.value
-		const pAreaColor = colorToRgba(pColor, 0.3)
-		const lAreaColor = colorToRgba(lColor, 0.3)
+    // --- Cumulated PnL : area chart bicolore (seriesType: 'area') ---
+    if (st === 'area' && cumulatedData.value) {
+        const baseLabels = cumulatedData.value.labels
+        const baseValues = cumulatedData.value.values
+        const { profitColor, lossColor } = cumulatedColors
+        const pColor = profitColor.value
+        const lColor = lossColor.value
+        const pAreaColor = colorToRgba(pColor, 0.3)
+        const lAreaColor = colorToRgba(lColor, 0.3)
 
-		const capital = showThreshold.value ? (props.startingCapital || 0) : 0
-		const threshold = capital
+        // Le threshold ne s'applique qu'au P&L cumulé, ignoré pour les autres métriques
+        const useThreshold = showThreshold.value && config.value.metric === 'pnl'
+        const capital = useThreshold ? props.startingCapital || 0 : 0
+        const threshold = capital
 
-		const labels = capital > 0 ? ['', ...baseLabels] : baseLabels
-		const values = capital > 0 ? [capital, ...baseValues.map(v => v + capital)] : baseValues
+        const labels = capital > 0 ? ['', ...baseLabels] : baseLabels
+        const values = capital > 0 ? [capital, ...baseValues.map((v) => v + capital)] : baseValues
 
-		// Sépare les points profit/loss avec points de croisement (comme BaseCumulatedLineChart)
-		type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
-		const profitData: DataPoint[] = []
-		const lossData: DataPoint[] = []
+        // Sépare les points profit/loss avec points de croisement (comme BaseCumulatedLineChart)
+        type DataPoint = { value: [number, number]; itemStyle?: { opacity: number }; symbolSize?: number } | null
+        const profitData: DataPoint[] = []
+        const lossData: DataPoint[] = []
 
-		for (let i = 0; i < values.length; i++) {
-			const v = values[i]
-			const prev = i > 0 ? values[i - 1] : undefined
-			if (prev !== undefined) {
-				const crossedUp = prev < threshold && v >= threshold
-				const crossedDown = prev >= threshold && v < threshold
-				if (crossedUp || crossedDown) {
-					const tRatio = (threshold - prev) / (v - prev)
-					const xi = (i - 1) + tRatio
-					const crossingPoint = { value: [xi, threshold] as [number, number], itemStyle: { opacity: 0 }, symbolSize: 0 }
-					profitData.push(crossingPoint)
-					lossData.push(crossingPoint)
-				}
-			}
-			const point = { value: [i, v] as [number, number] }
-			if (v >= threshold) {
-				profitData.push(point)
-				lossData.push(null)
-			} else {
-				lossData.push(point)
-				profitData.push(null)
-			}
-		}
+        for (let i = 0; i < values.length; i++) {
+            const v = values[i]
+            const prev = i > 0 ? values[i - 1] : undefined
+            if (prev !== undefined) {
+                const crossedUp = prev < threshold && v >= threshold
+                const crossedDown = prev >= threshold && v < threshold
+                if (crossedUp || crossedDown) {
+                    const tRatio = (threshold - prev) / (v - prev)
+                    const xi = i - 1 + tRatio
+                    const crossingPoint = { value: [xi, threshold] as [number, number], itemStyle: { opacity: 0 }, symbolSize: 0 }
+                    profitData.push(crossingPoint)
+                    lossData.push(crossingPoint)
+                }
+            }
+            const point = { value: [i, v] as [number, number] }
+            if (v >= threshold) {
+                profitData.push(point)
+                lossData.push(null)
+            } else {
+                lossData.push(point)
+                profitData.push(null)
+            }
+        }
 
-		const largeDataset = values.length > 500
-		const seriesBase = {
-			type: 'line' as const,
-			smooth: false,
-			symbol: 'none',
-			showSymbol: false,
-			symbolSize: 0,
-			connectNulls: false,
-			emphasis: { disabled: true },
-			blur: { lineStyle: { opacity: 1 }, areaStyle: { opacity: 0.3 } },
-			...(largeDataset && { sampling: 'lttb' as const, progressive: 500, progressiveThreshold: 500 }),
-		}
+        const largeDataset = values.length > 500
+        const seriesBase = {
+            type: 'line' as const,
+            smooth: false,
+            symbol: 'none',
+            showSymbol: false,
+            symbolSize: 0,
+            connectNulls: false,
+            emphasis: { disabled: true },
+            blur: { lineStyle: { opacity: 1 }, areaStyle: { opacity: 0.3 } },
+            ...(largeDataset && { sampling: 'lttb' as const, progressive: 500, progressiveThreshold: 500 }),
+        }
 
-		return {
-			...base,
-			animation: false,
-			tooltip: {
-				backgroundColor, borderColor,
-				textStyle: { color: tooltipTextColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'axis',
-				axisPointer: axisPointerConfig,
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const valPair = p.value as unknown as [number, number]
-					const xi = Math.round(valPair[0])
-					const label = labels[xi] || ''
-					const val = valPair[1]
-					return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`].filter(Boolean).join('<br/>')
-				},
-			},
-			grid,
-			xAxis: {
-				type: 'value',
-				min: 0,
-				max: labels.length - 1,
-				boundaryGap: [0, 0] as [number, number],
-				axisLine: { lineStyle: { color: axisColor } },
-				axisTick: { show: false },
-				axisLabel: {
-					color: textColor,
-					fontSize: 11,
-					formatter: (v: number) => labels[Math.round(v)] ?? '',
-				},
-				splitLine: { show: false },
-			},
-			yAxis: {
-				type: 'value',
-				scale: true,
-				axisLine: { show: false },
-				axisTick: { show: false },
-				axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
-				splitLine: { lineStyle: { color: axisColor } },
-			},
-			series: [
-				{
-					...seriesBase,
-					name: 'Cumulated',
-					data: profitData,
-					lineStyle: { width: 2, color: pColor },
-					itemStyle: { color: pColor },
-					areaStyle: { origin: threshold, color: pAreaColor } as EChartsAreaStyle,
-				},
-				{
-					...seriesBase,
-					name: 'Cumulated',
-					data: lossData,
-					lineStyle: { width: 2, color: lColor },
-					itemStyle: { color: lColor },
-					areaStyle: { origin: threshold, color: lAreaColor } as EChartsAreaStyle,
-					markLine: threshold > 0 ? {
-						silent: true,
-						symbol: 'none',
-						lineStyle: { color: axisColor, type: 'dashed', width: 1 },
-						data: [{ yAxis: threshold }],
-						label: { show: false },
-					} : undefined,
-				},
-			],
-		}
-	}
+        return {
+            ...base,
+            animation: false,
+            tooltip: {
+                backgroundColor,
+                borderColor,
+                textStyle: { color: tooltipTextColor, fontSize: 13 },
+                appendTo: document.body,
+                className: 'echarts-custom-tooltip',
+                trigger: 'axis',
+                axisPointer: axisPointerConfig,
+                formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+                    const p = Array.isArray(params) ? params[0] : params
+                    const valPair = p.value as unknown as [number, number]
+                    const xi = Math.round(valPair[0])
+                    const label = labels[xi] || ''
+                    const val = valPair[1]
+                    return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`]
+                        .filter(Boolean)
+                        .join('<br/>')
+                },
+            },
+            grid,
+            xAxis: {
+                type: 'value',
+                min: 0,
+                max: labels.length - 1,
+                boundaryGap: [0, 0] as [number, number],
+                axisLine: { lineStyle: { color: axisColor } },
+                axisTick: { show: false },
+                axisLabel: {
+                    color: textColor,
+                    fontSize: 11,
+                    formatter: (v: number) => labels[Math.round(v)] ?? '',
+                },
+                splitLine: { show: false },
+            },
+            yAxis: {
+                type: 'value',
+                scale: true,
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
+                splitLine: { lineStyle: { color: axisColor } },
+            },
+            series: [
+                {
+                    ...seriesBase,
+                    name: 'Cumulated',
+                    data: profitData,
+                    lineStyle: { width: 2, color: pColor },
+                    itemStyle: { color: pColor },
+                    areaStyle: { origin: threshold, color: pAreaColor } as EChartsAreaStyle,
+                },
+                {
+                    ...seriesBase,
+                    name: 'Cumulated',
+                    data: lossData,
+                    lineStyle: { width: 2, color: lColor },
+                    itemStyle: { color: lColor },
+                    areaStyle: { origin: threshold, color: lAreaColor } as EChartsAreaStyle,
+                    markLine:
+                        threshold > 0
+                            ? {
+                                  silent: true,
+                                  symbol: 'none',
+                                  lineStyle: { color: axisColor, type: 'dashed', width: 1 },
+                                  data: [{ yAxis: threshold }],
+                                  label: { show: false },
+                              }
+                            : undefined,
+                },
+            ],
+        }
+    }
 
-	// --- BarMA : barres + moyenne mobile (seriesType: 'barMA') ---
-	if (st === 'barMA' && periodMetricsData.value) {
-		const { labels, values: barValues, maValues } = periodMetricsData.value
-		const metric = config.value.metric
+    // --- BarMA : barres + moyenne mobile (seriesType: 'barMA') ---
+    if (st === 'barMA' && periodMetricsData.value) {
+        const { labels, values: barValues, maValues } = periodMetricsData.value
+        const metric = config.value.metric
 
-		// Couleurs génériques pour les séries temporelles (bar + MA)
-		const colors = timeSeriesColors
-		const maColor = colors.movingAverageColor.value || '#6366f1'
-		// Pour les barres : vert/rouge si la métrique peut être négative (pnl, appt, expectancy, drawdown), sinon couleur uniforme
-		const canBeNegative = ['pnl', 'appt', 'expectancy', 'drawdown', 'currentDrawdown', 'avgLoss'].includes(metric)
-		const barFill = colors.barColor.value || '#f472b6'
+        // Couleurs génériques pour les séries temporelles (bar + MA)
+        const colors = timeSeriesColors
+        const maColor = colors.movingAverageColor.value || '#6366f1'
+        // Pour les barres : vert/rouge si la métrique peut être négative (pnl, appt, expectancy, drawdown), sinon couleur uniforme
+        const canBeNegative = ['pnl', 'appt', 'expectancy', 'drawdown', 'currentDrawdown', 'avgLoss'].includes(metric)
+        const barFill = colors.barColor.value || '#f472b6'
 
-		const series: EChartsOption['series'] = []
-		if (showMovingAverage.value) {
-			series.push({
-				type: 'line',
-				name: t('components.dashboard.index.mobile_avg_label'),
-				data: maValues,
-				smooth: 0.2,
-				showSymbol: false,
-				lineStyle: { color: maColor, width: 2 },
-				itemStyle: { color: maColor },
-			})
-		}
-		if (showBars.value) {
-			series.push({
-				type: 'bar',
-				name: metricItems.value.find(m => m.value === metric)?.label || metric,
-				data: barValues.map(v => ({
-					value: v,
-					itemStyle: {
-						color: canBeNegative ? (v >= 0 ? colors.profitColor.value : colors.lossColor.value) : barFill,
-						borderRadius: canBeNegative ? (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]) : [3, 3, 0, 0],
-					},
-				})),
-				barMaxWidth: 32,
-				emphasis: { disabled: true },
-			})
-		}
+        const series: EChartsOption['series'] = []
+        if (showMovingAverage.value) {
+            series.push({
+                type: 'line',
+                name: t('components.dashboard.index.mobile_avg_label'),
+                data: maValues,
+                smooth: 0.2,
+                showSymbol: false,
+                lineStyle: { color: maColor, width: 2 },
+                itemStyle: { color: maColor },
+            })
+        }
+        if (showBars.value) {
+            series.push({
+                type: 'bar',
+                name: metricItems.value.find((m) => m.value === metric)?.label || metric,
+                data: barValues.map((v) => ({
+                    value: v,
+                    itemStyle: {
+                        color: canBeNegative ? (v >= 0 ? colors.profitColor.value : colors.lossColor.value) : barFill,
+                        borderRadius: canBeNegative ? (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]) : [3, 3, 0, 0],
+                    },
+                })),
+                barMaxWidth: 32,
+                emphasis: { disabled: true },
+            })
+        }
 
-		const yMin = config.value.yAxisMin
-		const yMax = config.value.yAxisMax
+        const yMin = config.value.yAxisMin
+        const yMax = config.value.yAxisMax
 
-		// Formatage selon la métrique
-		const isPercent = config.value.yAxisFormat === 'percent'
-		const fmtVal = (val: number) => isPercent ? `${val.toFixed(0)}%` : formatCurrency(val)
+        // Formatage selon la métrique (même formatage que les breakdowns)
+        const fmtVal = (val: number) => formatMetricValueForMetric(val, metric)
 
-		return {
-			...base,
-			tooltip: {
-				backgroundColor, borderColor,
-				textStyle: { color: tooltipTextColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'axis',
-				axisPointer: axisPointerConfig,
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const list = (Array.isArray(params) ? params : [params]) as EChartsFormatterParams[]
-					const label = labels[list[0]?.dataIndex] || ''
-					const lines = list.map(p => {
-						const val = p.value as number
-						if (val === null || val === undefined) return null
-						return `${p.seriesName}: ${fmtVal(val)}`
-					}).filter(Boolean)
-					return [label ? `Date: ${label}` : '', ...lines].filter(Boolean).join('<br/>')
-				},
-			},
-			grid,
-			xAxis: {
-				type: 'category',
-				data: labels,
-				axisLine: { lineStyle: { color: axisColor } },
-				axisTick: { show: false },
-				axisLabel: { color: textColor, fontSize: 11, rotate: labels.length > 12 ? 30 : 0 },
-				splitLine: { show: false },
-			},
-			yAxis: {
-				type: 'value',
-				min: yMin,
-				max: yMax,
-				axisLine: { show: false },
-				axisTick: { show: false },
-				axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
-				splitLine: { lineStyle: { color: axisColor } },
-			},
-			series,
-		}
-	}
+        return {
+            ...base,
+            tooltip: {
+                backgroundColor,
+                borderColor,
+                textStyle: { color: tooltipTextColor, fontSize: 13 },
+                appendTo: document.body,
+                className: 'echarts-custom-tooltip',
+                trigger: 'axis',
+                axisPointer: axisPointerConfig,
+                formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+                    const list = (Array.isArray(params) ? params : [params]) as EChartsFormatterParams[]
+                    const label = labels[list[0]?.dataIndex] || ''
+                    const lines = list
+                        .map((p) => {
+                            const val = p.value as number
+                            if (val === null || val === undefined) return null
+                            return `${p.seriesName}: ${fmtVal(val)}`
+                        })
+                        .filter(Boolean)
+                    return [label ? `Date: ${label}` : '', ...lines].filter(Boolean).join('<br/>')
+                },
+            },
+            grid,
+            xAxis: {
+                type: 'category',
+                data: labels,
+                axisLine: { lineStyle: { color: axisColor } },
+                axisTick: { show: false },
+                axisLabel: { color: textColor, fontSize: 11, rotate: labels.length > 12 ? 30 : 0 },
+                splitLine: { show: false },
+            },
+            yAxis: {
+                type: 'value',
+                min: yMin,
+                max: yMax,
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
+                splitLine: { lineStyle: { color: axisColor } },
+            },
+            series,
+        }
+    }
 
-	return undefined
+    return undefined
 })
 </script>

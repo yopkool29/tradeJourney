@@ -358,7 +358,7 @@ const barChartOption = computed<EChartsOption>(() => {
 			appendTo: document.body,
 			className: 'echarts-custom-tooltip',
 			trigger: 'axis',
-			axisPointer: { type: 'shadow' },
+			axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
 			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 				const p = Array.isArray(params) ? params[0] : params
 				const metric = filteredMetrics.value[p.dataIndex]
@@ -426,7 +426,7 @@ const barVerticalChartOption = computed<EChartsOption>(() => {
 			appendTo: document.body,
 			className: 'echarts-custom-tooltip',
 			trigger: 'axis',
-			axisPointer: { type: 'shadow' },
+			axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
 			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 				const p = Array.isArray(params) ? params[0] : params
 				const metric = filteredMetrics.value[p.dataIndex]

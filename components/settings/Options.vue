@@ -380,6 +380,9 @@
                                     :label="$t('components.settings.options.color_moving_average')"
                                     :default-colors="defaultSettings.chartColors!.timeSeriesChart.movingAverage"
                                 />
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ $t('components.dashboard.common.bar_color_info') }}
+                                </p>
                             </div>
                         </div>
                     </div>

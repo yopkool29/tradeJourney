@@ -56,6 +56,20 @@ const buildDefaultWorkspace = (id: string, name: string, partial?: Partial<Works
 	...partial,
 })
 
+// Valeurs par défaut pour le reset du workspace summary
+export const getDefaultSummaryState = () => ({
+	dashboardChartVisibilityLg: { ...defaultChartVisibility },
+	dashboardChartVisibilityMd: { ...defaultChartVisibility },
+	dashboardChartVisibilitySm: { ...defaultChartVisibility },
+	dashboardSectionVisibilityLg: { ...defaultSectionVisibility },
+	dashboardSectionVisibilityMd: { ...defaultSectionVisibility },
+	dashboardSectionVisibilitySm: { ...defaultSectionVisibility },
+	dashboardGridLayout: defaultDashboardGridLayout.map(item => ({ ...item })),
+	dashboardGridLayoutMd: defaultDashboardGridLayoutMd.map(item => ({ ...item })),
+	dashboardGridLayoutSm: defaultDashboardGridLayoutSm.map(item => ({ ...item })),
+	breakdownConfigs: { ...defaultBreakdownConfigs, ...defaultTimeSeriesConfigs },
+})
+
 export const useDbStateStore = defineStore(
 	'dbStateStore',
 	() => {

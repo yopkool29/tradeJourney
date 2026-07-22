@@ -1,6 +1,6 @@
 <template>
 	<UPopover v-model:open="isOpen" :content="{ align: 'start', sideOffset: 8 }" @update:open="onPopoverChange">
-		<UButton icon="i-lucide-eye" size="sm" variant="ghost" color="neutral">
+		<UButton icon="i-lucide-eye" size="sm" color="primary">
 			{{ $t('components.dashboard.visibility.title') }}
 		</UButton>
 		<template #content>
@@ -24,13 +24,13 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_bars') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.bars" :key="tmpl.id" class="flex items-center gap-1">
-									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.bars" :key="tmpl.id" class="flex items-center gap-0">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UButton
 										icon="i-lucide-plus"
 										size="xs"
 										variant="ghost"
-										color="neutral"
+										color="primary"
 										@click="onCreateFromTemplate(tmpl.id)"
 									/>
 								</div>
@@ -40,13 +40,13 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_scatter_heatmap') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.scatterHeatmap" :key="tmpl.id" class="flex items-center gap-1">
-									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.scatterHeatmap" :key="tmpl.id" class="flex items-center gap-0">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UButton
 										icon="i-lucide-plus"
 										size="xs"
 										variant="ghost"
-										color="neutral"
+										color="primary"
 										@click="onCreateFromTemplate(tmpl.id)"
 									/>
 								</div>
@@ -56,13 +56,13 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_time_series') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center gap-1">
-									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center gap-0">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UButton
 										icon="i-lucide-plus"
 										size="xs"
 										variant="ghost"
-										color="neutral"
+										color="primary"
 										@click="onCreateFromTemplate(tmpl.id)"
 									/>
 								</div>
@@ -72,13 +72,13 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_advanced') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center gap-1">
-									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center gap-0">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UButton
 										icon="i-lucide-plus"
 										size="xs"
 										variant="ghost"
-										color="neutral"
+										color="primary"
 										@click="onCreateFromTemplate(tmpl.id)"
 									/>
 								</div>
