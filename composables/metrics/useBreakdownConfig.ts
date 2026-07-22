@@ -32,12 +32,12 @@ export const defaultTableColumns: BreakdownMetric[] = [
 // Liste des dimensions disponibles avec leur label i18n
 export const dimensionOptions: { value: BreakdownDimension; labelKey: string }[] = [
 	{ value: 'ticker', labelKey: 'components.dashboard.breakdown.dimensions.ticker' },
-	{ value: 'tag', labelKey: 'components.dashboard.breakdown.dimensions.tag' },
 	{ value: 'side', labelKey: 'components.dashboard.breakdown.dimensions.side' },
 	{ value: 'month', labelKey: 'components.dashboard.breakdown.dimensions.month' },
+	{ value: 'monthYear', labelKey: 'components.dashboard.breakdown.dimensions.monthYear' },
 	{ value: 'dayOfWeek', labelKey: 'components.dashboard.breakdown.dimensions.dayOfWeek' },
-	{ value: 'hour', labelKey: 'components.dashboard.breakdown.dimensions.hour' },
-	{ value: 'account', labelKey: 'components.dashboard.breakdown.dimensions.account' },
+	{ value: 'hourStart', labelKey: 'components.dashboard.breakdown.dimensions.hourStart' },
+	{ value: 'hourEnd', labelKey: 'components.dashboard.breakdown.dimensions.hourEnd' },
 ]
 
 // Liste des métriques disponibles avec leur label i18n

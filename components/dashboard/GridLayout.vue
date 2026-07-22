@@ -9,13 +9,13 @@
                 :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
                 <div class="h-full w-full relative group" @mousedown="onMouseDown" @click.capture="onContentClick">
                     <UIcon v-if="isDraggable" name="i-lucide-grip"
-                        class="absolute top-2 text-gray-800 dark:text-gray-200 opacity-50 cursor-pointer z-10"
+                        class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 z-10"
                         size="xs" />
                     <!-- Bouton close (X) pour tous les items -->
                     <button
                         v-if="removableItems?.includes(item.i)"
                         class="absolute top-1 right-2 z-30 px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 opacity-70 group-hover:opacity-100"
-                        :title="$t('common.close')"
+                        :title="$t('common.actions.close')"
                         @click.stop="$emit('remove-item', item.i)"
                     >
                         <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-800 dark:text-gray-200" />
@@ -50,7 +50,7 @@ const props = defineProps<{
     isDraggable?: boolean
     isResizable?: boolean
     resizableItems?: string[]
-    // Items qui peuvent être supprimés via le bouton X (ex: instances de breakdown)
+    // Items qui peuvent être supprimés via le bouton X
     removableItems?: string[]
     colNum?: number
 }>()

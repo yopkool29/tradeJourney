@@ -80,11 +80,27 @@ export interface TradeOptions {
 export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'breakdownBar' | 'breakdownScatter' | 'breakdownTable' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
 export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'riskRatios' | 'dayStatistics'
 
+// Liste des clés de sections (source de vérité unique)
+export const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
+
 // Préfixes des types de breakdown (base key sans l'ID d'instance)
 export type BreakdownBaseKey = 'breakdownBar' | 'breakdownScatter' | 'breakdownTable'
 
 // Dimensions disponibles pour les breakdowns configurables
-export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'dayOfWeek' | 'hour' | 'account'
+// 'tagGroup_<name>' est généré dynamiquement pour chaque groupe de tags
+export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'monthYear' | 'dayOfWeek' | 'hourStart' | 'hourEnd' | (string & {})
+
+// Préfixe pour les dimensions de tag groups (ex: 'tagGroup_Strategy')
+export const tagGroupDimensionPrefix = 'tagGroup_'
+
+// Vérifie si une dimension est un tag group
+export const isTagGroupDimension = (dim: string): boolean => dim.startsWith(tagGroupDimensionPrefix)
+
+// Extrait le nom du groupe depuis une dimension tagGroup
+export const getTagGroupName = (dim: string): string | null => {
+	if (!isTagGroupDimension(dim)) return null
+	return dim.slice(tagGroupDimensionPrefix.length)
+}
 
 // Métriques mesurables sur un breakdown
 export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount'
@@ -139,6 +155,9 @@ export interface BreakdownConfig {
 	// Colonnes affichées par la table (utilisé seulement quand chartType === 'table').
 	// Si non défini, utilise les colonnes par défaut.
 	columns?: BreakdownMetric[]
+	// Métriques supplémentaires affichées dans le tooltip (bar/scatter).
+	// Vide par défaut — l'utilisateur les active via le menu settings.
+	tooltipMetrics?: BreakdownMetric[]
 }
 
 export interface DashboardGridItem {

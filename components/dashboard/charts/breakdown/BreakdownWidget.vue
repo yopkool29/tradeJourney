@@ -5,6 +5,7 @@
 		:chart-option="chartOption"
 		:loading="loading"
 		:hide-enlarge="chartType === 'table'"
+		:use-default-slot="chartType === 'table'"
 		:modal-height-class="modalHeightClass"
 	>
 		<!-- Dropdowns dimension/métrique/colonnes/topN dans le header -->
@@ -57,13 +58,31 @@
 			</div>
 		</template>
 
+		<!-- Menu settings : métriques supplémentaires dans le tooltip (bar/scatter seulement) -->
+		<template #settings>
+			<div v-if="chartType !== 'table'" class="space-y-1">
+				<span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
+				<div v-for="m in metricItems" :key="m.value" class="flex items-center gap-2">
+					<UCheckbox
+						:model-value="selectedTooltipMetrics.includes(m.value as BreakdownMetric)"
+						@update:model-value="toggleTooltipMetric(m.value as BreakdownMetric)"
+					/>
+					<span class="text-sm">{{ m.label }}</span>
+				</div>
+			</div>
+		</template>
+
 		<!-- Slot default : pour la table, on remplace le VChart -->
-		<template v-if="chartType === 'table'" #default>
+		<template #default>
 			<DashboardSectionsBreakdownTable
+				v-if="chartType === 'table'"
 				:dimension="config.dimension"
 				:columns="selectedColumns"
 				:loading="loading"
 			/>
+			<div v-else ref="chartContainerRef" class="relative w-full flex-1 min-h-0" style="min-height: 200px;">
+				<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
+			</div>
 		</template>
 	</DashboardChartsBaseEchartsCard>
 </template>
@@ -71,9 +90,11 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
+import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { dimensionOptions, metricOptions, defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
-import { dimensionGroupFns } from '~/composables/useAnalytics'
-import { buildBarColors, buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
+import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension } from '~/composables/useAnalytics'
+import { isTagGroupDimension, getTagGroupName } from '~/type'
+import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 
@@ -85,27 +106,34 @@ const props = defineProps<{
 const { config, chartType, setDimension, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
-const { formatCurrency } = useUtils()
-const { profitColor, lossColor, breakevenColor } = useTypeColors()
+const { profitColor } = useTypeColors()
 const isDark = useIsDark()
 const dataStore = useDataStore()
+const dbStateStore = useDbStateStore()
 
-// Items pour les select menus (avec labels traduits)
-const dimensionItems = computed(() =>
-	dimensionOptions.map(d => ({ value: d.value, label: t(d.labelKey) }))
-)
+// Items pour les select menus (avec labels traduits + tag groups dynamiques)
+const dimensionItems = computed(() => {
+	const fixed = dimensionOptions.map(d => ({ value: d.value, label: t(d.labelKey) }))
+	// Ajoute dynamiquement une dimension par tag group
+	const tagGroups = dbStateStore.tagGroups || []
+	const tagGroupItems = tagGroups.map(g => ({
+		value: `tagGroup_${g.name}`,
+		label: `${t('components.dashboard.breakdown.dimensions.tag')}: ${g.name}`,
+	}))
+	return [...fixed, ...tagGroupItems]
+})
 const metricItems = computed(() =>
 	metricOptions.map(m => ({ value: m.value, label: t(m.labelKey) }))
 )
 
-// Options topN
-const topNOptions = [
+// Options topN (réactif aux changements de langue)
+const topNOptions = computed(() => [
 	{ value: 0, label: t('components.dashboard.breakdown.all') },
 	{ value: 5, label: '5' },
 	{ value: 10, label: '10' },
 	{ value: 15, label: '15' },
 	{ value: 20, label: '20' },
-]
+])
 
 // v-model wrappers qui persistent la config
 const selectedDimension = computed({
@@ -132,10 +160,33 @@ const selectedColumns = computed<BreakdownMetric[]>({
 	set: (val: BreakdownMetric[]) => updateConfig({ columns: val }),
 })
 
+// Métriques supplémentaires affichées dans le tooltip (bar/scatter)
+// Triées selon l'ordre de metricOptions pour un affichage cohérent
+const selectedTooltipMetrics = computed<BreakdownMetric[]>(() => {
+	const selected = config.value.tooltipMetrics ?? []
+	const order = metricOptions.map(m => m.value)
+	return [...selected].sort((a, b) => order.indexOf(a) - order.indexOf(b))
+})
+
+const toggleTooltipMetric = (metric: BreakdownMetric) => {
+	const current = selectedTooltipMetrics.value
+	const newVal = current.includes(metric)
+		? current.filter(m => m !== metric)
+		: [...current, metric]
+	updateConfig({ tooltipMetrics: newVal })
+}
+
 // Titre du chart
 const chartTitle = computed(() => {
 	const dim = config.value?.dimension || 'ticker'
-	const dimLabel = t(`components.dashboard.breakdown.dimensions.${dim}`)
+	// Label de la dimension : traduit pour les dimensions fixes, "Tag: <group>" pour les tag groups
+	let dimLabel: string
+	if (isTagGroupDimension(dim)) {
+		const groupName = getTagGroupName(dim) || ''
+		dimLabel = `${t('components.dashboard.breakdown.dimensions.tag')}: ${groupName}`
+	} else {
+		dimLabel = t(`components.dashboard.breakdown.dimensions.${dim}`)
+	}
 	if (chartType.value === 'table') {
 		return `${t('components.dashboard.breakdown.table_title')} ${dimLabel}`
 	}
@@ -145,70 +196,64 @@ const chartTitle = computed(() => {
 })
 
 // --- Données ---
-const getMetricValue = (m: { pnl: number, winrate: number, profitFactor: number, avgWin: number, avgLoss: number, expectancy: number, avgDuration: number, drawdown: number, currentDrawdown: number, tradesCount: number }) => {
-	switch (config.value.metric) {
-		case 'pnl': return m.pnl
-		case 'winrate': return m.winrate
-		case 'profitFactor': return m.profitFactor === Infinity ? 999 : m.profitFactor
-		case 'avgWin': return m.avgWin
-		case 'avgLoss': return m.avgLoss
-		case 'expectancy': return m.expectancy
-		case 'avgDuration': return m.avgDuration
-		case 'drawdown': return m.drawdown
-		case 'currentDrawdown': return m.currentDrawdown
-		case 'tradesCount': return m.tradesCount
-		default: return m.pnl
-	}
-}
+// Raccourcis qui utilisent la métrique courante de la config
+const getMetricValue = (m: BreakdownMetrics) => getMetricValueForMetric(m, config.value.metric)
+const formatMetricValue = (val: number) => formatMetricValueForMetric(val, config.value.metric)
 
-const formatMetricValue = (val: number): string => {
-	switch (config.value.metric) {
-		case 'pnl':
-		case 'avgWin':
-		case 'avgLoss':
-		case 'expectancy':
-		case 'drawdown':
-		case 'currentDrawdown':
-			return formatCurrency(val)
-		case 'winrate':
-			return `${val.toFixed(1)}%`
-		case 'profitFactor':
-			return val >= 999 ? '∞' : val.toFixed(2)
-		case 'avgDuration':
-			return `${(val / 60).toFixed(1)}h`
-		case 'tradesCount':
-			return String(Math.round(val))
-		default:
-			return formatCurrency(val)
+// Génère les lignes de tooltip pour les métriques supplémentaires sélectionnées
+// (évite les doublons avec la métrique principale et les lignes déjà affichées)
+// Si isEmpty=true, affiche les labels avec valeurs vides sauf tradesCount qui affiche 0
+const buildExtraTooltipLines = (metric: BreakdownMetrics, alreadyShown: Set<BreakdownMetric>, isEmpty = false): string[] => {
+	const lines: string[] = []
+	for (const m of selectedTooltipMetrics.value) {
+		if (alreadyShown.has(m)) continue
+		const val = getMetricValueForMetric(metric, m)
+		const display = isEmpty ? (m === 'tradesCount' ? '0' : '') : formatMetricValueForMetric(val, m)
+		lines.push(`${t(`components.dashboard.breakdown.metrics.${m}`)}: ${display}`)
 	}
+	return lines
 }
 
 const allMetrics = computed(() => {
 	const trades = dataStore.lastTrades || []
 	if (!trades.length) return []
-	const groupFn = dimensionGroupFns[config.value.dimension]
-	return calculateMetricsByDimension(trades, groupFn, displayModeNet.value)
-})
-
-// Ordre logique pour les dimensions temporelles
-const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-
-const sortedMetrics = computed(() => {
-	const metrics = allMetrics.value
+	const tagGroups = dbStateStore.tagGroups || []
 	const dim = config.value.dimension
-	if (dim === 'dayOfWeek') {
-		return [...metrics].sort((a, b) => dayOrder.indexOf(a.key) - dayOrder.indexOf(b.key))
-	}
-	if (dim === 'month') {
-		// Format 'YYYY-MM' → tri chronologique
-		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
-	}
-	if (dim === 'hour') {
-		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
-	}
-	// Pour les autres dimensions (ticker, tag, side, account) : tri par métrique décroissante
-	return [...metrics].sort((a, b) => getMetricValue(b) - getMetricValue(a))
+	const groupFn = getGroupFn(dim, tagGroups)
+	const metrics = calculateMetricsByDimension(trades, groupFn, displayModeNet.value)
+	return injectEmptyTagMetrics(metrics, dim, tagGroups)
 })
+
+// Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
+const formatDimensionLabel = (dimension: BreakdownDimension, key: string): string => {
+	if (dimension === 'dayOfWeek') {
+		const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+		const idx = parseInt(key, 10)
+		if (idx >= 0 && idx <= 6) return t(`common.weekdays.long.${dayKeys[idx]}`)
+		return key
+	}
+	if (dimension === 'month') {
+		const idx = parseInt(key, 10)
+		if (idx >= 0 && idx <= 11) return t(`common.months.long.${idx}`)
+		return key
+	}
+	if (dimension === 'monthYear') {
+		// Format 'YYYY-MM' → 'Mois Année'
+		const [year, monthNum] = key.split('-')
+		const monthIdx = parseInt(monthNum, 10) - 1
+		if (monthIdx >= 0 && monthIdx <= 11) {
+			return `${t(`common.months.long.${monthIdx}`)} ${year}`
+		}
+		return key
+	}
+	// ticker, tag, side, hourStart, hourEnd : clé brute
+	return key
+}
+
+// Tri logique selon la dimension
+const sortedMetrics = computed(() =>
+	sortMetricsByDimension(allMetrics.value, config.value.dimension, config.value.metric)
+)
 
 const filteredMetrics = computed(() => {
 	const metrics = sortedMetrics.value
@@ -225,15 +270,11 @@ const modalHeightClass = computed(() => {
 
 // --- Bar chart option ---
 const barChartOption = computed<EChartsOption>(() => {
-	const categories = filteredMetrics.value.map(m => m.key)
+	const dim = config.value.dimension
+	const categories = filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
 	const values = filteredMetrics.value.map(m => getMetricValue(m))
-	const colors = (() => {
-		const metric = config.value.metric
-		if (metric === 'winrate' || metric === 'profitFactor' || metric === 'tradesCount' || metric === 'avgDuration') {
-			return values.map(() => profitColor.value)
-		}
-		return buildBarColors(values, profitColor.value, lossColor.value, breakevenColor.value)
-	})()
+	// Même logique de couleur que le scatter chart
+	const colors = filteredMetrics.value.map(m => getScatterColor(m))
 	const data = buildBarData(values, colors, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3])
 	const series = buildBarSeries({ data, barMaxWidth: 24, emphasis: { disabled: true } })
 
@@ -249,7 +290,7 @@ const barChartOption = computed<EChartsOption>(() => {
 			backgroundColor,
 			borderColor,
 			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: 'parent',
+			appendTo: document.body,
 			className: 'echarts-custom-tooltip',
 			trigger: 'axis',
 			axisPointer: { type: 'shadow' },
@@ -257,16 +298,15 @@ const barChartOption = computed<EChartsOption>(() => {
 				const p = Array.isArray(params) ? params[0] : params
 				const metric = filteredMetrics.value[p.dataIndex]
 				if (!metric) return ''
+				const dim = config.value.dimension
+				const currentMetric = config.value.metric
+				const shown = new Set<BreakdownMetric>([currentMetric])
+				const isEmpty = metric.tradesCount === 0
 				const lines = [
-					`<strong>${metric.key}</strong>`,
-					`${t(`components.dashboard.breakdown.metrics.${config.value.metric}`)}: ${formatMetricValue(getMetricValue(metric))}`,
-					`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${metric.tradesCount}`,
+					`<strong>${formatDimensionLabel(dim, metric.key)}</strong>`,
+					`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(getMetricValue(metric))}`,
 				]
-				// N'affiche P&L que si la métrique courante n'est pas déjà 'pnl'
-				if (config.value.metric !== 'pnl') {
-					lines.push(`${t('components.dashboard.breakdown.metrics.pnl')}: ${formatCurrency(metric.pnl)}`)
-				}
-				lines.push(`${t('components.dashboard.breakdown.metrics.winrate')}: ${metric.winrate.toFixed(1)}%`)
+				lines.push(...buildExtraTooltipLines(metric, shown, isEmpty))
 				return lines.join('<br/>')
 			},
 		},
@@ -294,7 +334,83 @@ const barChartOption = computed<EChartsOption>(() => {
 // --- Scatter chart option ---
 // Axe X = catégories de la dimension (ex: Lun, Mar, Mer...)
 // Jitter vertical léger pour éviter le chevauchement des points d'une même catégorie
-const scatterCategories = computed(() => filteredMetrics.value.map(m => m.key))
+const scatterCategories = computed(() => {
+	const dim = config.value.dimension
+	return filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
+})
+
+// Couleur du point scatter selon la métrique sélectionnée
+// - winrate : dégradé smooth (rouge < 25% → orange 25-60% → vert > 60%)
+// - profitFactor : orange < 1 → dégradé orange→vert 1-3 → vert > 3
+// - autres : basé sur le P&L (vert > 1$ / rouge < -1$ / gris autour de 0)
+const getScatterColor = (m: BreakdownMetrics): string => {
+	if (config.value.metric === 'winrate') {
+		const wr = m.winrate
+		let hue: number
+		if (wr <= 25) {
+			hue = 0
+		} else if (wr <= 60) {
+			hue = ((wr - 25) / 35) * 30
+		} else {
+			hue = 30 + ((wr - 60) / 40) * 90
+		}
+		return `hsl(${hue}, 45%, 55%)`
+	}
+	if (config.value.metric === 'profitFactor') {
+		const pf = m.profitFactor === Infinity ? 999 : m.profitFactor
+		let hue: number
+		if (pf < 1) {
+			hue = 30
+		} else if (pf <= 3) {
+			// 1→3 : hue 30→120 (orange→vert)
+			hue = 30 + ((pf - 1) / 2) * 90
+		} else {
+			hue = 120
+		}
+		return `hsl(${hue}, 45%, 55%)`
+	}
+	// avgWin, avgLoss : dégradé smooth basé sur la valeur
+	// rouge < -3$ → orange autour de 0 → vert > 3$
+	const metric = config.value.metric
+	if (metric === 'avgWin' || metric === 'avgLoss') {
+		const val = getMetricValueForMetric(m, metric)
+		let hue: number
+		if (val <= -3) {
+			hue = 0
+		} else if (val <= 0) {
+			hue = ((val + 3) / 3) * 30
+		} else if (val <= 3) {
+			hue = 30 + (val / 3) * 90
+		} else {
+			hue = 120
+		}
+		return `hsl(${hue}, 45%, 55%)`
+	}
+	// avgDuration : bleu (pas de logique vert/rouge)
+	if (metric === 'avgDuration') {
+		return '#3b82f6'
+	}
+	// tradesCount : couleur unique
+	if (metric === 'tradesCount') {
+		return profitColor.value
+	}
+	// pnl, expectancy, drawdown, currentDrawdown : dégradé smooth basé sur la valeur
+	const val = metric === 'expectancy' ? m.expectancy
+		: metric === 'drawdown' ? m.drawdown
+		: metric === 'currentDrawdown' ? m.currentDrawdown
+		: m.pnl
+	let hue: number
+	if (val <= -3) {
+		hue = 0
+	} else if (val <= 0) {
+		hue = ((val + 3) / 3) * 30
+	} else if (val <= 3) {
+		hue = 30 + (val / 3) * 90
+	} else {
+		hue = 120
+	}
+	return `hsl(${hue}, 45%, 55%)`
+}
 
 const getJitter = (str: string): number => {
 	let hash = 0
@@ -318,7 +434,7 @@ const scatterChartOption = computed<EChartsOption>(() => {
 				m.tradesCount,
 			] as unknown as number[],
 			itemStyle: {
-				color: m.pnl > 0 ? profitColor.value : m.pnl < 0 ? lossColor.value : '#9ca3af',
+				color: getScatterColor(m),
 				borderColor: isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)',
 				borderWidth: 1,
 				borderType: 'solid' as const,
@@ -341,24 +457,27 @@ const scatterChartOption = computed<EChartsOption>(() => {
 			backgroundColor,
 			borderColor,
 			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: 'parent',
+			appendTo: document.body,
 			className: 'echarts-custom-tooltip',
 			trigger: 'item',
 			formatter: (params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
 				const p = Array.isArray(params) ? params[0] : params
 				const v = p.value as number[]
+				const idx = v[0]
 				const metricValue = v[1]
-				const pnl = v[2]
-				const key = v[3]
-				const tradesCount = v[4]
+				const key = String(v[3])
+				const dim = config.value.dimension
+				const currentMetric = config.value.metric
+				const shown = new Set<BreakdownMetric>([currentMetric])
+				const fullMetric = filteredMetrics.value[idx]
+				const isEmpty = fullMetric?.tradesCount === 0
 				const lines = [
-					`<strong>${key}</strong>`,
-					`${t(`components.dashboard.breakdown.metrics.${config.value.metric}`)}: ${formatMetricValue(metricValue)}`,
-					`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${tradesCount}`,
+					`<strong>${formatDimensionLabel(dim, key)}</strong>`,
+					`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(metricValue)}`,
 				]
-				// N'affiche P&L que si la métrique courante n'est pas déjà 'pnl'
-				if (config.value.metric !== 'pnl') {
-					lines.push(`${t('components.dashboard.breakdown.metrics.pnl')}: ${formatCurrency(pnl)}`)
+				// Métriques supplémentaires depuis le metric complet
+				if (fullMetric) {
+					lines.push(...buildExtraTooltipLines(fullMetric, shown, isEmpty))
 				}
 				return lines.join('<br/>')
 			},
@@ -370,7 +489,7 @@ const scatterChartOption = computed<EChartsOption>(() => {
 			data: scatterCategories.value,
 			axisLine: { lineStyle: { color: axisColor } },
 			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, rotate: scatterCategories.value.length > 6 ? 30 : 0 },
+			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: scatterCategories.value.length > 6 ? 30 : 0 },
 			splitLine: { show: false },
 		},
 		yAxis: {

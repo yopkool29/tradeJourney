@@ -350,6 +350,7 @@ import { formatDateToYYYYMMDD } from '~/utils/date-utils'
 import { OPERATOR_EQUAL, metadataHelpers } from '~/utils'
 import type { Component } from 'vue'
 import type { ChartKey, SectionKey, DashboardGridItem, WorkspaceConfig, WorkspaceId, TradeFilter, DashBoardFilters } from '~/type'
+import { sectionKeys } from '~/type'
 import { useMetricsChartRegistry } from '~/composables/metrics/useChartRegistry'
 import { useMetricsSectionRegistry } from '~/composables/metrics/useSectionRegistry'
 
@@ -398,7 +399,6 @@ const onRemoveItem = (itemId: string) => {
         return
     }
     // Détermine si c'est une section ou un chart
-    const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
     const isSection = sectionKeys.includes(itemId as SectionKey)
 
     const patch: Partial<WorkspaceConfig> = {}

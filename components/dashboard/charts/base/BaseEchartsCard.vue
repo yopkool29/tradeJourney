@@ -4,7 +4,7 @@
 			<template #header>
 				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold">{{ title }}</span>
-				<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
+					<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
 					<div class="ml-auto flex items-center gap-1 mr-3">
 						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
 							<button
@@ -47,8 +47,8 @@
 					<slot name="header-extra" />
 				</div>
 			</template>
-			<!-- Slot par défaut : si fourni, remplace le VChart (ex: pour une table) -->
-			<slot v-if="$slots.default" />
+			<!-- Slot par défaut : si fourni ET activé, remplace le VChart (ex: pour une table) -->
+			<slot v-if="useDefaultSlot" />
 			<div
 				v-else
 				ref="chartContainerRef"
@@ -80,10 +80,12 @@ const props = defineProps<{
 	modalMaxWidth?: string
 	modalHeightClass?: string
 	subtitle?: string
-	// Rend le fond du UCard transparent (pour laisser passer un gradient du parent)
+	// Rend le fond du UCard transparent
 	transparent?: boolean
 	// Masque le bouton "enlarge" (ex: pour les tables qui n'ont pas de version agrandie)
 	hideEnlarge?: boolean
+	// Active l'utilisation du slot default à la place du VChart (ex: pour les tables)
+	useDefaultSlot?: boolean
 }>()
 
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)

@@ -13,6 +13,8 @@ export const TagSchema = z.object({
             params: { i18n: 'zodI18n.validation.tag.description_min' }
         }
     ),
+    // ID du groupe auquel appartient le tag (pour le breakdown par groupe de tags)
+    groupId: z.number().optional(),
     metadata: z.preprocess(
         val => {
             if (!val) return null;

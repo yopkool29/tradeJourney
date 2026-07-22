@@ -1,6 +1,8 @@
 import type { TradeExtendedType } from '~/schema/trade'
-import type { BreakdownDimension } from '~/type'
+import type { BreakdownDimension, BreakdownMetric } from '~/type'
+import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
+import { formatCurrency } from '~/utils'
 
 export interface TickerMetrics {
 	symbol: string
@@ -44,6 +46,108 @@ export interface BreakdownMetrics {
 // Fonction de grouping : retourne la/les clé(s) d'un trade
 // Un trade peut appartenir à plusieurs groupes (ex: multi-tags) → retourne un tableau
 export type GroupFn = (trade: TradeExtendedType) => string[]
+
+// Crée une entrée BreakdownMetrics vide (pour les tags avec 0 trade)
+export const createEmptyMetrics = (key: string): BreakdownMetrics => ({
+	key,
+	pnl: 0,
+	winrate: 0,
+	tradesCount: 0,
+	avgWin: 0,
+	avgLoss: 0,
+	profitFactor: 0,
+	avgDuration: 0,
+	avgMfe: null,
+	avgMae: null,
+	winningTradesCount: 0,
+	losingTradesCount: 0,
+	expectancy: 0,
+	drawdown: 0,
+	currentDrawdown: 0,
+})
+
+// Récupère la valeur d'une métrique spécifique depuis un BreakdownMetrics
+export const getMetricValueForMetric = (m: BreakdownMetrics, metric: BreakdownMetric): number => {
+	switch (metric) {
+		case 'pnl': return m.pnl
+		case 'winrate': return m.winrate
+		case 'profitFactor': return m.profitFactor === Infinity ? 999 : m.profitFactor
+		case 'avgWin': return m.avgWin
+		case 'avgLoss': return -m.avgLoss
+		case 'expectancy': return m.expectancy
+		case 'avgDuration': return m.avgDuration
+		case 'drawdown': return m.drawdown
+		case 'currentDrawdown': return m.currentDrawdown
+		case 'tradesCount': return m.tradesCount
+		default: return m.pnl
+	}
+}
+
+// Formate la valeur d'une métrique selon son type
+export const formatMetricValueForMetric = (val: number, metric: BreakdownMetric): string => {
+	switch (metric) {
+		case 'pnl':
+		case 'avgWin':
+		case 'avgLoss':
+		case 'expectancy':
+		case 'drawdown':
+		case 'currentDrawdown':
+			return formatCurrency(val)
+		case 'winrate':
+			return `${val.toFixed(1)}%`
+		case 'profitFactor':
+			return val >= 999 ? '∞' : val.toFixed(2)
+		case 'avgDuration':
+			return `${(val / 60).toFixed(1)}h`
+		case 'tradesCount':
+			return String(Math.round(val))
+		default:
+			return formatCurrency(val)
+	}
+}
+
+// Tri logique des métriques selon la dimension
+// - dayOfWeek/month : tri chronologique par index
+// - monthYear : tri chronologique par clé 'YYYY-MM'
+// - hourStart/hourEnd : tri alphabétique (= chronologique pour '08h')
+// - autres (ticker, tag, side) : tri par métrique décroissante
+export const sortMetricsByDimension = (
+	metrics: BreakdownMetrics[],
+	dimension: BreakdownDimension,
+	metric: BreakdownMetric,
+): BreakdownMetrics[] => {
+	if (dimension === 'dayOfWeek' || dimension === 'month') {
+		return [...metrics].sort((a, b) => parseInt(a.key, 10) - parseInt(b.key, 10))
+	}
+	if (dimension === 'monthYear') {
+		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
+	}
+	if (dimension === 'hourStart' || dimension === 'hourEnd') {
+		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
+	}
+	return [...metrics].sort((a, b) => getMetricValueForMetric(b, metric) - getMetricValueForMetric(a, metric))
+}
+
+// Pour les tag groups : injecte les tags du groupe qui ont 0 trade
+// Retourne un nouveau tableau avec les métriques existantes + les tags manquants (vides)
+export const injectEmptyTagMetrics = (
+	metrics: BreakdownMetrics[],
+	dimension: string,
+	tagGroups: { id: number; name: string; tags: { name: string }[] }[],
+): BreakdownMetrics[] => {
+	if (!isTagGroupDimension(dimension)) return metrics
+	const groupName = getTagGroupName(dimension)
+	const group = tagGroups.find(g => g.name === groupName)
+	if (!group) return metrics
+	const existingKeys = new Set(metrics.map(m => m.key))
+	const result = [...metrics]
+	for (const tag of group.tags) {
+		if (!existingKeys.has(tag.name)) {
+			result.push(createEmptyMetrics(tag.name))
+		}
+	}
+	return result
+}
 
 // Calcule le max drawdown et le drawdown actuel d'une série de trades (triés par date)
 // dd = max(peak - cumulative) — négatif ou 0
@@ -169,37 +273,69 @@ export const groupByTag: GroupFn = (t) => {
 // By Side : Long (buy) / Short (sell)
 export const groupBySide: GroupFn = (t) => [t.type === 'buy' ? 'Long' : 'Short']
 
-// By Month : 'YYYY-MM'
+// By Month : numéro de mois (0-11) — groupe tous les trades d'un même mois toutes années confondues
 export const groupByMonth: GroupFn = (t) => {
+	const d = new Date(t.openDate)
+	return [String(d.getMonth())]
+}
+
+// By Month+Year : 'YYYY-MM' — groupe par mois et année (chronologique)
+export const groupByMonthYear: GroupFn = (t) => {
 	const d = new Date(t.openDate)
 	return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`]
 }
 
-// By Day of Week : 'Monday', 'Tuesday'... (utilise le timezone utilisateur)
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+// By Day of Week : index 0-6 (0=Sunday) — utilise le timezone utilisateur
 export const groupByDayOfWeek: GroupFn = (t) => {
 	const { weekday } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
-	return [dayNames[weekday]]
+	return [String(weekday)]
 }
 
-// By Hour : '08h', '09h'... (utilise le timezone utilisateur)
-export const groupByHour: GroupFn = (t) => {
+// By Hour Start : '08h', '09h'... — heure d'ouverture (utilise le timezone utilisateur)
+export const groupByHourStart: GroupFn = (t) => {
 	const { hour } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
 	return [`${String(hour).padStart(2, '0')}h`]
 }
 
-// By Account : nom du compte
-export const groupByAccount: GroupFn = (t) => [t.account_displayName || 'Unknown']
+// By Hour End : '08h', '09h'... — heure de clôture (utilise le timezone utilisateur)
+export const groupByHourEnd: GroupFn = (t) => {
+	const { hour } = getHourAndWeekdayInUserTimezone(new Date(t.closeDate))
+	return [`${String(hour).padStart(2, '0')}h`]
+}
 
-// Map dimension → groupFn (utilisé par BreakdownWidget)
-export const dimensionGroupFns: Record<BreakdownDimension, GroupFn> = {
+// By Tag Group : filtre les tags du trade par groupId, retourne le nom du tag
+// Un trade sans tag de ce groupe n'est pas groupé (pas d'entrée 'untagged')
+export const groupByTagGroup = (groupId: number): GroupFn => (t) => {
+	if (!t.tags || t.tags.length === 0) return []
+	const tagsInGroup = t.tags.filter(tag => tag.groupId === groupId)
+	if (tagsInGroup.length === 0) return []
+	return tagsInGroup.map(tag => tag.name)
+}
+
+// Map dimension → groupFn pour les dimensions fixes (utilisé par BreakdownWidget)
+export const dimensionGroupFns: Record<string, GroupFn> = {
 	ticker: groupByTicker,
 	tag: groupByTag,
 	side: groupBySide,
 	month: groupByMonth,
+	monthYear: groupByMonthYear,
 	dayOfWeek: groupByDayOfWeek,
-	hour: groupByHour,
-	account: groupByAccount,
+	hourStart: groupByHourStart,
+	hourEnd: groupByHourEnd,
+}
+
+// Récupère la fonction de grouping pour une dimension (fixe ou tag group dynamique)
+export const getGroupFn = (dimension: string, tagGroups: { id: number; name: string }[] = []): GroupFn => {
+	// Dimension fixe
+	if (dimensionGroupFns[dimension]) return dimensionGroupFns[dimension]
+	// Tag group dynamique : 'tagGroup_<name>'
+	if (isTagGroupDimension(dimension)) {
+		const groupName = getTagGroupName(dimension)
+		const group = tagGroups.find(g => g.name === groupName)
+		if (group) return groupByTagGroup(group.id)
+	}
+	// Fallback : groupe par clé brute
+	return groupByTicker
 }
 
 export const useAnalytics = () => {
