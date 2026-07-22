@@ -20,6 +20,8 @@
 body {
     background: linear-gradient(to bottom, #f1f1f1, #e0e0e0) no-repeat;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .dark body {

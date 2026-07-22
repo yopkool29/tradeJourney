@@ -1,31 +1,26 @@
 <template>
-    <div class="min-h-screen flex flex-col relative">
+    <div class="min-h-screen flex flex-col relative flex-grow">
         <!-- Overlay sombre -->
         <div v-if="isNotesPanelOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeNotesPanel"></div>
-        <!-- Le contenu principal -->
-        <div class="flex flex-col min-h-screen relative">
-            <!-- Bouton flottant pour ouvrir les notes -->
-            <div class="fixed left-1 top-10 z-40 sm:top-30">
-                <UButton v-if="userStore.user && !isNotesPanelOpen && currentDatabase && !hideHeader"
-                    class="shadow-lg rounded-full p-3" icon="i-heroicons-document-text" color="primary" size="lg"
-                    @click="openNotesPanel">
-                    <span class="sr-only">Notes</span>
-                </UButton>
-            </div>
-            <!-- Header -->
-            <AppHeader />
-
-            <main class="flex-grow relative flex flex-col">
-                <div class="transition-all duration-300 flex-grow">
-                    <slot />
-                </div>
-                <LoadingDisplay />
-
-            </main>
-
-            <AppFooter />
-
+        <!-- Bouton flottant pour ouvrir les notes -->
+        <div class="fixed left-1 top-10 z-40 sm:top-30">
+            <UButton v-if="userStore.user && !isNotesPanelOpen && currentDatabase && !hideHeader"
+                class="shadow-lg rounded-full p-3" icon="i-heroicons-document-text" color="primary" size="lg"
+                @click="openNotesPanel">
+                <span class="sr-only">Notes</span>
+            </UButton>
         </div>
+        <!-- Header -->
+        <AppHeader />
+
+        <main class="flex-grow relative pb-8">
+            <div class="transition-all duration-300">
+                <slot />
+            </div>
+            <LoadingDisplay />
+        </main>
+
+        <AppFooter />
 
         <!-- Modal de tags (montée une fois, pilotée par useTradeTagModal) -->
         <LazyTradeTagModal />
@@ -80,11 +75,8 @@ const openNotesPanel = () => {
     selectedDate.value = localDate
 }
 
-let lastEscapeTime = 0
-
 const closeNotesPanel = () => {
     isNotesPanelOpen.value = false
-    lastEscapeTime = Date.now()
 }
 
 onMounted(() => {

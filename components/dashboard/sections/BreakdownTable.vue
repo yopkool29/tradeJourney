@@ -1,9 +1,5 @@
 <template>
 	<div class="h-full overflow-y-auto rounded-lg">
-		<div class="flex items-center justify-between px-4 py-3 border-b border-default">
-			<h3 class="text-base font-semibold text-primary">{{ $t(titleKey) }}</h3>
-		</div>
-
 		<div class="p-4">
 			<DashboardChartsBaseSortableTable
 				:data="metrics as unknown as Record<string, unknown>[]"
@@ -18,7 +14,7 @@
 				</template>
 				<!-- Cellules génériques pour chaque métrique sélectionnée -->
 				<template v-for="col in metricColumns" :key="col" #[`${col}-cell`]="{ row }">
-					<span :class="cellClass(col, asMetrics(row.original))">
+					<span :style="cellStyle(col, asMetrics(row.original))">
 						{{ formatMetric(col, asMetrics(row.original)) }}
 					</span>
 				</template>
@@ -32,7 +28,7 @@ import type { TradeExtendedType } from '~/schema/trade'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { getGroupFn, injectEmptyTagMetrics } from '~/composables/useAnalytics'
+import { getGroupFn, injectEmptyTagMetrics, getMetricColor } from '~/composables/useAnalytics'
 import { defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
 import { formatDurationSeconds } from '~/utils/date-utils'
 
@@ -110,14 +106,19 @@ const tableColumns = computed(() => [
 
 // Formate la valeur d'une métrique pour l'affichage
 const formatMetric = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
+	// Tags à 0 trade : case vide sauf tradesCount qui affiche "0"
+	if (m.tradesCount === 0) {
+		return metric === 'tradesCount' ? '0' : ''
+	}
 	switch (metric) {
 		case 'pnl':
 		case 'avgWin':
-		case 'avgLoss':
 		case 'expectancy':
 		case 'drawdown':
 		case 'currentDrawdown':
-			return formatCurrency(m[metric])
+			return Math.abs(m[metric]) < 0.005 ? '' : formatCurrency(m[metric])
+		case 'avgLoss':
+			return Math.abs(m.avgLoss) < 0.005 ? '' : formatCurrency(-m.avgLoss)
 		case 'winrate':
 			return `${m.winrate.toFixed(1)}%`
 		case 'profitFactor':
@@ -131,33 +132,13 @@ const formatMetric = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
 	}
 }
 
-// Classe CSS selon la métrique (profit/loss/neutre)
-const cellClass = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
-	switch (metric) {
-		case 'pnl':
-		case 'expectancy':
-			return m[metric] >= 0 ? 'profit-text' : 'loss-text'
-		case 'avgWin':
-			return 'profit-text'
-		case 'avgLoss':
-		case 'drawdown':
-		case 'currentDrawdown':
-			return 'loss-text'
-		default:
-			return ''
-	}
+// Style inline selon la métrique (même logique de couleur que les charts)
+// tradesCount et avgDuration gardent la couleur par défaut
+const cellStyle = (metric: BreakdownMetric, m: BreakdownMetrics): Record<string, string> => {
+	if (m.tradesCount === 0) return {}
+	if (metric === 'tradesCount' || metric === 'avgDuration') return {}
+	return { color: getMetricColor(m, metric), fontWeight: '600' }
 }
 
-const titleKey = computed(() => {
-	const dim = props.dimension
-	let dimLabel: string
-	if (isTagGroupDimension(dim)) {
-		const groupName = getTagGroupName(dim) || ''
-		dimLabel = `${t('components.dashboard.breakdown.dimensions.tag')}: ${groupName}`
-	} else {
-		dimLabel = t(`components.dashboard.breakdown.dimensions.${dim}`)
-	}
-	return `${t('components.dashboard.breakdown.table_title')} ${dimLabel}`
-})
 const emptyStateKey = computed(() => 'components.dashboard.breakdown.empty_state')
 </script>

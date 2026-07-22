@@ -92,7 +92,7 @@ import type { EChartsOption } from 'echarts'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { dimensionOptions, metricOptions, defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
-import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension } from '~/composables/useAnalytics'
+import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor } from '~/composables/useAnalytics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
@@ -106,7 +106,6 @@ const props = defineProps<{
 const { config, chartType, setDimension, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
-const { profitColor } = useTypeColors()
 const isDark = useIsDark()
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
@@ -339,78 +338,8 @@ const scatterCategories = computed(() => {
 	return filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
 })
 
-// Couleur du point scatter selon la métrique sélectionnée
-// - winrate : dégradé smooth (rouge < 25% → orange 25-60% → vert > 60%)
-// - profitFactor : orange < 1 → dégradé orange→vert 1-3 → vert > 3
-// - autres : basé sur le P&L (vert > 1$ / rouge < -1$ / gris autour de 0)
-const getScatterColor = (m: BreakdownMetrics): string => {
-	if (config.value.metric === 'winrate') {
-		const wr = m.winrate
-		let hue: number
-		if (wr <= 25) {
-			hue = 0
-		} else if (wr <= 60) {
-			hue = ((wr - 25) / 35) * 30
-		} else {
-			hue = 30 + ((wr - 60) / 40) * 90
-		}
-		return `hsl(${hue}, 45%, 55%)`
-	}
-	if (config.value.metric === 'profitFactor') {
-		const pf = m.profitFactor === Infinity ? 999 : m.profitFactor
-		let hue: number
-		if (pf < 1) {
-			hue = 30
-		} else if (pf <= 3) {
-			// 1→3 : hue 30→120 (orange→vert)
-			hue = 30 + ((pf - 1) / 2) * 90
-		} else {
-			hue = 120
-		}
-		return `hsl(${hue}, 45%, 55%)`
-	}
-	// avgWin, avgLoss : dégradé smooth basé sur la valeur
-	// rouge < -3$ → orange autour de 0 → vert > 3$
-	const metric = config.value.metric
-	if (metric === 'avgWin' || metric === 'avgLoss') {
-		const val = getMetricValueForMetric(m, metric)
-		let hue: number
-		if (val <= -3) {
-			hue = 0
-		} else if (val <= 0) {
-			hue = ((val + 3) / 3) * 30
-		} else if (val <= 3) {
-			hue = 30 + (val / 3) * 90
-		} else {
-			hue = 120
-		}
-		return `hsl(${hue}, 45%, 55%)`
-	}
-	// avgDuration : bleu (pas de logique vert/rouge)
-	if (metric === 'avgDuration') {
-		return '#3b82f6'
-	}
-	// tradesCount : couleur unique
-	if (metric === 'tradesCount') {
-		return profitColor.value
-	}
-	// pnl, expectancy, drawdown, currentDrawdown : dégradé smooth basé sur la valeur
-	const val = metric === 'expectancy' ? m.expectancy
-		: metric === 'drawdown' ? m.drawdown
-		: metric === 'currentDrawdown' ? m.currentDrawdown
-		: m.pnl
-	let hue: number
-	if (val <= -3) {
-		hue = 0
-	} else if (val <= 0) {
-		hue = ((val + 3) / 3) * 30
-	} else if (val <= 3) {
-		hue = 30 + (val / 3) * 90
-	} else {
-		hue = 120
-	}
-	return `hsl(${hue}, 45%, 55%)`
-}
+// Couleur du point/barre selon la métrique sélectionnée (logique centralisée dans useAnalytics)
+const getScatterColor = (m: BreakdownMetrics): string => getMetricColor(m, config.value.metric)
 
 const getJitter = (str: string): number => {
 	let hash = 0
