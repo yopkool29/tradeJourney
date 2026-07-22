@@ -77,18 +77,19 @@ export interface TradeOptions {
     lastFilterColumn: string
 }
 
-export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'breakdownBar' | 'breakdownScatter' | 'breakdownTable' | 'hourlyHeatmap' | 'hourlyWinrate' | 'dayOfWeekPnl'
+export type ChartKey = 'pnlBar' | 'cumulatedPnl' | 'appt' | 'winrate' | 'hourlyHeatmap' | string
 export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLossComparison' | 'riskRatios' | 'dayStatistics'
 
 // Liste des clés de sections (source de vérité unique)
 export const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
 
 // Préfixes des types de breakdown (base key sans l'ID d'instance)
-export type BreakdownBaseKey = 'breakdownBar' | 'breakdownScatter' | 'breakdownTable'
+export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakdownScatter' | 'breakdownTable' | 'breakdownHeatmap' | 'timeSeries'
 
 // Dimensions disponibles pour les breakdowns configurables
 // 'tagGroup_<name>' est généré dynamiquement pour chaque groupe de tags
-export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'monthYear' | 'dayOfWeek' | 'hourStart' | 'hourEnd' | (string & {})
+// 'hourDayOfWeek' est une dimension 2D spéciale pour les heatmaps
+export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'monthYear' | 'dayOfWeek' | 'hourStart' | 'hourEnd' | 'hourDayOfWeek' | (string & {})
 
 // Préfixe pour les dimensions de tag groups (ex: 'tagGroup_Strategy')
 export const tagGroupDimensionPrefix = 'tagGroup_'
@@ -103,10 +104,16 @@ export const getTagGroupName = (dim: string): string | null => {
 }
 
 // Métriques mesurables sur un breakdown
-export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount'
+export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount' | 'appt'
 
 // Types de charts disponibles pour les breakdowns
-export type BreakdownChartType = 'bar' | 'scatter' | 'table'
+export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'table' | 'heatmap' | 'timeSeries'
+
+// Format de l'axe Y pour les séries temporelles
+export type TimeSeriesYAxisFormat = 'currency' | 'percent' | 'number'
+
+// Agrégation temporelle
+export type TimeSeriesAggregation = 'day' | 'week' | 'month'
 
 // Génère une clé unique pour une nouvelle instance de breakdown
 // Format : breakdownBar_a3f_1699999999
@@ -118,6 +125,9 @@ export const generateBreakdownKey = (baseKey: BreakdownBaseKey): string => {
 
 // Détecte le type de breakdown depuis une clé d'instance (ex: 'breakdownBar_abc_123' → 'bar')
 export const getBreakdownChartType = (key: string): BreakdownChartType | null => {
+	if (key.startsWith('timeSeries')) return 'timeSeries'
+	if (key.startsWith('breakdownHeatmap')) return 'heatmap'
+	if (key.startsWith('breakdownBarVertical')) return 'barVertical'
 	if (key.startsWith('breakdownBar')) return 'bar'
 	if (key.startsWith('breakdownScatter')) return 'scatter'
 	if (key.startsWith('breakdownTable')) return 'table'
@@ -129,6 +139,9 @@ export const isBreakdownKey = (key: string): boolean => getBreakdownChartType(ke
 
 // Retourne la base key d'une clé d'instance (ex: 'breakdownBar_abc_123' → 'breakdownBar')
 export const getBreakdownBaseKey = (key: string): BreakdownBaseKey | null => {
+	if (key.startsWith('timeSeries')) return 'timeSeries'
+	if (key.startsWith('breakdownHeatmap')) return 'breakdownHeatmap'
+	if (key.startsWith('breakdownBarVertical')) return 'breakdownBarVertical'
 	if (key.startsWith('breakdownBar')) return 'breakdownBar'
 	if (key.startsWith('breakdownScatter')) return 'breakdownScatter'
 	if (key.startsWith('breakdownTable')) return 'breakdownTable'
@@ -145,9 +158,24 @@ export interface BreakdownFilter {
 	tagGroupId?: number
 }
 
+// Catégories de templates pour le menu visibilité
+export type ChartTemplateCategory = 'breakdown' | 'advanced'
+
+// Template = raccourci pour créer un chart pré-configuré (dimension + métrique + params)
+export interface ChartTemplate {
+	id: string
+	labelKey: string
+	category: ChartTemplateCategory
+	subcategory?: string
+	baseKey: BreakdownBaseKey
+	config: Partial<BreakdownConfig> | Partial<TimeSeriesConfig>
+}
+
 // Configuration complète d'un widget breakdown (persistée par item ID)
 export interface BreakdownConfig {
 	dimension: BreakdownDimension
+	// Deuxième dimension pour la heatmap (axe Y). Ignoré pour les autres chart types.
+	dimension2?: BreakdownDimension
 	// Métrique affichée par le chart (bar/scatter). Ignoré pour la table.
 	metric: BreakdownMetric
 	chartType: BreakdownChartType
@@ -158,6 +186,37 @@ export interface BreakdownConfig {
 	// Métriques supplémentaires affichées dans le tooltip (bar/scatter).
 	// Vide par défaut — l'utilisateur les active via le menu settings.
 	tooltipMetrics?: BreakdownMetric[]
+}
+
+// Type de chart pour les séries temporelles (fixé par le template, ne change pas avec la métrique)
+export type TimeSeriesChartType = 'bar' | 'barMA' | 'area'
+
+// Configuration d'un widget série temporelle (persistée par item ID)
+export interface TimeSeriesConfig {
+	// Type de chart visuel (fixé par le template) : bar (barres), barMA (barres + moyenne mobile), area (courbe remplie)
+	seriesType: TimeSeriesChartType
+	// Métrique affichée (même liste que les breakdowns)
+	metric: BreakdownMetric
+	chartType: 'timeSeries'
+	// Agrégation temporelle (day/week/month) — ignorée pour seriesType 'bar' (par trade)
+	aggregation?: TimeSeriesAggregation
+	// Afficher les barres (barMA)
+	showBars?: boolean
+	// Afficher la moyenne mobile (barMA)
+	showMovingAverage?: boolean
+	// Fenêtre de la moyenne mobile
+	movingAverageWindow?: number
+	// Nombre max de trades affichés (seriesType 'bar' seulement)
+	maxTrades?: number
+	// Afficher la ligne de seuil (area: startingCapital)
+	showThreshold?: boolean
+	// Limites de l'axe Y
+	yAxisMin?: number
+	yAxisMax?: number
+	// Format de l'axe Y
+	yAxisFormat?: TimeSeriesYAxisFormat
+	// Type de réticule : 'cross' (horizontal + vertical) ou 'line' (vertical uniquement)
+	crosshairType?: 'cross' | 'line'
 }
 
 export interface DashboardGridItem {
@@ -185,7 +244,7 @@ export interface WorkspaceConfig {
     dashboardGridLayoutMd: DashboardGridItem[]
     dashboardGridLayoutSm: DashboardGridItem[]
     // Configs des widgets breakdown configurables (clé = item ID dans le grid)
-    breakdownConfigs?: Record<string, BreakdownConfig>
+    breakdownConfigs?: Record<string, BreakdownConfig | TimeSeriesConfig>
 }
 
 export interface DashBoardFilters {

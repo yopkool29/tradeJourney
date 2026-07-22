@@ -151,16 +151,18 @@ Légende :
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
 | Metrics by Ticker | ✅ | `calculateMetricsByDimension(trades, groupByTicker)` — `composables/useAnalytics.ts` | PnL, winrate, profit factor, avg win/loss, avg duration, avg MAE/MFE par symbole |
-| Metrics by Hour | ✅ | `calculateMetricsByHour()` — `composables/useAnalytics.ts:128` | Métriques par heure de la journée |
-| Hourly Heatmap (hour × day of week) | ✅ | `calculateHourlyHeatmapData()` — `composables/useAnalytics.ts:191` | Heatmap PnL/winrate |
-| Metrics by Day of Week | ⚠️ | Partiellement via heatmap | Pas de breakdown dédié |
-| Metrics by Month | ❌ | — | Performance par mois calendaire |
-| Metrics by Side (Long/Short) | ✅ | `calculateMetricsByDimension(trades, groupBySide)` — `composables/useAnalytics.ts` | Performance long vs short |
-| **Metrics by Tag** | ✅ | `calculateMetricsByDimension(trades, groupByTag)` — `composables/useAnalytics.ts` | Performance par tag (setup, stratégie, erreur, contexte…) — overlap multi-tags |
+| Metrics by Hour Start | ✅ | `calculateMetricsByDimension(trades, groupByHourStart)` — `composables/useAnalytics.ts` | Métriques par heure d'ouverture (`openDate`) |
+| Metrics by Hour End | ✅ | `calculateMetricsByDimension(trades, groupByHourEnd)` — `composables/useAnalytics.ts` | Métriques par heure de clôture (`closeDate`) |
+| Hourly Heatmap (hour × day of week) | ✅ | `calculateHourlyHeatmapData()` — `composables/useAnalytics.ts` | Heatmap PnL/winrate (basée sur `openDate`) |
+| Metrics by Day of Week | ✅ | `calculateMetricsByDimension(trades, groupByDayOfWeek)` — `composables/useAnalytics.ts` | Métriques par jour de la semaine (index 0-6, labels traduits) |
+| Metrics by Month (saisonnalité) | ✅ | `calculateMetricsByDimension(trades, groupByMonth)` — `composables/useAnalytics.ts` | Métriques par mois de l'année (0-11, labels traduits) — pour analyse de saisonnalité |
+| Metrics by Month + Year | ✅ | `calculateMetricsByDimension(trades, groupByMonthYear)` — `composables/useAnalytics.ts` | Métriques par mois et année (ex: "March 2024") — pour tendances chronologiques |
+| Metrics by Type (Buy/Sell) | ✅ | `calculateMetricsByDimension(trades, groupByType)` — `composables/useAnalytics.ts` | Performance long vs short (anciennement "Side", renommé "Type") |
+| **Metrics by Tag Group** | ✅ | `calculateMetricsByDimension(trades, groupFn)` — `composables/useAnalytics.ts` | Performance par tag group (dynamique : une dimension `tagGroup_<name>` par groupe) |
 
 > Breakdowns écartés (nécessitent des champs non présents dans le schéma actuel) : Session (Asie/Europe/US), Strategy, A/B/C class. Pourront être ajoutés plus tard si ces champs sont introduits dans `schema/trade.ts`.
 
-### Notes sur "Metrics by Tag" ✅ Implémenté
+### Notes sur "Metrics by Tag Group" ✅ Implémenté
 
 Les tags sont implémentés dans PnlTracker et constituent une dimension de breakdown très pertinente — typiquement utilisés pour marquer :
 - Le **setup** (breakout, pullback, fade…)
@@ -173,19 +175,26 @@ Les tags sont implémentés dans PnlTracker et constituent une dimension de brea
 - `schema/tag.ts` — `TagSchema` (définition d'un tag)
 - `schema/tagGroup.ts` — `TagGroupSchema` (un groupe contient plusieurs tags)
 - `schema/trade.ts:229` — `tags: TagSchema[]` sur `TradeExtendedShema`
-- `composables/useAnalytics.ts` — `groupByTag` + `calculateMetricsByDimension` (générique)
-- `components/dashboard/sections/BreakdownTable.vue` — composant générique paramétrable par dimension
-- `components/dashboard/sections/TagBreakdownTable.vue` — wrapper `dimension="tag"`
+- `composables/useAnalytics.ts` — `getGroupFn()` + `calculateMetricsByDimension()` (générique)
+- `composables/metrics/useBreakdownConfig.ts` — `dimensionOptions` + `metricOptions` (configuration des dimensions/métriques)
+- `components/dashboard/charts/breakdown/BreakdownWidget.vue` — composant unique pour bar/scatter/table
+- `components/dashboard/sections/BreakdownTable.vue` — table de breakdown (utilisée via le slot de BreakdownWidget)
 
 **Comportement** :
+- Une dimension `tagGroup_<name>` est générée dynamiquement pour chaque tag group
 - Un trade avec plusieurs tags apparaît dans chaque groupe (overlap) — comportement attendu pour un système de tags
-- Un trade sans tag va dans le groupe "untagged"
-- Métriques affichées : mêmes que `TickerBreakdownTable` (PnL, winrate, PF, avg win/loss, avg duration, MAE/MFE)
+- Les tags d'un groupe qui ont 0 trade sont injectés avec des métriques vides (`injectEmptyTagMetrics`) — affichés avec valeurs vides dans tooltip/table
+- Métriques affichées : PnL, winrate, PF, avg win/loss, avg duration, drawdown, expectancy, trades count
+- Tri logique selon la dimension : chronologique pour dayOfWeek/month/monthYear/hourStart/hourEnd, par métrique décroissante pour ticker/tag/type
 
 **Architecture générique** :
 - `calculateMetricsByDimension(trades, groupFn, useNet)` — fonction unique pour tous les breakdowns
 - `GroupFn = (trade) => string[]` — la dimension est définie par la fonction de grouping
-- Ajouter une nouvelle dimension = 1 fonction de grouping + 1 entrée dans `dimensionConfig` de `BreakdownTable.vue`
+- `getGroupFn(dimension, tagGroups)` — retourne la fonction de grouping pour une dimension donnée
+- `sortMetricsByDimension(metrics, dimension, metric)` — tri logique centralisé
+- `getMetricColor(m, metric)` — couleur centralisée (dégradé HSL smooth pour les charts et la table)
+- `formatMetricValueForMetric(val, metric)` — formatage centralisé
+- Ajouter une nouvelle dimension = 1 fonction de grouping + 1 entrée dans `dimensionOptions` de `useBreakdownConfig.ts`
 
 ---
 
@@ -219,12 +228,12 @@ Les tags sont implémentés dans PnlTracker et constituent une dimension de brea
 
 Métriques les plus citées comme "indispensables" dans la littérature et **manquantes** dans PnlTracker, par ordre de priorité :
 
-1. **Sortino Ratio** — complément naturel du Sharpe déjà présent, préféré par les traders car ne pénalise pas les gains
-2. **R-Multiple & expectancy en R** — métrique n°1 selon Van Tharp / PropScorer, normalise entre trades
-3. **Calmar Ratio** — rendement par unité de drawdown (complément du Recovery Factor)
-4. **SQN (Van Tharp)** — qualité globale du système, combine expectancy + consistance + opportunités
-5. **Metrics by Tag** — breakdown par tag (setup, stratégie, erreur…) — infrastructure déjà existante, dimension très pertinente pour un journal de trading
-6. **Stats mensuelles** (best/lowest/avg month) — déjà listées dans `docs/dev/new-metrics.md`
+1. ~~**Sortino Ratio**~~ ✅ Implémenté
+2. ~~**R-Multiple & expectancy en R**~~ ✅ Implémenté
+3. ~~**Calmar Ratio**~~ ✅ Implémenté
+4. ~~**SQN (Van Tharp)**~~ ✅ Implémenté
+5. ~~**Metrics by Tag**~~ ✅ Implémenté (tag groups dynamiques)
+6. **Stats mensuelles** (best/lowest/avg month) — partiellement implémenté via `monthYear` breakdown, mais pas encore de récap best/worst/avg
 7. **Drawdown duration / recovery time** — complément du max DD
 8. **MAE / MFE Ratio** — qualité des entrées (les champs sont déjà stockés, juste le ratio à calculer)
 
@@ -325,7 +334,7 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 > - Ou un bar chart paramétrable (dimension + métrique au choix)
 >
 > **Architecture actuelle conservée** :
-> - Slot `#settings` par chart dans `BaseEchartsCard.vue` (engrenage)
+> - Slot `#settings` par chart dans `BaseWidgetCard.vue` (engrenage)
 > - Store `chartSettingsPerDb` persisté (`Record<chartId, Record<setting, value>>`)
 > - Settings existants : `cumuleMode` (CumulatedPnl, Winrate, Appt), `showBars` + `showMovingAverage` (Winrate)
 > - Grille drag-and-drop + workspaces multiples + visibilité par breakpoint

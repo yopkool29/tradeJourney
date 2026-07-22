@@ -5,58 +5,96 @@
 		</UButton>
 		<template #content>
 			<div class="p-3 space-y-3 w-[min(95vw,860px)]">
-				<!-- 4 colonnes responsive : Charts | Temporel | Breakdowns | Sections -->
-				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-					<!-- Colonne 1 : Charts principaux -->
-					<div>
-						<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.charts') }}</div>
-						<div class="space-y-2">
-							<label v-for="chart in chartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
-								<UCheckbox v-model="localChartVisibility[chart.id]" />
-								<span class="text-sm">{{ chart.label }}</span>
-							</label>
-						</div>
+				<!-- Sections statistiques -->
+				<div class="border-t border-default pt-2">
+					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.sections') }}</div>
+					<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+						<label v-for="section in sectionOptions" :key="section.id" class="flex items-center gap-2 cursor-pointer">
+							<UCheckbox v-model="localSectionVisibility[section.id]" />
+							<span class="text-sm">{{ section.label }}</span>
+						</label>
 					</div>
+				</div>
 
-					<!-- Colonne 2 : Analyse temporelle -->
-					<div>
-						<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.time_charts') }}</div>
-						<div class="space-y-2">
-							<label v-for="chart in timeChartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
-								<UCheckbox v-model="localChartVisibility[chart.id]" />
-								<span class="text-sm">{{ chart.label }}</span>
-							</label>
-						</div>
-					</div>
-
-					<!-- Colonne 3 : Breakdowns (création) -->
-					<div>
-						<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.breakdown_charts') }}</div>
-						<!-- Types de breakdown avec bouton "créer" -->
-						<div class="space-y-1">
-							<div v-for="bt in breakdownTypes" :key="bt.baseKey" class="flex items-center gap-1">
-								<span class="text-sm flex-1">{{ $t(bt.labelKey) }}</span>
-								<UButton
-									icon="i-lucide-plus"
-									size="xs"
-									variant="ghost"
-									color="neutral"
-									@click="onCreateBreakdown(bt.baseKey)"
-								/>
+				<!-- Templates : raccourcis pour créer un chart pré-configuré -->
+				<div class="border-t border-default pt-2">
+					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.add_chart') }}</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+						<!-- Répartition : Barres -->
+						<div>
+							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_bars') }}</div>
+							<div class="space-y-1">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.bars" :key="tmpl.id" class="flex items-center gap-1">
+									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+									<UButton
+										icon="i-lucide-plus"
+										size="xs"
+										variant="ghost"
+										color="neutral"
+										@click="onCreateFromTemplate(tmpl.id)"
+									/>
+								</div>
 							</div>
 						</div>
-						<p class="text-xs text-muted mt-2">{{ $t('components.dashboard.visibility.breakdown_hint') }}</p>
-					</div>
-
-					<!-- Colonne 4 : Sections -->
-					<div>
-						<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.sections') }}</div>
-						<div class="space-y-2">
-							<label v-for="section in sectionOptions" :key="section.id" class="flex items-center gap-2 cursor-pointer">
-								<UCheckbox v-model="localSectionVisibility[section.id]" />
-								<span class="text-sm">{{ section.label }}</span>
-							</label>
+						<!-- Répartition : Nuage & Heatmap -->
+						<div>
+							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_scatter_heatmap') }}</div>
+							<div class="space-y-1">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.scatterHeatmap" :key="tmpl.id" class="flex items-center gap-1">
+									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+									<UButton
+										icon="i-lucide-plus"
+										size="xs"
+										variant="ghost"
+										color="neutral"
+										@click="onCreateFromTemplate(tmpl.id)"
+									/>
+								</div>
+							</div>
 						</div>
+						<!-- Séries temporelles (presets) -->
+						<div>
+							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_time_series') }}</div>
+							<div class="space-y-1">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center gap-1">
+									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+									<UButton
+										icon="i-lucide-plus"
+										size="xs"
+										variant="ghost"
+										color="neutral"
+										@click="onCreateFromTemplate(tmpl.id)"
+									/>
+								</div>
+							</div>
+						</div>
+						<!-- Catégorie : Avancé -->
+						<div>
+							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_advanced') }}</div>
+							<div class="space-y-1">
+								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center gap-1">
+									<span class="text-sm flex-1">{{ $t(tmpl.labelKey) }}</span>
+									<UButton
+										icon="i-lucide-plus"
+										size="xs"
+										variant="ghost"
+										color="neutral"
+										@click="onCreateFromTemplate(tmpl.id)"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Charts fixes restants (pnlBar, cumulatedPnl, etc.) -->
+				<div v-if="fixedChartOptions.length > 0" class="border-t border-default pt-2">
+					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.charts') }}</div>
+					<div class="space-y-1">
+						<label v-for="chart in fixedChartOptions" :key="chart.id" class="flex items-center gap-2 cursor-pointer">
+							<UCheckbox v-model="localChartVisibility[chart.id]" />
+							<span class="text-sm">{{ chart.label }}</span>
+						</label>
 					</div>
 				</div>
 
@@ -84,8 +122,8 @@
 </template>
 
 <script setup lang="ts">
-import type { ChartKey, SectionKey, BreakdownBaseKey } from '~/type'
-import { breakdownTypes, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
+import type { ChartKey, SectionKey } from '~/type'
+import { templatesByCategory, breakdownTemplatesBySubcategory, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
 
 const props = defineProps<{
 	chartVisibility: Record<string, boolean>
@@ -99,23 +137,13 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { createInstance } = useBreakdownInstances()
+const { createFromTemplate } = useBreakdownInstances()
 
 type ChartOption = { id: string; label: string }
 type SectionOption = { id: SectionKey; label: string }
 
-const chartOptions = computed<ChartOption[]>(() => [
-	{ id: 'pnlBar', label: t('components.dashboard.charts.pnl_bar') },
-	{ id: 'cumulatedPnl', label: t('components.dashboard.charts.cumulated_pnl') },
-	{ id: 'appt', label: t('components.dashboard.charts.appt') },
-	{ id: 'winrate', label: t('components.dashboard.charts.winrate') },
-])
-
-const timeChartOptions = computed<ChartOption[]>(() => [
-	{ id: 'hourlyHeatmap', label: t('components.dashboard.charts.hourly_heatmap') },
-	{ id: 'hourlyWinrate', label: t('components.dashboard.charts.hourly_winrate') },
-	{ id: 'dayOfWeekPnl', label: t('components.dashboard.charts.day_of_week_pnl') },
-])
+// Plus aucun chart fixe — tous migrés vers les templates
+const fixedChartOptions = computed<ChartOption[]>(() => [])
 
 const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'allTrades', label: t('components.dashboard.sections.all_trades') },
@@ -126,10 +154,11 @@ const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'dayStatistics', label: t('components.dashboard.sections.day_statistics') },
 ])
 
-const onCreateBreakdown = (baseKey: BreakdownBaseKey) => {
-	const newKey = createInstance(baseKey)
-	// Ajoute la nouvelle clé à la visibilité locale
-	localChartVisibility.value[newKey] = true
+const onCreateFromTemplate = (templateId: string) => {
+	const newKey = createFromTemplate(templateId)
+	if (newKey) {
+		localChartVisibility.value[newKey] = true
+	}
 }
 
 const localChartVisibility = ref({ ...props.chartVisibility })

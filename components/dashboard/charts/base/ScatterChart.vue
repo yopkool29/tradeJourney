@@ -1,5 +1,5 @@
 <template>
-	<DashboardChartsBaseEchartsCard
+	<DashboardChartsBaseWidgetCard
 		:title="title"
 		:enlarged-title="enlargedTitle"
 		:chart-option="chartOption"

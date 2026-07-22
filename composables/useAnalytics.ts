@@ -43,6 +43,13 @@ export interface BreakdownMetrics {
 	currentDrawdown: number
 }
 
+// Settings de timezone passés aux fonctions de grouping temporel
+export interface TimezoneSettings {
+	timezoneDisplay: 'CURRENT' | 'LOCAL' | 'UTC'
+	timezoneLocal: string
+	timezoneUtcOffset: number
+}
+
 // Fonction de grouping : retourne la/les clé(s) d'un trade
 // Un trade peut appartenir à plusieurs groupes (ex: multi-tags) → retourne un tableau
 export type GroupFn = (trade: TradeExtendedType) => string[]
@@ -79,6 +86,7 @@ export const getMetricValueForMetric = (m: BreakdownMetrics, metric: BreakdownMe
 		case 'drawdown': return m.drawdown
 		case 'currentDrawdown': return m.currentDrawdown
 		case 'tradesCount': return m.tradesCount
+		case 'appt': return m.tradesCount > 0 ? m.pnl / m.tradesCount : 0
 		default: return m.pnl
 	}
 }
@@ -92,6 +100,7 @@ export const formatMetricValueForMetric = (val: number, metric: BreakdownMetric)
 		case 'expectancy':
 		case 'drawdown':
 		case 'currentDrawdown':
+		case 'appt':
 			return formatCurrency(val)
 		case 'winrate':
 			return `${val.toFixed(1)}%`
@@ -328,6 +337,89 @@ export const calculateMetricsByDimension = (
 	return metrics.sort((a, b) => b.pnl - a.pnl)
 }
 
+// Grouping 2D pour la heatmap : groupe par 2 dimensions et calcule les métriques pour chaque cellule
+export interface HeatmapCell2D {
+	keyX: string
+	keyY: string
+	metrics: BreakdownMetrics
+}
+
+export const calculateMetricsBy2Dimensions = (
+	trades: TradeExtendedType[],
+	groupFnX: GroupFn,
+	groupFnY: GroupFn,
+	useNet: boolean = true,
+): HeatmapCell2D[] => {
+	const tradesByKeys = new Map<string, { x: string, y: string, trades: TradeExtendedType[] }>()
+
+	for (const trade of trades) {
+		const keysX = groupFnX(trade)
+		const keysY = groupFnY(trade)
+		for (const kx of keysX) {
+			for (const ky of keysY) {
+				const cellKey = `${kx}|||${ky}`
+				if (!tradesByKeys.has(cellKey)) {
+					tradesByKeys.set(cellKey, { x: kx, y: ky, trades: [] })
+				}
+				tradesByKeys.get(cellKey)!.trades.push(trade)
+			}
+		}
+	}
+
+	const cells: HeatmapCell2D[] = []
+	const pnlField = useNet ? 'netProfit' : 'profit'
+
+	for (const { x, y, trades: groupTrades } of tradesByKeys.values()) {
+		const winningTrades = groupTrades.filter(t => (t[pnlField] || 0) > 0)
+		const losingTrades = groupTrades.filter(t => (t[pnlField] || 0) < 0)
+		const pnl = groupTrades.reduce((sum, t) => sum + (t[pnlField] || 0), 0)
+		const totalProfit = winningTrades.reduce((sum, t) => sum + (t[pnlField] || 0), 0)
+		const totalLoss = Math.abs(losingTrades.reduce((sum, t) => sum + (t[pnlField] || 0), 0))
+		const winningTradesCount = winningTrades.length
+		const losingTradesCount = losingTrades.length
+		const tradesCount = groupTrades.length
+		const winrate = tradesCount > 0 ? (winningTradesCount / tradesCount) * 100 : 0
+		const avgWin = winningTradesCount > 0 ? totalProfit / winningTradesCount : 0
+		const avgLoss = losingTradesCount > 0 ? totalLoss / losingTradesCount : 0
+		const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : totalProfit > 0 ? Infinity : 0
+		const lossRate = tradesCount > 0 ? losingTradesCount / tradesCount : 0
+		const winRate = tradesCount > 0 ? winningTradesCount / tradesCount : 0
+		const expectancy = (winRate * avgWin) - (lossRate * avgLoss)
+		const avgDuration = groupTrades.length > 0
+			? groupTrades.reduce((sum, t) => {
+				const open = new Date(t.openDate).getTime()
+				const close = new Date(t.closeDate).getTime()
+				return sum + (close - open) / (1000 * 60)
+			}, 0) / groupTrades.length
+			: 0
+		const { maxDrawdown, currentDrawdown } = calculateDrawdowns(groupTrades, pnlField)
+
+		cells.push({
+			keyX: x,
+			keyY: y,
+			metrics: {
+				key: `${x}|||${y}`,
+				pnl,
+				winrate,
+				tradesCount,
+				avgWin,
+				avgLoss,
+				profitFactor,
+				avgDuration,
+				avgMfe: null,
+				avgMae: null,
+				winningTradesCount,
+				losingTradesCount,
+				expectancy,
+				drawdown: maxDrawdown,
+				currentDrawdown,
+			},
+		})
+	}
+
+	return cells
+}
+
 // Fonctions de grouping par dimension
 export const groupByTicker: GroupFn = (t) => [t.symbol || 'Unknown']
 
@@ -342,32 +434,56 @@ export const groupByTag: GroupFn = (t) => {
 export const groupBySide: GroupFn = (t) => [t.type === 'buy' ? 'Long' : 'Short']
 
 // By Month : numéro de mois (0-11) — groupe tous les trades d'un même mois toutes années confondues
-export const groupByMonth: GroupFn = (t) => {
+// Utilise le timezone utilisateur si fourni, sinon le timezone du navigateur
+export const groupByMonth = (tz?: TimezoneSettings): GroupFn => (t) => {
+	if (tz) {
+		const { month } = getHourAndWeekdayInUserTimezone(new Date(t.openDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
+		return [String(month)]
+	}
 	const d = new Date(t.openDate)
 	return [String(d.getMonth())]
 }
 
 // By Month+Year : 'YYYY-MM' — groupe par mois et année (chronologique)
-export const groupByMonthYear: GroupFn = (t) => {
+export const groupByMonthYear = (tz?: TimezoneSettings): GroupFn => (t) => {
+	if (tz) {
+		const { year, month } = getHourAndWeekdayInUserTimezone(new Date(t.openDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
+		return [`${year}-${String(month + 1).padStart(2, '0')}`]
+	}
 	const d = new Date(t.openDate)
 	return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`]
 }
 
 // By Day of Week : index 0-6 (0=Sunday) — utilise le timezone utilisateur
-export const groupByDayOfWeek: GroupFn = (t) => {
-	const { weekday } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
+export const groupByDayOfWeek = (tz?: TimezoneSettings): GroupFn => (t) => {
+	const { weekday } = getHourAndWeekdayInUserTimezone(
+		new Date(t.openDate),
+		tz?.timezoneDisplay,
+		tz?.timezoneLocal,
+		tz?.timezoneUtcOffset,
+	)
 	return [String(weekday)]
 }
 
 // By Hour Start : '08h', '09h'... — heure d'ouverture (utilise le timezone utilisateur)
-export const groupByHourStart: GroupFn = (t) => {
-	const { hour } = getHourAndWeekdayInUserTimezone(new Date(t.openDate))
+export const groupByHourStart = (tz?: TimezoneSettings): GroupFn => (t) => {
+	const { hour } = getHourAndWeekdayInUserTimezone(
+		new Date(t.openDate),
+		tz?.timezoneDisplay,
+		tz?.timezoneLocal,
+		tz?.timezoneUtcOffset,
+	)
 	return [`${String(hour).padStart(2, '0')}h`]
 }
 
 // By Hour End : '08h', '09h'... — heure de clôture (utilise le timezone utilisateur)
-export const groupByHourEnd: GroupFn = (t) => {
-	const { hour } = getHourAndWeekdayInUserTimezone(new Date(t.closeDate))
+export const groupByHourEnd = (tz?: TimezoneSettings): GroupFn => (t) => {
+	const { hour } = getHourAndWeekdayInUserTimezone(
+		new Date(t.closeDate),
+		tz?.timezoneDisplay,
+		tz?.timezoneLocal,
+		tz?.timezoneUtcOffset,
+	)
 	return [`${String(hour).padStart(2, '0')}h`]
 }
 
@@ -380,11 +496,12 @@ export const groupByTagGroup = (groupId: number): GroupFn => (t) => {
 	return tagsInGroup.map(tag => tag.name)
 }
 
-// Map dimension → groupFn pour les dimensions fixes (utilisé par BreakdownWidget)
-export const dimensionGroupFns: Record<string, GroupFn> = {
-	ticker: groupByTicker,
-	tag: groupByTag,
-	side: groupBySide,
+// Map dimension → factory de groupFn (accepte timezone settings optionnels)
+// Les dimensions non temporelles ignorent le paramètre tz
+export const dimensionGroupFnFactories: Record<string, (tz?: TimezoneSettings) => GroupFn> = {
+	ticker: () => groupByTicker,
+	tag: () => groupByTag,
+	side: () => groupBySide,
 	month: groupByMonth,
 	monthYear: groupByMonthYear,
 	dayOfWeek: groupByDayOfWeek,
@@ -393,9 +510,15 @@ export const dimensionGroupFns: Record<string, GroupFn> = {
 }
 
 // Récupère la fonction de grouping pour une dimension (fixe ou tag group dynamique)
-export const getGroupFn = (dimension: string, tagGroups: { id: number; name: string }[] = []): GroupFn => {
+// Accepte optionnellement les settings de timezone pour les dimensions temporelles
+export const getGroupFn = (
+	dimension: string,
+	tagGroups: { id: number; name: string }[] = [],
+	tz?: TimezoneSettings,
+): GroupFn => {
 	// Dimension fixe
-	if (dimensionGroupFns[dimension]) return dimensionGroupFns[dimension]
+	const factory = dimensionGroupFnFactories[dimension]
+	if (factory) return factory(tz)
 	// Tag group dynamique : 'tagGroup_<name>'
 	if (isTagGroupDimension(dimension)) {
 		const groupName = getTagGroupName(dimension)

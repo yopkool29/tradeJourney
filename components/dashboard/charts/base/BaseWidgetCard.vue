@@ -3,9 +3,11 @@
 		<UCard class="h-full flex flex-col" :class="{ 'bg-transparent border-0 shadow-none': transparent }" :ui="{ header: 'p-0 flex-shrink-0', body: 'flex-1 flex flex-col min-h-0 p-2' }">
 			<template #header>
 				<div class="flex items-center gap-2 w-full px-2 py-1">
-					<span class="font-semibold">{{ title }}</span>
+					<span class="font-semibold" :class="titleClass">{{ title }}</span>
 					<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
-					<div class="ml-auto flex items-center gap-1 mr-3">
+					<div class="ml-auto flex items-center gap-1">
+						<!-- Slot pour actions personnalisées dans le header (ex: crosshair) -->
+						<slot name="header-actions" />
 						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
 							<button
 								class="px-2 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
@@ -27,6 +29,7 @@
 						>
 							<UIcon name="i-heroicons-arrows-pointing-out" class="w-4 h-4" />
 						</button>
+						<!-- Bouton close géré par le GridLayout (bouton X overlay) -->
 					</div>
 					<CommonModalChart
 						v-if="!hideEnlarge"
@@ -80,6 +83,8 @@ const props = defineProps<{
 	modalMaxWidth?: string
 	modalHeightClass?: string
 	subtitle?: string
+	// Classe CSS additionnelle pour le titre (ex: couleur verte/rouge)
+	titleClass?: string
 	// Rend le fond du UCard transparent
 	transparent?: boolean
 	// Masque le bouton "enlarge" (ex: pour les tables qui n'ont pas de version agrandie)

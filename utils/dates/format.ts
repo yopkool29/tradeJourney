@@ -123,12 +123,14 @@ export const getHourAndWeekdayInUserTimezone = (
 	timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC' = 'CURRENT',
 	timezoneLocal: string = 'Europe/Paris',
 	timezoneUtcOffset: number = 0
-): { hour: number; weekday: number } => {
+): { hour: number; weekday: number; month: number; year: number } => {
 	const timeZone = getTimeZoneFromSettings(timezoneMode, timezoneLocal, timezoneUtcOffset)
 	const localDt = DateTime.fromJSDate(new Date(dateString), { zone: 'utc' }).setZone(timeZone)
 	return {
 		hour: localDt.hour,
-		weekday: localDt.weekday % 7
+		weekday: localDt.weekday % 7,
+		month: localDt.month - 1,
+		year: localDt.year,
 	}
 }
 

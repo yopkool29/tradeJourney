@@ -1,5 +1,5 @@
 <template>
-	<DashboardChartsBaseEchartsCard
+	<DashboardChartsBaseWidgetCard
 		:title="chartTitle"
 		:enlarged-title="chartTitle + ' (enlarged)'"
 		:chart-option="chartOption"
@@ -10,7 +10,41 @@
 	>
 		<!-- Dropdowns dimension/métrique/colonnes/topN dans le header -->
 		<template #header-extra>
-			<div class="flex items-center gap-2 flex-wrap">
+			<!-- Heatmap : 2 dimensions + métrique -->
+			<div v-if="chartType === 'heatmap'" class="flex items-center gap-2 flex-wrap">
+				<div class="flex items-center gap-1.5">
+					<span class="text-xs text-secondary">X</span>
+					<USelectMenu
+						v-model="selectedDimension"
+						:items="heatmapDimensionItems"
+						value-key="value"
+						class="w-32"
+						size="xs"
+					/>
+				</div>
+				<div class="flex items-center gap-1.5">
+					<span class="text-xs text-secondary">Y</span>
+					<USelectMenu
+						v-model="selectedDimension2"
+						:items="heatmapDimensionItems"
+						value-key="value"
+						class="w-32"
+						size="xs"
+					/>
+				</div>
+				<div class="flex items-center gap-1.5">
+					<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
+					<USelectMenu
+						v-model="selectedMetric"
+						:items="metricItems"
+						value-key="value"
+						class="w-32"
+						size="xs"
+					/>
+				</div>
+			</div>
+			<!-- Autres charts : dimension + métrique + topN -->
+			<div v-else class="flex items-center gap-2 flex-wrap">
 				<div class="flex items-center gap-1.5">
 					<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.dimension') }}</span>
 					<USelectMenu
@@ -58,7 +92,7 @@
 			</div>
 		</template>
 
-		<!-- Menu settings : métriques supplémentaires dans le tooltip (bar/scatter seulement) -->
+		<!-- Menu settings : métriques supplémentaires dans le tooltip (pas pour la table) -->
 		<template #settings>
 			<div v-if="chartType !== 'table'" class="space-y-1">
 				<span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
@@ -84,15 +118,15 @@
 				<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
 			</div>
 		</template>
-	</DashboardChartsBaseEchartsCard>
+	</DashboardChartsBaseWidgetCard>
 </template>
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import type { BreakdownDimension, BreakdownMetric } from '~/type'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
+import type { BreakdownConfig, BreakdownDimension, BreakdownMetric } from '~/type'
+import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
 import { dimensionOptions, metricOptions, defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
-import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor } from '~/composables/useAnalytics'
+import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
@@ -103,12 +137,26 @@ const props = defineProps<{
 	loading?: boolean
 }>()
 
-const { config, chartType, setDimension, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
+const { config: rawConfig, chartType, setDimension, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
+// BreakdownWidget ne gère que des BreakdownConfig (les TimeSeriesConfig sont gérées par TimeSeriesWidget)
+const config = computed(() => rawConfig.value as BreakdownConfig)
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const isDark = useIsDark()
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
+const userStore = useUserStore()
+
+// Settings de timezone depuis les préférences utilisateur
+const timezoneSettings = computed<TimezoneSettings | undefined>(() => {
+	const s = userStore.user?.settings_object
+	if (!s?.timezoneDisplay) return undefined
+	return {
+		timezoneDisplay: s.timezoneDisplay,
+		timezoneLocal: s.timezoneLocal || 'Europe/Paris',
+		timezoneUtcOffset: s.timezoneUtcOffset || 0,
+	}
+})
 
 // Items pour les select menus (avec labels traduits + tag groups dynamiques)
 const dimensionItems = computed(() => {
@@ -138,6 +186,24 @@ const topNOptions = computed(() => [
 const selectedDimension = computed({
 	get: () => config.value.dimension,
 	set: (val: BreakdownDimension) => setDimension(val),
+})
+
+// Deuxième dimension pour la heatmap (axe Y)
+const selectedDimension2 = computed<BreakdownDimension>({
+	get: () => config.value.dimension2 ?? 'dayOfWeek',
+	set: (val: BreakdownDimension) => updateConfig({ dimension2: val }),
+})
+
+// Dimensions disponibles pour la heatmap (exclut hourDayOfWeek qui n'a pas de sens en 2D)
+const heatmapDimensionItems = computed(() => {
+	const filtered = dimensionOptions.filter(d => d.value !== 'hourDayOfWeek')
+	const fixed = filtered.map(d => ({ value: d.value, label: t(d.labelKey) }))
+	const tagGroups = dbStateStore.tagGroups || []
+	const tagGroupItems = tagGroups.map(g => ({
+		value: `tagGroup_${g.name}`,
+		label: `${t('components.dashboard.breakdown.dimensions.tag')}: ${g.name}`,
+	}))
+	return [...fixed, ...tagGroupItems]
 })
 
 const selectedMetric = computed({
@@ -218,7 +284,7 @@ const allMetrics = computed(() => {
 	if (!trades.length) return []
 	const tagGroups = dbStateStore.tagGroups || []
 	const dim = config.value.dimension
-	const groupFn = getGroupFn(dim, tagGroups)
+	const groupFn = getGroupFn(dim, tagGroups, timezoneSettings.value)
 	const metrics = calculateMetricsByDimension(trades, groupFn, displayModeNet.value)
 	return injectEmptyTagMetrics(metrics, dim, tagGroups)
 })
@@ -325,6 +391,75 @@ const barChartOption = computed<EChartsOption>(() => {
 			axisTick: { show: false },
 			axisLabel: { color: textColor, fontSize: 11 },
 			splitLine: { show: false },
+		},
+		series,
+	}
+})
+
+// --- Bar vertical chart option ---
+// Même logique que barChartOption mais avec axes inversés :
+// catégories sur axe X (horizontal), valeurs sur axe Y (vertical)
+const barVerticalChartOption = computed<EChartsOption>(() => {
+	const dim = config.value.dimension
+	const categories = filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
+	const values = filteredMetrics.value.map(m => getMetricValue(m))
+	const colors = filteredMetrics.value.map(m => getScatterColor(m))
+	const data = buildBarData(values, colors, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
+	const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
+
+	const base = getEchartsBaseOption()
+	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
+	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
+
+	const grid: EChartsGridOption = { left: 60, right: 16, top: 12, bottom: 40 }
+
+	// Y axis min/max selon la métrique (winrate : 0-100)
+	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
+	const yAxisMax = config.value.metric === 'winrate' ? 100 : undefined
+
+	return {
+		...base,
+		tooltip: {
+			backgroundColor,
+			borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			trigger: 'axis',
+			axisPointer: { type: 'shadow' },
+			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const metric = filteredMetrics.value[p.dataIndex]
+				if (!metric) return ''
+				const dim = config.value.dimension
+				const currentMetric = config.value.metric
+				const shown = new Set<BreakdownMetric>([currentMetric])
+				const isEmpty = metric.tradesCount === 0
+				const lines = [
+					`<strong>${formatDimensionLabel(dim, metric.key)}</strong>`,
+					`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(getMetricValue(metric))}`,
+				]
+				lines.push(...buildExtraTooltipLines(metric, shown, isEmpty))
+				return lines.join('<br/>')
+			},
+		},
+		grid,
+		xAxis: {
+			type: 'category',
+			data: categories,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: categories.length > 6 ? 30 : 0 },
+			splitLine: { show: false },
+		},
+		yAxis: {
+			type: 'value',
+			min: yAxisMin,
+			max: yAxisMax,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => formatMetricValue(v) },
+			splitLine: { lineStyle: { color: axisColor } },
 		},
 		series,
 	}
@@ -443,10 +578,176 @@ const scatterChartOption = computed<EChartsOption>(() => {
 	}
 })
 
+// --- Heatmap chart option (2D générique : dimension X × dimension Y) ---
+const heatmap2DCells = computed(() => {
+	if (chartType.value !== 'heatmap') return []
+	const trades = dataStore.lastTrades || []
+	if (!trades.length) return []
+	const tagGroups = dbStateStore.tagGroups || []
+	const tz = timezoneSettings.value
+	const dimX = config.value.dimension
+	const dimY = config.value.dimension2 ?? 'dayOfWeek'
+	const groupFnX = getGroupFn(dimX, tagGroups, tz)
+	const groupFnY = getGroupFn(dimY, tagGroups, tz)
+	return calculateMetricsBy2Dimensions(trades, groupFnX, groupFnY, displayModeNet.value)
+})
+
+// Labels uniques pour les axes X et Y (triés logiquement)
+const heatmapXLabels = computed(() => {
+	const dim = config.value.dimension
+	const keys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX)))
+	// Tri logique selon la dimension
+	const sorted = [...keys].sort((a, b) => {
+		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dim === 'dayOfWeek') return parseInt(a) - parseInt(b)
+		if (dim === 'month') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
+	})
+	return sorted.map(k => formatDimensionLabel(dim, k))
+})
+
+const heatmapYLabels = computed(() => {
+	const dim = config.value.dimension2 ?? 'dayOfWeek'
+	const keys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY)))
+	const sorted = [...keys].sort((a, b) => {
+		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dim === 'dayOfWeek') return parseInt(a) - parseInt(b)
+		if (dim === 'month') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
+	})
+	return sorted.map(k => formatDimensionLabel(dim, k))
+})
+
+// Données pour ECharts : [indexX, indexY, valeur]
+const heatmapDataItems = computed(() => {
+	const dim = config.value.dimension
+	const dim2 = config.value.dimension2 ?? 'dayOfWeek'
+	const xLabelMap = new Map<string, number>()
+	const yLabelMap = new Map<string, number>()
+	heatmap2DCells.value.forEach(c => {
+		if (!xLabelMap.has(c.keyX)) xLabelMap.set(c.keyX, xLabelMap.size)
+		if (!yLabelMap.has(c.keyY)) yLabelMap.set(c.keyY, yLabelMap.size)
+	})
+	return heatmap2DCells.value.map(c => {
+		const xi = xLabelMap.get(c.keyX) ?? 0
+		const yi = yLabelMap.get(c.keyY) ?? 0
+		const val = getMetricValueForMetric(c.metrics, config.value.metric)
+		return [xi, yi, val] as [number, number, number]
+	})
+})
+
+// Valeur max absolue pour le visualMap
+const heatmapMaxAbs = computed(() =>
+	Math.max(...heatmapDataItems.value.map(d => Math.abs(d[2])), 1)
+)
+
+const heatmapChartOption = computed<EChartsOption>(() => {
+	const base = getEchartsBaseOption()
+	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
+	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
+	const xLabels = heatmapXLabels.value
+	const yLabels = heatmapYLabels.value
+	const data = heatmapDataItems.value
+	const maxAbs = heatmapMaxAbs.value
+	const metric = config.value.metric
+	const dimX = config.value.dimension
+	const dimY = config.value.dimension2 ?? 'dayOfWeek'
+	const tooltipMetrics = selectedTooltipMetrics.value
+
+	// Map pour retrouver les cells par index
+	const xLabelMap = new Map<string, number>()
+	const yLabelMap = new Map<string, number>()
+	heatmap2DCells.value.forEach(c => {
+		if (!xLabelMap.has(c.keyX)) xLabelMap.set(c.keyX, xLabelMap.size)
+		if (!yLabelMap.has(c.keyY)) yLabelMap.set(c.keyY, yLabelMap.size)
+	})
+
+	return {
+		...base,
+		tooltip: {
+			backgroundColor, borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const [xi, yi] = p.value as unknown as [number, number, number]
+				const xLabel = xLabels[xi] ?? ''
+				const yLabel = yLabels[yi] ?? ''
+				// Retrouve la cell pour les tooltip metrics
+				const cell = heatmap2DCells.value.find(c => xLabelMap.get(c.keyX) === xi && yLabelMap.get(c.keyY) === yi)
+				const lines = [`<strong>${yLabel} × ${xLabel}</strong>`]
+				// Métrique principale
+				const val = (p.value as unknown as [number, number, number])[2]
+				lines.push(`${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`)
+				// Tooltip metrics supplémentaires
+				if (cell) {
+					for (const tm of tooltipMetrics) {
+						if (tm === metric) continue
+						const tmVal = getMetricValueForMetric(cell.metrics, tm)
+						lines.push(`${t(`components.dashboard.breakdown.metrics.${tm}`)}: ${formatMetricValueForMetric(tmVal, tm)}`)
+					}
+				}
+				return lines.join('<br/>')
+			},
+		},
+		grid: { left: 60, right: 16, top: 12, bottom: 28 },
+		xAxis: {
+			type: 'category',
+			data: xLabels,
+			splitArea: { show: true },
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 10 },
+			axisPointer: { show: false },
+			splitLine: { show: false },
+		},
+		yAxis: {
+			type: 'category',
+			data: yLabels,
+			inverse: true,
+			splitArea: { show: true },
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 13 },
+			splitLine: { show: false },
+		},
+		visualMap: {
+			min: -maxAbs,
+			max: maxAbs,
+			calculable: true,
+			orient: 'horizontal',
+			left: 'center',
+			bottom: 0,
+			textStyle: { color: textColor, fontSize: 10 },
+			inRange: {
+				color: ['#000000', '#2a1500', '#552a00', '#803f00', '#ab5500', '#d66a00', '#ff8000', '#ffaa33', '#ffd480', '#fff5cc'],
+			},
+			outOfRange: {
+				color: isDark.value ? '#111827' : '#f3f4f6',
+			},
+			show: false,
+		},
+		series: [{
+			type: 'heatmap',
+			data,
+			label: { show: false },
+			emphasis: {
+				itemStyle: {
+					borderColor: isDark.value ? '#ffffff' : '#1f2937',
+					borderWidth: 2,
+				},
+			},
+		}],
+	}
+})
+
 // Chart option finale selon le type
 const chartOption = computed<EChartsOption | undefined>(() => {
 	if (chartType.value === 'bar') return barChartOption.value
+	if (chartType.value === 'barVertical') return barVerticalChartOption.value
 	if (chartType.value === 'scatter') return scatterChartOption.value
+	if (chartType.value === 'heatmap') return heatmapChartOption.value
 	return undefined
 })
 </script>

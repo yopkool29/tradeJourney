@@ -366,62 +366,19 @@
                             </div>
                         </div> -->
 
-                        <!-- APPT Chart -->
+                        <!-- Time Series Chart (barres + MA génériques) -->
                         <div class="mb-6">
-                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_appt') }}</h4>
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_time_series') }}</h4>
                             <div class="space-y-4">
                                 <CommonColorThemePicker
-                                    v-model="formState.chartColors!.apptChart.movingAverage"
-                                    :label="$t('components.settings.options.color_moving_average')"
-                                    :default-colors="defaultSettings.chartColors!.apptChart.movingAverage"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- P/L Ratio Chart -->
-                        <!-- <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_pl_ratio') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_bar_light')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.plRatioChart.bar.light"
-                                        :label="$t('components.settings.options.color_bar_light')"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_bar_dark')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.plRatioChart.bar.dark"
-                                        :label="$t('components.settings.options.color_bar_dark')"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_moving_average_light')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.plRatioChart.movingAverage.light"
-                                        :label="$t('components.settings.options.color_moving_average_light')"
-                                    />
-                                </UFormField>
-                                <UFormField :label="$t('components.settings.options.color_moving_average_dark')">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.plRatioChart.movingAverage.dark"
-                                        :label="$t('components.settings.options.color_moving_average_dark')"
-                                    />
-                                </UFormField>
-                            </div>
-                        </div> -->
-
-                        <!-- Win Rate Chart -->
-                        <div class="mb-6">
-                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_winrate') }}</h4>
-                            <div class="space-y-4">
-                                <CommonColorThemePicker
-                                    v-model="formState.chartColors!.winrateChart.bar"
+                                    v-model="formState.chartColors!.timeSeriesChart.bar"
                                     :label="$t('components.settings.options.color_bar')"
-                                    :default-colors="defaultSettings.chartColors!.winrateChart.bar"
+                                    :default-colors="defaultSettings.chartColors!.timeSeriesChart.bar"
                                 />
                                 <CommonColorThemePicker
-                                    v-model="formState.chartColors!.winrateChart.movingAverage"
+                                    v-model="formState.chartColors!.timeSeriesChart.movingAverage"
                                     :label="$t('components.settings.options.color_moving_average')"
-                                    :default-colors="defaultSettings.chartColors!.winrateChart.movingAverage"
+                                    :default-colors="defaultSettings.chartColors!.timeSeriesChart.movingAverage"
                                 />
                             </div>
                         </div>
@@ -564,34 +521,14 @@ onMounted(() => {
                             ...(savedSettings.chartColors?.cumulatedPnlChart?.point || {}),
                         },
                     },
-                    apptChart: {
+                    timeSeriesChart: {
                         bar: {
-                            ...defaultSettings.chartColors!.apptChart.bar,
-                            ...(savedSettings.chartColors?.apptChart?.bar || {}),
+                            ...defaultSettings.chartColors!.timeSeriesChart.bar,
+                            ...(savedSettings.chartColors?.timeSeriesChart?.bar || {}),
                         },
                         movingAverage: {
-                            ...defaultSettings.chartColors!.apptChart.movingAverage,
-                            ...(savedSettings.chartColors?.apptChart?.movingAverage || {}),
-                        },
-                    },
-                    plRatioChart: {
-                        bar: {
-                            ...defaultSettings.chartColors!.plRatioChart.bar,
-                            ...(savedSettings.chartColors?.plRatioChart?.bar || {}),
-                        },
-                        movingAverage: {
-                            ...defaultSettings.chartColors!.plRatioChart.movingAverage,
-                            ...(savedSettings.chartColors?.plRatioChart?.movingAverage || {}),
-                        },
-                    },
-                    winrateChart: {
-                        bar: {
-                            ...defaultSettings.chartColors!.winrateChart.bar,
-                            ...(savedSettings.chartColors?.winrateChart?.bar || {}),
-                        },
-                        movingAverage: {
-                            ...defaultSettings.chartColors!.winrateChart.movingAverage,
-                            ...(savedSettings.chartColors?.winrateChart?.movingAverage || {}),
+                            ...defaultSettings.chartColors!.timeSeriesChart.movingAverage,
+                            ...(savedSettings.chartColors?.timeSeriesChart?.movingAverage || {}),
                         },
                     },
                     pnlBarChart: {
@@ -670,17 +607,9 @@ function resetSettings() {
                 bar: { ...defaultSettings.chartColors!.cumulatedPnlChart.bar },
                 point: { ...defaultSettings.chartColors!.cumulatedPnlChart.point },
             },
-            apptChart: {
-                bar: { ...defaultSettings.chartColors!.apptChart.bar },
-                movingAverage: { ...defaultSettings.chartColors!.apptChart.movingAverage },
-            },
-            plRatioChart: {
-                bar: { ...defaultSettings.chartColors!.plRatioChart.bar },
-                movingAverage: { ...defaultSettings.chartColors!.plRatioChart.movingAverage },
-            },
-            winrateChart: {
-                bar: { ...defaultSettings.chartColors!.winrateChart.bar },
-                movingAverage: { ...defaultSettings.chartColors!.winrateChart.movingAverage },
+            timeSeriesChart: {
+                bar: { ...defaultSettings.chartColors!.timeSeriesChart.bar },
+                movingAverage: { ...defaultSettings.chartColors!.timeSeriesChart.movingAverage },
             },
             pnlBarChart: {
                 profit: { ...defaultSettings.chartColors!.pnlBarChart.profit },

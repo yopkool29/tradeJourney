@@ -29,6 +29,7 @@ import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { getGroupFn, injectEmptyTagMetrics, getMetricColor } from '~/composables/useAnalytics'
+import type { TimezoneSettings } from '~/composables/useAnalytics'
 import { defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
 import { formatDurationSeconds } from '~/utils/date-utils'
 
@@ -44,10 +45,22 @@ const { formatCurrency } = useUtils()
 const { t } = useI18n()
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
+const userStore = useUserStore()
+
+// Settings de timezone depuis les préférences utilisateur
+const timezoneSettings = computed<TimezoneSettings | undefined>(() => {
+	const s = userStore.user?.settings_object
+	if (!s?.timezoneDisplay) return undefined
+	return {
+		timezoneDisplay: s.timezoneDisplay,
+		timezoneLocal: s.timezoneLocal || 'Europe/Paris',
+		timezoneUtcOffset: s.timezoneUtcOffset || 0,
+	}
+})
 
 const groupFn = computed(() => {
 	const tagGroups = dbStateStore.tagGroups || []
-	return getGroupFn(props.dimension, tagGroups)
+	return getGroupFn(props.dimension, tagGroups, timezoneSettings.value)
 })
 
 // Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)

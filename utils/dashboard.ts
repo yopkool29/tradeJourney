@@ -13,35 +13,35 @@ export interface GridTemplateItem {
 }
 
 export const defaultGridItemsLg: GridTemplateItem[] = [
-	{ w: 6, h: 5, i: 'pnlBar' },
-	{ w: 6, h: 5, i: 'cumulatedPnl' },
-	{ w: 6, h: 5, i: 'appt' },
-	{ w: 6, h: 5, i: 'winrate' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultPnlByTrade' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultCumulatedPnl' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultAppt' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultWinrate' },
 	{ w: 3, h: 12, i: 'allTrades' },
 	{ w: 3, h: 12, i: 'profitTrades' },
 	{ w: 3, h: 12, i: 'losingTrades' },
 	{ w: 3, h: 7, i: 'winLossComparison' },
 	{ w: 3, h: 6, i: 'riskRatios' },
 	{ w: 3, h: 11, i: 'dayStatistics' },
-	{ w: 6, h: 6, i: 'hourlyHeatmap' },
-	{ w: 6, h: 6, i: 'hourlyWinrate' },
-	{ w: 6, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 6, h: 6, i: 'breakdownHeatmap_defaultHourDay' },
+	{ w: 6, h: 6, i: 'breakdownBarVertical_defaultWinrateByHour' },
+	{ w: 6, h: 6, i: 'breakdownBarVertical_defaultPnlByDayOfWeek' },
 ]
 
 export const defaultGridItemsMd: GridTemplateItem[] = [
-	{ w: 6, h: 5, i: 'pnlBar' },
-	{ w: 6, h: 5, i: 'cumulatedPnl' },
-	{ w: 6, h: 5, i: 'appt' },
-	{ w: 6, h: 5, i: 'winrate' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultPnlByTrade' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultCumulatedPnl' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultAppt' },
+	{ w: 6, h: 5, i: 'timeSeries_defaultWinrate' },
 	{ w: 3, h: 12, i: 'allTrades' },
 	{ w: 3, h: 12, i: 'profitTrades' },
 	{ w: 3, h: 12, i: 'losingTrades' },
 	{ w: 3, h: 8, i: 'winLossComparison' },
 	{ w: 3, h: 10, i: 'riskRatios' },
 	{ w: 3, h: 12, i: 'dayStatistics' },
-	{ w: 6, h: 6, i: 'hourlyHeatmap' },
-	{ w: 6, h: 6, i: 'hourlyWinrate' },
-	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 6, h: 6, i: 'breakdownHeatmap_defaultHourDay' },
+	{ w: 6, h: 6, i: 'breakdownBarVertical_defaultWinrateByHour' },
+	{ w: 3, h: 6, i: 'breakdownBarVertical_defaultPnlByDayOfWeek' },
 ]
 
 export const defaultGridItemsSm: GridTemplateItem[] = [
@@ -56,8 +56,8 @@ export const defaultGridItemsSm: GridTemplateItem[] = [
 	{ w: 3, h: 10, i: 'riskRatios' },
 	{ w: 3, h: 12, i: 'dayStatistics' },
 	{ w: 3, h: 6, i: 'hourlyHeatmap' },
-	{ w: 3, h: 6, i: 'hourlyWinrate' },
-	{ w: 3, h: 6, i: 'dayOfWeekPnl' },
+	{ w: 3, h: 6, i: 'breakdownBarVertical_defaultWinrateByHour' },
+	{ w: 3, h: 6, i: 'breakdownBarVertical_defaultPnlByDayOfWeek' },
 ]
 
 const compactItems = (items: GridTemplateItem[], cols: number) => {
@@ -89,7 +89,7 @@ export const isResizableItem = (itemId: string): boolean => {
 	return isBreakdownKey(itemId)
 }
 
-export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics', 'hourlyHeatmap', 'hourlyWinrate']
+export const resizableGridItems = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
 
 export const getWeekNumber = (date: Date): number => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1)

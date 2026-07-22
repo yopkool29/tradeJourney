@@ -321,14 +321,8 @@
 </template>
 
 <script setup lang="ts">
-import DashboardChartsMainPnlBarChartEcharts from '~/components/dashboard/charts/main/PnlBarChartEcharts.vue'
-import DashboardChartsMainCumulatedPnlChartEcharts from '~/components/dashboard/charts/main/CumulatedPnlChartEcharts.vue'
-import DashboardChartsMainApptChartEcharts from '~/components/dashboard/charts/main/ApptChartEcharts.vue'
-import DashboardChartsMainWinrateChartEcharts from '~/components/dashboard/charts/main/WinrateChartEcharts.vue'
 import DashboardChartsBreakdownBreakdownWidget from '~/components/dashboard/charts/breakdown/BreakdownWidget.vue'
-import DashboardChartsTickerHourlyPnlHeatmap from '~/components/dashboard/charts/ticker/HourlyPnlHeatmap.vue'
-import DashboardChartsTickerHourlyWinrateBar from '~/components/dashboard/charts/ticker/HourlyWinrateBar.vue'
-import DashboardChartsTickerDayOfWeekPnlChart from '~/components/dashboard/charts/ticker/DayOfWeekPnlChart.vue'
+import DashboardChartsTimeseriesTimeSeriesWidget from '~/components/dashboard/charts/timeseries/TimeSeriesWidget.vue'
 import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/AllTradesSection.vue'
 import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
@@ -388,8 +382,7 @@ const allResizableItems = computed(() => [
 // Tous les items sont removables (bouton X)
 // Pour les breakdowns : deleteInstance ; pour les charts/sections fixes : visibilité à false
 const allRemovableItems = computed(() => {
-    const layout = activeWorkspace.value?.dashboardGridLayout || []
-    return layout.map(item => item.i)
+    return gridLayout.value.map(item => item.i)
 })
 
 const onRemoveItem = (itemId: string) => {
@@ -486,13 +479,6 @@ const activeSectionVisibility = computed(() => {
 const gridComponents = computed(() => {
     // Map fixe pour les charts principaux et sections
     const fixedComponentMap: Record<string, Component> = {
-        pnlBar: DashboardChartsMainPnlBarChartEcharts,
-        cumulatedPnl: DashboardChartsMainCumulatedPnlChartEcharts,
-        appt: DashboardChartsMainApptChartEcharts,
-        winrate: DashboardChartsMainWinrateChartEcharts,
-        hourlyHeatmap: DashboardChartsTickerHourlyPnlHeatmap,
-        hourlyWinrate: DashboardChartsTickerHourlyWinrateBar,
-        dayOfWeekPnl: DashboardChartsTickerDayOfWeekPnlChart,
         allTrades: DashboardSectionsAllTradesSection,
         profitTrades: DashboardSectionsProfitTradesSection,
         losingTrades: DashboardSectionsLosingTradesSection,
@@ -503,18 +489,26 @@ const gridComponents = computed(() => {
     // Map dynamique pour les instances de breakdown (clés dynamiques type breakdownBar_abc_123)
     const breakdownMap: Record<string, Component> = {}
     for (const key of breakdownInstances.instanceKeys.value) {
-        breakdownMap[key] = DashboardChartsBreakdownBreakdownWidget
+        // Les instances timeSeries utilisent le TimeSeriesWidget, les autres le BreakdownWidget
+        if (key.startsWith('timeSeries')) {
+            breakdownMap[key] = DashboardChartsTimeseriesTimeSeriesWidget
+        } else {
+            breakdownMap[key] = DashboardChartsBreakdownBreakdownWidget
+        }
     }
     return { ...fixedComponentMap, ...breakdownMap }
 })
 
-// Props passées à chaque widget : itemId pour les breakdowns (clé dynamique)
+// Props passées à chaque widget : itemId pour les breakdowns et timeSeries (clés dynamiques)
 const breakdownComponentProps = computed(() => {
-    const props: Record<string, { itemId: string } | { startingCapital: number }> = {
-        cumulatedPnl: { startingCapital: startingCapital.value },
-    }
+    const props: Record<string, { itemId: string, startingCapital?: number | null }> = {}
     for (const key of breakdownInstances.instanceKeys.value) {
-        props[key] = { itemId: key }
+        // Les instances timeSeries reçoivent le startingCapital (utilisé pour cumulatedPnl)
+        if (key.startsWith('timeSeries')) {
+            props[key] = { itemId: key, startingCapital: startingCapital.value }
+        } else {
+            props[key] = { itemId: key }
+        }
     }
     return props
 })
@@ -842,24 +836,13 @@ const accountOptions = computed(() => {
     })
 })
 
-const filters = computed({
-    get: () => dbStateStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
-    set: (val) => (dbStateStore.dashBoardFilters.filters = val),
-})
-
-// Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
 const startingCapital = computed(() => {
     const selectedAccountIds = dbStateStore.dashBoardFilters.accountIds
-
-    // Filtrer les comptes sélectionnés qui existent réellement
     let availableAccounts = accounts.value
     if (selectedAccountIds && selectedAccountIds.length > 0) {
         availableAccounts = accounts.value.filter((acc) => selectedAccountIds.includes(acc.id))
     }
-
-    // Additionner les capitaux de départ de tous les comptes disponibles
     let totalCapital = 0
-
     for (const account of availableAccounts) {
         const capital = metadataHelpers.get<number>(account.metadata, 'startingCapital')
         if (capital !== null && capital !== undefined) {
@@ -868,10 +851,17 @@ const startingCapital = computed(() => {
             return null
         }
     }
-
-    // Retourner le total si au moins un compte a un capital, sinon null
     return totalCapital
 })
+
+const filters = computed({
+    get: () => dbStateStore.dashBoardFilters.filters || [{ column: 'symbol', operator: OPERATOR_EQUAL, value: '' }],
+    set: (val) => (dbStateStore.dashBoardFilters.filters = val),
+})
+
+// Calculer le capital de départ en additionnant les capitaux des comptes sélectionnés
+
+
 
 const startDateStr = computed({
     get: () => formatDateToYYYYMMDD(dbStateStore.dashBoardFilters.startDate),

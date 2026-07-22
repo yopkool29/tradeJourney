@@ -1,6 +1,6 @@
 import { defaultSettings } from '~/schema/user'
 
-type ChartType = 'pnlBarChart' | 'cumulatedPnlChart' | 'apptChart' | 'plRatioChart' | 'winrateChart'
+type ChartType = 'pnlBarChart' | 'cumulatedPnlChart' | 'timeSeriesChart'
 type ThemeKey = 'light' | 'dark' | 'light-blue' | 'dark-gold'
 
 // Helper to get color for current theme with fallback

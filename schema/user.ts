@@ -64,15 +64,7 @@ export const SettingsContentSchema = z.object({
             bar: ThemeColor,
             point: ThemeColor,
         }),
-        apptChart: z.object({
-            bar: ThemeColor,
-            movingAverage: ThemeColor,
-        }),
-        plRatioChart: z.object({
-            bar: ThemeColor,
-            movingAverage: ThemeColor,
-        }),
-        winrateChart: z.object({
+        timeSeriesChart: z.object({
             bar: ThemeColor,
             movingAverage: ThemeColor,
         }),
@@ -102,17 +94,9 @@ export const SettingsContentSchema = z.object({
             bar: { light: 'rgb(56, 189, 248)', dark: 'rgb(56, 189, 248)', 'light-blue': 'rgb(56, 189, 248)', 'dark-gold': 'rgb(56, 189, 248)' },
             point: { light: 'rgb(68, 68, 68)', dark: 'rgb(231, 154, 11)', 'light-blue': 'rgb(68, 68, 68)', 'dark-gold': 'rgb(231, 154, 11)' },
         },
-        apptChart: {
-            bar: { light: 'rgb(74, 222, 128)', dark: 'rgb(74, 222, 128)', 'light-blue': 'rgb(74, 222, 128)', 'dark-gold': 'rgb(74, 222, 128)' },
-            movingAverage: { light: 'rgb(68, 68, 68)', dark: 'rgb(52, 128, 204)', 'light-blue': 'rgb(68, 68, 68)', 'dark-gold': 'rgb(52, 128, 204)' },
-        },
-        plRatioChart: {
-            bar: { light: 'rgb(245, 158, 11)', dark: 'rgb(245, 158, 11)', 'light-blue': 'rgb(245, 158, 11)', 'dark-gold': 'rgb(245, 158, 11)' },
-            movingAverage: { light: 'rgb(68, 68, 68)', dark: 'rgb(52, 128, 204)', 'light-blue': 'rgb(68, 68, 68)', 'dark-gold': 'rgb(52, 128, 204)' },
-        },
-        winrateChart: {
+        timeSeriesChart: {
             bar: { light: 'rgb(204, 186, 24)', dark: 'rgb(204, 186, 24)', 'light-blue': 'rgb(204, 186, 24)', 'dark-gold': 'rgb(204, 186, 24)' },
-            movingAverage: { light: 'rgb(68, 68, 68)', dark: 'rgb(52, 128, 204)', 'light-blue': 'rgb(68, 68, 68)', 'dark-gold': 'rgb(52, 128, 204)' },
+            movingAverage: { light: 'rgb(52, 128, 204)', dark: 'rgb(52, 128, 204)', 'light-blue': 'rgb(52, 128, 204)', 'dark-gold': 'rgb(52, 128, 204)' },
         },
         pnlBarChart: {
             profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)', 'light-blue': 'rgba(34, 197, 94, 0.8)', 'dark-gold': 'rgba(34, 197, 94, 0.8)' },

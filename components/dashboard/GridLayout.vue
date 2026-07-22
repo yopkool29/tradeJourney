@@ -7,23 +7,31 @@
             @layout-ready="onLayoutReady">
             <grid-item v-for="item in localLayout" :key="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
                 :i="item.i" :is-resizable="isItemResizable(item.i)" class="rounded-lg overflow-hidden">
-                <div class="h-full w-full relative group" @mousedown="onMouseDown" @click.capture="onContentClick">
+                <div
+					class="h-full w-full relative"
+					@mouseenter="hoveredItem = item.i"
+					@mouseleave="hoveredItem = null"
+					@mousedown="onMouseDown"
+					@click.capture="onContentClick"
+				>
                     <UIcon v-if="isDraggable" name="i-lucide-grip"
                         class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 z-10"
                         size="xs" />
-                    <!-- Bouton close (X) pour tous les items -->
-                    <button
-                        v-if="removableItems?.includes(item.i)"
-                        class="absolute top-1 right-2 z-30 px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 opacity-70 group-hover:opacity-100"
-                        :title="$t('common.actions.close')"
-                        @click.stop="$emit('remove-item', item.i)"
-                    >
-                        <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-800 dark:text-gray-200" />
-                    </button>
                     <component :is="components[item.i]" class="h-full" v-bind="{
                         ...(sharedProps || {}),
                         ...(componentProps?.[item.i] || {})
                     }" />
+                    <!-- Bouton close (X) pour tous les items -->
+                    <button
+                        v-if="removableItems?.includes(item.i)"
+                        class="absolute top-1 right-1 z-[100] px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-opacity"
+                        :class="hoveredItem === item.i ? 'opacity-100' : 'opacity-0'"
+                        :title="$t('common.actions.close')"
+                        @click.stop="$emit('remove-item', item.i)"
+                        @mouseenter.stop
+                    >
+                        <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                    </button>
                 </div>
             </grid-item>
         </grid-layout>
@@ -115,6 +123,7 @@ defineExpose({ getLayout: () => localLayout.value.map(item => ({ ...item })) })
 const mouseStart = ref<{ x: number; y: number } | null>(null)
 const isRealClick = ref(true)
 const isDragging = ref(false)
+const hoveredItem = ref<string | null>(null)
 
 const onDocumentMouseMove = (e: MouseEvent) => {
     if (!mouseStart.value) return

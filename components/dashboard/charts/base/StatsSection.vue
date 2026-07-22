@@ -1,10 +1,11 @@
 <template>
-	<UCard class="h-full">
-		<template #header>
-			<h3 class="section-title-semibold" :class="titleClass">
-				{{ title }}
-			</h3>
-		</template>
+	<DashboardChartsBaseWidgetCard
+		:title="title"
+		:enlarged-title="title"
+		:hide-enlarge="true"
+		:use-default-slot="true"
+		:title-class="titleClass"
+	>
 		<div class="space-y-3 text-sm overflow-y-auto max-h-full">
 			<div
 				v-for="(row, i) in visibleRows"
@@ -16,7 +17,7 @@
 				<span class="font-semibold" :class="row.valueClass">{{ formatRowValue(row) }}</span>
 			</div>
 		</div>
-	</UCard>
+	</DashboardChartsBaseWidgetCard>
 </template>
 
 <script setup lang="ts">

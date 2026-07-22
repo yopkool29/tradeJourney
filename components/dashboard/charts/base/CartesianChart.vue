@@ -1,5 +1,5 @@
 <template>
-	<DashboardChartsBaseEchartsCard
+	<DashboardChartsBaseWidgetCard
 		:title="title"
 		:enlarged-title="enlargedTitle"
 		:chart-option="chartOption"
@@ -10,7 +10,7 @@
 		<template v-if="$slots.settings" #settings>
 			<slot name="settings" />
 		</template>
-	</DashboardChartsBaseEchartsCard>
+	</DashboardChartsBaseWidgetCard>
 </template>
 
 <script setup lang="ts">
