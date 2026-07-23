@@ -3,6 +3,7 @@ import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
 import { formatCurrency } from '~/utils'
+import { chartColors, hslColorForValue } from '~/composables/useChartColors'
 
 export interface TickerMetrics {
 	symbol: string
@@ -163,10 +164,10 @@ export const getMetricColor = (m: BreakdownMetrics, metric: BreakdownMetric): st
 		return `hsl(${hue}, 45%, 55%)`
 	}
 	if (metric === 'avgDuration') {
-		return '#3b82f6'
+		return chartColors.avgDuration
 	}
 	if (metric === 'tradesCount') {
-		return '#22c55e'
+		return chartColors.tradesCount
 	}
 	// pnl, expectancy, drawdown, currentDrawdown
 	const val = getMetricValueForMetric(m, metric)
@@ -193,10 +194,10 @@ export const sortMetricsByDimension = (
 	dimension: BreakdownDimension,
 	metric: BreakdownMetric,
 ): BreakdownMetrics[] => {
-	if (dimension === 'dayOfWeek' || dimension === 'month') {
+	if (dimension === 'dayOfWeekOpen' || dimension === 'dayOfWeekClose' || dimension === 'monthOpen' || dimension === 'monthClose') {
 		return [...metrics].sort((a, b) => parseInt(a.key, 10) - parseInt(b.key, 10))
 	}
-	if (dimension === 'monthYear') {
+	if (dimension === 'monthYearOpen' || dimension === 'monthYearClose') {
 		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
 	}
 	if (dimension === 'hourStart' || dimension === 'hourEnd') {
@@ -435,7 +436,7 @@ export const groupBySide: GroupFn = (t) => [t.type === 'buy' ? 'Long' : 'Short']
 
 // By Month : numéro de mois (0-11) — groupe tous les trades d'un même mois toutes années confondues
 // Utilise le timezone utilisateur si fourni, sinon le timezone du navigateur
-export const groupByMonth = (tz?: TimezoneSettings): GroupFn => (t) => {
+export const groupByMonthOpen = (tz?: TimezoneSettings): GroupFn => (t) => {
 	if (tz) {
 		const { month } = getHourAndWeekdayInUserTimezone(new Date(t.openDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
 		return [String(month)]
@@ -444,8 +445,17 @@ export const groupByMonth = (tz?: TimezoneSettings): GroupFn => (t) => {
 	return [String(d.getMonth())]
 }
 
+export const groupByMonthClose = (tz?: TimezoneSettings): GroupFn => (t) => {
+	if (tz) {
+		const { month } = getHourAndWeekdayInUserTimezone(new Date(t.closeDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
+		return [String(month)]
+	}
+	const d = new Date(t.closeDate)
+	return [String(d.getMonth())]
+}
+
 // By Month+Year : 'YYYY-MM' — groupe par mois et année (chronologique)
-export const groupByMonthYear = (tz?: TimezoneSettings): GroupFn => (t) => {
+export const groupByMonthYearOpen = (tz?: TimezoneSettings): GroupFn => (t) => {
 	if (tz) {
 		const { year, month } = getHourAndWeekdayInUserTimezone(new Date(t.openDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
 		return [`${year}-${String(month + 1).padStart(2, '0')}`]
@@ -454,10 +464,29 @@ export const groupByMonthYear = (tz?: TimezoneSettings): GroupFn => (t) => {
 	return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`]
 }
 
+export const groupByMonthYearClose = (tz?: TimezoneSettings): GroupFn => (t) => {
+	if (tz) {
+		const { year, month } = getHourAndWeekdayInUserTimezone(new Date(t.closeDate), tz.timezoneDisplay, tz.timezoneLocal, tz.timezoneUtcOffset)
+		return [`${year}-${String(month + 1).padStart(2, '0')}`]
+	}
+	const d = new Date(t.closeDate)
+	return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`]
+}
+
 // By Day of Week : index 0-6 (0=Sunday) — utilise le timezone utilisateur
-export const groupByDayOfWeek = (tz?: TimezoneSettings): GroupFn => (t) => {
+export const groupByDayOfWeekOpen = (tz?: TimezoneSettings): GroupFn => (t) => {
 	const { weekday } = getHourAndWeekdayInUserTimezone(
 		new Date(t.openDate),
+		tz?.timezoneDisplay,
+		tz?.timezoneLocal,
+		tz?.timezoneUtcOffset,
+	)
+	return [String(weekday)]
+}
+
+export const groupByDayOfWeekClose = (tz?: TimezoneSettings): GroupFn => (t) => {
+	const { weekday } = getHourAndWeekdayInUserTimezone(
+		new Date(t.closeDate),
 		tz?.timezoneDisplay,
 		tz?.timezoneLocal,
 		tz?.timezoneUtcOffset,
@@ -502,9 +531,12 @@ export const dimensionGroupFnFactories: Record<string, (tz?: TimezoneSettings) =
 	ticker: () => groupByTicker,
 	tag: () => groupByTag,
 	side: () => groupBySide,
-	month: groupByMonth,
-	monthYear: groupByMonthYear,
-	dayOfWeek: groupByDayOfWeek,
+	monthOpen: groupByMonthOpen,
+	monthClose: groupByMonthClose,
+	monthYearOpen: groupByMonthYearOpen,
+	monthYearClose: groupByMonthYearClose,
+	dayOfWeekOpen: groupByDayOfWeekOpen,
+	dayOfWeekClose: groupByDayOfWeekClose,
 	hourStart: groupByHourStart,
 	hourEnd: groupByHourEnd,
 }

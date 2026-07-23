@@ -89,7 +89,7 @@ export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakd
 // Dimensions disponibles pour les breakdowns configurables
 // 'tagGroup_<name>' est généré dynamiquement pour chaque groupe de tags
 // 'hourDayOfWeek' est une dimension 2D spéciale pour les heatmaps
-export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'month' | 'monthYear' | 'dayOfWeek' | 'hourStart' | 'hourEnd' | 'hourDayOfWeek' | (string & {})
+export type BreakdownDimension = 'ticker' | 'tag' | 'side' | 'monthOpen' | 'monthClose' | 'monthYearOpen' | 'monthYearClose' | 'dayOfWeekOpen' | 'dayOfWeekClose' | 'hourStart' | 'hourEnd' | 'hourDayOfWeek' | (string & {})
 
 // Préfixe pour les dimensions de tag groups (ex: 'tagGroup_Strategy')
 export const tagGroupDimensionPrefix = 'tagGroup_'

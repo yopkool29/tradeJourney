@@ -73,6 +73,7 @@ import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValue
 import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
 import { buildBarData, buildBarSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption, EChartsAreaStyle } from '~/utils/echarts-builders'
+import { chartColors } from '~/composables/useChartColors'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { colorToRgba } from '~/utils/color-utils'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
@@ -528,10 +529,10 @@ const chartOption = computed<EChartsOption | undefined>(() => {
 
         // Couleurs génériques pour les séries temporelles (bar + MA)
         const colors = timeSeriesColors
-        const maColor = colors.movingAverageColor.value || '#6366f1'
+        const maColor = colors.movingAverageColor.value || chartColors.neutral
         // Pour les barres : vert/rouge si la métrique peut être négative (pnl, appt, expectancy, drawdown), sinon couleur uniforme
         const canBeNegative = ['pnl', 'appt', 'expectancy', 'drawdown', 'currentDrawdown', 'avgLoss'].includes(metric)
-        const barFill = colors.barColor.value || '#f472b6'
+        const barFill = colors.barColor.value || chartColors.profit
 
         const series: EChartsOption['series'] = []
         if (showMovingAverage.value) {

@@ -4,10 +4,10 @@ import { generateBreakdownKey, getBreakdownChartType, getBreakdownBaseKey } from
 // Config par défaut selon le type de breakdown
 const defaultConfigByType: Record<BreakdownBaseKey, BreakdownConfig | TimeSeriesConfig> = {
 	breakdownBar: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } as BreakdownConfig,
-	breakdownBarVertical: { dimension: 'dayOfWeek', metric: 'pnl', chartType: 'barVertical' } as BreakdownConfig,
+	breakdownBarVertical: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } as BreakdownConfig,
 	breakdownScatter: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } as BreakdownConfig,
 	breakdownTable: { dimension: 'ticker', metric: 'pnl', chartType: 'table' } as BreakdownConfig,
-	breakdownHeatmap: { dimension: 'hourStart', dimension2: 'dayOfWeek', metric: 'pnl', chartType: 'heatmap' } as BreakdownConfig,
+	breakdownHeatmap: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } as BreakdownConfig,
 	timeSeries: { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency' } as TimeSeriesConfig,
 }
 
@@ -39,12 +39,14 @@ export const defaultTableColumns: BreakdownMetric[] = [
 export const dimensionOptions: { value: BreakdownDimension; labelKey: string }[] = [
 	{ value: 'ticker', labelKey: 'components.dashboard.breakdown.dimensions.ticker' },
 	{ value: 'side', labelKey: 'components.dashboard.breakdown.dimensions.side' },
-	{ value: 'month', labelKey: 'components.dashboard.breakdown.dimensions.month' },
-	{ value: 'monthYear', labelKey: 'components.dashboard.breakdown.dimensions.monthYear' },
-	{ value: 'dayOfWeek', labelKey: 'components.dashboard.breakdown.dimensions.dayOfWeek' },
+	{ value: 'monthOpen', labelKey: 'components.dashboard.breakdown.dimensions.monthOpen' },
+	{ value: 'monthClose', labelKey: 'components.dashboard.breakdown.dimensions.monthClose' },
+	{ value: 'monthYearOpen', labelKey: 'components.dashboard.breakdown.dimensions.monthYearOpen' },
+	{ value: 'monthYearClose', labelKey: 'components.dashboard.breakdown.dimensions.monthYearClose' },
+	{ value: 'dayOfWeekOpen', labelKey: 'components.dashboard.breakdown.dimensions.dayOfWeekOpen' },
+	{ value: 'dayOfWeekClose', labelKey: 'components.dashboard.breakdown.dimensions.dayOfWeekClose' },
 	{ value: 'hourStart', labelKey: 'components.dashboard.breakdown.dimensions.hourStart' },
 	{ value: 'hourEnd', labelKey: 'components.dashboard.breakdown.dimensions.hourEnd' },
-	{ value: 'hourDayOfWeek', labelKey: 'components.dashboard.breakdown.dimensions.hourDayOfWeek' },
 ]
 
 // Liste des métriques disponibles avec leur label i18n
@@ -74,13 +76,13 @@ export const breakdownTypes: { baseKey: BreakdownBaseKey; labelKey: string }[] =
 export const chartTemplates: ChartTemplate[] = [
 	// --- Répartition : Barres ---
 	{ id: 'pnlByTicker', labelKey: 'components.dashboard.templates.pnl_by_ticker', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } },
-	{ id: 'pnlByDayOfWeek', labelKey: 'components.dashboard.templates.pnl_by_day_of_week', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeek', metric: 'pnl', chartType: 'barVertical' } },
+	{ id: 'pnlByDayOfWeek', labelKey: 'components.dashboard.templates.pnl_by_day_of_week', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } },
 	{ id: 'winrateByHour', labelKey: 'components.dashboard.templates.winrate_by_hour', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBarVertical', config: { dimension: 'hourStart', metric: 'winrate', chartType: 'barVertical' } },
-	{ id: 'pnlByMonth', labelKey: 'components.dashboard.templates.pnl_by_month', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'month', metric: 'pnl', chartType: 'bar' } },
-	{ id: 'pnlByMonthYear', labelKey: 'components.dashboard.templates.pnl_by_month_year', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'monthYear', metric: 'pnl', chartType: 'bar' } },
+	{ id: 'pnlByMonth', labelKey: 'components.dashboard.templates.pnl_by_month', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'monthOpen', metric: 'pnl', chartType: 'bar' } },
+	{ id: 'pnlByMonthYear', labelKey: 'components.dashboard.templates.pnl_by_month_year', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'monthYearOpen', metric: 'pnl', chartType: 'bar' } },
 	// --- Répartition : Nuage & Heatmap ---
 	{ id: 'winrateByTicker', labelKey: 'components.dashboard.templates.winrate_by_ticker', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownScatter', config: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } },
-	{ id: 'heatmapHourDay', labelKey: 'components.dashboard.templates.heatmap_hour_day', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownHeatmap', config: { dimension: 'hourStart', dimension2: 'dayOfWeek', metric: 'pnl', chartType: 'heatmap' } },
+	{ id: 'heatmapHourDay', labelKey: 'components.dashboard.templates.heatmap_hour_day', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownHeatmap', config: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } },
 	// --- Séries temporelles (presets) ---
 	{ id: 'pnlByTrade', labelKey: 'components.dashboard.templates.pnl_by_trade', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency', crosshairType: 'cross' } },
 	{ id: 'cumulatedPnl', labelKey: 'components.dashboard.templates.cumulated_pnl', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'area', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showThreshold: true, yAxisFormat: 'currency', crosshairType: 'line' } },
@@ -88,12 +90,22 @@ export const chartTemplates: ChartTemplate[] = [
 	{ id: 'winrate', labelKey: 'components.dashboard.templates.winrate', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'barMA', metric: 'winrate', chartType: 'timeSeries', aggregation: 'week', showBars: true, showMovingAverage: true, movingAverageWindow: 3, yAxisMin: 0, yAxisMax: 100, yAxisFormat: 'percent', crosshairType: 'cross' } },
 	// --- Avancé (from scratch) ---
 	{ id: 'customBar', labelKey: 'components.dashboard.templates.custom_bar', category: 'advanced', baseKey: 'breakdownBar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } },
-	{ id: 'customBarVertical', labelKey: 'components.dashboard.templates.custom_bar_vertical', category: 'advanced', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeek', metric: 'pnl', chartType: 'barVertical' } },
+	{ id: 'customBarVertical', labelKey: 'components.dashboard.templates.custom_bar_vertical', category: 'advanced', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } },
 	{ id: 'customScatter', labelKey: 'components.dashboard.templates.custom_scatter', category: 'advanced', baseKey: 'breakdownScatter', config: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } },
 	{ id: 'customTable', labelKey: 'components.dashboard.templates.custom_table', category: 'advanced', baseKey: 'breakdownTable', config: { dimension: 'ticker', metric: 'pnl', chartType: 'table' } },
 	{ id: 'customBarMA', labelKey: 'components.dashboard.templates.custom_bar_ma', category: 'advanced', baseKey: 'timeSeries', config: { seriesType: 'barMA', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showBars: true, showMovingAverage: true, movingAverageWindow: 5, yAxisFormat: 'currency', crosshairType: 'cross' } },
 	{ id: 'customAreaChart', labelKey: 'components.dashboard.templates.custom_area_chart', category: 'advanced', baseKey: 'timeSeries', config: { seriesType: 'area', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showThreshold: true, yAxisFormat: 'currency', crosshairType: 'line' } },
 ]
+
+// Migration des anciennes dimensions vers les nouvelles (open/close)
+const dimensionMigration: Record<string, string> = {
+	dayOfWeek: 'dayOfWeekOpen',
+	month: 'monthOpen',
+	monthYear: 'monthYearOpen',
+}
+
+// Migre une dimension ancienne vers la nouvelle nomenclature
+export const migrateDimension = (dim: string): string => dimensionMigration[dim] ?? dim
 
 // Récupère un template par son id
 export const getTemplateById = (id: string): ChartTemplate | undefined =>

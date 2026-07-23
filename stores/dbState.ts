@@ -27,8 +27,8 @@ const hiddenSectionVisibility: Record<SectionKey, boolean> = { allTrades: false,
 // Configs par défaut pour les instances de breakdown prédéfinies (clés fixes)
 const defaultBreakdownConfigs: Record<string, BreakdownConfig> = {
 	'breakdownBarVertical_defaultWinrateByHour': { dimension: 'hourStart', metric: 'winrate', chartType: 'barVertical' },
-	'breakdownBarVertical_defaultPnlByDayOfWeek': { dimension: 'dayOfWeek', metric: 'pnl', chartType: 'barVertical' },
-	'breakdownHeatmap_defaultHourDay': { dimension: 'hourStart', dimension2: 'dayOfWeek', metric: 'pnl', chartType: 'heatmap' },
+	'breakdownBarVertical_defaultPnlByDayOfWeek': { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' },
+	'breakdownHeatmap_defaultHourDay': { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' },
 }
 
 // Configs par défaut pour les instances de séries temporelles prédéfinies (clés fixes)

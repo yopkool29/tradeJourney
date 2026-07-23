@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex flex-col relative flex-grow">
+    <div class="min-h-screen flex flex-col relative">
         <!-- Overlay sombre -->
         <div v-if="isNotesPanelOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeNotesPanel"></div>
         <!-- Bouton flottant pour ouvrir les notes -->
@@ -13,8 +13,8 @@
         <!-- Header -->
         <AppHeader />
 
-        <main class="flex-grow relative pb-8">
-            <div class="transition-all duration-300">
+        <main class="flex-grow relative">
+            <div class="transition-all duration-300 pb-8">
                 <slot />
             </div>
             <LoadingDisplay />

@@ -28,9 +28,10 @@ import type { TradeExtendedType } from '~/schema/trade'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { getGroupFn, injectEmptyTagMetrics, getMetricColor } from '~/composables/useAnalytics'
+import { getGroupFn, injectEmptyTagMetrics, getMetricColor, getMetricValueForMetric } from '~/composables/useAnalytics'
 import type { TimezoneSettings } from '~/composables/useAnalytics'
-import { defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
+import { defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
+import { chartColors } from '~/composables/useChartColors'
 import { formatDurationSeconds } from '~/utils/date-utils'
 
 const props = defineProps<{
@@ -58,26 +59,29 @@ const timezoneSettings = computed<TimezoneSettings | undefined>(() => {
 	}
 })
 
+// Dimension migrée (anciennes valeurs → nouvelles)
+const dimMigrated = computed(() => migrateDimension(props.dimension))
+
 const groupFn = computed(() => {
 	const tagGroups = dbStateStore.tagGroups || []
-	return getGroupFn(props.dimension, tagGroups, timezoneSettings.value)
+	return getGroupFn(dimMigrated.value, tagGroups, timezoneSettings.value)
 })
 
 // Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
 const formatDimensionLabel = (key: string): string => {
-	const dim = props.dimension
-	if (dim === 'dayOfWeek') {
+	const dim = dimMigrated.value
+	if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') {
 		const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 		const idx = parseInt(key, 10)
 		if (idx >= 0 && idx <= 6) return t(`common.weekdays.long.${dayKeys[idx]}`)
 		return key
 	}
-	if (dim === 'month') {
+	if (dim === 'monthOpen' || dim === 'monthClose') {
 		const idx = parseInt(key, 10)
 		if (idx >= 0 && idx <= 11) return t(`common.months.long.${idx}`)
 		return key
 	}
-	if (dim === 'monthYear') {
+	if (dim === 'monthYearOpen' || dim === 'monthYearClose') {
 		const [year, monthNum] = key.split('-')
 		const monthIdx = parseInt(monthNum, 10) - 1
 		if (monthIdx >= 0 && monthIdx <= 11) return `${t(`common.months.long.${monthIdx}`)} ${year}`
@@ -93,11 +97,11 @@ const metrics = computed<BreakdownMetrics[]>(() => {
 	const trades: TradeExtendedType[] = dataStore.lastTrades || []
 	if (!trades.length) return []
 	const result = calculateMetricsByDimension(trades, groupFn.value, displayModeNet.value)
-	return injectEmptyTagMetrics(result, props.dimension, dbStateStore.tagGroups || [])
+	return injectEmptyTagMetrics(result, dimMigrated.value, dbStateStore.tagGroups || [])
 })
 
 const keyHeader = computed(() => {
-	const dim = props.dimension
+	const dim = dimMigrated.value
 	if (isTagGroupDimension(dim)) {
 		const groupName = getTagGroupName(dim) || ''
 		return `${t('components.dashboard.breakdown.dimensions.tag')}: ${groupName}`
@@ -145,11 +149,15 @@ const formatMetric = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
 	}
 }
 
-// Style inline selon la métrique (même logique de couleur que les charts)
+// Style inline selon la métrique
 // tradesCount et avgDuration gardent la couleur par défaut
+// Pour les autres : utilise le primary du thème pour les valeurs positives, rouge pour les négatives
 const cellStyle = (metric: BreakdownMetric, m: BreakdownMetrics): Record<string, string> => {
 	if (m.tradesCount === 0) return {}
 	if (metric === 'tradesCount' || metric === 'avgDuration') return {}
+	const val = getMetricValueForMetric(m, metric)
+	if (val > 0) return { color: chartColors.profit, fontWeight: '600' }
+	if (val < 0) return { color: getMetricColor(m, metric), fontWeight: '600' }
 	return { color: getMetricColor(m, metric), fontWeight: '600' }
 }
 

@@ -18,7 +18,7 @@
 						v-model="selectedDimension"
 						:items="heatmapDimensionItems"
 						value-key="value"
-						class="w-32"
+						class="w-48"
 						size="xs"
 					/>
 				</div>
@@ -28,7 +28,7 @@
 						v-model="selectedDimension2"
 						:items="heatmapDimensionItems"
 						value-key="value"
-						class="w-32"
+						class="w-48"
 						size="xs"
 					/>
 				</div>
@@ -51,7 +51,7 @@
 						v-model="selectedDimension"
 						:items="dimensionItems"
 						value-key="value"
-						class="w-32"
+						class="w-48"
 						size="xs"
 					/>
 				</div>
@@ -125,7 +125,7 @@
 import type { EChartsOption } from 'echarts'
 import type { BreakdownConfig, BreakdownDimension, BreakdownMetric } from '~/type'
 import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
-import { dimensionOptions, metricOptions, defaultTableColumns } from '~/composables/metrics/useBreakdownConfig'
+import { dimensionOptions, metricOptions, defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
 import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
@@ -139,7 +139,11 @@ const props = defineProps<{
 
 const { config: rawConfig, chartType, setDimension, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
 // BreakdownWidget ne gère que des BreakdownConfig (les TimeSeriesConfig sont gérées par TimeSeriesWidget)
-const config = computed(() => rawConfig.value as BreakdownConfig)
+// Applique la migration des anciennes dimensions (dayOfWeek → dayOfWeekOpen, etc.)
+const config = computed(() => {
+	const c = rawConfig.value as BreakdownConfig
+	return { ...c, dimension: migrateDimension(c.dimension), dimension2: c.dimension2 ? migrateDimension(c.dimension2) : c.dimension2 }
+})
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const isDark = useIsDark()
@@ -190,14 +194,13 @@ const selectedDimension = computed({
 
 // Deuxième dimension pour la heatmap (axe Y)
 const selectedDimension2 = computed<BreakdownDimension>({
-	get: () => config.value.dimension2 ?? 'dayOfWeek',
+	get: () => config.value.dimension2 ?? 'dayOfWeekOpen',
 	set: (val: BreakdownDimension) => updateConfig({ dimension2: val }),
 })
 
-// Dimensions disponibles pour la heatmap (exclut hourDayOfWeek qui n'a pas de sens en 2D)
+// Dimensions disponibles pour la heatmap
 const heatmapDimensionItems = computed(() => {
-	const filtered = dimensionOptions.filter(d => d.value !== 'hourDayOfWeek')
-	const fixed = filtered.map(d => ({ value: d.value, label: t(d.labelKey) }))
+	const fixed = dimensionOptions.map(d => ({ value: d.value, label: t(d.labelKey) }))
 	const tagGroups = dbStateStore.tagGroups || []
 	const tagGroupItems = tagGroups.map(g => ({
 		value: `tagGroup_${g.name}`,
@@ -291,18 +294,18 @@ const allMetrics = computed(() => {
 
 // Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
 const formatDimensionLabel = (dimension: BreakdownDimension, key: string): string => {
-	if (dimension === 'dayOfWeek') {
+	if (dimension === 'dayOfWeekOpen' || dimension === 'dayOfWeekClose') {
 		const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 		const idx = parseInt(key, 10)
 		if (idx >= 0 && idx <= 6) return t(`common.weekdays.long.${dayKeys[idx]}`)
 		return key
 	}
-	if (dimension === 'month') {
+	if (dimension === 'monthOpen' || dimension === 'monthClose') {
 		const idx = parseInt(key, 10)
 		if (idx >= 0 && idx <= 11) return t(`common.months.long.${idx}`)
 		return key
 	}
-	if (dimension === 'monthYear') {
+	if (dimension === 'monthYearOpen' || dimension === 'monthYearClose') {
 		// Format 'YYYY-MM' → 'Mois Année'
 		const [year, monthNum] = key.split('-')
 		const monthIdx = parseInt(monthNum, 10) - 1
@@ -586,7 +589,7 @@ const heatmap2DCells = computed(() => {
 	const tagGroups = dbStateStore.tagGroups || []
 	const tz = timezoneSettings.value
 	const dimX = config.value.dimension
-	const dimY = config.value.dimension2 ?? 'dayOfWeek'
+	const dimY = config.value.dimension2 ?? 'dayOfWeekOpen'
 	const groupFnX = getGroupFn(dimX, tagGroups, tz)
 	const groupFnY = getGroupFn(dimY, tagGroups, tz)
 	return calculateMetricsBy2Dimensions(trades, groupFnX, groupFnY, displayModeNet.value)
@@ -599,20 +602,20 @@ const heatmapXLabels = computed(() => {
 	// Tri logique selon la dimension
 	const sorted = [...keys].sort((a, b) => {
 		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim === 'dayOfWeek') return parseInt(a) - parseInt(b)
-		if (dim === 'month') return parseInt(a) - parseInt(b)
+		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
 		return a.localeCompare(b)
 	})
 	return sorted.map(k => formatDimensionLabel(dim, k))
 })
 
 const heatmapYLabels = computed(() => {
-	const dim = config.value.dimension2 ?? 'dayOfWeek'
+	const dim = config.value.dimension2 ?? 'dayOfWeekOpen'
 	const keys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY)))
 	const sorted = [...keys].sort((a, b) => {
 		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim === 'dayOfWeek') return parseInt(a) - parseInt(b)
-		if (dim === 'month') return parseInt(a) - parseInt(b)
+		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
 		return a.localeCompare(b)
 	})
 	return sorted.map(k => formatDimensionLabel(dim, k))
@@ -621,7 +624,7 @@ const heatmapYLabels = computed(() => {
 // Données pour ECharts : [indexX, indexY, valeur]
 const heatmapDataItems = computed(() => {
 	const dim = config.value.dimension
-	const dim2 = config.value.dimension2 ?? 'dayOfWeek'
+	const dim2 = config.value.dimension2 ?? 'dayOfWeekOpen'
 	const xLabelMap = new Map<string, number>()
 	const yLabelMap = new Map<string, number>()
 	heatmap2DCells.value.forEach(c => {
@@ -651,7 +654,7 @@ const heatmapChartOption = computed<EChartsOption>(() => {
 	const maxAbs = heatmapMaxAbs.value
 	const metric = config.value.metric
 	const dimX = config.value.dimension
-	const dimY = config.value.dimension2 ?? 'dayOfWeek'
+	const dimY = config.value.dimension2 ?? 'dayOfWeekOpen'
 	const tooltipMetrics = selectedTooltipMetrics.value
 
 	// Map pour retrouver les cells par index
