@@ -1,7 +1,7 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
+import { getHourAndWeekdayInUserTimezone, formatDurationMinutes } from '~/utils/date-utils'
 import { formatCurrency } from '~/utils'
 import { chartColors, monetaryColorForValue, winrateColor, profitFactorColor, isMonetaryMetric } from '~/composables/useChartColors'
 
@@ -110,7 +110,7 @@ export const formatMetricValueForMetric = (val: number, metric: BreakdownMetric)
 		case 'profitFactor':
 			return val >= 999 ? '∞' : val.toFixed(2)
 		case 'avgDuration':
-			return `${(val / 60).toFixed(1)}h`
+			return formatDurationMinutes(val)
 		case 'tradesCount':
 			return String(Math.round(val))
 		default:

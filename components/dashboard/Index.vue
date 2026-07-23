@@ -5,7 +5,7 @@
             v-if="isGridDraggable"
             icon="i-lucide-lock"
             size="lg"
-            color="warning"
+            color="primary"
             variant="solid"
             class="fixed left-4 top-1/2 -translate-y-1/2 z-50 shadow-lg"
             :title="$t('components.dashboard.index.lock_layout')"
@@ -232,7 +232,7 @@
                         :icon="isGridDraggable ? 'i-lucide-lock' : 'i-lucide-move'"
                         size="sm"
                         variant="ghost"
-                        :color="isGridDraggable ? 'warning' : 'neutral'"
+                        :color="isGridDraggable ? 'primary' : 'neutral'"
                         :title="isGridDraggable ? $t('components.dashboard.index.lock_layout') : $t('components.dashboard.index.unlock_layout')"
                         @click="() => { if (isGridDraggable) saveGridLayout(); isGridDraggable = !isGridDraggable }"
                     />

@@ -42,8 +42,8 @@
                     <UCheckbox v-model="showThreshold" />
                     <span class="text-sm">{{ $t('components.dashboard.common.show_threshold') }}</span>
                 </div>
-                <!-- Métriques supplémentaires dans le tooltip (barMA seulement) -->
-                <div v-if="config.seriesType === 'barMA'" class="space-y-1 border-t border-gray-200 dark:border-gray-700 pt-2">
+                <!-- Métriques supplémentaires dans le tooltip (barMA et area) -->
+                <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="space-y-1 border-t border-gray-200 dark:border-gray-700 pt-2">
                     <span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
                     <div v-for="m in metricItems" :key="m.value" class="flex items-center gap-2">
                         <UCheckbox
@@ -55,23 +55,14 @@
                 </div>
             </div>
         </template>
-        <!-- Réticule : 2 boutons icônes à gauche du menu settings -->
+        <!-- Réticule : 1 bouton toggle (cross ↔ line) -->
         <template #header-actions>
             <button
-                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-                :class="crosshairType === 'cross' ? 'text-primary' : 'text-gray-400'"
-                :title="$t('components.dashboard.common.crosshair_cross')"
-                @click="crosshairType = 'cross'"
+                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors text-primary"
+                :title="crosshairType === 'cross' ? $t('components.dashboard.common.crosshair_cross') : $t('components.dashboard.common.crosshair_line')"
+                @click="crosshairType = crosshairType === 'cross' ? 'line' : 'cross'"
             >
-                <UIcon name="i-lucide-cross" class="w-4 h-4" />
-            </button>
-            <button
-                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-                :class="crosshairType === 'line' ? 'text-primary' : 'text-gray-400'"
-                :title="$t('components.dashboard.common.crosshair_line')"
-                @click="crosshairType = 'line'"
-            >
-                <UIcon name="i-lucide-minus" class="w-4 h-4" />
+                <UIcon :name="crosshairType === 'cross' ? 'i-lucide-cross' : 'i-lucide-minus'" class="w-4 h-4" />
             </button>
         </template>
     </DashboardChartsBaseWidgetCard>
@@ -83,10 +74,9 @@ import type { TimeSeriesConfig, TimeSeriesAggregation, BreakdownMetric } from '~
 import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
-import { buildBarData, buildBarSeries } from '~/utils/echarts-builders'
-import type { EChartsFormatterParams, EChartsGridOption, EChartsAreaStyle } from '~/utils/echarts-builders'
+import { buildBarData, buildBarSeries, buildLineSeries, buildBarColors } from '~/utils/echarts-builders'
+import type { EChartsFormatterParams, EChartsAreaStyle } from '~/utils/echarts-builders'
 import { chartColors, isMonetaryMetric } from '~/composables/useChartColors'
-import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { colorToRgba } from '~/utils/color-utils'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
 import type { TradeExtendedType } from '~/schema/trade'
@@ -102,8 +92,6 @@ const { activeWorkspace, updateActiveWorkspace } = useDashboardWorkspace()
 const { t, locale } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
-const { canvasHeight } = useEchartsChart()
-const isDark = useIsDark()
 const dataStore = useDataStore()
 const userStore = useUserStore()
 const { getGroupedTrades } = useAggregationCache()
@@ -132,16 +120,11 @@ const updateConfig = (partial: Partial<TimeSeriesConfig>) => {
 }
 
 // --- Dropdown métrique dans le header ---
-// En area : pnl → "P&L cumulé", appt → "APPT cumulé" ; les autres restent inchangés
+// En area : pnl → "P&L cumulé" ; les autres restent inchangés
 const metricItems = computed(() => {
     const isArea = config.value.seriesType === 'area'
     return metricOptions.map((m) => {
         if (isArea && m.value === 'pnl') return { value: m.value, label: t('components.dashboard.cumulated_pnl_chart.title') }
-        if (isArea && m.value === 'appt')
-            return {
-                value: m.value,
-                label: t('components.dashboard.appt_chart.title') + ' (' + t('components.dashboard.index.cumulated_label') + ')',
-            }
         return { value: m.value, label: t(m.labelKey) }
     })
 })
@@ -199,29 +182,7 @@ const crosshairType = computed<'cross' | 'line'>({
 })
 
 // --- Métriques supplémentaires dans le tooltip (barMA seulement) ---
-const selectedTooltipMetrics = computed<BreakdownMetric[]>(() => {
-    const selected = config.value.tooltipMetrics ?? []
-    const order = metricOptions.map(m => m.value)
-    return [...selected].sort((a, b) => order.indexOf(a) - order.indexOf(b))
-})
-
-const toggleTooltipMetric = (metric: BreakdownMetric) => {
-    const current = selectedTooltipMetrics.value
-    const newVal = current.includes(metric)
-        ? current.filter(m => m !== metric)
-        : [...current, metric]
-    updateConfig({ tooltipMetrics: newVal })
-}
-
-const buildExtraTooltipLines = (metrics: BreakdownMetrics, alreadyShown: Set<BreakdownMetric>): string[] => {
-    const lines: string[] = []
-    for (const m of selectedTooltipMetrics.value) {
-        if (alreadyShown.has(m)) continue
-        const val = getMetricValueForMetric(metrics, m)
-        lines.push(`${t(`components.dashboard.breakdown.metrics.${m}`)}: ${formatMetricValueForMetric(val, m)}`)
-    }
-    return lines
-}
+const { selectedTooltipMetrics, toggleTooltipMetric, buildExtraTooltipLines } = useTooltipMetrics(config, updateConfig)
 
 // --- Titre ---
 const chartTitle = computed(() => {
@@ -272,7 +233,8 @@ const pnlData = computed(() => {
 
 // --- Données cumulées (seriesType: 'area') ---
 // --- Données area chart (seriesType: 'area') ---
-// Cumul uniquement pour pnl et appt, valeur brute pour les autres métriques
+// Cumul uniquement pour pnl, valeur brute pour les autres métriques
+const shouldCumulate = computed(() => config.value.metric === 'pnl')
 const cumulatedData = computed(() => {
     if (config.value.seriesType !== 'area') return null
     const trades = dataStore.lastTrades || []
@@ -281,26 +243,27 @@ const cumulatedData = computed(() => {
     const grouped = getGroupedTrades(mode)
     const useNet = displayModeNet.value
     const metric = config.value.metric
-    const shouldCumulate = metric === 'pnl' || metric === 'appt'
     // Calcule la métrique pour chaque période
     const sortedKeys = Object.keys(grouped).sort()
     const labels: string[] = []
     const periodValues: number[] = []
+    const allMetrics: BreakdownMetrics[] = []
     for (const key of sortedKeys) {
         const groupTrades = grouped[key]
         if (!groupTrades || groupTrades.length === 0) continue
         labels.push(key)
         const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
         periodValues.push(metrics ? getMetricValueForMetric(metrics, metric) : 0)
+        allMetrics.push(metrics || ({} as BreakdownMetrics))
     }
     // Cumul si pnl ou appt, sinon valeur brute
-    const values = shouldCumulate
+    const values = shouldCumulate.value
         ? periodValues.reduce((acc: number[], v) => {
               acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + v)
               return acc
           }, [])
         : periodValues
-    return { labels, values }
+    return { labels, values, allMetrics }
 })
 
 // --- Données agrégées par période (seriesType: 'barMA') ---
@@ -345,54 +308,26 @@ const periodMetricsData = computed(() => {
 })
 
 // --- Chart option ---
+const { getChartContext, getCrosshairConfig, buildTooltip } = useEchartsChartOption()
 const chartOption = computed<EChartsOption | undefined>(() => {
     const st = config.value.seriesType
-    const base = getEchartsBaseOption()
-    const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-    const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-    const grid: EChartsGridOption = { left: 70, right: 16, top: 12, bottom: 28 }
+    const ctx = getChartContext()
+    const { base, axisColor, textColor, grid } = ctx
     const yFmt = yAxisFormatter.value
     const localeVal = locale.value as 'fr' | 'en' | 'us'
-
-    // Configuration du réticule (crosshair) selon le type
-    // Lignes pointillées + labels sur les axes
-    // Light : lignes gris clair, labels fond gris foncé
-    // Dark : lignes gris clair, labels fond gris foncé
-    const pointerLineColor = isDark.value ? '#9ca3af' : '#888'
-    const pointerLabelBg = isDark.value ? '#374151' : '#666'
-    const axisPointerConfig =
-        crosshairType.value === 'cross'
-            ? {
-                  type: 'cross' as const,
-                  snap: true,
-                  lineStyle: { color: pointerLineColor, type: 'dashed' as const },
-                  crossStyle: { color: pointerLineColor, type: 'dashed' as const },
-                  label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
-              }
-            : {
-                  type: 'line' as const,
-                  snap: true,
-                  lineStyle: { color: pointerLineColor, type: 'dashed' as const },
-                  label: { show: true, color: '#fff', backgroundColor: pointerLabelBg },
-              }
+    const axisPointerConfig = getCrosshairConfig(crosshairType.value)
 
     // --- PnL par trade : bar chart (seriesType: 'bar') ---
     if (st === 'bar' && pnlData.value) {
         const { labels, values, trades } = pnlData.value
         const { profitColor, lossColor, breakevenColor } = pnlColors
-        const colors = values.map((v) => (v > 0 ? profitColor.value : v < 0 ? lossColor.value : breakevenColor.value))
+        const colors = buildBarColors(values, profitColor.value, lossColor.value, breakevenColor.value)
         const data = buildBarData(values, colors, (v) => (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]))
         const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
         return {
             ...base,
             tooltip: {
-                backgroundColor,
-                borderColor,
-                textStyle: { color: tooltipTextColor, fontSize: 13 },
-                appendTo: document.body,
-                className: 'echarts-custom-tooltip',
-                trigger: 'axis',
-                axisPointer: axisPointerConfig,
+                ...buildTooltip(ctx, axisPointerConfig),
                 formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
                     const p = Array.isArray(params) ? params[0] : params
                     const trade = trades[p.dataIndex]
@@ -498,22 +433,33 @@ const chartOption = computed<EChartsOption | undefined>(() => {
             ...base,
             animation: false,
             tooltip: {
-                backgroundColor,
-                borderColor,
-                textStyle: { color: tooltipTextColor, fontSize: 13 },
-                appendTo: document.body,
-                className: 'echarts-custom-tooltip',
-                trigger: 'axis',
-                axisPointer: axisPointerConfig,
+                ...buildTooltip(ctx, axisPointerConfig),
                 formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-                    const p = Array.isArray(params) ? params[0] : params
+                    const allParams = Array.isArray(params) ? params : [params]
+                    // Filtre les points de croisement artificiels (x fractionnaire) pour ne garder que les vrais points
+                    const realParams = allParams.filter((p) => Number.isInteger((p.value as unknown as [number, number])[0]))
+                    const p = realParams[0] || allParams[0]
                     const valPair = p.value as unknown as [number, number]
                     const xi = Math.round(valPair[0])
                     const label = labels[xi] || ''
                     const val = valPair[1]
-                    return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${yFmt(val)}`]
+                    const valueLabel = shouldCumulate.value
+                        ? t('components.dashboard.index.cumulated_label')
+                        : t(`components.dashboard.breakdown.metrics.${metric}`)
+                    const lines = [label ? `Date: ${label}` : '', `${valueLabel}: ${yFmt(val)}`]
                         .filter(Boolean)
-                        .join('<br/>')
+                    // Ajoute les métriques supplémentaires depuis les données par période
+                    const allMetrics = cumulatedData.value?.allMetrics
+                    if (allMetrics) {
+                        // Si capital > 0, le premier point (xi=0) est artificiel, on décale
+                        const metricIndex = capital > 0 ? xi - 1 : xi
+                        const periodMetrics = allMetrics[metricIndex]
+                        if (periodMetrics) {
+                            const shown = new Set<BreakdownMetric>([metric])
+                            lines.push(...buildExtraTooltipLines(periodMetrics, shown))
+                        }
+                    }
+                    return lines.join('<br/>')
                 },
             },
             grid,
@@ -586,15 +532,13 @@ const chartOption = computed<EChartsOption | undefined>(() => {
 
         const series: EChartsOption['series'] = []
         if (showMovingAverage.value) {
-            series.push({
-                type: 'line',
+            series.push(buildLineSeries({
                 name: t('components.dashboard.index.mobile_avg_label'),
                 data: maValues,
+                color: maColor,
+                symbolSize: 0,
                 smooth: 0.2,
-                showSymbol: false,
-                lineStyle: { color: maColor, width: 2 },
-                itemStyle: { color: maColor },
-            })
+            }))
         }
         if (showBars.value) {
             series.push({
@@ -621,13 +565,7 @@ const chartOption = computed<EChartsOption | undefined>(() => {
         return {
             ...base,
             tooltip: {
-                backgroundColor,
-                borderColor,
-                textStyle: { color: tooltipTextColor, fontSize: 13 },
-                appendTo: document.body,
-                className: 'echarts-custom-tooltip',
-                trigger: 'axis',
-                axisPointer: axisPointerConfig,
+                ...buildTooltip(ctx, axisPointerConfig),
                 formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
                     const list = (Array.isArray(params) ? params : [params]) as EChartsFormatterParams[]
                     const dataIndex = list[0]?.dataIndex ?? 0

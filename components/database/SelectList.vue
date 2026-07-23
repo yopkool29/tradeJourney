@@ -46,9 +46,14 @@
                 </UCard>
             </div>
 
-            <UButton size="lg" color="primary" block :disabled="!selectedDatabaseId" :loading="isSelecting" @click="handleSelectDatabase">
-                {{ $t('pages.select_database.continue') }}
-            </UButton>
+            <div class="flex gap-3">
+                <UButton size="lg" color="neutral" variant="outline" block @click="handleCancel">
+                    {{ $t('common.actions.cancel') }}
+                </UButton>
+                <UButton size="lg" color="primary" block :disabled="!selectedDatabaseId" :loading="isSelecting" @click="handleSelectDatabase">
+                    {{ $t('pages.select_database.continue') }}
+                </UButton>
+            </div>
 
             <div class="flex items-center gap-4 my-4">
                 <div class="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
@@ -159,9 +164,28 @@ const databaseToRename = ref<Database | null>(null)
 
 const selectedDatabase = computed(() => databases.value.find((db) => db.id === selectedDatabaseId.value))
 
+// Annuler : revient en arrière si une base est déjà sélectionnée, sinon va au login
+const handleCancel = () => {
+    if (currentDatabase.value) {
+        router.back()
+    } else {
+        navigateTo('/login')
+    }
+}
+
+// Esc pour annuler
 onMounted(async () => {
     await loadDatabases()
+    window.addEventListener('keydown', onKeydown)
 })
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', onKeydown)
+})
+
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') handleCancel()
+}
 
 const loadDatabases = async () => {
     isLoading.value = true

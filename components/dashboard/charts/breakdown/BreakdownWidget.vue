@@ -129,8 +129,7 @@ import { dimensionOptions, metricOptions, defaultTableColumns, migrateDimension 
 import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
-import type { EChartsFormatterParams, EChartsGridOption } from '~/utils/echarts-builders'
-import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
+import type { EChartsFormatterParams } from '~/utils/echarts-builders'
 
 const props = defineProps<{
 	itemId: string
@@ -147,6 +146,7 @@ const config = computed(() => {
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const isDark = useIsDark()
+const { getChartContext } = useEchartsChartOption()
 const { profitColor, lossColor, barColor, rawMetricColor, heatmapColors } = useTypeColors('timeSeriesChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
@@ -230,20 +230,7 @@ const selectedColumns = computed<BreakdownMetric[]>({
 })
 
 // Métriques supplémentaires affichées dans le tooltip (bar/scatter)
-// Triées selon l'ordre de metricOptions pour un affichage cohérent
-const selectedTooltipMetrics = computed<BreakdownMetric[]>(() => {
-	const selected = config.value.tooltipMetrics ?? []
-	const order = metricOptions.map(m => m.value)
-	return [...selected].sort((a, b) => order.indexOf(a) - order.indexOf(b))
-})
-
-const toggleTooltipMetric = (metric: BreakdownMetric) => {
-	const current = selectedTooltipMetrics.value
-	const newVal = current.includes(metric)
-		? current.filter(m => m !== metric)
-		: [...current, metric]
-	updateConfig({ tooltipMetrics: newVal })
-}
+const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
 
 // Titre du chart
 const chartTitle = computed(() => {
@@ -347,11 +334,8 @@ const barChartOption = computed<EChartsOption>(() => {
 	const data = buildBarData(values, colors, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3])
 	const series = buildBarSeries({ data, barMaxWidth: 24, emphasis: { disabled: true } })
 
-	const base = getEchartsBaseOption()
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-
-	const grid: EChartsGridOption = { left: 80, right: 80, top: 12, bottom: 28 }
+	const ctx = getChartContext({ left: 80, right: 80, top: 12, bottom: 28 })
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 
 	return {
 		...base,
@@ -411,11 +395,8 @@ const barVerticalChartOption = computed<EChartsOption>(() => {
 	const data = buildBarData(values, colors, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
 	const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
 
-	const base = getEchartsBaseOption()
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-
-	const grid: EChartsGridOption = { left: 60, right: 16, top: 12, bottom: 40 }
+	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 40 })
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 
 	// Y axis min/max selon la métrique (winrate : 0-100)
 	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
@@ -515,10 +496,8 @@ const scatterChartOption = computed<EChartsOption>(() => {
 		}
 	})
 
-	const base = getEchartsBaseOption()
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
-	const grid: EChartsGridOption = { left: 60, right: 16, top: 24, bottom: 40 }
+	const ctx = getChartContext({ left: 60, right: 16, top: 24, bottom: 40 })
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 
 	const yAxisName = t(`components.dashboard.breakdown.metrics.${config.value.metric}`)
 	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
@@ -572,7 +551,7 @@ const scatterChartOption = computed<EChartsOption>(() => {
 			max: yAxisMax,
 			axisLine: { show: false },
 			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11 },
+			axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => formatMetricValue(v) },
 			splitLine: { lineStyle: { color: axisColor } },
 			nameTextStyle: { color: textColor, fontSize: 11 },
 		},
@@ -651,9 +630,8 @@ const heatmapMaxAbs = computed(() =>
 )
 
 const heatmapChartOption = computed<EChartsOption>(() => {
-	const base = getEchartsBaseOption()
-	const { axisColor, textColor } = getEchartsAxisColors(isDark.value)
-	const { backgroundColor, borderColor, textColor: tooltipTextColor } = getEchartsTooltipColors()
+	const ctx = getChartContext()
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor } = ctx
 	const xLabels = heatmapXLabels.value
 	const yLabels = heatmapYLabels.value
 	const data = heatmapDataItems.value
