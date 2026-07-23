@@ -164,6 +164,12 @@ export const sortMetricsByDimension = (
 	if (dimension === 'hourStart' || dimension === 'hourEnd') {
 		return [...metrics].sort((a, b) => a.key.localeCompare(b.key))
 	}
+	// avgLoss : la valeur retournée est -avgLoss (négative), donc le tri décroissant
+	// met la plus petite perte en premier. On inverse pour que la plus grande perte
+	// arrive en premier (utile avec le filtre Top N).
+	if (metric === 'avgLoss') {
+		return [...metrics].sort((a, b) => getMetricValueForMetric(a, metric) - getMetricValueForMetric(b, metric))
+	}
 	return [...metrics].sort((a, b) => getMetricValueForMetric(b, metric) - getMetricValueForMetric(a, metric))
 }
 

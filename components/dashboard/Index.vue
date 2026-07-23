@@ -278,7 +278,7 @@
 
             <!-- Workspaces with KeepAlive -->
             <div class="relative" :class="{ 'min-h-[400px]': !gridReady || switchingToWorkspaceId !== null }">
-                <KeepAlive>
+                <!-- <KeepAlive> -->
                     <DashboardGridLayout
                         v-if="gridReady"
                         :key="activeWorkspaceId"
@@ -294,7 +294,7 @@
                         :col-num="gridColNum"
                         @remove-item="onRemoveItem"
                     />
-                </KeepAlive>
+                <!-- </KeepAlive> -->
             </div>
         </div>
     </div>

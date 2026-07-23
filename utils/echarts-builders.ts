@@ -51,6 +51,8 @@ export interface BarDataItem {
 export interface BarSeriesConfig {
 	data: BarDataItem[]
 	barMaxWidth?: number
+	barGap?: string
+	barCategoryGap?: string
 	emphasis?: {
 		disabled?: boolean
 		itemStyle?: {
@@ -138,6 +140,8 @@ export const buildBarSeries = (config: BarSeriesConfig): EChartsOption['series']
 		type: 'bar' as const,
 		data: config.data,
 		barMaxWidth: config.barMaxWidth ?? 32,
+		barGap: config.barGap,
+		barCategoryGap: config.barCategoryGap,
 		emphasis: config.emphasis ?? { disabled: true },
 	}]
 }

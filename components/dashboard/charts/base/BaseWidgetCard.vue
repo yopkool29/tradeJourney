@@ -5,7 +5,7 @@
 				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold" :class="titleClass">{{ title }}</span>
 					<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
-					<div class="ml-auto flex items-center gap-1">
+					<div class="ml-auto flex items-center gap-1 mr-6">
 						<!-- Slot pour actions personnalisées dans le header (ex: crosshair) -->
 						<slot name="header-actions" />
 						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
@@ -55,9 +55,11 @@
 			<div
 				v-else
 				ref="chartContainerRef"
-				class="relative w-full flex-1 min-h-0 cursor-pointer"
+				class="relative w-full flex-1 min-h-0"
+				:class="{ 'cursor-pointer': !hideEnlarge && !disableClickEnlarge }"
 				style="min-height: 200px;"
-				@click="!hideEnlarge && (isModalOpen = true)"
+				@mousedown="onChartMouseDown"
+				@click="onChartClick"
 			>
 				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
 			</div>
@@ -90,6 +92,8 @@ const props = defineProps<{
 	transparent?: boolean
 	// Masque le bouton "enlarge" (ex: pour les tables qui n'ont pas de version agrandie)
 	hideEnlarge?: boolean
+	// Désactive l'agrandissement au clic sur le chart (garde le bouton)
+	disableClickEnlarge?: boolean
 	// Active l'utilisation du slot default à la place du VChart (ex: pour les tables)
 	useDefaultSlot?: boolean
 }>()
@@ -98,6 +102,40 @@ const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? fals
 
 const isModalOpen = ref(false)
 const isSettingsOpen = ref(false)
+
+// Track mousedown position to distinguish click from drag (dataZoom scroll)
+let mouseDownPos: { x: number, y: number } | null = null
+
+const onChartMouseDown = (e: MouseEvent) => {
+	mouseDownPos = { x: e.clientX, y: e.clientY }
+}
+
+const onChartClick = (e: MouseEvent) => {
+	if (hideEnlarge || disableClickEnlarge) return
+	// Si la souris a bougé entre mousedown et click, c'est un drag (dataZoom) → on ignore
+	if (mouseDownPos) {
+		const dx = Math.abs(e.clientX - mouseDownPos.x)
+		const dy = Math.abs(e.clientY - mouseDownPos.y)
+		if (dx > 5 || dy > 5) {
+			mouseDownPos = null
+			return
+		}
+	}
+	mouseDownPos = null
+	isModalOpen.value = true
+}
+
+// Empêche le scroll parent quand le chart a un dataZoom
+// Solution inspirée de: https://github.com/apache/echarts/issues/10079
+const hasDataZoom = computed(() => props.chartOption && 'dataZoom' in props.chartOption && props.chartOption.dataZoom)
+
+const handleWheelCapture = (event: WheelEvent) => {
+	// Pas de modificateur → scroll de page : empêche ECharts de capturer l'événement
+	// en stoppant la propagation en phase capture (avant qu'ECharts ne le reçoive)
+	if (!event.shiftKey && !event.ctrlKey && !event.altKey) {
+		event.stopPropagation()
+	}
+}
 
 const chartContainerRef = ref<HTMLElement | null>(null)
 const containerHeight = ref(250)
@@ -116,6 +154,12 @@ onMounted(() => {
 			}
 		})
 		resizeObserver.observe(chartContainerRef.value)
+		
+		// Capture wheel en phase capture pour empêcher ECharts de le capturer
+		// quand on veut juste scroller la page (sans modificateur)
+		if (hasDataZoom.value) {
+			chartContainerRef.value.addEventListener('wheel', handleWheelCapture, { capture: true, passive: true })
+		}
 	}
 })
 
@@ -123,6 +167,9 @@ onBeforeUnmount(() => {
 	if (resizeObserver) {
 		resizeObserver.disconnect()
 		resizeObserver = null
+	}
+	if (chartContainerRef.value && hasDataZoom.value) {
+		chartContainerRef.value.removeEventListener('wheel', handleWheelCapture, { capture: true } as EventListenerOptions)
 	}
 })
 

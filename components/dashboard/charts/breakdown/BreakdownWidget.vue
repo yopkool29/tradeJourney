@@ -5,6 +5,7 @@
 		:chart-option="chartOption"
 		:loading="loading"
 		:hide-enlarge="chartType === 'table'"
+		:disable-click-enlarge="chartType === 'bar' || chartType === 'barVertical'"
 		:use-default-slot="chartType === 'table'"
 		:modal-height-class="modalHeightClass"
 	>
@@ -312,7 +313,13 @@ const sortedMetrics = computed(() =>
 )
 
 const filteredMetrics = computed(() => {
-	const metrics = sortedMetrics.value
+	let metrics = sortedMetrics.value
+	// avgLoss/avgWin : masquer les groupes sans trade correspondant (valeur 0 n'a pas de sens)
+	if (config.value.metric === 'avgLoss') {
+		metrics = metrics.filter(m => m.losingTradesCount > 0)
+	} else if (config.value.metric === 'avgWin') {
+		metrics = metrics.filter(m => m.winningTradesCount > 0)
+	}
 	const topN = config.value.filter?.topN
 	if (!topN || topN <= 0) return metrics
 	// TopN prend les N premiers après le tri (pas de re-tri)
@@ -332,10 +339,13 @@ const barChartOption = computed<EChartsOption>(() => {
 	// Même logique de couleur que le scatter chart
 	const colors = filteredMetrics.value.map(m => getScatterColor(m))
 	const data = buildBarData(values, colors, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3])
-	const series = buildBarSeries({ data, barMaxWidth: 24, emphasis: { disabled: true } })
+	const series = buildBarSeries({ data, barMaxWidth: 16, barCategoryGap: '10%', emphasis: { disabled: true } })
 
 	const ctx = getChartContext({ left: 80, right: 80, top: 12, bottom: 28 })
 	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
+
+	const hasZoom = categories.length > 20
+	const zoomEnd = hasZoom ? Math.min(100, (20 / categories.length) * 100) : 100
 
 	return {
 		...base,
@@ -363,7 +373,11 @@ const barChartOption = computed<EChartsOption>(() => {
 				return lines.join('<br/>')
 			},
 		},
-		grid,
+		grid: { ...grid, right: hasZoom ? 100 : 80 },
+		dataZoom: hasZoom ? [
+			{ type: 'slider', yAxisIndex: 0, start: 0, end: zoomEnd, width: 20, right: 5, filterMode: 'filter' },
+			{ type: 'inside', yAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+		] : undefined,
 		xAxis: {
 			type: 'value',
 			axisLine: { lineStyle: { color: axisColor } },
@@ -393,14 +407,17 @@ const barVerticalChartOption = computed<EChartsOption>(() => {
 	const values = filteredMetrics.value.map(m => getMetricValue(m))
 	const colors = filteredMetrics.value.map(m => getScatterColor(m))
 	const data = buildBarData(values, colors, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
-	const series = buildBarSeries({ data, barMaxWidth: 32, emphasis: { disabled: true } })
+	const series = buildBarSeries({ data, barMaxWidth: 20, barCategoryGap: '10%', emphasis: { disabled: true } })
 
-	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 40 })
+	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 60 })
 	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 
 	// Y axis min/max selon la métrique (winrate : 0-100)
 	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
 	const yAxisMax = config.value.metric === 'winrate' ? 100 : undefined
+
+	const hasZoom = categories.length > 20
+	const zoomEnd = hasZoom ? Math.min(100, (20 / categories.length) * 100) : 100
 
 	return {
 		...base,
@@ -429,6 +446,10 @@ const barVerticalChartOption = computed<EChartsOption>(() => {
 			},
 		},
 		grid,
+		dataZoom: hasZoom ? [
+			{ type: 'slider', xAxisIndex: 0, start: 0, end: zoomEnd, height: 20, bottom: 5, filterMode: 'filter' },
+			{ type: 'inside', xAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+		] : undefined,
 		xAxis: {
 			type: 'category',
 			data: categories,
@@ -476,13 +497,15 @@ const getJitter = (str: string): number => {
 }
 
 const scatterChartOption = computed<EChartsOption>(() => {
-	// data : [categoryIndex, metricValue + jitter, pnl, key, tradesCount]
+	// data : [categoryIndex + jitterX, metricValue, pnl, key, tradesCount]
+	// Jitter sur X uniquement pour éviter la superposition de points à la même valeur Y
+	// (ex: plusieurs jours à winrate=100%), sans corrompre la valeur réelle sur Y
 	const data = filteredMetrics.value.map((m, idx) => {
-		const jitterY = getJitter(m.key) * (Math.abs(getMetricValue(m)) * 0.02 + 1)
+		const jitterX = getJitter(m.key) * 0.15
 		return {
 			value: [
-				idx,
-				getMetricValue(m) + jitterY,
+				idx + jitterX,
+				getMetricValue(m),
 				m.pnl,
 				m.key,
 				m.tradesCount,
@@ -496,12 +519,15 @@ const scatterChartOption = computed<EChartsOption>(() => {
 		}
 	})
 
-	const ctx = getChartContext({ left: 60, right: 16, top: 24, bottom: 40 })
+	const ctx = getChartContext({ left: 60, right: 16, top: 24, bottom: scatterCategories.value.length > 20 ? 60 : 40 })
 	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 
 	const yAxisName = t(`components.dashboard.breakdown.metrics.${config.value.metric}`)
 	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
 	const yAxisMax = config.value.metric === 'winrate' ? 100 : undefined
+
+	const hasZoom = scatterCategories.value.length > 25
+	const zoomEnd = hasZoom ? Math.min(100, (25 / scatterCategories.value.length) * 100) : 100
 
 	return {
 		...base,
@@ -535,6 +561,10 @@ const scatterChartOption = computed<EChartsOption>(() => {
 			},
 		},
 		grid,
+		dataZoom: hasZoom ? [
+			{ type: 'slider', xAxisIndex: 0, start: 0, end: zoomEnd, height: 20, bottom: 5, filterMode: 'filter' },
+			{ type: 'inside', xAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+		] : undefined,
 		// Axe X : catégories de la dimension (ex: Lun, Mar, Mer...)
 		xAxis: {
 			type: 'category',
@@ -559,7 +589,7 @@ const scatterChartOption = computed<EChartsOption>(() => {
 			data,
 			symbolSize: (d: unknown[]) => {
 				const pnl = Math.abs(d[2] as number)
-				const baseSize = Math.min(18, Math.max(10, Math.sqrt(pnl) / 10))
+				const baseSize = Math.min(12, Math.max(8, Math.sqrt(pnl) / 12))
 				return baseSize
 			},
 		}),
