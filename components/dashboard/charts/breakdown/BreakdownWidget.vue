@@ -147,6 +147,7 @@ const config = computed(() => {
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const isDark = useIsDark()
+const { profitColor, lossColor, barColor, rawMetricColor, heatmapColors } = useTypeColors('timeSeriesChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
 const userStore = useUserStore()
@@ -477,7 +478,12 @@ const scatterCategories = computed(() => {
 })
 
 // Couleur du point/barre selon la métrique sélectionnée (logique centralisée dans useAnalytics)
-const getScatterColor = (m: BreakdownMetrics): string => getMetricColor(m, config.value.metric)
+const getScatterColor = (m: BreakdownMetrics): string => getMetricColor(m, config.value.metric, {
+	profit: profitColor.value,
+	loss: lossColor.value,
+	bar: barColor.value,
+	rawMetric: rawMetricColor.value,
+})
 
 const getJitter = (str: string): number => {
 	let hash = 0
@@ -724,7 +730,7 @@ const heatmapChartOption = computed<EChartsOption>(() => {
 			bottom: 0,
 			textStyle: { color: textColor, fontSize: 10 },
 			inRange: {
-				color: ['#000000', '#2a1500', '#552a00', '#803f00', '#ab5500', '#d66a00', '#ff8000', '#ffaa33', '#ffd480', '#fff5cc'],
+				color: [heatmapColors.value.min, heatmapColors.value.max],
 			},
 			outOfRange: {
 				color: isDark.value ? '#111827' : '#f3f4f6',

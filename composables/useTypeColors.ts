@@ -1,6 +1,6 @@
 import { defaultSettings } from '~/schema/user'
 
-type ChartType = 'pnlBarChart' | 'cumulatedPnlChart' | 'timeSeriesChart'
+type ChartType = 'pnlBarChart' | 'timeSeriesChart'
 type ThemeKey = 'light' | 'dark' | 'light-blue' | 'dark-gold'
 
 // Helper to get color for current theme with fallback
@@ -49,15 +49,17 @@ export const useTypeColors = (chartType?: ChartType) => {
         getThemeColor(userChartColors.value.breakeven as Record<ThemeKey, string>, colorMode.value)
     )
 
-    // Specific chart colors (bar, point, movingAverage) based on chart type
+    // Specific chart colors (bar, point, movingAverage, rawMetric) based on chart type
+    // Fusionne les settings utilisateur avec les defaults pour les champs manquants
     const specificChartColors = computed(() => {
         const userSettings = userStore.user?.settings_object?.chartColors
         const type = chartType || 'pnlBarChart'
-        
+        const defaults = defaultSettings.chartColors![type]
+
         if (userSettings?.[type]) {
-            return userSettings[type]
+            return { ...defaults, ...userSettings[type] }
         }
-        return defaultSettings.chartColors![type]
+        return defaults
     })
 
     const barColor = computed(() =>
@@ -71,6 +73,20 @@ export const useTypeColors = (chartType?: ChartType) => {
     const movingAverageColor = computed(() =>
         specificChartColors.value.movingAverage ? getThemeColor(specificChartColors.value.movingAverage as Record<ThemeKey, string>, colorMode.value) : undefined
     )
+
+    const rawMetricColor = computed(() =>
+        specificChartColors.value.rawMetric ? getThemeColor(specificChartColors.value.rawMetric as Record<ThemeKey, string>, colorMode.value) : undefined
+    )
+
+    // Heatmap colors (min/max gradient)
+    const heatmapColors = computed(() => {
+        const userSettings = userStore.user?.settings_object?.chartColors
+        const settings = userSettings?.heatmap || defaultSettings.chartColors!.heatmap!
+        return {
+            min: getThemeColor(settings.min as Record<ThemeKey, string>, colorMode.value),
+            max: getThemeColor(settings.max as Record<ThemeKey, string>, colorMode.value),
+        }
+    })
 
     const userBadgeColors = computed(() => {
         const userSettings = userStore.user?.settings_object?.chartColors
@@ -103,6 +119,8 @@ export const useTypeColors = (chartType?: ChartType) => {
         barColor,
         pointColor,
         movingAverageColor,
+        rawMetricColor,
+        heatmapColors,
         userChartColors,
         isDark
     }

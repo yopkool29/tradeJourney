@@ -25,14 +25,12 @@
 
 <script setup lang="ts">
 import type { TradeExtendedType } from '~/schema/trade'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { getGroupFn, injectEmptyTagMetrics, getMetricColor, getMetricValueForMetric } from '~/composables/useAnalytics'
-import type { TimezoneSettings } from '~/composables/useAnalytics'
+import { getGroupFn, injectEmptyTagMetrics, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
+import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
 import { defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
-import { chartColors } from '~/composables/useChartColors'
-import { formatDurationSeconds } from '~/utils/date-utils'
+import { isMonetaryMetric } from '~/composables/useChartColors'
 
 const props = defineProps<{
 	dimension: BreakdownDimension
@@ -42,7 +40,7 @@ const props = defineProps<{
 }>()
 
 const { displayModeNet } = useNetGrossDisplay()
-const { formatCurrency } = useUtils()
+const { profitColor, lossColor } = useTypeColors('pnlBarChart')
 const { t } = useI18n()
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
@@ -127,38 +125,20 @@ const formatMetric = (metric: BreakdownMetric, m: BreakdownMetrics): string => {
 	if (m.tradesCount === 0) {
 		return metric === 'tradesCount' ? '0' : ''
 	}
-	switch (metric) {
-		case 'pnl':
-		case 'avgWin':
-		case 'expectancy':
-		case 'drawdown':
-		case 'currentDrawdown':
-			return Math.abs(m[metric]) < 0.005 ? '' : formatCurrency(m[metric])
-		case 'avgLoss':
-			return Math.abs(m.avgLoss) < 0.005 ? '' : formatCurrency(-m.avgLoss)
-		case 'winrate':
-			return `${m.winrate.toFixed(1)}%`
-		case 'profitFactor':
-			return m.profitFactor === Infinity ? '∞' : m.profitFactor.toFixed(2)
-		case 'avgDuration':
-			return formatDurationSeconds(m.avgDuration * 60)
-		case 'tradesCount':
-			return String(m.tradesCount)
-		default:
-			return formatCurrency(m[metric])
-	}
+	return formatMetricValueForMetric(getMetricValueForMetric(m, metric), metric)
 }
 
 // Style inline selon la métrique
-// tradesCount et avgDuration gardent la couleur par défaut
-// Pour les autres : utilise le primary du thème pour les valeurs positives, rouge pour les négatives
+// Seules les métriques monétaires (pnl, appt, etc.) sont colorées (vert/rouge)
+// Les autres (winrate, profitFactor, avgDuration, tradesCount) gardent la couleur par défaut
 const cellStyle = (metric: BreakdownMetric, m: BreakdownMetrics): Record<string, string> => {
 	if (m.tradesCount === 0) return {}
-	if (metric === 'tradesCount' || metric === 'avgDuration') return {}
 	const val = getMetricValueForMetric(m, metric)
-	if (val > 0) return { color: chartColors.profit, fontWeight: '600' }
-	if (val < 0) return { color: getMetricColor(m, metric), fontWeight: '600' }
-	return { color: getMetricColor(m, metric), fontWeight: '600' }
+	if (isMonetaryMetric(metric)) {
+		if (val > 0) return { color: profitColor.value, fontWeight: '600' }
+		if (val < 0) return { color: lossColor.value, fontWeight: '600' }
+	}
+	return { fontWeight: '600' }
 }
 
 const emptyStateKey = computed(() => 'components.dashboard.breakdown.empty_state')

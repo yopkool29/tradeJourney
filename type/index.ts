@@ -217,6 +217,8 @@ export interface TimeSeriesConfig {
 	yAxisFormat?: TimeSeriesYAxisFormat
 	// Type de réticule : 'cross' (horizontal + vertical) ou 'line' (vertical uniquement)
 	crosshairType?: 'cross' | 'line'
+	// Métriques supplémentaires affichées dans le tooltip (barMA seulement)
+	tooltipMetrics?: BreakdownMetric[]
 }
 
 export interface DashboardGridItem {

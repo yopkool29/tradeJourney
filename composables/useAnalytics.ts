@@ -3,7 +3,7 @@ import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
 import { getHourAndWeekdayInUserTimezone } from '~/utils/date-utils'
 import { formatCurrency } from '~/utils'
-import { chartColors, hslColorForValue } from '~/composables/useChartColors'
+import { chartColors, monetaryColorForValue, winrateColor, profitFactorColor, isMonetaryMetric } from '~/composables/useChartColors'
 
 export interface TickerMetrics {
 	symbol: string
@@ -94,6 +94,8 @@ export const getMetricValueForMetric = (m: BreakdownMetrics, metric: BreakdownMe
 
 // Formate la valeur d'une métrique selon son type
 export const formatMetricValueForMetric = (val: number, metric: BreakdownMetric): string => {
+	// Métriques monétaires : masque les valeurs proches de 0
+	if (isMonetaryMetric(metric) && Math.abs(val) < 0.005) return ''
 	switch (metric) {
 		case 'pnl':
 		case 'avgWin':
@@ -118,70 +120,29 @@ export const formatMetricValueForMetric = (val: number, metric: BreakdownMetric)
 
 // Couleur d'une métrique selon sa valeur (dégradé HSL smooth)
 // Utilisé par les charts (bar/scatter) et la table
-// - winrate : rouge < 25% → orange 25-60% → vert > 60%
-// - profitFactor : orange < 1 → dégradé 1-3 → vert > 3
-// - avgWin, avgLoss : dégradé basé sur la valeur (-3$ → +3$)
-// - avgDuration : bleu
-// - tradesCount : vert
-// - pnl, expectancy, drawdown, currentDrawdown : dégradé basé sur la valeur
-export const getMetricColor = (m: BreakdownMetrics, metric: BreakdownMetric): string => {
-	if (metric === 'winrate') {
-		const wr = m.winrate
-		let hue: number
-		if (wr <= 25) {
-			hue = 0
-		} else if (wr <= 60) {
-			hue = ((wr - 25) / 35) * 30
-		} else {
-			hue = 30 + ((wr - 60) / 40) * 90
-		}
-		return `hsl(${hue}, 45%, 55%)`
-	}
+// - monétaire (pnl, appt, etc.) : rouge/vert binaire
+// - ratio (profitFactor) : dégradé rouge→vert avec seuil à 1
+// - pourcentage (winrate) : couleur uniforme (barColor)
+// - durée/compteur (avgDuration, tradesCount) : couleur uniforme (rawMetricColor)
+export const getMetricColor = (
+	m: BreakdownMetrics,
+	metric: BreakdownMetric,
+	colors?: { profit?: string; loss?: string; bar?: string; rawMetric?: string },
+): string => {
 	if (metric === 'profitFactor') {
-		const pf = m.profitFactor === Infinity ? 999 : m.profitFactor
-		let hue: number
-		if (pf < 1) {
-			hue = 30
-		} else if (pf <= 3) {
-			hue = 30 + ((pf - 1) / 2) * 90
-		} else {
-			hue = 120
-		}
-		return `hsl(${hue}, 45%, 55%)`
+		return profitFactorColor(m.profitFactor)
 	}
-	if (metric === 'avgWin' || metric === 'avgLoss') {
-		const val = getMetricValueForMetric(m, metric)
-		let hue: number
-		if (val <= -3) {
-			hue = 0
-		} else if (val <= 0) {
-			hue = ((val + 3) / 3) * 30
-		} else if (val <= 3) {
-			hue = 30 + (val / 3) * 90
-		} else {
-			hue = 120
-		}
-		return `hsl(${hue}, 45%, 55%)`
+	if (metric === 'winrate') {
+		return colors?.bar || '#fbbf24'
 	}
-	if (metric === 'avgDuration') {
-		return chartColors.avgDuration
+	if (metric === 'avgDuration' || metric === 'tradesCount') {
+		return colors?.rawMetric || '#3b82f6'
 	}
-	if (metric === 'tradesCount') {
-		return chartColors.tradesCount
-	}
-	// pnl, expectancy, drawdown, currentDrawdown
+	// Métriques monétaires : rouge/vert binaire
 	const val = getMetricValueForMetric(m, metric)
-	let hue: number
-	if (val <= -3) {
-		hue = 0
-	} else if (val <= 0) {
-		hue = ((val + 3) / 3) * 30
-	} else if (val <= 3) {
-		hue = 30 + (val / 3) * 90
-	} else {
-		hue = 120
-	}
-	return `hsl(${hue}, 45%, 55%)`
+	if (val > 0) return colors?.profit || '#22c55e'
+	if (val < 0) return colors?.loss || '#ef4444'
+	return colors?.bar || '#fbbf24'
 }
 
 // Tri logique des métriques selon la dimension

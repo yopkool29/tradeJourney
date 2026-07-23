@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex flex-col relative">
+    <div class="h-screen flex flex-col relative overflow-y-auto">
         <!-- Overlay sombre -->
         <div v-if="isNotesPanelOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeNotesPanel"></div>
         <!-- Bouton flottant pour ouvrir les notes -->

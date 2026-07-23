@@ -1,5 +1,5 @@
 <template>
-    <footer class="w-full py-8 bg-linear-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-950 border-t border-gray-200 dark:border-gray-700 mt-auto">
+    <footer class="w-full py-8 bg-linear-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-950 border-t border-gray-200 dark:border-gray-700">
         <div class="container mx-auto px-4 flex flex-col items-center gap-4">
             <!-- Copyright -->
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300">

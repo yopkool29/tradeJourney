@@ -42,6 +42,17 @@
                     <UCheckbox v-model="showThreshold" />
                     <span class="text-sm">{{ $t('components.dashboard.common.show_threshold') }}</span>
                 </div>
+                <!-- Métriques supplémentaires dans le tooltip (barMA seulement) -->
+                <div v-if="config.seriesType === 'barMA'" class="space-y-1 border-t border-gray-200 dark:border-gray-700 pt-2">
+                    <span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
+                    <div v-for="m in metricItems" :key="m.value" class="flex items-center gap-2">
+                        <UCheckbox
+                            :model-value="selectedTooltipMetrics.includes(m.value as BreakdownMetric)"
+                            @update:model-value="toggleTooltipMetric(m.value as BreakdownMetric)"
+                        />
+                        <span class="text-sm">{{ m.label }}</span>
+                    </div>
+                </div>
             </div>
         </template>
         <!-- Réticule : 2 boutons icônes à gauche du menu settings -->
@@ -70,10 +81,11 @@
 import type { EChartsOption } from 'echarts'
 import type { TimeSeriesConfig, TimeSeriesAggregation, BreakdownMetric } from '~/type'
 import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
+import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
 import { buildBarData, buildBarSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsGridOption, EChartsAreaStyle } from '~/utils/echarts-builders'
-import { chartColors } from '~/composables/useChartColors'
+import { chartColors, isMonetaryMetric } from '~/composables/useChartColors'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 import { colorToRgba } from '~/utils/color-utils'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
@@ -98,7 +110,6 @@ const { getGroupedTrades } = useAggregationCache()
 
 // Couleurs selon le type de chart (utilise les user settings comme les anciens composants)
 const pnlColors = useTypeColors('pnlBarChart')
-const cumulatedColors = useTypeColors('cumulatedPnlChart')
 const timeSeriesColors = useTypeColors('timeSeriesChart')
 
 const config = computed<TimeSeriesConfig>(() => {
@@ -186,6 +197,31 @@ const crosshairType = computed<'cross' | 'line'>({
     get: () => config.value.crosshairType ?? 'cross',
     set: (val: 'cross' | 'line') => updateConfig({ crosshairType: val }),
 })
+
+// --- Métriques supplémentaires dans le tooltip (barMA seulement) ---
+const selectedTooltipMetrics = computed<BreakdownMetric[]>(() => {
+    const selected = config.value.tooltipMetrics ?? []
+    const order = metricOptions.map(m => m.value)
+    return [...selected].sort((a, b) => order.indexOf(a) - order.indexOf(b))
+})
+
+const toggleTooltipMetric = (metric: BreakdownMetric) => {
+    const current = selectedTooltipMetrics.value
+    const newVal = current.includes(metric)
+        ? current.filter(m => m !== metric)
+        : [...current, metric]
+    updateConfig({ tooltipMetrics: newVal })
+}
+
+const buildExtraTooltipLines = (metrics: BreakdownMetrics, alreadyShown: Set<BreakdownMetric>): string[] => {
+    const lines: string[] = []
+    for (const m of selectedTooltipMetrics.value) {
+        if (alreadyShown.has(m)) continue
+        const val = getMetricValueForMetric(metrics, m)
+        lines.push(`${t(`components.dashboard.breakdown.metrics.${m}`)}: ${formatMetricValueForMetric(val, m)}`)
+    }
+    return lines
+}
 
 // --- Titre ---
 const chartTitle = computed(() => {
@@ -279,6 +315,7 @@ const periodMetricsData = computed(() => {
     // Calcule les métriques pour chaque groupe de période
     const labels: string[] = []
     const values: number[] = []
+    const allMetrics: BreakdownMetrics[] = []
     const metric = config.value.metric
     // Trie les clés de période par ordre chronologique
     const sortedKeys = Object.keys(grouped).sort()
@@ -290,9 +327,11 @@ const periodMetricsData = computed(() => {
         const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
         if (!metrics) {
             values.push(0)
+            allMetrics.push({} as BreakdownMetrics)
             continue
         }
         values.push(getMetricValueForMetric(metrics, metric))
+        allMetrics.push(metrics)
     }
     // Calcule la moyenne mobile
     const maWindow = config.value.movingAverageWindow ?? 5
@@ -302,7 +341,7 @@ const periodMetricsData = computed(() => {
         const window = values.slice(start, i + 1)
         maValues.push(window.reduce((a, b) => a + b, 0) / window.length)
     }
-    return { labels, values, maValues }
+    return { labels, values, maValues, allMetrics }
 })
 
 // --- Chart option ---
@@ -386,18 +425,27 @@ const chartOption = computed<EChartsOption | undefined>(() => {
         }
     }
 
-    // --- Cumulated PnL : area chart bicolore (seriesType: 'area') ---
+    // --- Cumulated : area chart (seriesType: 'area') ---
     if (st === 'area' && cumulatedData.value) {
         const baseLabels = cumulatedData.value.labels
         const baseValues = cumulatedData.value.values
-        const { profitColor, lossColor } = cumulatedColors
-        const pColor = profitColor.value
-        const lColor = lossColor.value
+        const metric = config.value.metric
+        const monetary = isMonetaryMetric(metric)
+
+        // Pour les métriques monétaires : vert/rouge (profit/loss)
+        // Pour les pourcentages (winrate) : barColor (jaune)
+        // Pour les métriques brutes (durée, compteur) : rawMetricColor (bleu)
+        const { profitColor, lossColor } = pnlColors
+        const { barColor, rawMetricColor } = timeSeriesColors
+        const isRawMetric = metric === 'avgDuration' || metric === 'tradesCount'
+        const uniformColor = isRawMetric ? (rawMetricColor.value || chartColors.neutral) : (barColor.value || chartColors.neutral)
+        const pColor = monetary ? profitColor.value : uniformColor
+        const lColor = monetary ? lossColor.value : uniformColor
         const pAreaColor = colorToRgba(pColor, 0.3)
         const lAreaColor = colorToRgba(lColor, 0.3)
 
         // Le threshold ne s'applique qu'au P&L cumulé, ignoré pour les autres métriques
-        const useThreshold = showThreshold.value && config.value.metric === 'pnl'
+        const useThreshold = showThreshold.value && metric === 'pnl'
         const capital = useThreshold ? props.startingCapital || 0 : 0
         const threshold = capital
 
@@ -463,7 +511,7 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     const xi = Math.round(valPair[0])
                     const label = labels[xi] || ''
                     const val = valPair[1]
-                    return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${formatCurrency(val)}`]
+                    return [label ? `Date: ${label}` : '', `${t('components.dashboard.index.cumulated_label')}: ${yFmt(val)}`]
                         .filter(Boolean)
                         .join('<br/>')
                 },
@@ -524,15 +572,17 @@ const chartOption = computed<EChartsOption | undefined>(() => {
 
     // --- BarMA : barres + moyenne mobile (seriesType: 'barMA') ---
     if (st === 'barMA' && periodMetricsData.value) {
-        const { labels, values: barValues, maValues } = periodMetricsData.value
+        const { labels, values: barValues, maValues, allMetrics } = periodMetricsData.value
         const metric = config.value.metric
 
         // Couleurs génériques pour les séries temporelles (bar + MA)
         const colors = timeSeriesColors
         const maColor = colors.movingAverageColor.value || chartColors.neutral
-        // Pour les barres : vert/rouge si la métrique peut être négative (pnl, appt, expectancy, drawdown), sinon couleur uniforme
-        const canBeNegative = ['pnl', 'appt', 'expectancy', 'drawdown', 'currentDrawdown', 'avgLoss'].includes(metric)
-        const barFill = colors.barColor.value || chartColors.profit
+        // Pour les barres : vert/rouge si la métrique est monétaire (pnl, appt, etc.), sinon couleur uniforme
+        const canBeNegative = isMonetaryMetric(metric)
+        // barColor (jaune) pour les pourcentages (winrate), rawMetricColor (bleu) pour les métriques brutes (durée, compteur)
+        const isRawMetric = metric === 'avgDuration' || metric === 'tradesCount'
+        const barFill = isRawMetric ? (colors.rawMetricColor.value || chartColors.neutral) : (colors.barColor.value || chartColors.profit)
 
         const series: EChartsOption['series'] = []
         if (showMovingAverage.value) {
@@ -580,7 +630,8 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                 axisPointer: axisPointerConfig,
                 formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
                     const list = (Array.isArray(params) ? params : [params]) as EChartsFormatterParams[]
-                    const label = labels[list[0]?.dataIndex] || ''
+                    const dataIndex = list[0]?.dataIndex ?? 0
+                    const label = labels[dataIndex] || ''
                     const lines = list
                         .map((p) => {
                             const val = p.value as number
@@ -588,6 +639,12 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                             return `${p.seriesName}: ${fmtVal(val)}`
                         })
                         .filter(Boolean)
+                    // Ajoute les métriques supplémentaires depuis les données par période
+                    const periodMetrics = allMetrics[dataIndex]
+                    if (periodMetrics) {
+                        const shown = new Set<BreakdownMetric>([metric])
+                        lines.push(...buildExtraTooltipLines(periodMetrics, shown))
+                    }
                     return [label ? `Date: ${label}` : '', ...lines].filter(Boolean).join('<br/>')
                 },
             },

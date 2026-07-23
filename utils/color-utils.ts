@@ -38,15 +38,20 @@ export const rgbaToHex = (rgba: string): string => {
 
 export const colorToRgba = (color: string, alpha: number = 1): string => {
   // If already rgba, replace alpha
-  if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
+  if (color.startsWith('rgba(')) {
     return color.replace(/[\d.]+\)$/, `${alpha})`)
   }
-  
+
+  // If rgb (without alpha), convert to rgba
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`)
+  }
+
   // If hex, convert to rgba
   if (color.startsWith('#')) {
     return hexToRgba(color, alpha)
   }
-  
+
   // Fallback
   return `rgba(0, 0, 0, ${alpha})`
 }

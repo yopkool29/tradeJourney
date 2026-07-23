@@ -60,18 +60,19 @@ export const SettingsContentSchema = z.object({
         datalabels: ThemeColor.extend({
             display: z.boolean(),
         }),
-        cumulatedPnlChart: z.object({
-            bar: ThemeColor,
-            point: ThemeColor,
-        }),
         timeSeriesChart: z.object({
             bar: ThemeColor,
             movingAverage: ThemeColor,
+            rawMetric: ThemeColor,
         }),
         pnlBarChart: z.object({
             profit: ThemeColor,
             loss: ThemeColor,
             breakeven: ThemeColor,
+        }),
+        heatmap: z.object({
+            min: ThemeColor,
+            max: ThemeColor,
         }),
         tradeTypeBadges: z.object({
             buy: ThemeColor,
@@ -90,18 +91,19 @@ export const SettingsContentSchema = z.object({
             'light-blue': 'rgb(51, 51, 51)',
             'dark-gold': 'rgb(255, 255, 255)',
         },
-        cumulatedPnlChart: {
-            bar: { light: 'rgb(56, 189, 248)', dark: 'rgb(56, 189, 248)', 'light-blue': 'rgb(56, 189, 248)', 'dark-gold': 'rgb(56, 189, 248)' },
-            point: { light: 'rgb(68, 68, 68)', dark: 'rgb(231, 154, 11)', 'light-blue': 'rgb(68, 68, 68)', 'dark-gold': 'rgb(231, 154, 11)' },
-        },
         timeSeriesChart: {
             bar: { light: 'rgb(204, 186, 24)', dark: 'rgb(204, 186, 24)', 'light-blue': 'rgb(204, 186, 24)', 'dark-gold': 'rgb(204, 186, 24)' },
             movingAverage: { light: 'rgb(52, 128, 204)', dark: 'rgb(52, 128, 204)', 'light-blue': 'rgb(52, 128, 204)', 'dark-gold': 'rgb(52, 128, 204)' },
+            rawMetric: { light: 'rgb(59, 130, 246)', dark: 'rgb(59, 130, 246)', 'light-blue': 'rgb(59, 130, 246)', 'dark-gold': 'rgb(59, 130, 246)' },
         },
         pnlBarChart: {
             profit: { light: 'rgba(34, 197, 94, 0.8)', dark: 'rgba(34, 197, 94, 0.8)', 'light-blue': 'rgba(34, 197, 94, 0.8)', 'dark-gold': 'rgba(34, 197, 94, 0.8)' },
             loss: { light: 'rgba(239, 68, 68, 0.8)', dark: 'rgba(239, 68, 68, 0.8)', 'light-blue': 'rgba(239, 68, 68, 0.8)', 'dark-gold': 'rgba(239, 68, 68, 0.8)' },
             breakeven: { light: 'rgb(252, 223, 146)', dark: 'rgb(158, 138, 83)', 'light-blue': 'rgb(252, 223, 146)', 'dark-gold': 'rgb(158, 138, 83)' },
+        },
+        heatmap: {
+            min: { light: 'rgb(255, 245, 204)', dark: 'rgb(42, 21, 0)', 'light-blue': 'rgb(255, 245, 204)', 'dark-gold': 'rgb(42, 21, 0)' },
+            max: { light: 'rgb(255, 128, 0)', dark: 'rgb(255, 170, 51)', 'light-blue': 'rgb(255, 128, 0)', 'dark-gold': 'rgb(255, 170, 51)' },
         },
         tradeTypeBadges: {
             buy: { light: 'rgb(16, 185, 129)', dark: 'rgb(33, 198, 94)', 'light-blue': 'rgb(16, 185, 129)', 'dark-gold': 'rgb(33, 198, 94)' },

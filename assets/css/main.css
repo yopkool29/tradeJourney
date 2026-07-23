@@ -18,14 +18,14 @@
 }
 
 body {
-    background: linear-gradient(to bottom, #f1f1f1, #e0e0e0) no-repeat;
+    background: linear-gradient(to bottom, #f1f1f1, #e0e0e0);
+    background-attachment: fixed;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 .dark body {
-    background: linear-gradient(to bottom, #1f1f1f, #16161f) no-repeat;
+    background: linear-gradient(to bottom, #1f1f1f, #16161f);
+    background-attachment: fixed;
 }
 
 .dark {

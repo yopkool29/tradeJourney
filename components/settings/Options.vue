@@ -352,27 +352,13 @@
                             </div>
                         </div>
 
-                        <!-- Cumulated P&L Chart -->
-                        <!-- <div class="mb-6">
-                            <h4 class="font-medium mb-3">{{ $t('components.settings.options.chart_cumulated_pnl') }}</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <UFormField :label="$t('components.settings.options.color_point') + ' (' + currentTheme + ')'">
-                                    <CommonColorPickerButton 
-                                        v-model="formState.chartColors!.cumulatedPnlChart.point[currentTheme]"
-                                        :label="$t('components.settings.options.color_point')"
-                                        :default-color="defaultSettings.chartColors!.cumulatedPnlChart.point[currentTheme]"
-                                    />
-                                </UFormField>
-                            </div>
-                        </div> -->
-
                         <!-- Time Series Chart (barres + MA génériques) -->
                         <div class="mb-6">
                             <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_time_series') }}</h4>
                             <div class="space-y-4">
                                 <CommonColorThemePicker
                                     v-model="formState.chartColors!.timeSeriesChart.bar"
-                                    :label="$t('components.settings.options.color_bar')"
+                                    :label="$t('components.settings.options.color_percent_metric')"
                                     :default-colors="defaultSettings.chartColors!.timeSeriesChart.bar"
                                 />
                                 <CommonColorThemePicker
@@ -380,9 +366,31 @@
                                     :label="$t('components.settings.options.color_moving_average')"
                                     :default-colors="defaultSettings.chartColors!.timeSeriesChart.movingAverage"
                                 />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.timeSeriesChart.rawMetric"
+                                    :label="$t('components.settings.options.color_raw_metric')"
+                                    :default-colors="defaultSettings.chartColors!.timeSeriesChart.rawMetric"
+                                />
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ $t('components.dashboard.common.bar_color_info') }}
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Heatmap (gradient min/max) -->
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_heatmap') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.heatmap.min"
+                                    :label="$t('components.settings.options.color_heatmap_min')"
+                                    :default-colors="defaultSettings.chartColors!.heatmap.min"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.heatmap.max"
+                                    :label="$t('components.settings.options.color_heatmap_max')"
+                                    :default-colors="defaultSettings.chartColors!.heatmap.max"
+                                />
                             </div>
                         </div>
                     </div>
@@ -514,16 +522,6 @@ onMounted(() => {
                         'light-blue': savedSettings.chartColors?.datalabels?.['light-blue'] || defaultSettings.chartColors!.datalabels['light-blue'],
                         'dark-gold': savedSettings.chartColors?.datalabels?.['dark-gold'] || defaultSettings.chartColors!.datalabels['dark-gold'],
                     },
-                    cumulatedPnlChart: {
-                        bar: {
-                            ...defaultSettings.chartColors!.cumulatedPnlChart.bar,
-                            ...(savedSettings.chartColors?.cumulatedPnlChart?.bar || {}),
-                        },
-                        point: {
-                            ...defaultSettings.chartColors!.cumulatedPnlChart.point,
-                            ...(savedSettings.chartColors?.cumulatedPnlChart?.point || {}),
-                        },
-                    },
                     timeSeriesChart: {
                         bar: {
                             ...defaultSettings.chartColors!.timeSeriesChart.bar,
@@ -532,6 +530,20 @@ onMounted(() => {
                         movingAverage: {
                             ...defaultSettings.chartColors!.timeSeriesChart.movingAverage,
                             ...(savedSettings.chartColors?.timeSeriesChart?.movingAverage || {}),
+                        },
+                        rawMetric: {
+                            ...defaultSettings.chartColors!.timeSeriesChart.rawMetric,
+                            ...(savedSettings.chartColors?.timeSeriesChart?.rawMetric || {}),
+                        },
+                    },
+                    heatmap: {
+                        min: {
+                            ...defaultSettings.chartColors!.heatmap.min,
+                            ...(savedSettings.chartColors?.heatmap?.min || {}),
+                        },
+                        max: {
+                            ...defaultSettings.chartColors!.heatmap.max,
+                            ...(savedSettings.chartColors?.heatmap?.max || {}),
                         },
                     },
                     pnlBarChart: {
@@ -606,13 +618,14 @@ function resetSettings() {
                 point: { ...defaultSettings.chartColors!.pnlchart.point },
             },
             datalabels: { ...defaultSettings.chartColors!.datalabels },
-            cumulatedPnlChart: {
-                bar: { ...defaultSettings.chartColors!.cumulatedPnlChart.bar },
-                point: { ...defaultSettings.chartColors!.cumulatedPnlChart.point },
-            },
             timeSeriesChart: {
                 bar: { ...defaultSettings.chartColors!.timeSeriesChart.bar },
                 movingAverage: { ...defaultSettings.chartColors!.timeSeriesChart.movingAverage },
+                rawMetric: { ...defaultSettings.chartColors!.timeSeriesChart.rawMetric },
+            },
+            heatmap: {
+                min: { ...defaultSettings.chartColors!.heatmap.min },
+                max: { ...defaultSettings.chartColors!.heatmap.max },
             },
             pnlBarChart: {
                 profit: { ...defaultSettings.chartColors!.pnlBarChart.profit },
