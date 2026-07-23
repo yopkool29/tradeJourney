@@ -55,8 +55,9 @@
 			<div
 				v-else
 				ref="chartContainerRef"
-				class="relative w-full flex-1 min-h-0"
+				class="relative w-full flex-1 min-h-0 cursor-pointer"
 				style="min-height: 200px;"
+				@click="!hideEnlarge && (isModalOpen = true)"
 			>
 				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
 			</div>

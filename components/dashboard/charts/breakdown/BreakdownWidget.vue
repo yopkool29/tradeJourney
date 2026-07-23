@@ -610,12 +610,21 @@ const heatmapYLabels = computed(() => {
 const heatmapDataItems = computed(() => {
 	const dim = config.value.dimension
 	const dim2 = config.value.dimension2 ?? 'dayOfWeekOpen'
-	const xLabelMap = new Map<string, number>()
-	const yLabelMap = new Map<string, number>()
-	heatmap2DCells.value.forEach(c => {
-		if (!xLabelMap.has(c.keyX)) xLabelMap.set(c.keyX, xLabelMap.size)
-		if (!yLabelMap.has(c.keyY)) yLabelMap.set(c.keyY, yLabelMap.size)
+	// Construit les maps à partir des labels triés (cohérent avec heatmapXLabels/heatmapYLabels)
+	const xKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX))).sort((a, b) => {
+		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
 	})
+	const yKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY))).sort((a, b) => {
+		if (dim2 === 'hourStart' || dim2 === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dim2 === 'dayOfWeekOpen' || dim2 === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dim2 === 'monthOpen' || dim2 === 'monthClose') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
+	})
+	const xLabelMap = new Map<string, number>(xKeys.map((k, i) => [k, i]))
+	const yLabelMap = new Map<string, number>(yKeys.map((k, i) => [k, i]))
 	return heatmap2DCells.value.map(c => {
 		const xi = xLabelMap.get(c.keyX) ?? 0
 		const yi = yLabelMap.get(c.keyY) ?? 0
@@ -641,13 +650,21 @@ const heatmapChartOption = computed<EChartsOption>(() => {
 	const dimY = config.value.dimension2 ?? 'dayOfWeekOpen'
 	const tooltipMetrics = selectedTooltipMetrics.value
 
-	// Map pour retrouver les cells par index
-	const xLabelMap = new Map<string, number>()
-	const yLabelMap = new Map<string, number>()
-	heatmap2DCells.value.forEach(c => {
-		if (!xLabelMap.has(c.keyX)) xLabelMap.set(c.keyX, xLabelMap.size)
-		if (!yLabelMap.has(c.keyY)) yLabelMap.set(c.keyY, yLabelMap.size)
+	// Map pour retrouver les cells par index (cohérent avec les labels triés)
+	const xKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX))).sort((a, b) => {
+		if (dimX === 'hourStart' || dimX === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dimX === 'dayOfWeekOpen' || dimX === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dimX === 'monthOpen' || dimX === 'monthClose') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
 	})
+	const yKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY))).sort((a, b) => {
+		if (dimY === 'hourStart' || dimY === 'hourEnd') return parseInt(a) - parseInt(b)
+		if (dimY === 'dayOfWeekOpen' || dimY === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
+		if (dimY === 'monthOpen' || dimY === 'monthClose') return parseInt(a) - parseInt(b)
+		return a.localeCompare(b)
+	})
+	const xLabelMap = new Map<string, number>(xKeys.map((k, i) => [k, i]))
+	const yLabelMap = new Map<string, number>(yKeys.map((k, i) => [k, i]))
 
 	return {
 		...base,
