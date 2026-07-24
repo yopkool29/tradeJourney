@@ -182,10 +182,12 @@ const metricItems = computed(() =>
 // Options topN (réactif aux changements de langue)
 const topNOptions = computed(() => [
 	{ value: 0, label: t('components.dashboard.breakdown.all') },
-	{ value: 5, label: '5' },
-	{ value: 10, label: '10' },
-	{ value: 15, label: '15' },
+	{ value: 50, label: '50' },
+	{ value: 40, label: '40' },
+	{ value: 30, label: '30' },
 	{ value: 20, label: '20' },
+	{ value: 15, label: '15' },
+	{ value: 10, label: '10' },
 ])
 
 // v-model wrappers qui persistent la config

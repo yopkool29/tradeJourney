@@ -40,7 +40,7 @@
 					>
 						<template #content>
 							<slot name="enlarged">
-								<VChart :option="chartOption" autoresize style="width: 100%; height: 100%;" />
+								<VChart :option="chartOption" :update-options="{ notMerge: true }" autoresize style="width: 100%; height: 100%;" />
 							</slot>
 						</template>
 					</CommonModalChart>
@@ -61,7 +61,7 @@
 				@mousedown="onChartMouseDown"
 				@click="onChartClick"
 			>
-				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
+				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" :update-options="{ notMerge: true }" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
 			</div>
 		</UCard>
 

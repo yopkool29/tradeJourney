@@ -621,7 +621,7 @@ export default {
                 ticker_table: 'Ticker Breakdown',
                 tag_table: 'Tag Breakdown',
                 side_table: 'Long/Short Breakdown',
-                day_statistics: 'Day Statistics',
+                day_statistics: 'Time Statistics',
             },
             charts: {
                 pnl_bar: 'PnL Bar Chart',
@@ -804,7 +804,7 @@ export default {
                 
                 trades_count: 'Number of Trades',
                 trades_count_tooltip: 'Total number of trades executed during the selected period. Indicator of your trading activity.',
-                
+
                 expectancy: 'Expectancy',
                 expectancy_tooltip: 'Expected gain per trade. Formula: Total Net Profit / Number of Trades. Key indicator of trade efficiency regardless of frequency. Higher values indicate more profitable average trades.',
                 
@@ -844,6 +844,7 @@ export default {
                 title: 'ALL TRADES',
                 gross_pnl: 'Gross P&L',
                 trades_count: 'Number of Trades',
+                trade_frequency: 'Trades per Day',
                 contracts: 'Number of Contracts',
                 avg_trade_time: 'Average Duration',
                 longest_trade_time: 'Longest Duration',
@@ -928,13 +929,15 @@ export default {
                 ulcer_index: 'Ulcer Index',
             },
             day_statistics: {
-                title: 'DAY STATISTICS',
+                title: 'TIME STATISTICS',
                 total_trading_days: 'Total Trading Days',
                 winning_days: 'Winning Days',
                 losing_days: 'Losing Days',
                 breakeven_days: 'Breakeven Days',
                 max_consecutive_winning_days: 'Max Consecutive Winning Days',
                 max_consecutive_losing_days: 'Max Consecutive Losing Days',
+                winning_weeks_percent: 'Winning Weeks %',
+                winning_months_percent: 'Winning Months %',
                 average_daily_pnl: 'Average Daily P&L',
                 average_winning_day_pnl: 'Average Winning Day P&L',
                 average_losing_day_pnl: 'Average Losing Day P&L',

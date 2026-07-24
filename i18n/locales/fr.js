@@ -631,7 +631,7 @@ export default {
                 ticker_table: 'Détail par Ticker',
                 tag_table: 'Détail par Tag',
                 side_table: 'Détail Long/Short',
-                day_statistics: 'Statistiques journalières',
+                day_statistics: 'Statistiques temporelles',
             },
             charts: {
                 pnl_bar: 'Graphique Barres PnL',
@@ -815,7 +815,7 @@ export default {
                 
                 trades_count: 'Nombre de Trades',
                 trades_count_tooltip: 'Nombre total de trades exécutés pendant la période sélectionnée. Indicateur de votre activité de trading.',
-                
+
                 expectancy: 'Espérance',
                 expectancy_tooltip: 'Espérance de gain par trade. Formule : Profit Net Total / Nombre de Trades. Indicateur clé de l’efficacité des trades indépendamment de leur fréquence. Des valeurs plus élevées indiquent des trades plus rentables en moyenne.',
                 
@@ -855,6 +855,7 @@ export default {
                 title: 'TOUS LES TRADES',
                 gross_pnl: 'PnL Brut',
                 trades_count: 'Nombre de Trades',
+                trade_frequency: 'Trades par Jour',
                 contracts: 'Nombre de Contrats',
                 avg_trade_time: 'Durée Moyenne',
                 longest_trade_time: 'Durée Maximale',
@@ -939,13 +940,15 @@ export default {
                 ulcer_index: 'Index Ulcer',
             },
             day_statistics: {
-                title: 'STATISTIQUES JOURNALIÈRES',
+                title: 'STATISTIQUES TEMPORELLES',
                 total_trading_days: 'Jours de trading',
                 winning_days: 'Jours gagnants',
                 losing_days: 'Jours perdants',
                 breakeven_days: 'Jours à l\'équilibre',
                 max_consecutive_winning_days: 'Série de jours gagnants max',
                 max_consecutive_losing_days: 'Série de jours perdants max',
+                winning_weeks_percent: '% semaines gagnantes',
+                winning_months_percent: '% mois gagnants',
                 average_daily_pnl: 'PnL journalier moyen',
                 average_winning_day_pnl: 'PnL moyen jour gagnant',
                 average_losing_day_pnl: 'PnL moyen jour perdant',

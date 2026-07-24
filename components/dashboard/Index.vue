@@ -65,75 +65,35 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.trades_count') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.trades_count_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ dashBoardResult.tradesCount }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.trades_count_tooltip')">{{ dashBoardResult.tradesCount }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.cumulated_pnl') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.cumulated_pnl_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.pnl) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.cumulated_pnl_tooltip')">{{ formatCurrency(dashBoardResult.pnl) }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.expectancy') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.expectancy_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatCurrency(dashBoardResult.appt) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.expectancy_tooltip')">{{ formatCurrency(dashBoardResult.appt) }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.pl_ratio') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.pl_ratio_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ dashBoardResult.plRatio?.toFixed(2) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.pl_ratio_tooltip')">{{ dashBoardResult.plRatio?.toFixed(2) }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.win_rate') }}:</span>
-                    <UTooltip :text="$t('components.dashboard.index.win_rate_tooltip')" :ui="{ content: 'text-sm' }" class="inline-flex items-center">
-                        <span class="dashboard-card-value">{{ dashBoardResult.winrate?.toFixed(2) }}%</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.win_rate_tooltip')">{{ dashBoardResult.winrate?.toFixed(2) }}%</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.profit_factor') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.profit_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.profitFactor) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.profit_factor_tooltip')">{{ formatValue(dashBoardResult.profitFactor) }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.recovery_factor') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.recovery_factor_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ formatValue(dashBoardResult.recoveryFactor) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.recovery_factor_tooltip')">{{ formatValue(dashBoardResult.recoveryFactor) }}</span>
                 </div>
                 <div class="dashboard-card">
                     <span class="dashboard-card-label">{{ $t('components.dashboard.index.sharpe_ratio') }}:</span>
-                    <UTooltip
-                        :text="$t('components.dashboard.index.sharpe_ratio_tooltip')"
-                        :ui="{ content: 'text-sm' }"
-                        class="inline-flex items-center"
-                    >
-                        <span class="dashboard-card-value">{{ dashBoardResult.sharpeRatio?.toFixed(2) }}</span>
-                    </UTooltip>
+                    <span class="dashboard-card-value" :title="$t('components.dashboard.index.sharpe_ratio_tooltip')">{{ dashBoardResult.sharpeRatio?.toFixed(2) }}</span>
                 </div>
             </div>
         </div>
@@ -278,7 +238,7 @@
 
             <!-- Workspaces with KeepAlive -->
             <div class="relative" :class="{ 'min-h-[400px]': !gridReady || switchingToWorkspaceId !== null }">
-                <!-- <KeepAlive> -->
+                <!-- <KeepAlive :max="1"> -->
                     <DashboardGridLayout
                         v-if="gridReady"
                         :key="activeWorkspaceId"

@@ -346,11 +346,14 @@ export interface DashBoardResult {
 
     // Daily metrics
     totalTradingDays: number
+    tradeFrequency: number
     winningDays: number
     losingDays: number
     breakevenDays: number
     maxConsecutiveWinningDays: number
     maxConsecutiveLosingDays: number
+    winningWeeksPercent: number
+    winningMonthsPercent: number
     averageDailyPnl: number
     averageWinningDayPnl: number
     averageLosingDayPnl: number

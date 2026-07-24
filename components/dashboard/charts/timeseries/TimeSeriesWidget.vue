@@ -531,30 +531,32 @@ const chartOption = computed<EChartsOption | undefined>(() => {
         const barFill = isRawMetric ? (colors.rawMetricColor.value || chartColors.neutral) : (colors.barColor.value || chartColors.profit)
 
         const series: EChartsOption['series'] = []
-        if (showMovingAverage.value) {
-            series.push(buildLineSeries({
-                name: t('components.dashboard.index.mobile_avg_label'),
-                data: maValues,
-                color: maColor,
-                symbolSize: 0,
-                smooth: 0.2,
-            }))
-        }
-        if (showBars.value) {
-            series.push({
-                type: 'bar',
-                name: metricItems.value.find((m) => m.value === metric)?.label || metric,
-                data: barValues.map((v) => ({
-                    value: v,
-                    itemStyle: {
-                        color: canBeNegative ? (v >= 0 ? colors.profitColor.value : colors.lossColor.value) : barFill,
-                        borderRadius: canBeNegative ? (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]) : [3, 3, 0, 0],
-                    },
-                })),
-                barMaxWidth: 32,
-                emphasis: { disabled: true },
-            })
-        }
+        // MA : toujours ajoutée pour garder les données dans le tooltip, transparente si désactivée
+        series.push(buildLineSeries({
+            name: t('components.dashboard.index.mobile_avg_label'),
+            data: maValues,
+            color: maColor,
+            symbolSize: 0,
+            smooth: 0.2,
+            lineStyle: showMovingAverage.value ? { width: 2, color: maColor } : { width: 0, opacity: 0 },
+            itemStyle: { color: maColor, opacity: showMovingAverage.value ? 1 : 0 },
+        }))
+        // Barres : toujours ajoutées pour garder les données dans le tooltip, transparentes si désactivées
+        series.push({
+            type: 'bar',
+            name: metricItems.value.find((m) => m.value === metric)?.label || metric,
+            data: barValues.map((v) => ({
+                value: v,
+                itemStyle: {
+                    color: showBars.value
+                        ? (canBeNegative ? (v >= 0 ? colors.profitColor.value : colors.lossColor.value) : barFill)
+                        : 'rgba(0,0,0,0)',
+                    borderRadius: canBeNegative ? (v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3]) : [3, 3, 0, 0],
+                },
+            })),
+            barMaxWidth: 32,
+            emphasis: { disabled: true },
+        })
 
         const yMin = config.value.yAxisMin
         const yMax = config.value.yAxisMax

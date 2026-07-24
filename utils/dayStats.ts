@@ -19,6 +19,52 @@ export const getDailyPnlArray = (trades: TradeExtendedType[], useNet: boolean, s
 
 export const getTotalTradingDays = (dailyPnls: DailyPnl[]): number => dailyPnls.length
 
+// Groupe les trades par semaine et calcule le % de semaines gagnantes
+export const getWinningWeeksPercent = (trades: TradeExtendedType[], useNet: boolean, settings: Partial<SettingsContentType> | null): number => {
+	const grouped = groupTradesByPeriod(trades, 'week', settings)
+	const weeks = Object.values(grouped)
+	if (weeks.length === 0) return 0
+	const winning = weeks.filter(weekTrades => weekTrades.reduce((sum, t) => sum + (useNet ? t.netProfit : t.profit), 0) > 0)
+	return (winning.length / weeks.length) * 100
+}
+
+// Groupe les trades par mois et calcule le % de mois gagnants
+export const getWinningMonthsPercent = (trades: TradeExtendedType[], useNet: boolean, settings: Partial<SettingsContentType> | null): number => {
+	const grouped = groupTradesByPeriod(trades, 'month', settings)
+	const months = Object.values(grouped)
+	if (months.length === 0) return 0
+	const winning = months.filter(monthTrades => monthTrades.reduce((sum, t) => sum + (useNet ? t.netProfit : t.profit), 0) > 0)
+	return (winning.length / months.length) * 100
+}
+
+// Compte les jours ouvrés (lundi-vendredi) entre deux dates, inclus
+export const countBusinessDays = (startDate: Date, endDate: Date): number => {
+	if (startDate > endDate) return 0
+	let count = 0
+	const current = new Date(startDate)
+	current.setHours(0, 0, 0, 0)
+	const end = new Date(endDate)
+	end.setHours(0, 0, 0, 0)
+	while (current <= end) {
+		const day = current.getDay()
+		if (day !== 0 && day !== 6) count++ // 0=dimanche, 6=samedi
+		current.setDate(current.getDate() + 1)
+	}
+	return count
+}
+
+// Calcule les jours ouvrés de la période couverte par les trades
+// (du premier au dernier trade, sans week-ends)
+export const getBusinessDaysFromTrades = (trades: TradeExtendedType[]): number => {
+	if (trades.length === 0) return 0
+	const dates = trades
+		.map(t => t.closeDate ? new Date(t.closeDate) : null)
+		.filter((d): d is Date => d !== null)
+		.sort((a, b) => a.getTime() - b.getTime())
+	if (dates.length === 0) return 0
+	return countBusinessDays(dates[0], dates[dates.length - 1])
+}
+
 export const getWinningDaysCount = (dailyPnls: DailyPnl[]): number => dailyPnls.filter(d => d.pnl > 0).length
 
 export const getLosingDaysCount = (dailyPnls: DailyPnl[]): number => dailyPnls.filter(d => d.pnl < 0).length

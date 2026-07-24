@@ -45,6 +45,7 @@ const reliabilityClass = computed(() => {
 const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.all_trades.gross_pnl', value: result.value.grossPnl, format: 'currency', valueClass: result.value.grossPnl >= 0 ? 'profit-text' : 'loss-text' },
 	{ label: 'components.dashboard.all_trades.trades_count', value: result.value.tradesCount, format: 'number' },
+	{ label: 'components.dashboard.all_trades.trade_frequency', value: result.value.tradeFrequency, format: 'decimal1' },
 	{ label: 'components.dashboard.all_trades.contracts', value: result.value.totalContracts, format: 'number' },
 	{ label: 'components.dashboard.all_trades.avg_trade_time', value: result.value.avgTradeDuration, format: 'duration' },
 	{ label: 'components.dashboard.all_trades.longest_trade_time', value: result.value.maxTradeDuration, format: 'duration' },

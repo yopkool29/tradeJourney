@@ -2,6 +2,7 @@
 	<DashboardChartsBaseStatsSection
 		:title="$t('components.dashboard.day_statistics.title')"
 		:rows="rows"
+		:columns="2"
 	/>
 </template>
 
@@ -18,6 +19,8 @@ const rows = computed<StatsRow[]>(() => [
 	{ label: 'components.dashboard.day_statistics.breakeven_days', value: result.value.breakevenDays, format: 'number' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.max_consecutive_winning_days', value: result.value.maxConsecutiveWinningDays, format: 'number', valueClass: 'profit-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.max_consecutive_losing_days', value: result.value.maxConsecutiveLosingDays, format: 'number', valueClass: 'loss-text' } satisfies StatsRow,
+	{ label: 'components.dashboard.day_statistics.winning_weeks_percent', value: result.value.winningWeeksPercent, format: 'percent', valueClass: 'profit-text' } satisfies StatsRow,
+	{ label: 'components.dashboard.day_statistics.winning_months_percent', value: result.value.winningMonthsPercent, format: 'percent', valueClass: 'profit-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.average_daily_pnl', value: result.value.averageDailyPnl, format: 'currency', valueClass: result.value.averageDailyPnl >= 0 ? 'profit-text' : 'loss-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.average_winning_day_pnl', value: result.value.averageWinningDayPnl, format: 'currency', valueClass: 'profit-text' } satisfies StatsRow,
 	{ label: 'components.dashboard.day_statistics.average_losing_day_pnl', value: result.value.averageLosingDayPnl, format: 'currency', valueClass: 'loss-text' } satisfies StatsRow,

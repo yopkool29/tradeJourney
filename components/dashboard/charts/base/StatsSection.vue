@@ -6,12 +6,12 @@
 		:use-default-slot="true"
 		:title-class="titleClass"
 	>
-		<div class="space-y-3 text-sm overflow-y-auto max-h-full">
+		<div :class="columns === 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm' : 'space-y-3 text-sm'" class="overflow-y-auto max-h-full">
 			<div
 				v-for="(row, i) in visibleRows"
 				:key="i"
 				class="flex justify-between"
-				:class="{ 'border-t pt-3 mt-3': row.borderTop, 'text-xs': row.small }"
+				:class="{ 'border-t pt-3 mt-3': row.borderTop, 'text-xs': row.small, 'col-span-2': columns === 2 && row.borderTop }"
 			>
 				<span class="text-secondary">{{ $t(row.label) }}</span>
 				<span class="font-semibold" :class="row.valueClass">{{ formatRowValue(row) }}</span>
@@ -27,7 +27,7 @@ export interface StatsRow {
 	label: string
 	value?: number | string | Date | null
 	displayValue?: string
-	format?: 'currency' | 'duration' | 'date' | 'dateOnly' | 'percent' | 'number' | 'rMultiple'
+	format?: 'currency' | 'duration' | 'date' | 'dateOnly' | 'percent' | 'number' | 'rMultiple' | 'decimal1'
 	valueClass?: string
 	condition?: boolean
 	small?: boolean
@@ -38,6 +38,7 @@ interface Props {
 	title: string
 	titleClass?: string
 	rows: StatsRow[]
+	columns?: 1 | 2
 }
 
 const props = defineProps<Props>()
@@ -70,6 +71,10 @@ const formatRowValue = (row: StatsRow): string => {
 		}
 		case 'number':
 			return String(row.value)
+		case 'decimal1': {
+			const decVal = typeof row.value === 'number' ? row.value : Number(row.value)
+			return decVal.toFixed(1)
+		}
 		case 'rMultiple': {
 			if (row.value === null || row.value === undefined) return '—'
 			const rVal = typeof row.value === 'number' ? row.value : Number(row.value)

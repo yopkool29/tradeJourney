@@ -42,6 +42,9 @@ import type { RMultipleTrade } from '~/utils/rMultiple'
 import {
     getDailyPnlArray,
     getTotalTradingDays,
+    getBusinessDaysFromTrades,
+    getWinningWeeksPercent,
+    getWinningMonthsPercent,
     getWinningDaysCount,
     getLosingDaysCount,
     getBreakevenDaysCount,
@@ -192,11 +195,15 @@ export const useDashboard = () => {
         // DAILY METRICS
         const dailyPnls = getDailyPnlArray(trades, useNet, userStore.settingsObject)
         dataStore.dashboardResult.totalTradingDays = getTotalTradingDays(dailyPnls)
+        const businessDays = getBusinessDaysFromTrades(trades)
+        dataStore.dashboardResult.tradeFrequency = businessDays > 0 ? trades.length / businessDays : 0
         dataStore.dashboardResult.winningDays = getWinningDaysCount(dailyPnls)
         dataStore.dashboardResult.losingDays = getLosingDaysCount(dailyPnls)
         dataStore.dashboardResult.breakevenDays = getBreakevenDaysCount(dailyPnls)
         dataStore.dashboardResult.maxConsecutiveWinningDays = getMaxConsecutiveWinningDays(dailyPnls)
         dataStore.dashboardResult.maxConsecutiveLosingDays = getMaxConsecutiveLosingDays(dailyPnls)
+        dataStore.dashboardResult.winningWeeksPercent = getWinningWeeksPercent(trades, useNet, userStore.settingsObject)
+        dataStore.dashboardResult.winningMonthsPercent = getWinningMonthsPercent(trades, useNet, userStore.settingsObject)
         dataStore.dashboardResult.averageDailyPnl = getAverageDailyPnl(dailyPnls, 2)
         dataStore.dashboardResult.averageWinningDayPnl = getAverageWinningDayPnl(dailyPnls, 2)
         dataStore.dashboardResult.averageLosingDayPnl = getAverageLosingDayPnl(dailyPnls, 2)

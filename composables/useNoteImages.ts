@@ -3,8 +3,15 @@ const extractNtImages = (content: string): string[] => {
 	const results = new Set<string>()
 
 	// Match images with .../nt_xxx pattern (works for both /path/ and ?path=.../)
-	const regex = /!\[[^\]]*\]\([^)]*\/(nt_[^)&\s]+)\)/g
-	for (const match of decoded.matchAll(regex)) {
+	// Gère aussi les titles markdown optionnels : ![caption](url "title")
+	const mdRegex = /!\[[^\]]*\]\([^)]*\/(nt_[^)&\s"']+)(?:\s+"[^"]*")?\)/g
+	for (const match of decoded.matchAll(mdRegex)) {
+		results.add(match[1])
+	}
+
+	// Fallback : images en HTML (Milkdown peut générer <img> pour les image blocks avec caption)
+	const htmlRegex = /<img[^>]*src="[^"]*\/(nt_[^"&\s]+)"/g
+	for (const match of decoded.matchAll(htmlRegex)) {
 		results.add(match[1])
 	}
 

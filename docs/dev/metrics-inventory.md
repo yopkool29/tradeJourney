@@ -186,6 +186,15 @@ Les tags sont implémentés dans PnlTracker et constituent une dimension de brea
 - Les tags d'un groupe qui ont 0 trade sont injectés avec des métriques vides (`injectEmptyTagMetrics`) — affichés avec valeurs vides dans tooltip/table
 - Métriques affichées : PnL, winrate, PF, avg win/loss, avg duration, drawdown, expectancy, trades count
 - Tri logique selon la dimension : chronologique pour dayOfWeek/month/monthYear/hourStart/hourEnd, par métrique décroissante pour ticker/tag/type
+- **Tri avgLoss inversé** : la valeur retournée étant `-avgLoss` (négative), le tri est croissant sur la valeur retournée pour que la plus grande perte arrive en premier (cohérent avec le filtre Top N)
+- **Filtrage avgLoss/avgWin** : les groupes sans trade perdant (`losingTradesCount === 0`) sont masqués pour avgLoss ; les groupes sans trade gagnant (`winningTradesCount === 0`) sont masqués pour avgWin — évite d'afficher des barres/points à 0 sans signification
+
+**Charts breakdown — améliorations UX** :
+- **dataZoom** : au-delà de 20 catégories, un slider + scroll (Shift+molette) permet de naviguer parmi tous les items sans scroller la page (barres horizontales, verticales, scatter)
+- **Scatter jitter** : le jitter est appliqué sur l'axe X uniquement (catégorie) pour éviter la superposition de points à la même valeur Y, sans corrompre la valeur réelle (ex: winrate=100 reste 100, pas 98.5)
+- **Densité** : `barMaxWidth` réduit (16px horizontal, 20px vertical) + `barCategoryGap: '10%'` pour afficher plus de barres à la fois
+- **Clic sur chart** : désactivé pour les barres (`disableClickEnlarge`) pour éviter le conflit avec le dataZoom — l'agrandissement se fait uniquement via le bouton dédié
+- **Modal agrandi** : ne se ferme plus au clic sur le chart (retrait du `@click` sur le conteneur du modal)
 
 **Architecture générique** :
 - `calculateMetricsByDimension(trades, groupFn, useNet)` — fonction unique pour tous les breakdowns
@@ -317,9 +326,18 @@ Liste des types de graphiques utilisés dans les logiciels de trading, restreint
 Pour référence, PnlTracker utilise actuellement ECharts avec ces types :
 - `line` — courbes (equity, APPT, winrate, etc.)
 - `bar` — barres verticales/horizontales (P&L par ticker, jour, heure)
-- `scatter` — nuages de points
+- `scatter` — nuages de points (winrate par dimension, etc.)
 - `heatmap` — heatmap heure × jour
 - `pie` — win/loss
+- `area` — aire (P&L cumulé en mode area)
+- `barMA` — barres + moyenne mobile (TimeSeries)
+
+**Améliorations récentes (ECharts)** :
+- **dataZoom** sur barres et scatter (>20 catégories) avec Shift+molette pour le scroll
+- **Séries transparentes** : MA et barres restent dans le tooltip même quand désactivées (opacity au lieu de suppression) — `notMerge: true` pour forcer le refresh
+- **KeepAlive `max=1`** : limite le cache à 1 workspace pour éviter l'accumulation d'instances ECharts en mémoire (ralentissement progressif sans cette limite)
+- **Jitter X sur scatter** : évite la superposition sans corrompre les valeurs Y
+- **Heatmap** : correction du décalage tooltip (index maps construits à partir des labels triés)
 
 Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `area`, `rangeBar`, `boxPlot`, `violin`, `radar`, `radialBar`, `gauge`, `treemap`, `bubble`, `polarArea` qui ouvriraient de nouvelles visualisations (profil radar, jauges, distributions R-multiple, timeline de trades).
 
@@ -336,8 +354,13 @@ Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `
 > **Architecture actuelle conservée** :
 > - Slot `#settings` par chart dans `BaseWidgetCard.vue` (engrenage)
 > - Store `chartSettingsPerDb` persisté (`Record<chartId, Record<setting, value>>`)
-> - Settings existants : `cumuleMode` (CumulatedPnl, Winrate, Appt), `showBars` + `showMovingAverage` (Winrate)
+> - Settings existants : `cumuleMode` (CumulatedPnl, Winrate, Appt), `showBars` + `showMovingAverage` (barMA), `showThreshold` (area), `aggregation`, `maxTrades`, `metric` (barMA/area), `tooltipMetrics` (barMA/area)
 > - Grille drag-and-drop + workspaces multiples + visibilité par breakpoint
+> - **KeepAlive `max=1`** sur `DashboardGridLayout` : évite l'accumulation d'instances ECharts en mémoire lors des switches de workspace
+> - **`notMerge: true`** sur tous les VChart : force le remplacement complet des options ECharts à chaque mise à jour (évite les états résiduels comme l'opacity qui persiste)
+> - **`disableClickEnlarge`** prop sur `BaseWidgetCard` : désactive l'agrandissement au clic sur le chart (garde le bouton) — utilisé pour bar/barVertical (conflit avec dataZoom)
+> - **Modal agrandi** : ne se ferme plus au clic sur le chart (retrait du `@click` sur le conteneur)
+> - **dataZoom** : Shift+molette pour scroller le chart, molette seule pour scroller la page (listener en capture phase sur le conteneur)
 >
 > Voir les paramètres par chart envisagés (non planifiés pour l'instant) dans l'historique de discussion : `cumuleMode` étendu, `movingAveragePeriod` (select), `chartType` (line/bar/area), `sortBy`/`topN` pour les breakdowns, `metric` dans les breakdowns, `colorBy` pour les scatter.
 
@@ -400,16 +423,14 @@ Phase 6 — **Breakdowns par dimension** ✅ Terminé (Tag + Side + charts gén�
 28. ✅ Metrics by Side (Long/Short) — `groupBySide` + `calculateMetricsByDimension`
 29. ✅ Architecture générique : `calculateMetricsByDimension(trades, groupFn, useNet)` + `BreakdownTable.vue` paramétrable
 30. ✅ Migration : `TickerBreakdownTable` refactorisé en wrapper du générique
-31. ✅ Tests : `tests/unit/composables/useAnalytics.test.ts` (14 tests — by ticker, by tag, by side, edge cases)
+31. ✅ Tests : `tests/unit/composables/useAnalytics.test.ts` (50 tests — by ticker, by tag, by side, getMetricValueForMetric, formatMetricValueForMetric, getMetricColor, sortMetricsByDimension, calculateMetricsBy2Dimensions (heatmap), groupBy open/close (month, dayOfWeek, hour), injectEmptyTagMetrics, edge cases)
 32. ✅ Charts génériques : `BreakdownPnlBarChart.vue` + `BreakdownWinrateScatterChart.vue` (prop `dimension`)
 33. ✅ Migration charts : `TickerPnlBarChart` + `TickerWinrateScatterChart` refactorisés en wrappers
 34. ✅ Nouveaux charts : Tag (P&L + Winrate), Side (P&L + Winrate) — 4 nouveaux charts
 35. ✅ Menu visibilité : réorganisé en 4 colonnes (Charts | Time | Breakdowns | Sections)
 
-Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
-30. Remplacer le popover à checkboxes par 2 dropdowns `USelectMenu` multiselect (Charts / Sections)
-31. Ajouter les nouvelles sections au dropdown Sections (sous-groupes Standard / Advanced)
-32. Option "Sync to all breakpoints" à repositionner
+Phase 7 — **UI : menu de visibilité par dropdowns multiselect** ❌ Écarté
+> Fonctionnalité jugée inutile — le menu actuel par checkboxes suffit.
 
 > Phase "Dashboard paramétrable" (duplication de charts, instances multiples) **écartée** pour l'instant — voir section 11. Pourrait revenir plus tard si on introduit des filtres par instance ou un bar chart paramétrable.
 
@@ -438,7 +459,7 @@ Phase 7 — **UI : menu de visibilité par dropdowns multiselect**
 | 3 — Drawdown | `tests/unit/utils/tradeStats.test.ts` | Drawdown Duration, Recovery Time, Max DD Duration | Drawdown non récupéré, drawdown instantané |
 | 4 — Agrégations | `tests/unit/utils/dayStats.test.ts` (à créer) | Stats mensuelles, hebdo, annuelles | Période vide, chevauchement de mois |
 | 5 — Distribution | `tests/unit/utils/tradeStats.test.ts` | Skewness, Kurtosis, MAE/MFE Ratio, ROI, Avg Daily Volume, Avg Hold Time Scratch | Distribution symétrique, asymétrique, MAE/MFE null |
-| 6 — Breakdowns | `tests/unit/composables/useAnalytics.test.ts` (à créer) | `calculateMetricsByTag` | Multi-tags overlap, tag group filtering, trade sans tag |
+| 6 — Breakdowns ✅ | `tests/unit/composables/useAnalytics.test.ts` | `calculateMetricsByDimension`, `getMetricValueForMetric`, `formatMetricValueForMetric`, `getMetricColor`, `sortMetricsByDimension`, `calculateMetricsBy2Dimensions` (heatmap), `injectEmptyTagMetrics` | Multi-tags overlap, tag group filtering, trade sans tag, avgLoss tri, heatmap alignment, empty metrics |
 
 **Règle** : chaque nouvelle métrique doit avoir son test dans la même phase que son implémentation. Pas de test = pas de merge.
 
