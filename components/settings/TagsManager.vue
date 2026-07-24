@@ -136,11 +136,9 @@
 										:disabled="!isDark" class="opacity-100" />
 									<div class="flex gap-2">
 										<div class="text-md">{{ $t('components.settings.tags.result') }}:</div>
-										<UTooltip class="cursor-pointer"
-											:text="newTagState.description || newTagState.name">
-											<UBadge title="" :label="newTagState.name"
-												:style="getTagStyle(newTagState)" />
-										</UTooltip>
+										<UBadge :label="newTagState.name"
+											:style="getTagStyle(newTagState)"
+											:title="newTagState.description || newTagState.name" />
 									</div>
 								</div>
 							</template>
@@ -193,11 +191,9 @@
 											:disabled="!isDark" class="opacity-100" />
 										<div class="action-buttons">
 											<div class="text-md">{{ $t('components.settings.tags.result') }}:</div>
-											<UTooltip class="badge-clickable"
-												:text="newTagState.description || newTagState.name">
-												<UBadge title="" :label="newTagState.name"
-													:style="getTagStyle(newTagState)" />
-											</UTooltip>
+											<UBadge :label="newTagState.name"
+												:style="getTagStyle(newTagState)"
+												:title="newTagState.description || newTagState.name" />
 										</div>
 									</div>
 								</UForm>
@@ -234,11 +230,11 @@
 							</template>
 						</CommonModalDelete>
 
-						<UTooltip class="badge-clickable" :text="tag.description || tag.name"
-							@click="editTag(group, tag)">
-							<UBadge title="" :label="tag.name"
-								:style="{ backgroundColor: tag.color != '' ? tag.color : '#333', ...(tag.dark_fg_reverse ? { color: '#fff' } : {}) }" />
-						</UTooltip>
+						<UBadge :label="tag.name"
+							:style="{ backgroundColor: tag.color != '' ? tag.color : '#333', ...(tag.dark_fg_reverse ? { color: '#fff' } : {}) }"
+							class="badge-clickable"
+							:title="tag.description || tag.name"
+							@click="editTag(group, tag)" />
 					</div>
 				</div>
 			</div>

@@ -93,33 +93,27 @@
                 @update:open="showTradeDetailModal = $event" />
 
             <div class="flex items-center gap-2 mt-2">
-                <UTooltip
-                    :text="currentDayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')">
-                    <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
-                        @click="openDayTagModal">{{
-                            currentDayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
-                        }}</UButton>
-                </UTooltip>
-                <UTooltip v-if="currentDayTag" :text="$t('components.daily.trade_group.delete_day_note_title')">
-                    <UButton icon="i-heroicons-trash" color="error" variant="soft" size="xs"
-                        @click="confirmClearDayTradeTags">{{
-                            $t('common.actions.delete')
-                        }}</UButton>
-                </UTooltip>
+                <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
+                    :title="currentDayTag ? $t('components.daily.trade_group.edit_note') : $t('components.daily.trade_group.add_note')"
+                    @click="openDayTagModal">{{
+                        currentDayTag ? $t('components.daily.trade_group.edit') : $t('components.daily.trade_group.add')
+                    }}</UButton>
+                <UButton v-if="currentDayTag" icon="i-heroicons-trash" color="error" variant="soft" size="xs"
+                    :title="$t('components.daily.trade_group.delete_day_note_title')"
+                    @click="confirmClearDayTradeTags">{{
+                        $t('common.actions.delete')
+                    }}</UButton>
 
                 <!-- Affichage des tags et de la note s'ils existent -->
                 <div v-if="currentDayTag" class="tag-container-lg items-center ml-2">
-                    <UTooltip v-if="currentDayTag.note" :text="currentDayTag.note">
-                        <UBadge color="neutral">
-                            <span class="badge-clickable truncate2" @click="openDayTagModal">{{ currentDayTag.note }}</span>
-                        </UBadge>
-                    </UTooltip>
-                    <UTooltip v-for="tag in dayTagTags" :key="tag.id" :text="tag.description || tag.name">
-                        <UBadge class="badge-clickable" title="" :label="tag.name" :style="getTagStyle(tag)"
-                            @click="openDayTagModal">
-                            {{ tag.name }}
-                        </UBadge>
-                    </UTooltip>
+                    <UBadge v-if="currentDayTag.note" color="neutral" :title="currentDayTag.note">
+                        <span class="badge-clickable truncate2" @click="openDayTagModal">{{ currentDayTag.note }}</span>
+                    </UBadge>
+                    <UBadge v-for="tag in dayTagTags" :key="tag.id" class="badge-clickable" :label="tag.name" :style="getTagStyle(tag)"
+                        :title="tag.description || tag.name"
+                        @click="openDayTagModal">
+                        {{ tag.name }}
+                    </UBadge>
                 </div>
             </div>
 

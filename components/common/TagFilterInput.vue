@@ -2,29 +2,30 @@
     <div>
         <!-- Tags sélectionnés affichés comme badges (tronqué dans le filtre) -->
         <div v-if="selectedTags.length > 0" class="flex flex-wrap items-center gap-2">
-            <UTooltip v-for="tag in displayedTags" :key="tag.id" :text="tag.description || tag.name">
-                <UBadge
-                    class="cursor-pointer"
-                    size="md"
-                    :label="tag.name"
-                    :style="getTagStyle(tag)"
-                    @click="openModal"
-                >
-                    {{ tag.name }}
-                    <UIcon name="i-heroicons-x-mark" class="ml-1" @click.stop="removeTag(tag.id)" />
-                </UBadge>
-            </UTooltip>
-            <UTooltip v-if="hiddenTagsCount > 0" :text="hiddenTagNames">
-                <UBadge
-                    class="cursor-pointer"
-                    size="md"
-                    color="neutral"
-                    variant="subtle"
-                    @click="openModal"
-                >
-                    +{{ hiddenTagsCount }}
-                </UBadge>
-            </UTooltip>
+            <UBadge
+                v-for="tag in displayedTags"
+                :key="tag.id"
+                class="cursor-pointer"
+                size="md"
+                :label="tag.name"
+                :style="getTagStyle(tag)"
+                :title="tag.description || tag.name"
+                @click="openModal"
+            >
+                {{ tag.name }}
+                <UIcon name="i-heroicons-x-mark" class="ml-1" @click.stop="removeTag(tag.id)" />
+            </UBadge>
+            <UBadge
+                v-if="hiddenTagsCount > 0"
+                class="cursor-pointer"
+                size="md"
+                color="neutral"
+                variant="subtle"
+                :title="hiddenTagNames"
+                @click="openModal"
+            >
+                +{{ hiddenTagsCount }}
+            </UBadge>
         </div>
 
         <!-- Bouton pour ouvrir la modal de sélection -->

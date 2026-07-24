@@ -102,24 +102,22 @@
                         <div class="action-buttons">
                             <CommonModalDelete @confirm="deleteBackup(backup.name)">
                                 <template #trigger>
-                                    <UTooltip :text="$t('common.actions.delete')">
-                                        <UButton color="error" variant="ghost" icon="i-heroicons-trash" />
-                                    </UTooltip>
+                                    <UButton color="error" variant="ghost" icon="i-heroicons-trash"
+                                        :title="$t('common.actions.delete')" />
                                 </template>
                                 <template #content>
                                     <p>{{ $t('components.backup_manager.list.actions.delete_confirm') }}</p>
                                 </template>
                             </CommonModalDelete>
-                            <UTooltip :text="$t('components.backup_manager.list.actions.download')">
-                                <UButton
-                                    color="neutral"
-                                    variant="ghost"
-                                    icon="i-heroicons-arrow-down-tray"
-                                    :loading="isLoading"
-                                    :disabled="isLoading"
-                                    @click="downloadBackup(backup.url, backup.name)"
-                                />
-                            </UTooltip>
+                            <UButton
+                                color="neutral"
+                                variant="ghost"
+                                icon="i-heroicons-arrow-down-tray"
+                                :loading="isLoading"
+                                :disabled="isLoading"
+                                :title="$t('components.backup_manager.list.actions.download')"
+                                @click="downloadBackup(backup.url, backup.name)"
+                            />
                         </div>
                     </div>
                 </UCard>

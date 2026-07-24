@@ -116,11 +116,9 @@
                 </div>
                 <div v-if="trade.note">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.note') }}</span>
-                    <UTooltip :text="trade.note" class="mt-1 inline-block">
-                        <UBadge color="neutral" class="whitespace-normal">
-                            <span class="wrap-break-word">{{ trade.note }}</span>
-                        </UBadge>
-                    </UTooltip>
+                    <UBadge color="neutral" class="whitespace-normal mt-1 inline-block" :title="trade.note">
+                        <span class="wrap-break-word">{{ trade.note }}</span>
+                    </UBadge>
                 </div>
                 <div v-if="tradeTags.length > 0">
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.tags') }}</span>

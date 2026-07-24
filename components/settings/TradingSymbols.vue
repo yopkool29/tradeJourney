@@ -67,38 +67,34 @@
                     </template>
                     <template #actions-cell="{ row }">
                         <div class="flex gap-2 items-center">
-                            <UTooltip
-                                :text="
+                            <UButton :color="row.original.active ? 'neutral' : 'success'" size="xs"
+                                :title="
                                     row.original.active
                                         ? $t('components.settings.tradingSymbols.disable')
                                         : $t('components.settings.tradingSymbols.enable')
                                 "
-                            >
-                                <UButton :color="row.original.active ? 'neutral' : 'success'" size="xs" @click="onToggleSymbolStatus(row.original)">
+                                @click="onToggleSymbolStatus(row.original)">
                                     {{
                                         row.original.active
                                             ? $t('components.settings.tradingSymbols.disable')
                                             : $t('components.settings.tradingSymbols.enable')
                                     }}
                                 </UButton>
-                            </UTooltip>
                             <SymbolCreateModal :symbol="row.original" @updated="onSymbolUpdated" @error="onSymbolError">
                                 <template #trigger>
-                                    <UTooltip :text="$t('components.settings.tradingSymbols.edit')">
-                                        <UButton
-                                            icon="i-heroicons-pencil-square"
-                                            color="primary"
-                                            size="xs"
-                                            variant="ghost"
-                                        />
-                                    </UTooltip>
+                                    <UButton
+                                        icon="i-heroicons-pencil-square"
+                                        color="primary"
+                                        size="xs"
+                                        variant="ghost"
+                                        :title="$t('components.settings.tradingSymbols.edit')"
+                                    />
                                 </template>
                             </SymbolCreateModal>
                             <CommonModalDelete @confirm="onDelete(row.original.id)">
                                 <template #trigger>
-                                    <UTooltip :text="$t('common.actions.delete')">
-                                        <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost" />
-                                    </UTooltip>
+                                    <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"
+                                        :title="$t('common.actions.delete')" />
                                 </template>
                                 <template #content> {{ $t('components.settings.tradingSymbols.confirm_delete') }} </template>
                             </CommonModalDelete>

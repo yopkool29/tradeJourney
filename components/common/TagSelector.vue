@@ -4,18 +4,18 @@
         <UFormField :name="props.fieldName" label="Tags" class="mb-4">
             <!-- Tags sélectionnés -->
             <div class="flex flex-wrap gap-2 mb-2">
-                <UTooltip v-for="tag in selectedTags" :key="tag.id" :text="tag.description || tag.name">
-                    <UBadge
-                        class="cursor-pointer"
-                        title=""
-                        :label="tag.name"
-                        :style="getTagStyle(tag)"
-                        @click="removeTag(tag.id)"
-                    >
-                        {{ tag.name }}
-                        <UIcon name="i-heroicons-x-mark" class="ml-1" />
-                    </UBadge>
-                </UTooltip>
+                <UBadge
+                    v-for="tag in selectedTags"
+                    :key="tag.id"
+                    class="cursor-pointer"
+                    :label="tag.name"
+                    :style="getTagStyle(tag)"
+                    :title="tag.description || tag.name"
+                    @click="removeTag(tag.id)"
+                >
+                    {{ tag.name }}
+                    <UIcon name="i-heroicons-x-mark" class="ml-1" />
+                </UBadge>
             </div>
 
             <!-- Liste des groupes de tags disponibles -->
@@ -23,15 +23,15 @@
                 <div v-for="group in localTagGroups" :key="group.id" class="mb-3">
                     <div class="font-semibold mb-1">{{ group.name }}</div>
                     <div class="flex flex-wrap gap-1">
-                        <UTooltip v-for="tag in group.tags" :key="tag.id" :text="tag.description || tag.name">
-                            <UBadge
-                                class="cursor-pointer"
-                                title=""
-                                :label="tag.name"
-                                :style="getTagStyle(tag)"
-                                @click="addTag(tag)"
-                            />
-                        </UTooltip>
+                        <UBadge
+                            v-for="tag in group.tags"
+                            :key="tag.id"
+                            class="cursor-pointer"
+                            :label="tag.name"
+                            :style="getTagStyle(tag)"
+                            :title="tag.description || tag.name"
+                            @click="addTag(tag)"
+                        />
                     </div>
                 </div>
             </div>

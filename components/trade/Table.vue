@@ -63,28 +63,25 @@
                 :ui="{ td: 'p-2' }" class="custom-table-hover table-fixed" @sort="onSort">
                 <template #actions-cell="{ row }">
                     <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
-                        <UTooltip :text="$t('components.trade.table.edit_button')">
-                            <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
-                                @click="$emit('edit', row.original)">{{ $t('components.trade.table.edit_button') }}
-                            </UButton>
-                        </UTooltip>
+                        <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
+                            :title="$t('components.trade.table.edit_button')"
+                            @click="$emit('edit', row.original)">{{ $t('components.trade.table.edit_button') }}
+                        </UButton>
                         <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
                             :title="$t('components.trade.table.activate_title')"
                             :confirm-text="$t('common.actions.confirm')" confirm-color="primary"
                             @confirm="onUndelete(row.original.id!)">
                             <template #trigger>
-                                <UTooltip :text="$t('components.trade.table.activate_button')">
-                                    <UButton icon="i-lucide-archive-restore" size="xs" color="primary" variant="ghost">
-                                    </UButton>
-                                </UTooltip>
+                                <UButton icon="i-lucide-archive-restore" size="xs" color="primary" variant="ghost"
+                                    :title="$t('components.trade.table.activate_button')">
+                                </UButton>
                             </template>
                             <template #content>{{ $t('components.trade.table.activate_confirm') }}</template>
                         </CommonModalDelete>
                         <CommonModalDelete v-else :from="'trade'" @confirm="onDelete(row.original.id!)">
                             <template #trigger>
-                                <UTooltip :text="$t('components.trade.table.deactivate_button')">
-                                    <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"></UButton>
-                                </UTooltip>
+                                <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"
+                                    :title="$t('components.trade.table.deactivate_button')"></UButton>
                             </template>
                             <template #content>{{ $t('components.trade.table.deactivate_confirm') }}</template>
                         </CommonModalDelete>
@@ -187,8 +184,6 @@ const tableRowHoverColor = computed(() => {
     const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
     return colors[theme] || colors.light
 })
-
-const UTooltipComp = resolveComponent('UTooltip')
 
 const UButtonComp = resolveComponent('UButton')
 
@@ -296,35 +291,28 @@ const columns = [
 
             return h('div', { class: 'flex justify-center items-center h-full' }, [
                 h(
-                    UTooltipComp,
+                    UButtonComp,
                     {
-                        text:
+                        variant: 'ghost',
+                        color: 'neutral',
+                        icon: 'i-heroicons-photo',
+                        title:
                             allScreenshots.length > 1
                                 ? t('components.common.columns.screenshots.multiple', { count: allScreenshots.length })
                                 : t('components.common.columns.screenshots.single'),
-                        class: 'flex items-center justify-center',
+                        class: [
+                            'text-gray-500 dark:text-gray-400',
+                            'hover:text-primary',
+                            'transition-colors duration-200',
+                            'p-0',
+                        ],
+                        onClick: (e: Event) => {
+                            e.stopPropagation()
+                            openScreenshotsModal(allScreenshots)
+                        },
+                        'aria-label': t('components.common.columns.screenshots.aria_label'),
                     },
-                    () =>
-                        h(
-                            UButtonComp,
-                            {
-                                variant: 'ghost',
-                                color: 'neutral',
-                                icon: 'i-heroicons-photo',
-                                class: [
-                                    'text-gray-500 dark:text-gray-400',
-                                    'hover:text-primary',
-                                    'transition-colors duration-200',
-                                    'p-0',
-                                ],
-                                onClick: (e: Event) => {
-                                    e.stopPropagation()
-                                    openScreenshotsModal(allScreenshots)
-                                },
-                                'aria-label': t('components.common.columns.screenshots.aria_label'),
-                            },
-                            {}
-                        )
+                    {}
                 ),
             ])
         },

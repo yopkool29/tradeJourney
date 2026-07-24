@@ -23,16 +23,16 @@
                             {{ item.label }}
                             <UIcon name="i-heroicons-x-mark" class="ml-1" @click.stop="removeSymbol(item.value)" />
                         </UBadge>
-                        <UTooltip v-if="hiddenSymbolsCount > 0" :text="hiddenSymbolNames">
-                            <UBadge
-                                class="cursor-pointer"
-                                size="md"
-                                color="neutral"
-                                variant="subtle"
-                            >
-                                +{{ hiddenSymbolsCount }}
-                            </UBadge>
-                        </UTooltip>
+                        <UBadge
+                            v-if="hiddenSymbolsCount > 0"
+                            class="cursor-pointer"
+                            size="md"
+                            color="neutral"
+                            variant="subtle"
+                            :title="hiddenSymbolNames"
+                        >
+                            +{{ hiddenSymbolsCount }}
+                        </UBadge>
                     </template>
                     <UButton
                         v-else

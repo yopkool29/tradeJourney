@@ -51,14 +51,13 @@
                                 />
                                 <SymbolCreateModal @created="onSymbolCreated" @error="onSymbolError">
                                     <template #trigger>
-                                        <UTooltip :text="$t('components.settings.tradingSymbols.new_symbol')">
-                                            <UButton 
-                                                icon="i-lucide-plus-circle" 
-                                                color="primary" 
-                                                variant="soft"
-                                                size="lg"
-                                            />
-                                        </UTooltip>
+                                        <UButton
+                                            icon="i-lucide-plus-circle"
+                                            color="primary"
+                                            variant="soft"
+                                            size="lg"
+                                            :title="$t('components.settings.tradingSymbols.new_symbol')"
+                                        />
                                     </template>
                                 </SymbolCreateModal>
                             </div>

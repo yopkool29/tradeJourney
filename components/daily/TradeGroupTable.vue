@@ -25,19 +25,16 @@
                         :confirm-text="$t('common.actions.confirm')" confirm-color="primary"
                         @confirm="emit('activate', row.original.id!)">
                         <template #trigger>
-                            <UTooltip :text="$t('components.daily.trade_group.activate_button')">
-                                <UButton icon="i-lucide-archive-restore" size="xs" color="primary"
-                                    variant="ghost"></UButton>
-                            </UTooltip>
+                            <UButton icon="i-lucide-archive-restore" size="xs" color="primary"
+                                    variant="ghost" :title="$t('components.daily.trade_group.activate_button')"></UButton>
                         </template>
                         <template #content>{{ $t('components.trade.table.activate_confirm') }}</template>
                     </CommonModalDelete>
                     <CommonModalDelete v-else :from="'trade'" @confirm="emit('deactivate', row.original.id!)">
                         <template #trigger>
-                            <UTooltip :text="$t('components.daily.trade_group.deactivate_button')">
-                                <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost">
+                            <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"
+                                    :title="$t('components.daily.trade_group.deactivate_button')">
                                 </UButton>
-                            </UTooltip>
                         </template>
                         <template #content>{{ $t('components.trade.table.deactivate_confirm') }}</template>
                     </CommonModalDelete>
@@ -126,54 +123,46 @@
             </template>
             <template #note-cell="{ row }">
                 <div class="tag-container cell-wide">
-                    <UTooltip :text="row.original.note ?? ''">
-                        <UBadge v-if="row.original.note"
+                    <UBadge v-if="row.original.note"
                             :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
                             color="neutral"
+                            :title="row.original.note ?? ''"
                             @click="row.original.active !== false && emit('open-tag-modal', row.original)">
                             <span class="truncate1 wrap-break-word">{{ row.original.note }}</span>
                         </UBadge>
-                    </UTooltip>
                 </div>
             </template>
             <template #tags-cell="{ row }">
                 <div class="tag-container cell-narrow">
-                    <UTooltip v-for="tag in getTradeTagsById(row.original)" :key="tag.id"
-                        :text="tag.description || tag.name">
-                        <UBadge title="" :label="tag.name" :style="getTagStyle(tag)"
+                    <UBadge v-for="tag in getTradeTagsById(row.original)" :key="tag.id" :label="tag.name" :style="getTagStyle(tag)"
                             :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
+                            :title="tag.description || tag.name"
                             @click="row.original.active !== false && emit('open-tag-modal', row.original)">
                             {{ tag.name }}
                         </UBadge>
-                    </UTooltip>
                 </div>
             </template>
             <template #actions-cell="{ row }">
                 <div class="action-buttons">
-                    <UTooltip :text="$t('components.daily.trade_group.view_details')">
-                        <UButton icon="i-heroicons-eye" size="xs" color="neutral" variant="ghost"
+                    <UButton icon="i-heroicons-eye" size="xs" color="neutral" variant="ghost"
                             :disabled="row.original.active === false"
+                            :title="$t('components.daily.trade_group.view_details')"
                             @click="emit('open-detail-modal', row.original)"></UButton>
-                    </UTooltip>
-                    <UTooltip :text="row.original.note || row.original.tags?.length > 0
-                            ? $t('components.common.actions.edit_notes_tags')
-                            : $t('components.common.actions.add_notes_tags')
-                        ">
-                        <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
+                    <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
                             :disabled="row.original.active === false"
+                            :title="row.original.note || row.original.tags?.length > 0
+                                ? $t('components.common.actions.edit_notes_tags')
+                                : $t('components.common.actions.add_notes_tags')"
                             @click="emit('open-tag-modal', row.original)" />
-                    </UTooltip>
-                    <UTooltip :text="$t('components.trade.noteEditor.label')">
-                        <UButton icon="i-heroicons-document-text" color="primary" variant="ghost" size="xs"
+                    <UButton icon="i-heroicons-document-text" color="primary" variant="ghost" size="xs"
                             :disabled="row.original.active === false"
+                            :title="$t('components.trade.noteEditor.label')"
                             @click="emit('open-detailed-note', row.original)" />
-                    </UTooltip>
-                    <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
-                        :text="$t('components.common.actions.clear_notes_tags')">
-                        <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
-                            :disabled="row.original.active === false"
-                            @click="emit('clear-tags', row.original)" />
-                    </UTooltip>
+                    <UButton v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
+                        icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
+                        :disabled="row.original.active === false"
+                        :title="$t('components.common.actions.clear_notes_tags')"
+                        @click="emit('clear-tags', row.original)" />
                 </div>
             </template>
             <template #expanded="{ row }">
@@ -181,30 +170,25 @@
                     <!-- Actions - aligné avec Symbole -->
                     <div class="flex gap-2 items-center" style="margin-left: 80px;">
                         <span class="text-sm font-semibold text-gray-900 dark:text-white mr-2" :class="{ 'opacity-50': !row.original.active }">→</span>
-                        <UTooltip v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
-                            :text="$t('components.common.actions.clear_notes_tags')">
-                            <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
-                                :disabled="row.original.active === false"
-                                @click="emit('clear-tags', row.original)" />
-                        </UTooltip>
-                        <UTooltip :text="$t('components.daily.trade_group.view_details')">
-                            <UButton icon="i-heroicons-eye" size="xs" color="neutral" variant="ghost"
-                                :disabled="row.original.active === false"
-                                @click="emit('open-detail-modal', row.original)"></UButton>
-                        </UTooltip>
-                        <UTooltip :text="row.original.note || row.original.tags?.length > 0
+                        <UButton v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
+                            icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
+                            :disabled="row.original.active === false"
+                            :title="$t('components.common.actions.clear_notes_tags')"
+                            @click="emit('clear-tags', row.original)" />
+                        <UButton icon="i-heroicons-eye" size="xs" color="neutral" variant="ghost"
+                            :disabled="row.original.active === false"
+                            :title="$t('components.daily.trade_group.view_details')"
+                            @click="emit('open-detail-modal', row.original)"></UButton>
+                        <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
+                            :disabled="row.original.active === false"
+                            :title="row.original.note || row.original.tags?.length > 0
                                 ? $t('components.common.actions.edit_notes_tags')
-                                : $t('components.common.actions.add_notes_tags')
-                            ">
-                            <UButton icon="i-heroicons-pencil-square" color="primary" variant="ghost" size="xs"
-                                :disabled="row.original.active === false"
-                                @click="emit('open-tag-modal', row.original)" />
-                        </UTooltip>
-                        <UTooltip :text="$t('components.trade.noteEditor.label')">
-                            <UButton icon="i-heroicons-document-text" color="primary" variant="ghost" size="xs"
-                                :disabled="row.original.active === false"
-                                @click="emit('open-detailed-note', row.original)" />
-                        </UTooltip>
+                                : $t('components.common.actions.add_notes_tags')"
+                            @click="emit('open-tag-modal', row.original)" />
+                        <UButton icon="i-heroicons-document-text" color="primary" variant="ghost" size="xs"
+                            :disabled="row.original.active === false"
+                            :title="$t('components.trade.noteEditor.label')"
+                            @click="emit('open-detailed-note', row.original)" />
                     </div>
 
                     <!-- Screenshots -->
@@ -219,27 +203,24 @@
                     <!-- Tags -->
                     <div v-if="getTradeTagsById(row.original).length > 0" class="flex gap-2 items-center flex-wrap">
                         <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2" :class="{ 'opacity-50': !row.original.active }">Tags:</span>
-                        <UTooltip v-for="tag in getTradeTagsById(row.original)" :key="tag.id"
-                            :text="tag.description || tag.name">
-                            <UBadge :label="tag.name" :style="getTagStyle(tag)"
-                                :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
-                                @click="row.original.active !== false && emit('open-tag-modal', row.original)">
-                                {{ tag.name }}
-                            </UBadge>
-                        </UTooltip>
+                        <UBadge v-for="tag in getTradeTagsById(row.original)" :key="tag.id" :label="tag.name" :style="getTagStyle(tag)"
+                            :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
+                            :title="tag.description || tag.name"
+                            @click="row.original.active !== false && emit('open-tag-modal', row.original)">
+                            {{ tag.name }}
+                        </UBadge>
                     </div>
 
                     <!-- Note -->
                     <div v-if="row.original.note" class="flex gap-2 items-center flex-1">
                         <span class="text-sm font-semibold text-gray-800 dark:text-gray-300 mr-2" :class="{ 'opacity-50': !row.original.active }">Note:</span>
-                        <UTooltip :text="row.original.note">
-                            <UBadge
-                                :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
-                                color="neutral"
-                                @click="row.original.active !== false && emit('open-tag-modal', row.original)">
-                                <span class="truncate1 wrap-break-word">{{ row.original.note }}</span>
-                            </UBadge>
-                        </UTooltip>
+                        <UBadge
+                            :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
+                            color="neutral"
+                            :title="row.original.note"
+                            @click="row.original.active !== false && emit('open-tag-modal', row.original)">
+                            <span class="truncate1 wrap-break-word">{{ row.original.note }}</span>
+                        </UBadge>
                     </div>
 
                 </div>

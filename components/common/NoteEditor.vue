@@ -10,28 +10,27 @@
                 confirm-color="error"
                 @confirm="emit('delete')">
                 <template #trigger>
-                    <UTooltip :text="$t('components.trade.noteEditor.clear_note_tooltip')">
-                        <UButton
-                            icon="i-heroicons-trash"
-                            size="xs"
-                            color="error"
-                            variant="ghost"
-                            class="opacity-70 hover:opacity-100"
-                            @click.stop />
-                    </UTooltip>
+                    <UButton
+                        icon="i-heroicons-trash"
+                        size="xs"
+                        color="error"
+                        variant="ghost"
+                        class="opacity-70 hover:opacity-100"
+                        :title="$t('components.trade.noteEditor.clear_note_tooltip')"
+                        @click.stop />
                 </template>
                 <template #content>{{ $t('components.trade.noteEditor.clear_note_confirm') }}</template>
             </CommonModalDelete>
-            <UTooltip v-else :text="$t('components.trade.noteEditor.clear_note_tooltip')">
-                <UButton 
-                    icon="i-heroicons-trash" 
-                    size="xs" 
-                    color="error" 
-                    variant="ghost"
-                    class="opacity-70 hover:opacity-100"
-                    @click="emit('delete')"
-                    @click.stop />
-            </UTooltip>
+            <UButton
+                v-else
+                icon="i-heroicons-trash"
+                size="xs"
+                color="error"
+                variant="ghost"
+                class="opacity-70 hover:opacity-100"
+                :title="$t('components.trade.noteEditor.clear_note_tooltip')"
+                @click="emit('delete')"
+                @click.stop />
         </div>
         
         <div v-if="!readonly" class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
