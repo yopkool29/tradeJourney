@@ -1,11 +1,13 @@
-import type { BreakdownBaseKey, BreakdownConfig, BreakdownDimension, BreakdownMetric, ChartTemplate, ChartTemplateCategory, TimeSeriesConfig, WorkspaceConfig, DashboardGridItem } from '~/type'
+import type { BreakdownBaseKey, BreakdownConfig, BreakdownDimension, BreakdownMetric, ChartTemplate, TimeSeriesConfig, WorkspaceConfig, DashboardGridItem } from '~/type'
 import { generateBreakdownKey, getBreakdownChartType, getBreakdownBaseKey } from '~/type'
 
 // Config par défaut selon le type de breakdown
 const defaultConfigByType: Record<BreakdownBaseKey, BreakdownConfig | TimeSeriesConfig> = {
-	breakdownBar: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } as BreakdownConfig,
-	breakdownBarVertical: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } as BreakdownConfig,
+	breakdownBar: { dimension: 'ticker', metric: 'pnl', chartType: 'bar', logScale: false } as BreakdownConfig,
+	breakdownBarVertical: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical', logScale: false } as BreakdownConfig,
 	breakdownScatter: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } as BreakdownConfig,
+	breakdownScatter2D: { dimension: 'ticker', metric: 'winrate', metric2: 'profitFactor', colorMetric: 'tradesCount', chartType: 'scatter2D', showScrollX: false, showScrollY: false, logScale: false } as BreakdownConfig,
+	breakdownScatterTrades: { dimension: 'ticker', metric: 'pnl', chartType: 'scatterTrades', tradePropertyX: 'duration', tradePropertyY: 'pnl', tickerFilter: null, logScale: false, showScrollX: false, showScrollY: false } as BreakdownConfig,
 	breakdownTable: { dimension: 'ticker', metric: 'pnl', chartType: 'table' } as BreakdownConfig,
 	breakdownHeatmap: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } as BreakdownConfig,
 	breakdownBoxplot: { dimension: 'ticker', metric: 'pnl', chartType: 'boxplot' } as BreakdownConfig,
@@ -19,6 +21,8 @@ const defaultGridSize: Record<BreakdownBaseKey, { w: number, h: number }> = {
 	breakdownBar: { w: 6, h: 8 },
 	breakdownBarVertical: { w: 6, h: 6 },
 	breakdownScatter: { w: 6, h: 6 },
+	breakdownScatter2D: { w: 12, h: 10 },
+	breakdownScatterTrades: { w: 8, h: 8 },
 	breakdownTable: { w: 12, h: 12 },
 	breakdownHeatmap: { w: 6, h: 6 },
 	breakdownBoxplot: { w: 6, h: 6 },
@@ -75,9 +79,11 @@ export const breakdownTypes: { baseKey: BreakdownBaseKey; labelKey: string }[] =
 	{ baseKey: 'breakdownBar', labelKey: 'components.dashboard.charts.breakdown_bar' },
 	{ baseKey: 'breakdownBarVertical', labelKey: 'components.dashboard.charts.breakdown_bar_vertical' },
 	{ baseKey: 'breakdownScatter', labelKey: 'components.dashboard.charts.breakdown_scatter' },
+	{ baseKey: 'breakdownScatter2D', labelKey: 'components.dashboard.charts.breakdown_scatter_2d' },
 	{ baseKey: 'breakdownTable', labelKey: 'components.dashboard.charts.breakdown_table' },
-	{ baseKey: 'breakdownBoxplot', labelKey: 'components.dashboard.charts.breakdown_boxplot' },
 	{ baseKey: 'breakdownCalendar', labelKey: 'components.dashboard.charts.breakdown_calendar' },
+	// breakdownBoxplot désactivé temporairement
+	// { baseKey: 'breakdownBoxplot', labelKey: 'components.dashboard.charts.breakdown_boxplot' },
 	// breakdownRadar désactivé temporairement
 	// { baseKey: 'breakdownRadar', labelKey: 'components.dashboard.charts.breakdown_radar' },
 ]
@@ -95,6 +101,12 @@ export const chartTemplates: ChartTemplate[] = [
 	{ id: 'heatmapHourDay', labelKey: 'components.dashboard.templates.heatmap_hour_day', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownHeatmap', config: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } },
 	// --- Distribution & profils ---
 	{ id: 'pnlCalendar', labelKey: 'components.dashboard.templates.pnl_calendar', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownCalendar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'calendar' } },
+	// Scatter 2D : corrélations entre métriques
+	{ id: 'winrateVsProfitFactor', labelKey: 'components.dashboard.templates.winrate_vs_profit_factor', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'winrate', metric2: 'profitFactor', colorMetric: 'tradesCount', chartType: 'scatter2D' } },
+	{ id: 'avgWinVsAvgLoss', labelKey: 'components.dashboard.templates.avg_win_vs_avg_loss', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'avgWin', metric2: 'avgLoss', colorMetric: 'expectancy', chartType: 'scatter2D' } },
+	{ id: 'pnlVsDrawdown', labelKey: 'components.dashboard.templates.pnl_vs_drawdown', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'pnl', metric2: 'drawdown', colorMetric: 'tradesCount', chartType: 'scatter2D' } },
+	// scatterTrades : 1 point par trade individuel (durée vs P&L)
+	{ id: 'durationVsPnl', labelKey: 'components.dashboard.templates.duration_vs_pnl', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatterTrades', config: { dimension: 'ticker', metric: 'pnl', chartType: 'scatterTrades', tradePropertyX: 'duration', tradePropertyY: 'pnl', tickerFilter: null, logScale: false } },
 	// pnlDistributionByTicker (boxplot) désactivé temporairement
 	// { id: 'pnlDistributionByTicker', labelKey: 'components.dashboard.templates.pnl_distribution_by_ticker', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownBoxplot', config: { dimension: 'ticker', metric: 'pnl', chartType: 'boxplot' } },
 	// performanceRadar désactivé temporairement
@@ -202,8 +214,12 @@ export const useBreakdownInstances = () => {
 			breakdownBar: [],
 			breakdownBarVertical: [],
 			breakdownScatter: [],
+			breakdownScatter2D: [],
 			breakdownTable: [],
 			breakdownHeatmap: [],
+			breakdownBoxplot: [],
+			breakdownCalendar: [],
+			breakdownRadar: [],
 			timeSeries: [],
 		}
 		for (const key of instanceKeys.value) {

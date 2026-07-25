@@ -88,6 +88,17 @@ export const useTypeColors = (chartType?: ChartType) => {
         }
     })
 
+    // Scatter 2D colors (min/mid/max gradient)
+    const scatter2DColors = computed(() => {
+        const userSettings = userStore.user?.settings_object?.chartColors
+        const settings = userSettings?.scatter2D || defaultSettings.chartColors!.scatter2D!
+        return {
+            min: getThemeColor(settings.min as Record<ThemeKey, string>, colorMode.value),
+            mid: getThemeColor(settings.mid as Record<ThemeKey, string>, colorMode.value),
+            max: getThemeColor(settings.max as Record<ThemeKey, string>, colorMode.value),
+        }
+    })
+
     const userBadgeColors = computed(() => {
         const userSettings = userStore.user?.settings_object?.chartColors
         if (userSettings?.tradeTypeBadges) {
@@ -121,6 +132,7 @@ export const useTypeColors = (chartType?: ChartType) => {
         movingAverageColor,
         rawMetricColor,
         heatmapColors,
+        scatter2DColors,
         userChartColors,
         isDark
     }

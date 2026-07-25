@@ -74,6 +74,11 @@ export const SettingsContentSchema = z.object({
             min: ThemeColor,
             max: ThemeColor,
         }),
+        scatter2D: z.object({
+            min: ThemeColor,
+            mid: ThemeColor,
+            max: ThemeColor,
+        }),
         tradeTypeBadges: z.object({
             buy: ThemeColor,
             sell: ThemeColor,
@@ -104,6 +109,11 @@ export const SettingsContentSchema = z.object({
         heatmap: {
             min: { light: 'rgb(255, 245, 204)', dark: 'rgb(42, 21, 0)', 'light-blue': 'rgb(255, 245, 204)', 'dark-gold': 'rgb(42, 21, 0)' },
             max: { light: 'rgb(255, 128, 0)', dark: 'rgb(255, 170, 51)', 'light-blue': 'rgb(255, 128, 0)', 'dark-gold': 'rgb(255, 170, 51)' },
+        },
+        scatter2D: {
+            min: { light: 'rgb(243, 244, 246)', dark: 'rgb(31, 41, 55)', 'light-blue': 'rgb(243, 244, 246)', 'dark-gold': 'rgb(31, 41, 55)' },
+            mid: { light: 'rgb(147, 197, 253)', dark: 'rgb(30, 64, 175)', 'light-blue': 'rgb(147, 197, 253)', 'dark-gold': 'rgb(30, 64, 175)' },
+            max: { light: 'rgb(22, 163, 74)', dark: 'rgb(34, 197, 94)', 'light-blue': 'rgb(22, 163, 74)', 'dark-gold': 'rgb(34, 197, 94)' },
         },
         tradeTypeBadges: {
             buy: { light: 'rgb(16, 185, 129)', dark: 'rgb(33, 198, 94)', 'light-blue': 'rgb(16, 185, 129)', 'dark-gold': 'rgb(33, 198, 94)' },

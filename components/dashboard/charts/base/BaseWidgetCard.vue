@@ -18,6 +18,14 @@
 							<template #content>
 								<div class="p-3 min-w-[180px]">
 									<slot name="settings" />
+									<div class="flex justify-end gap-2 mt-3 pt-3 border-t border-default">
+										<UButton size="xs" color="primary" @click="onSettingsApply">
+											{{ $t('common.actions.apply') }}
+										</UButton>
+										<UButton size="xs" color="neutral" variant="ghost" @click="onSettingsCancel">
+											{{ $t('common.actions.cancel') }}
+										</UButton>
+									</div>
 								</div>
 							</template>
 						</UPopover>
@@ -57,11 +65,11 @@
 				ref="chartContainerRef"
 				class="relative w-full flex-1 min-h-0"
 				:class="{ 'cursor-pointer': !hideEnlarge && !disableClickEnlarge }"
-				style="min-height: 200px;"
+				:style="{ minHeight: '200px', height: containerHeight > 0 ? (canvasHeight || containerHeight) + 'px' : undefined }"
 				@mousedown="onChartMouseDown"
 				@click="onChartClick"
 			>
-				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" :update-options="{ notMerge: notMerge }" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
+				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" :update-options="{ notMerge: notMerge }" autoresize style="width: 100%; height: 100%;" />
 			</div>
 		</UCard>
 
@@ -74,7 +82,7 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import { onMounted, onActivated, onDeactivated } from 'vue'
+import { onMounted, onActivated, onDeactivated, watch } from 'vue'
 
 const props = defineProps<{
 	title: string
@@ -100,11 +108,32 @@ const props = defineProps<{
 	notMerge?: boolean
 }>()
 
+const emit = defineEmits<{
+	'settings-open': []
+	'settings-cancel': []
+	'settings-apply': []
+}>()
+
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)
 const notMerge = computed(() => props.notMerge ?? true)
 
 const isModalOpen = ref(false)
 const isSettingsOpen = ref(false)
+
+// Settings popover : émet un event à l'ouverture pour que le parent snapshot sa config
+watch(isSettingsOpen, (open) => {
+	if (open) emit('settings-open')
+})
+
+const onSettingsCancel = () => {
+	emit('settings-cancel')
+	isSettingsOpen.value = false
+}
+
+const onSettingsApply = () => {
+	emit('settings-apply')
+	isSettingsOpen.value = false
+}
 
 // Track mousedown position to distinguish click from drag (dataZoom scroll)
 let mouseDownPos: { x: number, y: number } | null = null
@@ -125,6 +154,16 @@ const onChartClick = (e: MouseEvent) => {
 		}
 	}
 	mouseDownPos = null
+	// Si le chart a un dataZoom slider, exclure les zones des sliders (bas ~30px, droite ~25px)
+	if (hasDataZoom.value && chartContainerRef.value) {
+		const rect = chartContainerRef.value.getBoundingClientRect()
+		const clickX = e.clientX - rect.left
+		const clickY = e.clientY - rect.top
+		// Slider horizontal (bas) + 5px de marge
+		if (clickY > rect.height - 35) return
+		// Slider vertical (droite) + 5px de marge
+		if (clickX > rect.width - 30) return
+	}
 	isModalOpen.value = true
 }
 

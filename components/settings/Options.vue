@@ -393,6 +393,27 @@
                                 />
                             </div>
                         </div>
+                        <!-- Scatter 2D (gradient min/mid/max) -->
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-3 underline">{{ $t('components.settings.options.chart_scatter_2d') }}</h4>
+                            <div class="space-y-4">
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.scatter2D.min"
+                                    :label="$t('components.settings.options.color_scatter_2d_min')"
+                                    :default-colors="defaultSettings.chartColors!.scatter2D.min"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.scatter2D.mid"
+                                    :label="$t('components.settings.options.color_scatter_2d_mid')"
+                                    :default-colors="defaultSettings.chartColors!.scatter2D.mid"
+                                />
+                                <CommonColorThemePicker
+                                    v-model="formState.chartColors!.scatter2D.max"
+                                    :label="$t('components.settings.options.color_scatter_2d_max')"
+                                    :default-colors="defaultSettings.chartColors!.scatter2D.max"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="flex action-buttons mt-8">
@@ -546,6 +567,20 @@ onMounted(() => {
                             ...(savedSettings.chartColors?.heatmap?.max || {}),
                         },
                     },
+                    scatter2D: {
+                        min: {
+                            ...defaultSettings.chartColors!.scatter2D.min,
+                            ...(savedSettings.chartColors?.scatter2D?.min || {}),
+                        },
+                        mid: {
+                            ...defaultSettings.chartColors!.scatter2D.mid,
+                            ...(savedSettings.chartColors?.scatter2D?.mid || {}),
+                        },
+                        max: {
+                            ...defaultSettings.chartColors!.scatter2D.max,
+                            ...(savedSettings.chartColors?.scatter2D?.max || {}),
+                        },
+                    },
                     pnlBarChart: {
                         profit: {
                             ...defaultSettings.chartColors!.pnlBarChart.profit,
@@ -626,6 +661,11 @@ function resetSettings() {
             heatmap: {
                 min: { ...defaultSettings.chartColors!.heatmap.min },
                 max: { ...defaultSettings.chartColors!.heatmap.max },
+            },
+            scatter2D: {
+                min: { ...defaultSettings.chartColors!.scatter2D.min },
+                mid: { ...defaultSettings.chartColors!.scatter2D.mid },
+                max: { ...defaultSettings.chartColors!.scatter2D.max },
             },
             pnlBarChart: {
                 profit: { ...defaultSettings.chartColors!.pnlBarChart.profit },

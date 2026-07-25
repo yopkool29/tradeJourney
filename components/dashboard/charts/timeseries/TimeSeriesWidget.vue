@@ -6,6 +6,9 @@
         :loading="loading"
         :modal-height-class="modalHeightClass"
         :subtitle="aggregationLabel"
+        @settings-open="onSettingsOpen"
+        @settings-cancel="onSettingsCancel"
+        @settings-apply="onSettingsApply"
     >
         <!-- Dropdown métrique dans le header (barMA et area) -->
         <template #header-extra>
@@ -74,6 +77,7 @@ import type { TimeSeriesConfig, TimeSeriesAggregation, BreakdownMetric } from '~
 import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
+import { buildTooltipLines, useTooltipMetrics } from '~/composables/useTooltipMetrics'
 import { buildBarData, buildBarSeries, buildLineSeries, buildBarColors } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsAreaStyle } from '~/utils/echarts-builders'
 import { chartColors, isMonetaryMetric } from '~/composables/useChartColors'
@@ -117,6 +121,19 @@ const updateConfig = (partial: Partial<TimeSeriesConfig>) => {
     const configs = { ...(activeWorkspace.value?.breakdownConfigs || {}) }
     configs[props.itemId] = { ...config.value, ...partial } as TimeSeriesConfig
     updateActiveWorkspace({ breakdownConfigs: configs } as never)
+}
+
+// Snapshot de la config pour Cancel/Apply dans le popover settings
+let configSnapshot: TimeSeriesConfig | null = null
+const onSettingsOpen = () => {
+    configSnapshot = { ...config.value } as TimeSeriesConfig
+}
+const onSettingsCancel = () => {
+    if (configSnapshot) updateConfig(configSnapshot)
+    configSnapshot = null
+}
+const onSettingsApply = () => {
+    configSnapshot = null
 }
 
 // --- Dropdown métrique dans le header ---
@@ -182,7 +199,7 @@ const crosshairType = computed<'cross' | 'line'>({
 })
 
 // --- Métriques supplémentaires dans le tooltip (barMA seulement) ---
-const { selectedTooltipMetrics, toggleTooltipMetric, buildExtraTooltipLines } = useTooltipMetrics(config, updateConfig)
+const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
 
 // --- Titre ---
 const chartTitle = computed(() => {
@@ -446,20 +463,16 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     const valueLabel = shouldCumulate.value
                         ? t('components.dashboard.index.cumulated_label')
                         : t(`components.dashboard.breakdown.metrics.${metric}`)
-                    const lines = [label ? `Date: ${label}` : '', `${valueLabel}: ${yFmt(val)}`]
-                        .filter(Boolean)
+                    const primaryLines = [label ? `Date: ${label}` : '', `${valueLabel}: ${yFmt(val)}`].filter(Boolean)
                     // Ajoute les métriques supplémentaires depuis les données par période
                     const allMetrics = cumulatedData.value?.allMetrics
+                    let periodMetrics: BreakdownMetrics | undefined
                     if (allMetrics) {
                         // Si capital > 0, le premier point (xi=0) est artificiel, on décale
                         const metricIndex = capital > 0 ? xi - 1 : xi
-                        const periodMetrics = allMetrics[metricIndex]
-                        if (periodMetrics) {
-                            const shown = new Set<BreakdownMetric>([metric])
-                            lines.push(...buildExtraTooltipLines(periodMetrics, shown))
-                        }
+                        periodMetrics = allMetrics[metricIndex]
                     }
-                    return lines.join('<br/>')
+                    return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
             grid,
@@ -538,7 +551,7 @@ const chartOption = computed<EChartsOption | undefined>(() => {
             color: maColor,
             symbolSize: 0,
             smooth: 0.2,
-            lineStyle: showMovingAverage.value ? { width: 2, color: maColor } : { width: 0, opacity: 0 },
+            lineStyle: showMovingAverage.value ? { width: 2, color: maColor, opacity: 1 } : { width: 0, opacity: 0 },
             itemStyle: { color: maColor, opacity: showMovingAverage.value ? 1 : 0 },
         }))
         // Barres : toujours ajoutées pour garder les données dans le tooltip, transparentes si désactivées
@@ -572,20 +585,16 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     const list = (Array.isArray(params) ? params : [params]) as EChartsFormatterParams[]
                     const dataIndex = list[0]?.dataIndex ?? 0
                     const label = labels[dataIndex] || ''
-                    const lines = list
+                    const seriesLines = list
                         .map((p) => {
                             const val = p.value as number
                             if (val === null || val === undefined) return null
                             return `${p.seriesName}: ${fmtVal(val)}`
                         })
-                        .filter(Boolean)
-                    // Ajoute les métriques supplémentaires depuis les données par période
+                        .filter(Boolean) as string[]
                     const periodMetrics = allMetrics[dataIndex]
-                    if (periodMetrics) {
-                        const shown = new Set<BreakdownMetric>([metric])
-                        lines.push(...buildExtraTooltipLines(periodMetrics, shown))
-                    }
-                    return [label ? `Date: ${label}` : '', ...lines].filter(Boolean).join('<br/>')
+                    const primaryLines = [label ? `Date: ${label}` : '', ...seriesLines].filter(Boolean)
+                    return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
             grid,

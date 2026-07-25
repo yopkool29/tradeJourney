@@ -6,6 +6,9 @@
 		:loading="loading"
 		:not-merge="false"
 		:modal-height-class="modalHeightClass"
+		@settings-open="onSettingsOpen"
+		@settings-cancel="onSettingsCancel"
+		@settings-apply="onSettingsApply"
 	>
 		<template #header-extra>
 			<div class="flex items-center gap-2 flex-wrap">
@@ -50,14 +53,14 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import type { EChartsFormatterParams } from '~/utils/echarts-builders'
-import type { BreakdownMetric } from '~/type'
+import type { BreakdownConfig, BreakdownMetric } from '~/type'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import type { BreakdownMetrics } from '~/composables/useAnalytics'
 import { metricOptions, useBreakdownConfig } from '~/composables/metrics/useBreakdownConfig'
 import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
-import { useTooltipMetrics } from '~/composables/useTooltipMetrics'
+import { useTooltipMetrics, buildTooltipLines } from '~/composables/useTooltipMetrics'
 import { formatDateKeyForGrouping } from '~/utils/date-utils'
 
 const props = defineProps<{
@@ -73,7 +76,20 @@ const userStore = useUserStore()
 const { profitColor, lossColor } = useTypeColors('timeSeriesChart')
 
 const { config, setMetric, updateConfig } = useBreakdownConfig(props.itemId)
-const { selectedTooltipMetrics, toggleTooltipMetric, buildExtraTooltipLines } = useTooltipMetrics(config, updateConfig)
+const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
+
+// Snapshot de la config pour Cancel/Apply dans le popover settings
+let configSnapshot: BreakdownConfig | null = null
+const onSettingsOpen = () => {
+	configSnapshot = { ...config.value } as BreakdownConfig
+}
+const onSettingsCancel = () => {
+	if (configSnapshot) updateConfig(configSnapshot)
+	configSnapshot = null
+}
+const onSettingsApply = () => {
+	configSnapshot = null
+}
 
 const metricItems = computed(() =>
 	metricOptions.map(m => ({ value: m.value, label: t(m.labelKey) }))
@@ -213,14 +229,9 @@ const chartOption = computed<EChartsOption>(() => {
 				const date = v[0]
 				const val = v[1]
 				const dateLabel = new Date(date).toLocaleDateString(locale.value, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
-				const lines = [`<strong>${dateLabel}</strong>`, `${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`]
-				// Ajouter les tooltip metrics supplémentaires
 				const dayMetrics = metricsByDate.get(date)
-				if (dayMetrics) {
-					const extra = buildExtraTooltipLines(dayMetrics, new Set([metric]))
-					lines.push(...extra)
-				}
-				return lines.join('<br/>')
+				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`]
+				return buildTooltipLines(dateLabel, primaryLines, dayMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
 			},
 		},
 		visualMap: {

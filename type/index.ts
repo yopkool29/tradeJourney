@@ -84,7 +84,7 @@ export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLos
 export const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
 
 // Préfixes des types de breakdown (base key sans l'ID d'instance)
-export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakdownScatter' | 'breakdownTable' | 'breakdownHeatmap' | 'breakdownBoxplot' | 'breakdownCalendar' | 'breakdownRadar' | 'timeSeries'
+export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakdownScatter' | 'breakdownScatter2D' | 'breakdownScatterTrades' | 'breakdownTable' | 'breakdownHeatmap' | 'breakdownBoxplot' | 'breakdownCalendar' | 'breakdownRadar' | 'timeSeries'
 
 // Dimensions disponibles pour les breakdowns configurables
 // 'tagGroup_<name>' est généré dynamiquement pour chaque groupe de tags
@@ -107,7 +107,10 @@ export const getTagGroupName = (dim: string): string | null => {
 export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount' | 'appt'
 
 // Types de charts disponibles pour les breakdowns
-export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'table' | 'heatmap' | 'boxplot' | 'calendar' | 'radar' | 'timeSeries'
+export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'scatter2D' | 'scatterTrades' | 'table' | 'heatmap' | 'boxplot' | 'calendar' | 'radar' | 'timeSeries'
+
+// Propriétés d'un trade individuel utilisables comme axes du scatterTrades
+export type TradeProperty = 'duration' | 'pnl' | 'profit' | 'netProfit'
 
 // Format de l'axe Y pour les séries temporelles
 export type TimeSeriesYAxisFormat = 'currency' | 'percent' | 'number'
@@ -132,6 +135,8 @@ export const getBreakdownChartType = (key: string): BreakdownChartType | null =>
 	if (key.startsWith('breakdownRadar')) return 'radar'
 	if (key.startsWith('breakdownBarVertical')) return 'barVertical'
 	if (key.startsWith('breakdownBar')) return 'bar'
+	if (key.startsWith('breakdownScatter2D')) return 'scatter2D'
+	if (key.startsWith('breakdownScatterTrades')) return 'scatterTrades'
 	if (key.startsWith('breakdownScatter')) return 'scatter'
 	if (key.startsWith('breakdownTable')) return 'table'
 	return null
@@ -149,6 +154,8 @@ export const getBreakdownBaseKey = (key: string): BreakdownBaseKey | null => {
 	if (key.startsWith('breakdownRadar')) return 'breakdownRadar'
 	if (key.startsWith('breakdownBarVertical')) return 'breakdownBarVertical'
 	if (key.startsWith('breakdownBar')) return 'breakdownBar'
+	if (key.startsWith('breakdownScatter2D')) return 'breakdownScatter2D'
+	if (key.startsWith('breakdownScatterTrades')) return 'breakdownScatterTrades'
 	if (key.startsWith('breakdownScatter')) return 'breakdownScatter'
 	if (key.startsWith('breakdownTable')) return 'breakdownTable'
 	return null
@@ -183,7 +190,29 @@ export interface BreakdownConfig {
 	// Deuxième dimension pour la heatmap (axe Y). Ignoré pour les autres chart types.
 	dimension2?: BreakdownDimension
 	// Métrique affichée par le chart (bar/scatter). Ignoré pour la table.
+	// Pour scatter2D : métrique sur l'axe X.
 	metric: BreakdownMetric
+	// Métrique sur l'axe Y pour scatter2D. Ignoré pour les autres chart types.
+	metric2?: BreakdownMetric
+	// Métrique utilisée pour la couleur (visualMap) du scatter2D. Ignoré pour les autres chart types.
+	// Si non défini, utilise tradesCount par défaut.
+	colorMetric?: BreakdownMetric
+	// Scatter 2D : largeur du percentile pour les bornes des axes (ex: 1 = 1er/99e, 5 = 5e/95e).
+	// 0 = min/max absolus (pas de filtrage d'extremes). Défaut: 1.
+	percentileRange?: number
+	// Scatter 2D : afficher les scrollbars (dataZoom sliders) sur les axes X et Y. Défaut: true.
+	showScrollX?: boolean
+	showScrollY?: boolean
+	// Scatter 2D : afficher le label de la dimension au-dessus de chaque point. Défaut: true.
+	showLabels?: boolean
+	// Scatter 2D : échelle logarithmique sur les axes X et Y. Défaut: false (linéaire).
+	logScale?: boolean
+	// scatterTrades : propriété du trade sur l'axe X (durée, P&L...). Défaut: 'duration'.
+	tradePropertyX?: TradeProperty
+	// scatterTrades : propriété du trade sur l'axe Y. Défaut: 'pnl'.
+	tradePropertyY?: TradeProperty
+	// scatterTrades : filtrer par ticker (null = tous les tickers). Défaut: null.
+	tickerFilter?: string | null
 	chartType: BreakdownChartType
 	filter?: BreakdownFilter
 	// Colonnes affichées par la table (utilisé seulement quand chartType === 'table').
