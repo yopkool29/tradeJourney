@@ -7,6 +7,7 @@
 		:hide-enlarge="chartType === 'table'"
 		:disable-click-enlarge="chartType === 'bar' || chartType === 'barVertical'"
 		:use-default-slot="chartType === 'table'"
+		:not-merge="chartType !== 'calendar'"
 		:modal-height-class="modalHeightClass"
 	>
 		<!-- Dropdowns dimension/métrique/colonnes/topN dans le header -->
@@ -44,6 +45,10 @@
 					/>
 				</div>
 			</div>
+			<!-- Calendar : pas de sélecteurs (P&L journalier fixe) -->
+			<div v-else-if="chartType === 'calendar'" class="flex items-center gap-2">
+				<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.calendar.daily_pnl') }}</span>
+			</div>
 			<!-- Autres charts : dimension + métrique + topN -->
 			<div v-else class="flex items-center gap-2 flex-wrap">
 				<div class="flex items-center gap-1.5">
@@ -56,8 +61,8 @@
 						size="xs"
 					/>
 				</div>
-				<!-- Métrique : seulement pour bar/scatter (la table affiche plusieurs colonnes) -->
-				<div v-if="chartType !== 'table'" class="flex items-center gap-1.5">
+				<!-- Métrique : seulement pour bar/scatter (la table affiche plusieurs colonnes, boxplot/radar utilisent P&L fixe) -->
+				<div v-if="chartType !== 'table' && chartType !== 'boxplot' && chartType !== 'radar'" class="flex items-center gap-1.5">
 					<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
 					<USelectMenu
 						v-model="selectedMetric"
@@ -67,7 +72,7 @@
 						size="xs"
 					/>
 				</div>
-				<!-- Filtre topN (optionnel, seulement pour bar/scatter) -->
+				<!-- Filtre topN (optionnel, sauf table) -->
 				<div v-if="chartType !== 'table'" class="flex items-center gap-1.5">
 					<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.top') }}</span>
 					<USelectMenu
@@ -330,6 +335,7 @@ const filteredMetrics = computed(() => {
 
 const modalHeightClass = computed(() => {
 	if (chartType.value === 'table') return undefined
+	if (chartType.value === 'calendar') return 'h-[400px] sm:h-[700px]'
 	return filteredMetrics.value.length > 10 ? 'h-[300px] sm:h-[700px]' : undefined
 })
 
@@ -778,12 +784,215 @@ const heatmapChartOption = computed<EChartsOption>(() => {
 	}
 })
 
+// --- Boxplot chart option (distribution de la métrique par dimension) ---
+// Affiche la distribution des valeurs individuelles (P&L par trade) pour chaque groupe
+const boxplotData = computed(() => {
+	const trades = dataStore.lastTrades || []
+	if (!trades.length) return { categories: [] as string[], data: [] as number[][], rawTrades: [] as number[][] }
+	const tagGroups = dbStateStore.tagGroups || []
+	const dim = config.value.dimension
+	const groupFn = getGroupFn(dim, tagGroups, timezoneSettings.value)
+	// Grouper les trades bruts par dimension
+	const groups = new Map<string, number[]>()
+	for (const trade of trades) {
+		const key = groupFn(trade)
+		if (key === null || key === undefined) continue
+		const val = displayModeNet.value ? trade.netProfit : trade.profit
+		// Pour les métriques non-PnL, on garde le PnL comme valeur de distribution
+		// (le boxplot montre la distribution des trades, pas la métrique agrégée)
+		if (!groups.has(key)) groups.set(key, [])
+		groups.get(key)!.push(val)
+	}
+	// Trier les groupes selon la même logique que sortedMetrics
+	const sortedKeys = [...groups.keys()].sort((a, b) => {
+		const sa = String(a), sb = String(b)
+		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(sa) - parseInt(sb)
+		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(sa) - parseInt(sb)
+		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(sa) - parseInt(sb)
+		return sa.localeCompare(sb)
+	})
+	// Appliquer le topN
+	const topN = config.value.filter?.topN
+	const limitedKeys = (!topN || topN <= 0) ? sortedKeys : sortedKeys.slice(0, topN)
+	const categories = limitedKeys.map(k => formatDimensionLabel(dim, String(k)))
+	const data = limitedKeys.map(k => {
+		const vals = groups.get(k) || []
+		if (!vals.length) return [0, 0, 0, 0, 0]
+		const sorted = [...vals].sort((a, b) => a - b)
+		const q = (p: number) => {
+			const idx = p * (sorted.length - 1)
+			const lo = Math.floor(idx)
+			const hi = Math.ceil(idx)
+			if (lo === hi) return sorted[lo]
+			return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo)
+		}
+		return [sorted[0], q(0.25), q(0.5), q(0.75), sorted[sorted.length - 1]]
+	})
+	const rawTrades = limitedKeys.map(k => groups.get(k) || [])
+	return { categories, data, rawTrades }
+})
+
+const boxplotChartOption = computed<EChartsOption>(() => {
+	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 60 })
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
+	const { categories, data, rawTrades } = boxplotData.value
+
+	return {
+		...base,
+		tooltip: {
+			backgroundColor, borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			trigger: 'item',
+			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const idx = p.dataIndex
+				const cat = categories[idx] ?? ''
+				const d = data[idx]
+				if (!d) return ''
+				const raw = rawTrades[idx] || []
+				const lines = [
+					`<strong>${cat}</strong>`,
+					`${t('components.dashboard.breakdown.boxplot.min')}: ${formatMetricValueForMetric(d[0], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.q1')}: ${formatMetricValueForMetric(d[1], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.median')}: ${formatMetricValueForMetric(d[2], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.q3')}: ${formatMetricValueForMetric(d[3], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.max')}: ${formatMetricValueForMetric(d[4], 'pnl')}`,
+					`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${raw.length}`,
+				]
+				return lines.join('<br/>')
+			},
+		},
+		grid,
+		xAxis: {
+			type: 'category',
+			data: categories,
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: categories.length > 6 ? 30 : 0 },
+			splitLine: { show: false },
+		},
+		yAxis: {
+			type: 'value',
+			name: t('components.dashboard.breakdown.metrics.pnl'),
+			axisLine: { show: false },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => formatMetricValueForMetric(v, 'pnl') },
+			splitLine: { lineStyle: { color: axisColor } },
+			nameTextStyle: { color: textColor, fontSize: 11 },
+		},
+		series: [{
+			type: 'boxplot',
+			data,
+			itemStyle: {
+				color: isDark.value ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.25)',
+				borderColor: barColor.value,
+				borderWidth: 1.5,
+			},
+		}],
+	}
+})
+
+// --- Radar chart option (profil de performance multi-axes) ---
+// Compare plusieurs dimensions sur des axes normalisés (0-100)
+const radarMetrics = computed(() => {
+	const metrics = filteredMetrics.value
+	if (!metrics.length) return { indicators: [] as { name: string, max: number }[], values: [] as number[][], names: [] as string[] }
+	const dim = config.value.dimension
+	// Pour chaque groupe, on calcule un profil normalisé sur plusieurs métriques
+	// Axes : Winrate, Profit Factor, Expectancy, P&L, Trades Count
+	const maxPF = Math.max(...metrics.map(m => m.profitFactor || 0), 1)
+	const maxExp = Math.max(...metrics.map(m => Math.abs(m.appt || 0)), 1)
+	const maxPnl = Math.max(...metrics.map(m => Math.abs(m.pnl || 0)), 1)
+	const maxCount = Math.max(...metrics.map(m => m.tradesCount || 0), 1)
+	// Top 8 pour la lisibilité du radar
+	const limited = metrics.slice(0, 8)
+	const names = limited.map(m => formatDimensionLabel(dim, m.key))
+	const indicators = [
+		{ name: t('components.dashboard.breakdown.metrics.winrate'), max: 100 },
+		{ name: t('components.dashboard.breakdown.metrics.profitFactor'), max: maxPF },
+		{ name: t('components.dashboard.breakdown.metrics.expectancy'), max: maxExp },
+		{ name: t('components.dashboard.breakdown.metrics.pnl'), max: maxPnl },
+		{ name: t('components.dashboard.breakdown.metrics.tradesCount'), max: maxCount },
+	]
+	const values = limited.map(m => [
+		m.winrate || 0,
+		m.profitFactor || 0,
+		m.appt || 0,
+		m.pnl || 0,
+		m.tradesCount || 0,
+	])
+	return { indicators, values, names }
+})
+
+const radarChartOption = computed<EChartsOption>(() => {
+	const ctx = getChartContext()
+	const { base, textColor, backgroundColor, borderColor, tooltipTextColor, isDark: dark } = ctx
+	const { indicators, values, names } = radarMetrics.value
+	if (!indicators.length) return { ...base }
+
+	// Palette de couleurs pour les différentes séries
+	const palette = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
+
+	return {
+		...base,
+		tooltip: {
+			backgroundColor, borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			trigger: 'item',
+			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const idx = p.dataIndex
+				const name = names[idx] ?? ''
+				const vals = values[idx] || []
+				const lines = [`<strong>${name}</strong>`]
+				indicators.forEach((ind, i) => {
+					const val = vals[i] ?? 0
+					const metricKey = ['winrate', 'profitFactor', 'expectancy', 'pnl', 'tradesCount'][i]
+					lines.push(`${ind.name}: ${formatMetricValueForMetric(val, metricKey as BreakdownMetric)}`)
+				})
+				return lines.join('<br/>')
+			},
+		},
+		legend: {
+			data: names,
+			bottom: 0,
+			textStyle: { color: textColor, fontSize: 10 },
+			type: 'scroll',
+		},
+		radar: {
+			indicator: indicators,
+			center: ['50%', '50%'],
+			radius: '60%',
+			axisName: { color: textColor, fontSize: 10 },
+			splitArea: { areaStyle: { color: dark ? ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.05)'] : ['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.04)'] } },
+			splitLine: { lineStyle: { color: dark ? '#374151' : '#d1d5db' } },
+			axisLine: { lineStyle: { color: dark ? '#374151' : '#d1d5db' } },
+		},
+		series: [{
+			type: 'radar',
+			data: values.map((v, i) => ({
+				value: v,
+				name: names[i],
+				areaStyle: { opacity: 0.1 },
+				lineStyle: { color: palette[i % palette.length], width: 2 },
+				itemStyle: { color: palette[i % palette.length] },
+			})),
+		}],
+	}
+})
+
 // Chart option finale selon le type
 const chartOption = computed<EChartsOption | undefined>(() => {
 	if (chartType.value === 'bar') return barChartOption.value
 	if (chartType.value === 'barVertical') return barVerticalChartOption.value
 	if (chartType.value === 'scatter') return scatterChartOption.value
 	if (chartType.value === 'heatmap') return heatmapChartOption.value
+	if (chartType.value === 'boxplot') return boxplotChartOption.value
+	if (chartType.value === 'radar') return radarChartOption.value
 	return undefined
 })
 </script>

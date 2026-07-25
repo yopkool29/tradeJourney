@@ -84,7 +84,7 @@ export type SectionKey = 'allTrades' | 'profitTrades' | 'losingTrades' | 'winLos
 export const sectionKeys: SectionKey[] = ['allTrades', 'profitTrades', 'losingTrades', 'winLossComparison', 'riskRatios', 'dayStatistics']
 
 // Préfixes des types de breakdown (base key sans l'ID d'instance)
-export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakdownScatter' | 'breakdownTable' | 'breakdownHeatmap' | 'timeSeries'
+export type BreakdownBaseKey = 'breakdownBar' | 'breakdownBarVertical' | 'breakdownScatter' | 'breakdownTable' | 'breakdownHeatmap' | 'breakdownBoxplot' | 'breakdownCalendar' | 'breakdownRadar' | 'timeSeries'
 
 // Dimensions disponibles pour les breakdowns configurables
 // 'tagGroup_<name>' est généré dynamiquement pour chaque groupe de tags
@@ -107,7 +107,7 @@ export const getTagGroupName = (dim: string): string | null => {
 export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'avgLoss' | 'expectancy' | 'avgDuration' | 'drawdown' | 'currentDrawdown' | 'tradesCount' | 'appt'
 
 // Types de charts disponibles pour les breakdowns
-export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'table' | 'heatmap' | 'timeSeries'
+export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'table' | 'heatmap' | 'boxplot' | 'calendar' | 'radar' | 'timeSeries'
 
 // Format de l'axe Y pour les séries temporelles
 export type TimeSeriesYAxisFormat = 'currency' | 'percent' | 'number'
@@ -127,6 +127,9 @@ export const generateBreakdownKey = (baseKey: BreakdownBaseKey): string => {
 export const getBreakdownChartType = (key: string): BreakdownChartType | null => {
 	if (key.startsWith('timeSeries')) return 'timeSeries'
 	if (key.startsWith('breakdownHeatmap')) return 'heatmap'
+	if (key.startsWith('breakdownBoxplot')) return 'boxplot'
+	if (key.startsWith('breakdownCalendar')) return 'calendar'
+	if (key.startsWith('breakdownRadar')) return 'radar'
 	if (key.startsWith('breakdownBarVertical')) return 'barVertical'
 	if (key.startsWith('breakdownBar')) return 'bar'
 	if (key.startsWith('breakdownScatter')) return 'scatter'
@@ -141,6 +144,9 @@ export const isBreakdownKey = (key: string): boolean => getBreakdownChartType(ke
 export const getBreakdownBaseKey = (key: string): BreakdownBaseKey | null => {
 	if (key.startsWith('timeSeries')) return 'timeSeries'
 	if (key.startsWith('breakdownHeatmap')) return 'breakdownHeatmap'
+	if (key.startsWith('breakdownBoxplot')) return 'breakdownBoxplot'
+	if (key.startsWith('breakdownCalendar')) return 'breakdownCalendar'
+	if (key.startsWith('breakdownRadar')) return 'breakdownRadar'
 	if (key.startsWith('breakdownBarVertical')) return 'breakdownBarVertical'
 	if (key.startsWith('breakdownBar')) return 'breakdownBar'
 	if (key.startsWith('breakdownScatter')) return 'breakdownScatter'

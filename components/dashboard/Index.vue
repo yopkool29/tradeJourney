@@ -283,6 +283,7 @@
 <script setup lang="ts">
 import DashboardChartsBreakdownBreakdownWidget from '~/components/dashboard/charts/breakdown/BreakdownWidget.vue'
 import DashboardChartsTimeseriesTimeSeriesWidget from '~/components/dashboard/charts/timeseries/TimeSeriesWidget.vue'
+import DashboardChartsCalendarCalendarWidget from '~/components/dashboard/charts/calendar/CalendarWidget.vue'
 import DashboardSectionsAllTradesSection from '~/components/dashboard/sections/AllTradesSection.vue'
 import DashboardSectionsProfitTradesSection from '~/components/dashboard/sections/ProfitTradesSection.vue'
 import DashboardSectionsLosingTradesSection from '~/components/dashboard/sections/LosingTradesSection.vue'
@@ -450,9 +451,11 @@ const gridComponents = computed(() => {
     // Map dynamique pour les instances de breakdown (clés dynamiques type breakdownBar_abc_123)
     const breakdownMap: Record<string, Component> = {}
     for (const key of breakdownInstances.instanceKeys.value) {
-        // Les instances timeSeries utilisent le TimeSeriesWidget, les autres le BreakdownWidget
+        // Les instances timeSeries utilisent le TimeSeriesWidget, calendar utilise CalendarWidget, les autres le BreakdownWidget
         if (key.startsWith('timeSeries')) {
             breakdownMap[key] = DashboardChartsTimeseriesTimeSeriesWidget
+        } else if (key.startsWith('breakdownCalendar')) {
+            breakdownMap[key] = DashboardChartsCalendarCalendarWidget
         } else {
             breakdownMap[key] = DashboardChartsBreakdownBreakdownWidget
         }

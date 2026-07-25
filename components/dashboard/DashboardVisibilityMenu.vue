@@ -19,20 +19,14 @@
 				<!-- Templates : raccourcis pour créer un chart pré-configuré -->
 				<div class="border-t border-default pt-2">
 					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.add_chart') }}</div>
-					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
 						<!-- Répartition : Barres -->
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_bars') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.bars" :key="tmpl.id" class="flex items-center gap-0">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.bars" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
-									<UButton
-										icon="i-lucide-plus"
-										size="xs"
-										variant="ghost"
-										color="primary"
-										@click="onCreateFromTemplate(tmpl.id)"
-									/>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>
 							</div>
 						</div>
@@ -40,15 +34,19 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_scatter_heatmap') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.scatterHeatmap" :key="tmpl.id" class="flex items-center gap-0">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.scatterHeatmap" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
-									<UButton
-										icon="i-lucide-plus"
-										size="xs"
-										variant="ghost"
-										color="primary"
-										@click="onCreateFromTemplate(tmpl.id)"
-									/>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
+								</div>
+							</div>
+						</div>
+						<!-- Distribution & Profils -->
+						<div>
+							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_breakdown_distribution') }}</div>
+							<div class="space-y-1">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.distribution" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>
 							</div>
 						</div>
@@ -56,15 +54,9 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_time_series') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in breakdownTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center gap-0">
+								<div v-for="tmpl in breakdownTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
-									<UButton
-										icon="i-lucide-plus"
-										size="xs"
-										variant="ghost"
-										color="primary"
-										@click="onCreateFromTemplate(tmpl.id)"
-									/>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>
 							</div>
 						</div>
@@ -72,15 +64,9 @@
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_advanced') }}</div>
 							<div class="space-y-1">
-								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center gap-0">
+								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
-									<UButton
-										icon="i-lucide-plus"
-										size="xs"
-										variant="ghost"
-										color="primary"
-										@click="onCreateFromTemplate(tmpl.id)"
-									/>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>
 							</div>
 						</div>
@@ -138,7 +124,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { createFromTemplate } = useBreakdownInstances()
-
 type ChartOption = { id: string; label: string }
 type SectionOption = { id: SectionKey; label: string }
 

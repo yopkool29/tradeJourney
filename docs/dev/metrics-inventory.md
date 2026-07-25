@@ -129,13 +129,17 @@ Légende :
 
 ---
 
-## 6. Statistiques journalières
+## 6. Statistiques temporelles
+
+> Section renommée de "Statistiques journalières" à "Statistiques temporelles" — couvre maintenant jours, semaines et mois. Affichage sur 2 colonnes (`columns={2}` dans `StatsSection`).
 
 | Métrique | État | Fonction / Fichier | Description |
 |---|---|---|---|
 | Total Trading Days | ✅ | `getTotalTradingDays()` — `utils/dayStats.ts:20` | Nombre total de jours de trading |
 | Winning / Losing / Breakeven Days | ✅ | `utils/dayStats.ts:22-26` | Comptages |
 | Max Consecutive Winning / Losing Days | ✅ | `utils/dayStats.ts:28-54` | Plus longues séries |
+| **% semaines gagnantes** | ✅ | `getWinningWeeksPercent()` — `utils/dayStats.ts` | % de semaines avec P&L > 0 (sur les semaines avec trade) |
+| **% mois gagnants** | ✅ | `getWinningMonthsPercent()` — `utils/dayStats.ts` | % de mois avec P&L > 0 (sur les mois avec trade) |
 | Average Daily PnL | ✅ | `getAverageDailyPnl()` — `utils/dayStats.ts:56` | PnL journalier moyen |
 | Average Winning / Losing Day PnL | ✅ | `utils/dayStats.ts:62-74` | PnL moyen par type de jour |
 | Largest Profitable / Losing Day | ✅ | `utils/dayStats.ts:76-86` | Meilleur / pire jour |
@@ -226,6 +230,7 @@ Les tags sont implémentés dans PnlTracker et constituent une dimension de brea
 | Total Contracts / Lots | ✅ | `getTotalContracts()` — `utils/tradeStats.ts:263` | Somme des volumes |
 | Moving Average | ✅ | `movingAverage()` — `utils/tradeStats.ts:57` | Moyenne mobile sur série |
 | Group Trades by Period | ✅ | `groupTradesByPeriod()` — `utils/dashboard.ts` | Regroupement temporel |
+| **Trade Frequency (trades/jour ouvré)** | ✅ | `getBusinessDaysFromTrades()` — `utils/dayStats.ts` | Nombre de trades / jours ouvrés (du premier au dernier trade, sans week-ends). Affiché dans "Tous les trades" |
 | Average Daily Volume | ❌ | — | Non calculé actuellement — à implémenter (`getTotalContracts / totalTradingDays`) |
 | Equity Curve | ✅ | — | Courbe de capital cumulé |
 
@@ -242,9 +247,12 @@ Métriques les plus citées comme "indispensables" dans la littérature et **man
 3. ~~**Calmar Ratio**~~ ✅ Implémenté
 4. ~~**SQN (Van Tharp)**~~ ✅ Implémenté
 5. ~~**Metrics by Tag**~~ ✅ Implémenté (tag groups dynamiques)
-6. **Stats mensuelles** (best/lowest/avg month) — partiellement implémenté via `monthYear` breakdown, mais pas encore de récap best/worst/avg
-7. **Drawdown duration / recovery time** — complément du max DD
-8. **MAE / MFE Ratio** — qualité des entrées (les champs sont déjà stockés, juste le ratio à calculer)
+6. ~~**Trade Frequency**~~ ✅ Implémenté (trades/jour ouvré)
+7. ~~**% semaines/mois gagnants**~~ ✅ Implémenté (Statistiques temporelles)
+8. **Stats mensuelles** (best/lowest/avg month) — partiellement implémenté via `monthYear` breakdown, mais pas encore de récap best/worst/avg
+9. **Drawdown duration / recovery time** — complément du max DD
+10. **MAE / MFE Ratio** — qualité des entrées (les champs sont déjà stockés, juste le ratio à calculer)
+11. **R-multiple distribution** — histogramme des R par trade (chart, pas une métrique). Montre visuellement si les gagnants sont sous 1R
 
 > Métriques écartées comme non pertinentes pour un tracker de trading personnel : MAR, UPI, Omega, Sterling, Burke, K-Ratio, Treynor, Jensen, Information Ratio, Z-Score, Consistency Score, Coefficient of Variation, MAE/MFE avancées (at exit, distribution, capture %), Monte Carlo, VaR/CVaR, Buy & Hold benchmark. Raisons : nécessitent un benchmark marché, calcul complexe pour faible valeur ajoutée, ou académiques.
 
@@ -331,6 +339,9 @@ Pour référence, PnlTracker utilise actuellement ECharts avec ces types :
 - `pie` — win/loss
 - `area` — aire (P&L cumulé en mode area)
 - `barMA` — barres + moyenne mobile (TimeSeries)
+- `boxplot` — distribution P&L par dimension (quartiles min/Q1/median/Q3/max)
+- `calendar` — heatmap calendaire type GitHub (P&L par jour, multi-années, sélecteur d'année)
+- `radar` — profil de performance multi-axes (winrate, PF, expectancy, P&L, trades)
 
 **Améliorations récentes (ECharts)** :
 - **dataZoom** sur barres et scatter (>20 catégories) avec Shift+molette pour le scroll
@@ -338,8 +349,41 @@ Pour référence, PnlTracker utilise actuellement ECharts avec ces types :
 - **KeepAlive `max=1`** : limite le cache à 1 workspace pour éviter l'accumulation d'instances ECharts en mémoire (ralentissement progressif sans cette limite)
 - **Jitter X sur scatter** : évite la superposition sans corrompre les valeurs Y
 - **Heatmap** : correction du décalage tooltip (index maps construits à partir des labels triés)
+- **Calendar** : composant dédié `CalendarWidget.vue` (sans `BaseWidgetCard`/`notMerge: true` qui causait un crash ECharts `points[0] is undefined`), sélecteur de métrique + tooltip metrics + sélecteur d'année, range adaptatif (année unique = format `'YYYY'`, multi-années = `['YYYY-01-01', 'YYYY-12-31']`)
 
 Si migration vers ApexCharts : tous ces types sont supportés nativement, plus `area`, `rangeBar`, `boxPlot`, `violin`, `radar`, `radialBar`, `gauge`, `treemap`, `bubble`, `polarArea` qui ouvriraient de nouvelles visualisations (profil radar, jauges, distributions R-multiple, timeline de trades).
+
+### Évolutions futures envisagées (ECharts)
+
+#### Scatter 2D multi-métriques (corrélation)
+
+Inspiré du [scatter-stream-visual](https://echarts.apache.org/examples/en/editor.html?c=scatter-stream-visual) ECharts : croiser **2 métriques** sur les axes X et Y, avec une **3ème métrique** pour la couleur (`visualMap`). Chaque point = un groupe (ticker, tag, jour de semaine, etc.).
+
+**Principe** : contrairement au scatter actuel (1 métrique en Y, dimension en X), ce scatter positionne chaque groupe selon 2 métriques calculées — ce qui permet de visualiser des **corrélations** entre métriques.
+
+**Performance** : pas de problème car on affiche des groupes agrégés (quelques dizaines/centaines de points max), pas des trades individuels. Les métriques sont déjà calculées par `calculateMetricsByDimension` — le coût supplémentaire est négligeable (2 métriques au lieu d'1).
+
+**Cas d'usage** :
+
+| Axe X | Axe Y | Couleur (visualMap) | Question répondue |
+|---|---|---|---|
+| Avg Win | Avg Loss | Expectancy | Profil risk/reward de chaque groupe |
+| Winrate | Profit Factor | Trades Count | Groupes fiables vs chanceux |
+| P&L | Drawdown | Trades Count | Rentabilité vs volatilité |
+| Trades Count | Expectancy | P&L | Fréquence vs qualité |
+| Avg Win | Winrate | Profit Factor | Edge : gain moyen × fréquence |
+| P&L | Avg Duration | Winrate | Trades longs = plus rentables ? |
+
+**Par trade individuel** (si on veut aller plus loin, avec `progressive`/`large` pour gérer le volume) :
+
+| Axe X | Axe Y | Couleur | Question répondue |
+|---|---|---|---|
+| MFE | MAE | P&L | Qualité des entrées (sors trop tôt ? laisses courir les pertes ?) |
+| P&L | Durée | Side (long/short) | Durée optimale |
+| Lot size | P&L | Durée | Sizing influence le résultat ? |
+| P&L | Heure d'ouverture | Jour de semaine | Patterns temporels |
+
+**Implémentation** : nécessite 2 sélecteurs de métrique (X et Y) au lieu d'un seul dans `BreakdownWidget`. Le `visualMap` colore les points par une 3ème métrique. Type de chart : `scatter2D` (nouveau `BreakdownChartType`).
 
 ---
 
@@ -429,7 +473,16 @@ Phase 6 — **Breakdowns par dimension** ✅ Terminé (Tag + Side + charts gén�
 34. ✅ Nouveaux charts : Tag (P&L + Winrate), Side (P&L + Winrate) — 4 nouveaux charts
 35. ✅ Menu visibilité : réorganisé en 4 colonnes (Charts | Time | Breakdowns | Sections)
 
-Phase 7 — **UI : menu de visibilité par dropdowns multiselect** ❌ Écarté
+Phase 7 — **Métriques d'activité & consistance** ✅ Terminé
+36. ✅ **Trade Frequency** — `getBusinessDaysFromTrades()` + `countBusinessDays()` dans `utils/dayStats.ts` (trades / jours ouvrés, sans week-ends). Affiché dans "Tous les trades" avec format `decimal1`
+37. ✅ **% semaines gagnantes** — `getWinningWeeksPercent()` dans `utils/dayStats.ts` (groupe par semaine via `groupTradesByPeriod`)
+38. ✅ **% mois gagnants** — `getWinningMonthsPercent()` dans `utils/dayStats.ts` (groupe par mois via `groupTradesByPeriod`)
+39. ✅ Section renommée "Statistiques journalières" → "Statistiques temporelles" (couvre jours + semaines + mois)
+40. ✅ Affichage sur 2 colonnes (`columns` prop sur `StatsSection`, grid responsive `sm:grid-cols-2`)
+41. ✅ Tests : `tests/unit/utils/dayStats.test.ts` (18 tests — countBusinessDays, getBusinessDaysFromTrades, getWinningWeeksPercent, getWinningMonthsPercent, getTotalTradingDays)
+42. ✅ Top N options étendues : Tous, 50, 40, 30, 20, 15, 10 (au lieu de Tous, 5, 10, 15, 20)
+
+Phase 8 — **UI : menu de visibilité par dropdowns multiselect** ❌ Écarté
 > Fonctionnalité jugée inutile — le menu actuel par checkboxes suffit.
 
 > Phase "Dashboard paramétrable" (duplication de charts, instances multiples) **écartée** pour l'instant — voir section 11. Pourrait revenir plus tard si on introduit des filtres par instance ou un bar chart paramétrable.
@@ -460,6 +513,7 @@ Phase 7 — **UI : menu de visibilité par dropdowns multiselect** ❌ Écarté
 | 4 — Agrégations | `tests/unit/utils/dayStats.test.ts` (à créer) | Stats mensuelles, hebdo, annuelles | Période vide, chevauchement de mois |
 | 5 — Distribution | `tests/unit/utils/tradeStats.test.ts` | Skewness, Kurtosis, MAE/MFE Ratio, ROI, Avg Daily Volume, Avg Hold Time Scratch | Distribution symétrique, asymétrique, MAE/MFE null |
 | 6 — Breakdowns ✅ | `tests/unit/composables/useAnalytics.test.ts` | `calculateMetricsByDimension`, `getMetricValueForMetric`, `formatMetricValueForMetric`, `getMetricColor`, `sortMetricsByDimension`, `calculateMetricsBy2Dimensions` (heatmap), `injectEmptyTagMetrics` | Multi-tags overlap, tag group filtering, trade sans tag, avgLoss tri, heatmap alignment, empty metrics |
+| 7 — Activité ✅ | `tests/unit/utils/dayStats.test.ts` | `countBusinessDays`, `getBusinessDaysFromTrades`, `getWinningWeeksPercent`, `getWinningMonthsPercent`, `getTotalTradingDays` | Weekends exclus, same day, inversion dates, empty trades, single trade, all winning/losing weeks, mixed months |
 
 **Règle** : chaque nouvelle métrique doit avoir son test dans la même phase que son implémentation. Pas de test = pas de merge.
 

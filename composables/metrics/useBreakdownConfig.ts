@@ -8,6 +8,9 @@ const defaultConfigByType: Record<BreakdownBaseKey, BreakdownConfig | TimeSeries
 	breakdownScatter: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } as BreakdownConfig,
 	breakdownTable: { dimension: 'ticker', metric: 'pnl', chartType: 'table' } as BreakdownConfig,
 	breakdownHeatmap: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } as BreakdownConfig,
+	breakdownBoxplot: { dimension: 'ticker', metric: 'pnl', chartType: 'boxplot' } as BreakdownConfig,
+	breakdownCalendar: { dimension: 'ticker', metric: 'pnl', chartType: 'calendar' } as BreakdownConfig,
+	breakdownRadar: { dimension: 'ticker', metric: 'winrate', chartType: 'radar' } as BreakdownConfig,
 	timeSeries: { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency' } as TimeSeriesConfig,
 }
 
@@ -18,6 +21,9 @@ const defaultGridSize: Record<BreakdownBaseKey, { w: number, h: number }> = {
 	breakdownScatter: { w: 6, h: 6 },
 	breakdownTable: { w: 12, h: 12 },
 	breakdownHeatmap: { w: 6, h: 6 },
+	breakdownBoxplot: { w: 6, h: 6 },
+	breakdownCalendar: { w: 12, h: 6 },
+	breakdownRadar: { w: 6, h: 6 },
 	timeSeries: { w: 6, h: 6 },
 }
 
@@ -70,6 +76,10 @@ export const breakdownTypes: { baseKey: BreakdownBaseKey; labelKey: string }[] =
 	{ baseKey: 'breakdownBarVertical', labelKey: 'components.dashboard.charts.breakdown_bar_vertical' },
 	{ baseKey: 'breakdownScatter', labelKey: 'components.dashboard.charts.breakdown_scatter' },
 	{ baseKey: 'breakdownTable', labelKey: 'components.dashboard.charts.breakdown_table' },
+	{ baseKey: 'breakdownBoxplot', labelKey: 'components.dashboard.charts.breakdown_boxplot' },
+	{ baseKey: 'breakdownCalendar', labelKey: 'components.dashboard.charts.breakdown_calendar' },
+	// breakdownRadar désactivé temporairement
+	// { baseKey: 'breakdownRadar', labelKey: 'components.dashboard.charts.breakdown_radar' },
 ]
 
 // Templates prêts à l'emploi (raccourcis pour créer un chart pré-configuré)
@@ -83,6 +93,12 @@ export const chartTemplates: ChartTemplate[] = [
 	// --- Répartition : Nuage & Heatmap ---
 	{ id: 'winrateByTicker', labelKey: 'components.dashboard.templates.winrate_by_ticker', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownScatter', config: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } },
 	{ id: 'heatmapHourDay', labelKey: 'components.dashboard.templates.heatmap_hour_day', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownHeatmap', config: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } },
+	// --- Distribution & profils ---
+	{ id: 'pnlCalendar', labelKey: 'components.dashboard.templates.pnl_calendar', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownCalendar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'calendar' } },
+	// pnlDistributionByTicker (boxplot) désactivé temporairement
+	// { id: 'pnlDistributionByTicker', labelKey: 'components.dashboard.templates.pnl_distribution_by_ticker', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownBoxplot', config: { dimension: 'ticker', metric: 'pnl', chartType: 'boxplot' } },
+	// performanceRadar désactivé temporairement
+	// { id: 'performanceRadar', labelKey: 'components.dashboard.templates.performance_radar', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownRadar', config: { dimension: 'ticker', metric: 'winrate', chartType: 'radar' } },
 	// --- Séries temporelles (presets) ---
 	{ id: 'pnlByTrade', labelKey: 'components.dashboard.templates.pnl_by_trade', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency', crosshairType: 'cross' } },
 	{ id: 'cumulatedPnl', labelKey: 'components.dashboard.templates.cumulated_pnl', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'area', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showThreshold: true, yAxisFormat: 'currency', crosshairType: 'line' } },
@@ -121,6 +137,7 @@ export const templatesByCategory = {
 export const breakdownTemplatesBySubcategory = {
 	bars: chartTemplates.filter(t => t.category === 'breakdown' && t.subcategory === 'bars'),
 	scatterHeatmap: chartTemplates.filter(t => t.category === 'breakdown' && t.subcategory === 'scatterHeatmap'),
+	distribution: chartTemplates.filter(t => t.category === 'breakdown' && t.subcategory === 'distribution'),
 	timeSeries: chartTemplates.filter(t => t.category === 'breakdown' && t.subcategory === 'timeSeries'),
 }
 

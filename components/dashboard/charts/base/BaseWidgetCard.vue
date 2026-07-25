@@ -40,7 +40,7 @@
 					>
 						<template #content>
 							<slot name="enlarged">
-								<VChart :option="chartOption" :update-options="{ notMerge: true }" autoresize style="width: 100%; height: 100%;" />
+								<VChart :option="chartOption" :update-options="{ notMerge: notMerge }" autoresize style="width: 100%; height: 100%;" />
 							</slot>
 						</template>
 					</CommonModalChart>
@@ -61,7 +61,7 @@
 				@mousedown="onChartMouseDown"
 				@click="onChartClick"
 			>
-				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" :update-options="{ notMerge: true }" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
+				<VChart v-if="(!hideChartWhileLoading || !loading) && containerHeight > 0" :option="chartOption" :update-options="{ notMerge: notMerge }" autoresize :style="{ width: '100%', height: (canvasHeight || containerHeight || 200) + 'px' }" />
 			</div>
 		</UCard>
 
@@ -96,9 +96,12 @@ const props = defineProps<{
 	disableClickEnlarge?: boolean
 	// Active l'utilisation du slot default à la place du VChart (ex: pour les tables)
 	useDefaultSlot?: boolean
+	// Désactive notMerge (ex: calendar qui crash avec notMerge: true)
+	notMerge?: boolean
 }>()
 
 const hideChartWhileLoading = computed(() => props.hideChartWhileLoading ?? false)
+const notMerge = computed(() => props.notMerge ?? true)
 
 const isModalOpen = ref(false)
 const isSettingsOpen = ref(false)
@@ -111,7 +114,7 @@ const onChartMouseDown = (e: MouseEvent) => {
 }
 
 const onChartClick = (e: MouseEvent) => {
-	if (hideEnlarge || disableClickEnlarge) return
+	if (props.hideEnlarge || props.disableClickEnlarge) return
 	// Si la souris a bougé entre mousedown et click, c'est un drag (dataZoom) → on ignore
 	if (mouseDownPos) {
 		const dx = Math.abs(e.clientX - mouseDownPos.x)

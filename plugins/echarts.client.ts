@@ -1,7 +1,7 @@
 import VueECharts, { INIT_OPTIONS_KEY } from 'vue-echarts'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart, LineChart, PieChart, ScatterChart, HeatmapChart } from 'echarts/charts'
+import { BarChart, LineChart, PieChart, ScatterChart, HeatmapChart, BoxplotChart, RadarChart } from 'echarts/charts'
 import {
 	GridComponent,
 	TooltipComponent,
@@ -9,6 +9,8 @@ import {
 	GraphicComponent,
 	DataZoomComponent,
 	VisualMapComponent,
+	CalendarComponent,
+	RadarComponent,
 } from 'echarts/components'
 
 use([
@@ -18,12 +20,16 @@ use([
 	PieChart,
 	ScatterChart,
 	HeatmapChart,
+	BoxplotChart,
+	RadarChart,
 	GridComponent,
 	TooltipComponent,
 	LegendComponent,
 	GraphicComponent,
 	DataZoomComponent,
 	VisualMapComponent,
+	CalendarComponent,
+	RadarComponent,
 ])
 
 export default defineNuxtPlugin((nuxtApp) => {
