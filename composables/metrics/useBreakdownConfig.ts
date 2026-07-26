@@ -215,6 +215,7 @@ export const useBreakdownInstances = () => {
 			breakdownBarVertical: [],
 			breakdownScatter: [],
 			breakdownScatter2D: [],
+			breakdownScatterTrades: [],
 			breakdownTable: [],
 			breakdownHeatmap: [],
 			breakdownBoxplot: [],

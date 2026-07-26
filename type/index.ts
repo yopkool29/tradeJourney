@@ -110,7 +110,8 @@ export type BreakdownMetric = 'pnl' | 'winrate' | 'profitFactor' | 'avgWin' | 'a
 export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'scatter2D' | 'scatterTrades' | 'table' | 'heatmap' | 'boxplot' | 'calendar' | 'radar' | 'timeSeries'
 
 // Propriétés d'un trade individuel utilisables comme axes du scatterTrades
-export type TradeProperty = 'duration' | 'pnl' | 'profit' | 'netProfit'
+// mfe/mae : Maximum Favorable/Adverse Excursion (champs déjà présents dans TradeExtendedType, nullable)
+export type TradeProperty = 'duration' | 'pnl' | 'mfe' | 'mae'
 
 // Format de l'axe Y pour les séries temporelles
 export type TimeSeriesYAxisFormat = 'currency' | 'percent' | 'number'

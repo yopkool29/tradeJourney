@@ -385,6 +385,62 @@ Inspiré du [scatter-stream-visual](https://echarts.apache.org/examples/en/edito
 
 **Implémentation** : nécessite 2 sélecteurs de métrique (X et Y) au lieu d'un seul dans `BreakdownWidget`. Le `visualMap` colore les points par une 3ème métrique. Type de chart : `scatter2D` (nouveau `BreakdownChartType`).
 
+#### Scatter par trade individuel (`scatterTrades`)
+
+Contrairement au scatter 2D (1 point par groupe agrégé), ce chart affiche **1 point par trade individuel**. Chaque point est positionné selon 2 propriétés du trade (pas des métriques agrégées), ce qui permet de visualiser la **distribution réelle** des trades.
+
+**Propriétés disponibles** (`TradeProperty` dans `type/index.ts`) :
+
+| Propriété | Champ trade | Description |
+|---|---|---|
+| `duration` | `closeDate - openDate` | Durée du trade en minutes |
+| `pnl` | `tr.profit` ou `tr.netProfit` | P&L du trade (respecte le toggle global net/gross via `displayModeNet`) |
+
+**Propriétés futures envisagées** (champs déjà présents dans le schéma `TradeExtendedType`) :
+- `mfe` — Maximum Favorable Excursion (plus haut gain atteint pendant le trade)
+- `mae` — Maximum Adverse Excursion (plus basse perte atteinte pendant le trade)
+
+**Cas d'usage** :
+
+| Axe X | Axe Y | Question répondue |
+|---|---|---|
+| Duration | P&L | Les trades longs sont-ils plus rentables ? |
+| Duration | Net Profit | Idem, après commissions |
+| MFE | MAE | Qualité des entrées (sors trop tôt ? laisses courir les pertes ?) |
+| P&L | Duration | Durée optimale par rapport au P&L |
+
+**Couleur** : vert si gain (`profit >= 0`), rouge si perte. Binaire, pas de `visualMap` (contrairement au scatter 2D).
+
+**Échelle** : réutilise `useAxisScale` (même système que scatter 2D, bar, barVertical) :
+- 0% = 0/NaN (vide)
+- 10% = min des valeurs finies
+- 90% = max des valeurs finies
+- 100% = infini
+- Log scale : ** uniquement sur Y** (X reste linéaire, ex: durée toujours positive et linéaire)
+
+**Filtres** :
+- **Ticker** : filtrer par ticker spécifique, ou "Tous les tickers" (défaut)
+- **Scroll X/Y** : dataZoom sliders optionnels (défaut: désactivés)
+
+**Tooltip** : date + heure, ticker, P&L, durée, side (buy/sell).
+
+**Différence avec scatter 2D** :
+- `scatter2D` : 1 point par **groupe** (ticker, jour, tag...), X/Y = métriques agrégées, couleur = 3ème métrique (visualMap)
+- `scatterTrades` : 1 point par **trade**, X/Y = propriétés du trade individuel, couleur = gain/perte binaire
+
+**Différence avec série temporelle cumulée** :
+- `scatterTrades` : relation entre 2 propriétés (ex: durée ↔ rentabilité), pas d'axe temporel
+- Série temporelle "Cumulated P&L" : évolution du capital dans le temps (P&L cumulé)
+
+**Implémentation** :
+- Type : `scatterTrades` (nouveau `BreakdownChartType`)
+- Base key : `breakdownScatterTrades`
+- Config : `tradePropertyX`, `tradePropertyY`, `tickerFilter`, `logScale`, `showScrollX`, `showScrollY`
+- Template : `durationVsPnl` (Duration vs P&L, tous tickers)
+- Computed : `scatterTradesChartOption` dans `BreakdownWidget.vue`
+- Helper : `getTradePropertyValue(tr, prop)` extrait la valeur brute d'un trade selon la propriété
+- Échelle : `computeAxisBoundsShared` + `scaleValueShared` + `makeAxisLabel` depuis `useAxisScale.ts`
+
 ---
 
 ## 11. Duplication + reparamétrage de charts (écarté)

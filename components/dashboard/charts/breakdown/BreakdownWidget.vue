@@ -129,8 +129,18 @@
 			</div>
 			<!-- Scatter Trades : 1 point par trade (durée vs P&L, etc.) -->
 			<div v-else-if="chartType === 'scatterTrades'" class="flex flex-col gap-1 w-full">
-				<!-- 1re ligne : X + Y + filtre ticker -->
+				<!-- 1re ligne : ticker + X + Y -->
 				<div class="flex items-center gap-2 flex-wrap">
+					<div class="flex items-center gap-1.5">
+						<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.ticker_filter') }}</span>
+						<USelectMenu
+							v-model="selectedTickerFilter"
+							:items="tickerFilterItems"
+							value-key="value"
+							class="w-32"
+							size="xs"
+						/>
+					</div>
 					<div class="flex items-center gap-1.5">
 						<span class="text-xs text-secondary">X</span>
 						<USelectMenu
@@ -146,16 +156,6 @@
 						<USelectMenu
 							v-model="selectedTradePropertyY"
 							:items="tradePropertyItems"
-							value-key="value"
-							class="w-32"
-							size="xs"
-						/>
-					</div>
-					<div class="flex items-center gap-1.5">
-						<span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.ticker_filter') }}</span>
-						<USelectMenu
-							v-model="selectedTickerFilter"
-							:items="tickerFilterItems"
 							value-key="value"
 							class="w-32"
 							size="xs"
@@ -265,6 +265,7 @@
 import type { EChartsOption } from 'echarts'
 import type { BreakdownConfig, BreakdownDimension, BreakdownMetric, TradeProperty } from '~/type'
 import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
+import type { TradeExtendedType } from '~/schema/trade'
 import { dimensionOptions, metricOptions, defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
 import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
 import { buildTooltipLines, useTooltipMetrics } from '~/composables/useTooltipMetrics'
@@ -430,15 +431,15 @@ const selectedTickerFilter = computed({
 const tradePropertyItems = [
 	{ label: t('components.dashboard.breakdown.trade_property.duration'), value: 'duration' },
 	{ label: t('components.dashboard.breakdown.trade_property.pnl'), value: 'pnl' },
-	{ label: t('components.dashboard.breakdown.trade_property.profit'), value: 'profit' },
-	{ label: t('components.dashboard.breakdown.trade_property.netProfit'), value: 'netProfit' },
+	{ label: t('components.dashboard.breakdown.trade_property.mfe'), value: 'mfe' },
+	{ label: t('components.dashboard.breakdown.trade_property.mae'), value: 'mae' },
 ]
 
 // scatterTrades : items pour le filtre ticker (tous + 1 par ticker unique)
 const tickerFilterItems = computed(() => {
 	const tickers = new Set<string>()
 	for (const tr of allTrades.value) {
-		if (tr.ticker) tickers.add(tr.ticker)
+		if (tr.symbol) tickers.add(tr.symbol)
 	}
 	return [
 		{ label: t('components.dashboard.breakdown.all_tickers'), value: null },
@@ -985,6 +986,161 @@ const scatter2DChartOption = computed<EChartsOption>(() => {
 	}
 })
 
+// --- Scatter Trades chart option (1 point par trade individuel) ---
+// Chaque point = 1 trade, positionné par tradePropertyX (X) et tradePropertyY (Y).
+// Couleur : vert si gain, rouge si perte. Tooltip : date, ticker, P&L, durée, side.
+// Réutilise useAxisScale pour l'échelle (0% = 0/NaN, 10% = min, 90% = max, 100% = infini + log optionnel).
+const getTradePropertyValue = (tr: TradeExtendedType, prop: TradeProperty): number => {
+	switch (prop) {
+		case 'duration': {
+			const ms = tr.closeDate.getTime() - tr.openDate.getTime()
+			return ms > 0 ? ms / 60000 : 0 // minutes
+		}
+		case 'pnl': return displayModeNet.value ? tr.netProfit : tr.profit
+		case 'mfe': return tr.mfe ?? NaN
+		case 'mae': return tr.mae ?? NaN
+		default: return 0
+	}
+}
+
+const formatTradePropertyValue = (val: number, prop: TradeProperty): string => {
+	if (prop === 'duration') {
+		if (val < 60) return `${val.toFixed(0)}m`
+		if (val < 1440) return `${(val / 60).toFixed(1)}h`
+		return `${(val / 1440).toFixed(1)}d`
+	}
+	if (prop === 'mfe' || prop === 'mae') return formatMetricValue(val)
+	return formatMetricValue(val)
+}
+
+const scatterTradesChartOption = computed<EChartsOption>(() => {
+	const propX = config.value.tradePropertyX ?? 'duration'
+	const propY = config.value.tradePropertyY ?? 'pnl'
+	const useLogScale = logScale.value // accès réactif explicite
+	const tickerFilter = config.value.tickerFilter ?? null
+
+	// Filtre les trades par ticker si un filtre est actif
+	const trades = tickerFilter
+		? allTrades.value.filter(tr => tr.symbol === tickerFilter)
+		: allTrades.value
+
+	// Récupère les valeurs brutes pour X et Y
+	const rawPoints = trades.map(tr => ({
+		vx: getTradePropertyValue(tr, propX),
+		vy: getTradePropertyValue(tr, propY),
+		tr,
+	}))
+
+	const ctx = getChartContext({ left: 70, right: 40, top: 50, bottom: 40 })
+	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
+
+	const xAxisName = t(`components.dashboard.breakdown.trade_property.${propX}`)
+	const yAxisName = t(`components.dashboard.breakdown.trade_property.${propY}`)
+
+	// Calcule les bornes avec useAxisScale (réutilise le même système que scatter2D)
+	const xFinite = rawPoints.filter(p => Number.isFinite(p.vx)).map(p => p.vx)
+	const yFinite = rawPoints.filter(p => Number.isFinite(p.vy)).map(p => p.vy)
+	const xBounds = computeAxisBoundsShared(xFinite)
+	const yBounds = computeAxisBoundsShared(yFinite)
+	const xAxisMin = xBounds.axisMin
+	const xAxisMax = xBounds.axisMax
+	const yAxisMin = yBounds.axisMin
+	const yAxisMax = yBounds.axisMax
+
+	// Couleur : vert si gain, rouge si perte (basé sur profit)
+	// Log scale : seulement sur Y (X reste linéaire, ex: durée)
+	const data = rawPoints.map(p => ({
+		value: [
+			scaleValueShared(p.vx, xBounds, false),
+			scaleValueShared(p.vy, yBounds, useLogScale),
+			p.tr.symbol,
+			p.tr.profit, // pour la couleur
+			p.vx, // vraie valeur X pour le tooltip
+			p.vy, // vraie valeur Y pour le tooltip
+		] as unknown as number[],
+		itemStyle: {
+			color: p.tr.profit >= 0 ? profitColor.value : lossColor.value,
+			opacity: 0.7,
+		},
+	}))
+
+	// dataZoom : inside (molette) toujours actif, sliders X/Y affichables selon les settings
+	const scrollXOn = config.value.showScrollX ?? false
+	const scrollYOn = config.value.showScrollY ?? false
+	const zoomArr: NonNullable<EChartsOption['dataZoom']> = [
+		{ type: 'inside', xAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: 'shift', moveOnMouseWheel: true },
+		{ type: 'inside', yAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: 'shift', moveOnMouseWheel: true },
+	]
+	if (scrollXOn) zoomArr.push({ type: 'slider', xAxisIndex: 0, filterMode: 'none', bottom: 8, height: 18, start: 0, end: 100 })
+	if (scrollYOn) zoomArr.push({ type: 'slider', yAxisIndex: 0, filterMode: 'none', right: 5, width: 18, start: 0, end: 100 })
+
+	return {
+		...base,
+		tooltip: {
+			backgroundColor,
+			borderColor,
+			textStyle: { color: tooltipTextColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			trigger: 'item',
+			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const d = p.data as { value: number[] }
+				const tr = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])?.tr
+				if (!tr) return ''
+				const dateStr = tr.openDate.toLocaleDateString()
+				const timeStr = tr.openDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+				const durationMin = (tr.closeDate.getTime() - tr.openDate.getTime()) / 60000
+				const lines = [
+					`${dateStr} ${timeStr}`,
+					`Ticker: ${tr.symbol}`,
+					`P&L: ${formatMetricValue(tr.profit)}`,
+					`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
+					`Side: ${tr.type}`,
+				]
+				return lines.join('<br/>')
+			},
+		},
+		grid,
+		dataZoom: zoomArr,
+		xAxis: {
+			type: 'value',
+			min: xAxisMin,
+			max: xAxisMax,
+			name: xAxisName,
+			nameLocation: 'middle',
+			nameGap: 28,
+			nameTextStyle: { color: textColor, fontSize: 11 },
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(xBounds, false, v => formatTradePropertyValue(v, propX)) },
+			splitLine: { lineStyle: { color: axisColor } },
+		},
+		yAxis: {
+			type: 'value',
+			min: yAxisMin,
+			max: yAxisMax,
+			name: yAxisName,
+			nameLocation: 'middle',
+			nameGap: 50,
+			nameTextStyle: { color: textColor, fontSize: 11 },
+			axisLine: { lineStyle: { color: axisColor } },
+			axisTick: { show: false },
+			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(yBounds, useLogScale, v => formatTradePropertyValue(v, propY)) },
+			splitLine: { lineStyle: { color: axisColor } },
+		},
+		series: [{
+			type: 'scatter',
+			data,
+			symbolSize: 8,
+			emphasis: {
+				focus: 'series',
+				itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.3)' },
+			},
+		}],
+	}
+})
+
 // --- Heatmap chart option (2D générique : dimension X × dimension Y) ---
 const heatmap2DCells = computed(() => {
 	if (chartType.value !== 'heatmap') return []
@@ -1361,6 +1517,7 @@ const chartOption = computed<EChartsOption | undefined>(() => {
 	if (chartType.value === 'barVertical') return barVerticalChartOption.value
 	if (chartType.value === 'scatter') return scatterChartOption.value
 	if (chartType.value === 'scatter2D') return scatter2DChartOption.value
+	if (chartType.value === 'scatterTrades') return scatterTradesChartOption.value
 	if (chartType.value === 'heatmap') return heatmapChartOption.value
 	if (chartType.value === 'boxplot') return boxplotChartOption.value
 	if (chartType.value === 'radar') return radarChartOption.value
