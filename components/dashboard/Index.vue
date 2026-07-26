@@ -335,6 +335,23 @@ const defaultSectionVisibility = getDefaultSectionVisibility()
 const { workspaces, activeWorkspaceId, activeWorkspace, updateActiveWorkspace } = useDashboardWorkspace()
 const breakdownInstances = useBreakdownInstances()
 
+// Breakpoint detection: lg >= 1024, md >= 530, sm < 530
+const currentBreakpoint = ref<'lg' | 'md' | 'sm'>('lg')
+
+// Gestion de la visibilité des charts et sections via composable
+const {
+	chartVisibilityLg,
+	chartVisibilityMd,
+	chartVisibilitySm,
+	sectionVisibilityLg,
+	sectionVisibilityMd,
+	sectionVisibilitySm,
+	activeChartVisibility,
+	activeSectionVisibility,
+	isItemVisible: _isItemVisible,
+	syncVisibilityToAllBreakpoints,
+} = useGridVisibility(activeWorkspace, updateActiveWorkspace, currentBreakpoint)
+
 // Items resizable : liste fixe + clés dynamiques des breakdowns
 const allResizableItems = computed(() => [
     ...resizableGridItems,
@@ -390,53 +407,7 @@ const switchWorkspace = async (id: WorkspaceId) => {
     }, 0)
 }
 
-const chartVisibilityLg = computed({
-    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilityLg || {} as Record<ChartKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardChartVisibilityLg: val }),
-})
-const chartVisibilityMd = computed({
-    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilityMd || {} as Record<ChartKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardChartVisibilityMd: val }),
-})
-const chartVisibilitySm = computed({
-    get: (): Record<ChartKey, boolean> => activeWorkspace.value?.dashboardChartVisibilitySm || {} as Record<ChartKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardChartVisibilitySm: val }),
-})
-
-const sectionVisibilityLg = computed({
-    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilityLg || {} as Record<SectionKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityLg: val }),
-})
-const sectionVisibilityMd = computed({
-    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilityMd || {} as Record<SectionKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilityMd: val }),
-})
-const sectionVisibilitySm = computed({
-    get: (): Record<SectionKey, boolean> => activeWorkspace.value?.dashboardSectionVisibilitySm || {} as Record<SectionKey, boolean>,
-    set: (val) => updateActiveWorkspace({ dashboardSectionVisibilitySm: val }),
-})
-
-const activeChartVisibility = computed(() => {
-    switch (currentBreakpoint.value) {
-        case 'md':
-            return chartVisibilityMd.value
-        case 'sm':
-            return chartVisibilitySm.value
-        default:
-            return chartVisibilityLg.value
-    }
-})
-
-const activeSectionVisibility = computed(() => {
-    switch (currentBreakpoint.value) {
-        case 'md':
-            return sectionVisibilityMd.value
-        case 'sm':
-            return sectionVisibilitySm.value
-        default:
-            return sectionVisibilityLg.value
-    }
-})
+// Visibility logic now handled by useGridVisibility composable above
 
 const gridComponents = computed(() => {
     // Map fixe pour les charts principaux et sections
@@ -478,9 +449,6 @@ const breakdownComponentProps = computed(() => {
 })
 
 const gridLayoutRef = ref<{ getLayout: () => DashboardGridItem[] } | null>(null)
-
-// Breakpoint detection: lg >= 1024, md >= 530, sm < 530
-const currentBreakpoint = ref<'lg' | 'md' | 'sm'>('lg')
 
 const updateBreakpoint = () => {
     const w = window.innerWidth
@@ -722,14 +690,7 @@ const syncActiveWorkspaceToOtherDatabases = async () => {
 }
 
 const onSyncVisibilityToAllBreakpoints = (chartVisibility: Record<ChartKey, boolean>, sectionVisibility: Record<SectionKey, boolean>) => {
-    updateActiveWorkspace({
-        dashboardChartVisibilityLg: { ...chartVisibility },
-        dashboardChartVisibilityMd: { ...chartVisibility },
-        dashboardChartVisibilitySm: { ...chartVisibility },
-        dashboardSectionVisibilityLg: { ...sectionVisibility },
-        dashboardSectionVisibilityMd: { ...sectionVisibility },
-        dashboardSectionVisibilitySm: { ...sectionVisibility },
-    })
+    syncVisibilityToAllBreakpoints(chartVisibility, sectionVisibility)
     toastSuccess(t('components.dashboard.index.sync_visibility_success'))
 }
 

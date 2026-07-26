@@ -263,16 +263,14 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import type { BreakdownConfig, BreakdownDimension, BreakdownMetric, TradeProperty } from '~/type'
-import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
-import type { TradeExtendedType } from '~/schema/trade'
+import type { BreakdownConfig, BreakdownDimension, BreakdownMetric } from '~/type'
+import type { TimezoneSettings } from '~/composables/useAnalytics'
 import { dimensionOptions, metricOptions, defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
-import { getGroupFn, getMetricValueForMetric, formatMetricValueForMetric, injectEmptyTagMetrics, sortMetricsByDimension, getMetricColor, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
-import { buildTooltipLines, useTooltipMetrics } from '~/composables/useTooltipMetrics'
-import { computeAxisBounds as computeAxisBoundsShared, scaleValue as scaleValueShared, makeAxisLabel } from '~/composables/useAxisScale'
+import { getGroupFn, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
+import { useTooltipMetrics } from '~/composables/useTooltipMetrics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
-import type { EChartsFormatterParams } from '~/utils/echarts-builders'
+import { useChartBuilder } from '~/composables/charts/useChartBuilder'
+import { useMetricsCalculation } from '~/composables/charts/useMetricsCalculation'
 
 const props = defineProps<{
 	itemId: string
@@ -302,11 +300,12 @@ const config = computed(() => {
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const isDark = useIsDark()
-const { getChartContext } = useEchartsChartOption()
 const { profitColor, lossColor, barColor, rawMetricColor, heatmapColors, scatter2DColors } = useTypeColors('timeSeriesChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
 const userStore = useUserStore()
+const { buildBarChartOption, buildScatterChartOption, buildScatter2DChartOption, buildScatterTradesChartOption, buildHeatmapChartOption, buildBoxplotChartOption, buildRadarChartOption } = useChartBuilder()
+const { calculateMetrics } = useMetricsCalculation()
 
 // Tous les trades (pour scatterTrades)
 const allTrades = computed(() => dataStore.lastTrades || [])
@@ -463,10 +462,6 @@ const selectedColumns = computed<BreakdownMetric[]>({
 
 // Métriques supplémentaires affichées dans le tooltip (bar/scatter)
 const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
-// Helper partagé pour construire les tooltips (titre + lignes + extras)
-const { t: tt } = useI18n()
-const makeTooltip = (title: string, primaryLines: string[], fullMetric: BreakdownMetrics | null | undefined, shown: Set<BreakdownMetric>, isEmpty = false) =>
-	buildTooltipLines(title, primaryLines, fullMetric, shown, selectedTooltipMetrics.value, tt, isEmpty)
 
 // Titre du chart
 const chartTitle = computed(() => {
@@ -487,22 +482,17 @@ const chartTitle = computed(() => {
 	return `${metricLabel} ${t('components.dashboard.breakdown.by')} ${dimLabel}`
 })
 
-// --- Données ---
-// Raccourcis qui utilisent la métrique courante de la config
-const getMetricValue = (m: BreakdownMetrics) => getMetricValueForMetric(m, config.value.metric)
-const formatMetricValue = (val: number) => formatMetricValueForMetric(val, config.value.metric)
-
 // Génère les lignes de tooltip pour les métriques supplémentaires sélectionnées
 // (évite les doublons avec la métrique principale et les lignes déjà affichées)
 // Si isEmpty=true, affiche les labels avec valeurs vides sauf tradesCount qui affiche 0
 const allMetrics = computed(() => {
 	const trades = dataStore.lastTrades || []
 	if (!trades.length) return []
-	const tagGroups = dbStateStore.tagGroups || []
-	const dim = config.value.dimension
-	const groupFn = getGroupFn(dim, tagGroups, timezoneSettings.value)
-	const metrics = calculateMetricsByDimension(trades, groupFn, displayModeNet.value)
-	return injectEmptyTagMetrics(metrics, dim, tagGroups)
+	return calculateMetrics(trades, config.value.dimension, config.value.metric, {
+		useNet: displayModeNet.value,
+		tagGroups: dbStateStore.tagGroups || [],
+		timezoneSettings: timezoneSettings.value,
+	})
 })
 
 // Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
@@ -531,13 +521,8 @@ const formatDimensionLabel = (dimension: BreakdownDimension, key: string): strin
 	return key
 }
 
-// Tri logique selon la dimension
-const sortedMetrics = computed(() =>
-	sortMetricsByDimension(allMetrics.value, config.value.dimension, config.value.metric)
-)
-
 const filteredMetrics = computed(() => {
-	let metrics = sortedMetrics.value
+	let metrics = allMetrics.value
 	// avgLoss/avgWin : masquer les groupes sans trade correspondant (valeur 0 n'a pas de sens)
 	if (config.value.metric === 'avgLoss') {
 		metrics = metrics.filter(m => m.losingTradesCount > 0)
@@ -556,589 +541,90 @@ const modalHeightClass = computed(() => {
 	return filteredMetrics.value.length > 10 ? 'h-[300px] sm:h-[700px]' : undefined
 })
 
-// --- Bar chart option ---
 const barChartOption = computed<EChartsOption>(() => {
-	const dim = config.value.dimension
-	const currentMetric = config.value.metric
-	const useLogScale = logScale.value // accès réactif explicite
-	const categories = filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
-	// Récupère les valeurs brutes (sans conversion 999) pour détecter Infinity
-	const rawValues = filteredMetrics.value.map(m => getRawMetricValue(m, currentMetric))
-	// Scaler les valeurs pour l'affichage (0% = 0/NaN, 10% = min, 90% = max, 100% = infini)
-	const xFinite = rawValues.filter(v => Number.isFinite(v))
-	const xBounds = currentMetric === 'winrate' ? { axisMin: 0, axisMax: 100, minVal: 0, maxVal: 100, step: 12.5, logMin: 0, logMinNeg: 0 } : computeAxisBoundsShared(xFinite)
-	const xAxisMin = xBounds.axisMin
-	const xAxisMax = xBounds.axisMax
-	const scaledValues = rawValues.map(v => scaleValueShared(v, xBounds, useLogScale))
-	// Couleurs basées sur les valeurs réelles (pas scalées)
-	const colors = filteredMetrics.value.map(m => getScatterColor(m))
-	const data = buildBarData(scaledValues, colors, v => v >= 0 ? [0, 3, 3, 0] : [3, 0, 0, 3])
-	const series = buildBarSeries({ data, barMaxWidth: 16, barCategoryGap: '10%', emphasis: { disabled: true } })
-
-	const ctx = getChartContext({ left: 80, right: 80, top: 12, bottom: 28 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
-
-	const hasZoom = categories.length > 20
-	const zoomEnd = hasZoom ? Math.min(100, (20 / categories.length) * 100) : 100
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'axis',
-			axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const metric = filteredMetrics.value[p.dataIndex]
-				if (!metric) return ''
-				const shown = new Set<BreakdownMetric>([currentMetric])
-				const isEmpty = metric.tradesCount === 0
-				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(getMetricValue(metric))}`]
-				return makeTooltip(formatDimensionLabel(config.value.dimension, metric.key), primaryLines, metric, shown, isEmpty)
-			},
+	return buildBarChartOption({
+		metrics: filteredMetrics.value,
+		dimension: config.value.dimension,
+		metric: config.value.metric,
+		logScale: logScale.value,
+		selectedTooltipMetrics: selectedTooltipMetrics.value,
+		orientation: 'horizontal',
+		colors: {
+			profit: profitColor.value,
+			loss: lossColor.value,
+			bar: barColor.value,
+			rawMetric: rawMetricColor.value,
 		},
-		grid: { ...grid, right: hasZoom ? 100 : 80 },
-		dataZoom: hasZoom ? [
-			{ type: 'slider', yAxisIndex: 0, start: 0, end: zoomEnd, width: 20, right: 5, filterMode: 'filter' },
-			{ type: 'inside', yAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-		] : undefined,
-		xAxis: {
-			type: 'value',
-			min: xAxisMin,
-			max: xAxisMax,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(xBounds, useLogScale, v => formatMetricValueForMetric(v, currentMetric)) },
-			splitLine: { lineStyle: { color: axisColor } },
-		},
-		yAxis: {
-			type: 'category',
-			data: categories,
-			inverse: true, // Première catégorie en bas (ordre naturel de lecture)
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11 },
-			splitLine: { show: false },
-		},
-		series,
-	}
+	})
 })
 
-// --- Bar vertical chart option ---
-// Même logique que barChartOption mais avec axes inversés :
-// catégories sur axe X (horizontal), valeurs sur axe Y (vertical)
 const barVerticalChartOption = computed<EChartsOption>(() => {
-	const dim = config.value.dimension
-	const currentMetric = config.value.metric
-	const useLogScale = logScale.value // accès réactif explicite
-	const categories = filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
-	// Récupère les valeurs brutes (sans conversion 999) pour détecter Infinity
-	const rawValues = filteredMetrics.value.map(m => getRawMetricValue(m, currentMetric))
-	// Scaler les valeurs pour l'affichage (0% = 0/NaN, 10% = min, 90% = max, 100% = infini)
-	const yFinite = rawValues.filter(v => Number.isFinite(v))
-	const yBounds = currentMetric === 'winrate' ? { axisMin: 0, axisMax: 100, minVal: 0, maxVal: 100, step: 12.5, logMin: 0, logMinNeg: 0 } : computeAxisBoundsShared(yFinite)
-	const yAxisMin = yBounds.axisMin
-	const yAxisMax = yBounds.axisMax
-	const scaledValues = rawValues.map(v => scaleValueShared(v, yBounds, useLogScale))
-	// Couleurs basées sur les valeurs réelles (pas scalées)
-	const colors = filteredMetrics.value.map(m => getScatterColor(m))
-	const data = buildBarData(scaledValues, colors, v => v >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3])
-	const series = buildBarSeries({ data, barMaxWidth: 20, barCategoryGap: '10%', emphasis: { disabled: true } })
-
-	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 60 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
-
-	const hasZoom = categories.length > 20
-	const zoomEnd = hasZoom ? Math.min(100, (20 / categories.length) * 100) : 100
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'axis',
-			axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const metric = filteredMetrics.value[p.dataIndex]
-				if (!metric) return ''
-				const shown = new Set<BreakdownMetric>([currentMetric])
-				const isEmpty = metric.tradesCount === 0
-				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(getMetricValue(metric))}`]
-				return makeTooltip(formatDimensionLabel(config.value.dimension, metric.key), primaryLines, metric, shown, isEmpty)
-			},
+	return buildBarChartOption({
+		metrics: filteredMetrics.value,
+		dimension: config.value.dimension,
+		metric: config.value.metric,
+		logScale: logScale.value,
+		selectedTooltipMetrics: selectedTooltipMetrics.value,
+		orientation: 'vertical',
+		colors: {
+			profit: profitColor.value,
+			loss: lossColor.value,
+			bar: barColor.value,
+			rawMetric: rawMetricColor.value,
 		},
-		grid,
-		dataZoom: hasZoom ? [
-			{ type: 'slider', xAxisIndex: 0, start: 0, end: zoomEnd, height: 20, bottom: 5, filterMode: 'filter' },
-			{ type: 'inside', xAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-		] : undefined,
-		xAxis: {
-			type: 'category',
-			data: categories,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: categories.length > 6 ? 30 : 0 },
-			splitLine: { show: false },
-		},
-		yAxis: {
-			type: 'value',
-			min: yAxisMin,
-			max: yAxisMax,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(yBounds, useLogScale, v => formatMetricValueForMetric(v, currentMetric)) },
-			splitLine: { lineStyle: { color: axisColor } },
-		},
-		series,
-	}
+	})
 })
-
-// --- Scatter chart option ---
-// Axe X = catégories de la dimension (ex: Lun, Mar, Mer...)
-// Jitter vertical léger pour éviter le chevauchement des points d'une même catégorie
-const scatterCategories = computed(() => {
-	const dim = config.value.dimension
-	return filteredMetrics.value.map(m => formatDimensionLabel(dim, m.key))
-})
-
-// Couleur du point/barre selon la métrique sélectionnée (logique centralisée dans useAnalytics)
-const getScatterColor = (m: BreakdownMetrics): string => getMetricColor(m, config.value.metric, {
-	profit: profitColor.value,
-	loss: lossColor.value,
-	bar: barColor.value,
-	rawMetric: rawMetricColor.value,
-})
-
 
 const scatterChartOption = computed<EChartsOption>(() => {
-	// data : [categoryIndex, metricValue, pnl, key, tradesCount]
-	const data = filteredMetrics.value.map((m, idx) => {
-		return {
-			value: [
-				idx,
-				getMetricValue(m),
-				m.pnl,
-				m.key,
-				m.tradesCount,
-			] as unknown as number[],
-			itemStyle: {
-				color: getScatterColor(m),
-				borderColor: isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)',
-				borderWidth: 1,
-				borderType: 'solid' as const,
-			},
-		}
+	return buildScatterChartOption({
+		metrics: filteredMetrics.value,
+		dimension: config.value.dimension,
+		metric: config.value.metric,
+		selectedTooltipMetrics: selectedTooltipMetrics.value,
+		colors: {
+			profit: profitColor.value,
+			loss: lossColor.value,
+			bar: barColor.value,
+			rawMetric: rawMetricColor.value,
+		},
+		isDark: isDark.value,
 	})
-
-	const ctx = getChartContext({ left: 60, right: 16, top: 24, bottom: scatterCategories.value.length > 20 ? 60 : 40 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
-
-	const yAxisName = t(`components.dashboard.breakdown.metrics.${config.value.metric}`)
-	const yAxisMin = config.value.metric === 'winrate' ? 0 : undefined
-	const yAxisMax = config.value.metric === 'winrate' ? 100 : undefined
-
-	const hasZoom = scatterCategories.value.length > 25
-	const zoomEnd = hasZoom ? Math.min(100, (25 / scatterCategories.value.length) * 100) : 100
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'item',
-			formatter: (params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const v = p.value as number[]
-				const idx = v[0]
-				const metricValue = v[1]
-				const key = String(v[3])
-				const currentMetric = config.value.metric
-				const shown = new Set<BreakdownMetric>([currentMetric])
-				const fullMetric = filteredMetrics.value[idx]
-				const isEmpty = fullMetric?.tradesCount === 0
-				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${currentMetric}`)}: ${isEmpty ? (currentMetric === 'tradesCount' ? '0' : '') : formatMetricValue(metricValue)}`]
-				return makeTooltip(formatDimensionLabel(config.value.dimension, key), primaryLines, fullMetric, shown, isEmpty)
-			},
-		},
-		grid,
-		dataZoom: hasZoom ? [
-			{ type: 'slider', xAxisIndex: 0, start: 0, end: zoomEnd, height: 20, bottom: 5, filterMode: 'filter' },
-			{ type: 'inside', xAxisIndex: 0, start: 0, end: zoomEnd, filterMode: 'filter', moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-		] : undefined,
-		// Axe X : catégories de la dimension (ex: Lun, Mar, Mer...)
-		xAxis: {
-			type: 'category',
-			data: scatterCategories.value,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: scatterCategories.value.length > 6 ? 30 : 0 },
-			splitLine: { show: false },
-		},
-		yAxis: {
-			type: 'value',
-			name: yAxisName,
-			min: yAxisMin,
-			max: yAxisMax,
-			axisLine: { show: false },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => formatMetricValue(v) },
-			splitLine: { lineStyle: { color: axisColor } },
-			nameTextStyle: { color: textColor, fontSize: 11 },
-		},
-		series: buildScatterSeries({
-			data,
-			symbolSize: (d: unknown[]) => {
-				const pnl = Math.abs(d[2] as number)
-				const baseSize = Math.min(12, Math.max(8, Math.sqrt(pnl) / 12))
-				return baseSize
-			},
-		}),
-	}
 })
-
-// --- Scatter 2D chart option (corrélation entre 2 métriques, couleur = 3ème métrique) ---
-// Chaque point = un groupe (ticker, tag, jour...), positionné par metric (X) et metric2 (Y),
-// coloré par colorMetric via visualMap.
-// dataZoom sur X et Y permet de zoomer pour exclure les extremes et rescaler automatiquement.
-// Récupère la valeur brute d'une métrique (sans conversion 999 pour Infinity)
-// Nécessaire pour détecter correctement les valeurs infinies (ex: profitFactor)
-// Si tradesCount = 0 (groupe vide), retourne NaN pour placer le point à 0% (zone "vide")
-const getRawMetricValue = (m: BreakdownMetrics, metric: BreakdownMetric): number => {
-	if (metric !== 'tradesCount' && m.tradesCount === 0) return NaN
-	switch (metric) {
-		case 'pnl': return m.pnl
-		case 'winrate': return m.winrate
-		case 'profitFactor': return m.profitFactor
-		case 'avgWin': return m.avgWin
-		case 'avgLoss': return -m.avgLoss
-		case 'expectancy': return m.expectancy
-		case 'avgDuration': return m.avgDuration
-		case 'drawdown': return m.drawdown
-		case 'currentDrawdown': return m.currentDrawdown
-		case 'tradesCount': return m.tradesCount
-		// appt = Average Profit Per Trade = pnl / tradesCount (calculé à la volée)
-		case 'appt': return m.tradesCount > 0 ? m.pnl / m.tradesCount : NaN
-		default: return 0
-	}
-}
 
 const scatter2DChartOption = computed<EChartsOption>(() => {
-	const metricX = config.value.metric
-	const metricY = config.value.metric2 ?? 'profitFactor'
-	const colorMetric = config.value.colorMetric ?? 'tradesCount'
-	const useLogScale = logScale.value // accès réactif explicite
-
-	// Données : [valueX, valueY, key, colorValue, realVx, realVy]
-	// On garde TOUS les points, y compris ceux avec valeurs infinies (ex: profitFactor infini).
-	// Les valeurs finies sont distribuées sur 90% de l'axe, les infinies/NaN à 100% (le bord).
-	const rawPoints = filteredMetrics.value.map(m => {
-		const vx = getRawMetricValue(m, metricX)
-		const vy = getRawMetricValue(m, metricY)
-		const vc = getRawMetricValue(m, colorMetric)
-		return { vx, vy, vc, key: m.key }
+	return buildScatter2DChartOption({
+		metrics: filteredMetrics.value,
+		dimension: config.value.dimension,
+		metricX: config.value.metric,
+		metricY: config.value.metric2 ?? 'profitFactor',
+		colorMetric: config.value.colorMetric ?? 'tradesCount',
+		logScale: logScale.value,
+		selectedTooltipMetrics: selectedTooltipMetrics.value,
+		showScrollX: config.value.showScrollX ?? true,
+		showScrollY: config.value.showScrollY ?? true,
+		showLabels: config.value.showLabels ?? true,
+		scatter2DColors: scatter2DColors.value,
+		isDark: isDark.value,
 	})
-
-	const ctx = getChartContext({ left: 70, right: 40, top: 85, bottom: 40 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
-
-	const xAxisName = t(`components.dashboard.breakdown.metrics.${metricX}`)
-	const yAxisName = t(`components.dashboard.breakdown.metrics.${metricY}`)
-
-	// Échelle : 0% = 0/NaN, 10% = min, 90% = max, 100% = infini
-	// step = (max - min) / 8 constant entre 10% et 90%
-	// Voir useAxisScale.ts pour le détail
-	const xFinite = rawPoints.filter(p => Number.isFinite(p.vx)).map(p => p.vx)
-	const yFinite = rawPoints.filter(p => Number.isFinite(p.vy)).map(p => p.vy)
-	const xBounds = metricX === 'winrate' ? { axisMin: 0, axisMax: 100, minVal: 0, maxVal: 100, step: 12.5, logMin: 0, logMinNeg: 0 } : computeAxisBoundsShared(xFinite)
-	const yBounds = metricY === 'winrate' ? { axisMin: 0, axisMax: 100, minVal: 0, maxVal: 100, step: 12.5, logMin: 0, logMinNeg: 0 } : computeAxisBoundsShared(yFinite)
-	const xAxisMin = xBounds.axisMin
-	const xAxisMax = xBounds.axisMax
-	const yAxisMin = yBounds.axisMin
-	const yAxisMax = yBounds.axisMax
-
-	const data = rawPoints
-		.filter(p => Number.isFinite(p.vc))
-		.map(p => ({
-			value: [
-				scaleValueShared(p.vx, xBounds, useLogScale),
-				scaleValueShared(p.vy, yBounds, useLogScale),
-				p.key,
-				p.vc,
-				p.vx,  // vraie valeur X pour le tooltip
-				p.vy,  // vraie valeur Y pour le tooltip
-			] as unknown as number[],
-		}))
-
-	// visualMap : couleur par colorMetric
-	const colorValues = data.map(d => d.value[3] as number)
-	const colorMin = Math.min(...colorValues, 0)
-	const colorMax = Math.max(...colorValues, 1)
-	// Palette : du gris (peu de trades) au vert (beaucoup de trades)
-	// Palette depuis les settings utilisateur (3 couleurs : min, mid, max)
-	// ECharts interpole automatiquement entre ces 3 couleurs
-	const colorPalette = [scatter2DColors.value.min, scatter2DColors.value.mid, scatter2DColors.value.max]
-
-	// dataZoom : inside (molette) toujours actif, sliders X/Y affichables selon les settings
-	const scrollXOn = config.value.showScrollX ?? true
-	const scrollYOn = config.value.showScrollY ?? true
-	const zoomArr: NonNullable<EChartsOption['dataZoom']> = [
-		{ type: 'inside', xAxisIndex: 0, filterMode: 'none', moveOnMouseWheel: 'shift', zoomOnMouseWheel: true },
-		{ type: 'inside', yAxisIndex: 0, filterMode: 'none', moveOnMouseWheel: 'shift', zoomOnMouseWheel: true },
-	]
-	if (scrollXOn) zoomArr.push({ type: 'slider', xAxisIndex: 0, filterMode: 'none', height: 18, bottom: 5, start: 0, end: 100 })
-	if (scrollYOn) zoomArr.push({ type: 'slider', yAxisIndex: 0, filterMode: 'none', width: 18, right: 5, start: 0, end: 100 })
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'item',
-			formatter: (params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const v = p.value as number[]
-				const realVx = v[4] as number
-				const realVy = v[5] as number
-				const key = String(v[2])
-				const fullMetric = filteredMetrics.value.find(m => m.key === key)
-				// Dé-duplication : éviter d'afficher la même métrique plusieurs fois
-				const shown = new Set<BreakdownMetric>([metricX, metricY, colorMetric])
-				const primaryLines: string[] = [`${xAxisName}: ${formatMetricValueForMetric(realVx, metricX)}`]
-				if (metricY !== metricX) primaryLines.push(`${yAxisName}: ${formatMetricValueForMetric(realVy, metricY)}`)
-				if (colorMetric !== metricX && colorMetric !== metricY) primaryLines.push(`${t(`components.dashboard.breakdown.metrics.${colorMetric}`)}: ${formatMetricValueForMetric(v[3] as number, colorMetric)}`)
-				return makeTooltip(formatDimensionLabel(config.value.dimension, key), primaryLines, fullMetric, shown)
-			},
-		},
-		grid,
-		// visualMap (dégradé) : au-dessus du chart, aligné à gauche
-		// dimension: 3 = index de vc (colorValue) dans le tableau [vx, vy, key, vc, vxReal, vyReal]
-		visualMap: {
-			min: colorMin,
-			max: colorMax,
-			dimension: 3,
-			calculable: true,
-			orient: 'horizontal',
-			left: 70,
-			top: 10,
-			textStyle: { color: textColor, fontSize: 10 },
-			inRange: { color: colorPalette },
-			show: true,
-		},
-		dataZoom: zoomArr,
-		xAxis: {
-			min: xAxisMin,
-			max: xAxisMax,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(xBounds, useLogScale, v => formatMetricValueForMetric(v, metricX)) },
-			splitLine: { lineStyle: { color: axisColor } },
-			name: xAxisName,
-			nameLocation: 'middle',
-			nameGap: 30,
-			nameTextStyle: { color: textColor, fontSize: 12, fontWeight: 'bold' },
-		},
-		yAxis: {
-			type: 'value',
-			name: yAxisName,
-			min: yAxisMin,
-			max: yAxisMax,
-			axisLine: { show: false },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(yBounds, useLogScale, v => formatMetricValueForMetric(v, metricY)) },
-			splitLine: { lineStyle: { color: axisColor } },
-			nameLocation: 'middle',
-			nameGap: 50,
-			nameTextStyle: { color: textColor, fontSize: 12, fontWeight: 'bold' },
-		},
-		series: [{
-			type: 'scatter',
-			data,
-			symbolSize: 10,
-			emphasis: {
-				scale: 1.4,
-				itemStyle: { borderColor: isDark.value ? '#fff' : '#1f2937', borderWidth: 2 },
-			},
-			label: {
-				show: config.value.showLabels ?? true,
-				position: 'top',
-				formatter: (p: { value: number[] }) => {
-					const key = String(p.value[2])
-					return formatDimensionLabel(config.value.dimension, key)
-				},
-				color: textColor,
-				fontSize: 10,
-			},
-		}],
-	}
 })
 
-// --- Scatter Trades chart option (1 point par trade individuel) ---
-// Chaque point = 1 trade, positionné par tradePropertyX (X) et tradePropertyY (Y).
-// Couleur : vert si gain, rouge si perte. Tooltip : date, ticker, P&L, durée, side.
-// Réutilise useAxisScale pour l'échelle (0% = 0/NaN, 10% = min, 90% = max, 100% = infini + log optionnel).
-const getTradePropertyValue = (tr: TradeExtendedType, prop: TradeProperty): number => {
-	switch (prop) {
-		case 'duration': {
-			const ms = tr.closeDate.getTime() - tr.openDate.getTime()
-			return ms > 0 ? ms / 60000 : 0 // minutes
-		}
-		case 'pnl': return displayModeNet.value ? tr.netProfit : tr.profit
-		case 'mfe': return tr.mfe ?? NaN
-		case 'mae': return tr.mae ?? NaN
-		default: return 0
-	}
-}
-
-const formatTradePropertyValue = (val: number, prop: TradeProperty): string => {
-	if (prop === 'duration') {
-		if (val < 60) return `${val.toFixed(0)}m`
-		if (val < 1440) return `${(val / 60).toFixed(1)}h`
-		return `${(val / 1440).toFixed(1)}d`
-	}
-	if (prop === 'mfe' || prop === 'mae') return formatMetricValue(val)
-	return formatMetricValue(val)
-}
-
 const scatterTradesChartOption = computed<EChartsOption>(() => {
-	const propX = config.value.tradePropertyX ?? 'duration'
-	const propY = config.value.tradePropertyY ?? 'pnl'
-	const useLogScale = logScale.value // accès réactif explicite
 	const tickerFilter = config.value.tickerFilter ?? null
-
-	// Filtre les trades par ticker si un filtre est actif
 	const trades = tickerFilter
 		? allTrades.value.filter(tr => tr.symbol === tickerFilter)
 		: allTrades.value
 
-	// Récupère les valeurs brutes pour X et Y
-	const rawPoints = trades.map(tr => ({
-		vx: getTradePropertyValue(tr, propX),
-		vy: getTradePropertyValue(tr, propY),
-		tr,
-	}))
-
-	const ctx = getChartContext({ left: 70, right: 40, top: 50, bottom: 40 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
-
-	const xAxisName = t(`components.dashboard.breakdown.trade_property.${propX}`)
-	const yAxisName = t(`components.dashboard.breakdown.trade_property.${propY}`)
-
-	// Calcule les bornes avec useAxisScale (réutilise le même système que scatter2D)
-	const xFinite = rawPoints.filter(p => Number.isFinite(p.vx)).map(p => p.vx)
-	const yFinite = rawPoints.filter(p => Number.isFinite(p.vy)).map(p => p.vy)
-	const xBounds = computeAxisBoundsShared(xFinite)
-	const yBounds = computeAxisBoundsShared(yFinite)
-	const xAxisMin = xBounds.axisMin
-	const xAxisMax = xBounds.axisMax
-	const yAxisMin = yBounds.axisMin
-	const yAxisMax = yBounds.axisMax
-
-	// Couleur : vert si gain, rouge si perte (basé sur profit)
-	// Log scale : seulement sur Y (X reste linéaire, ex: durée)
-	const data = rawPoints.map(p => ({
-		value: [
-			scaleValueShared(p.vx, xBounds, false),
-			scaleValueShared(p.vy, yBounds, useLogScale),
-			p.tr.symbol,
-			p.tr.profit, // pour la couleur
-			p.vx, // vraie valeur X pour le tooltip
-			p.vy, // vraie valeur Y pour le tooltip
-		] as unknown as number[],
-		itemStyle: {
-			color: p.tr.profit >= 0 ? profitColor.value : lossColor.value,
-			opacity: 0.7,
-		},
-	}))
-
-	// dataZoom : inside (molette) toujours actif, sliders X/Y affichables selon les settings
-	const scrollXOn = config.value.showScrollX ?? false
-	const scrollYOn = config.value.showScrollY ?? false
-	const zoomArr: NonNullable<EChartsOption['dataZoom']> = [
-		{ type: 'inside', xAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: 'shift', moveOnMouseWheel: true },
-		{ type: 'inside', yAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: 'shift', moveOnMouseWheel: true },
-	]
-	if (scrollXOn) zoomArr.push({ type: 'slider', xAxisIndex: 0, filterMode: 'none', bottom: 8, height: 18, start: 0, end: 100 })
-	if (scrollYOn) zoomArr.push({ type: 'slider', yAxisIndex: 0, filterMode: 'none', right: 5, width: 18, start: 0, end: 100 })
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor,
-			borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'item',
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const d = p.data as { value: number[] }
-				const tr = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])?.tr
-				if (!tr) return ''
-				const dateStr = tr.openDate.toLocaleDateString()
-				const timeStr = tr.openDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-				const durationMin = (tr.closeDate.getTime() - tr.openDate.getTime()) / 60000
-				const lines = [
-					`${dateStr} ${timeStr}`,
-					`Ticker: ${tr.symbol}`,
-					`P&L: ${formatMetricValue(tr.profit)}`,
-					`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
-					`Side: ${tr.type}`,
-				]
-				return lines.join('<br/>')
-			},
-		},
-		grid,
-		dataZoom: zoomArr,
-		xAxis: {
-			type: 'value',
-			min: xAxisMin,
-			max: xAxisMax,
-			name: xAxisName,
-			nameLocation: 'middle',
-			nameGap: 28,
-			nameTextStyle: { color: textColor, fontSize: 11 },
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(xBounds, false, v => formatTradePropertyValue(v, propX)) },
-			splitLine: { lineStyle: { color: axisColor } },
-		},
-		yAxis: {
-			type: 'value',
-			min: yAxisMin,
-			max: yAxisMax,
-			name: yAxisName,
-			nameLocation: 'middle',
-			nameGap: 50,
-			nameTextStyle: { color: textColor, fontSize: 11 },
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: makeAxisLabel(yBounds, useLogScale, v => formatTradePropertyValue(v, propY)) },
-			splitLine: { lineStyle: { color: axisColor } },
-		},
-		series: [{
-			type: 'scatter',
-			data,
-			symbolSize: 8,
-			emphasis: {
-				focus: 'series',
-				itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.3)' },
-			},
-		}],
-	}
+	return buildScatterTradesChartOption({
+		trades,
+		propX: config.value.tradePropertyX ?? 'duration',
+		propY: config.value.tradePropertyY ?? 'pnl',
+		logScale: logScale.value,
+		showScrollX: config.value.showScrollX ?? false,
+		showScrollY: config.value.showScrollY ?? false,
+		profitColor: profitColor.value,
+		lossColor: lossColor.value,
+		displayModeNet: displayModeNet.value,
+	})
 })
 
 // --- Heatmap chart option (2D générique : dimension X × dimension Y) ---
@@ -1155,159 +641,16 @@ const heatmap2DCells = computed(() => {
 	return calculateMetricsBy2Dimensions(trades, groupFnX, groupFnY, displayModeNet.value)
 })
 
-// Labels uniques pour les axes X et Y (triés logiquement)
-const heatmapXLabels = computed(() => {
-	const dim = config.value.dimension
-	const keys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX)))
-	// Tri logique selon la dimension
-	const sorted = [...keys].sort((a, b) => {
-		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
-	})
-	return sorted.map(k => formatDimensionLabel(dim, k))
-})
-
-const heatmapYLabels = computed(() => {
-	const dim = config.value.dimension2 ?? 'dayOfWeekOpen'
-	const keys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY)))
-	const sorted = [...keys].sort((a, b) => {
-		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
-	})
-	return sorted.map(k => formatDimensionLabel(dim, k))
-})
-
-// Données pour ECharts : [indexX, indexY, valeur]
-const heatmapDataItems = computed(() => {
-	const dim = config.value.dimension
-	const dim2 = config.value.dimension2 ?? 'dayOfWeekOpen'
-	// Construit les maps à partir des labels triés (cohérent avec heatmapXLabels/heatmapYLabels)
-	const xKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX))).sort((a, b) => {
-		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
-	})
-	const yKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY))).sort((a, b) => {
-		if (dim2 === 'hourStart' || dim2 === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dim2 === 'dayOfWeekOpen' || dim2 === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dim2 === 'monthOpen' || dim2 === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
-	})
-	const xLabelMap = new Map<string, number>(xKeys.map((k, i) => [k, i]))
-	const yLabelMap = new Map<string, number>(yKeys.map((k, i) => [k, i]))
-	return heatmap2DCells.value.map(c => {
-		const xi = xLabelMap.get(c.keyX) ?? 0
-		const yi = yLabelMap.get(c.keyY) ?? 0
-		const val = getMetricValueForMetric(c.metrics, config.value.metric)
-		return [xi, yi, val] as [number, number, number]
-	})
-})
-
-// Valeur max absolue pour le visualMap
-const heatmapMaxAbs = computed(() =>
-	Math.max(...heatmapDataItems.value.map(d => Math.abs(d[2])), 1)
-)
-
 const heatmapChartOption = computed<EChartsOption>(() => {
-	const ctx = getChartContext()
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor } = ctx
-	const xLabels = heatmapXLabels.value
-	const yLabels = heatmapYLabels.value
-	const data = heatmapDataItems.value
-	const maxAbs = heatmapMaxAbs.value
-	const metric = config.value.metric
-	const dimX = config.value.dimension
-	const dimY = config.value.dimension2 ?? 'dayOfWeekOpen'
-
-	// Map pour retrouver les cells par index (cohérent avec les labels triés)
-	const xKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyX))).sort((a, b) => {
-		if (dimX === 'hourStart' || dimX === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dimX === 'dayOfWeekOpen' || dimX === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dimX === 'monthOpen' || dimX === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
+	return buildHeatmapChartOption({
+		cells: heatmap2DCells.value,
+		dimensionX: config.value.dimension,
+		dimensionY: config.value.dimension2 ?? 'dayOfWeekOpen',
+		metric: config.value.metric,
+		selectedTooltipMetrics: selectedTooltipMetrics.value,
+		heatmapColors: heatmapColors.value,
+		isDark: isDark.value,
 	})
-	const yKeys = Array.from(new Set(heatmap2DCells.value.map(c => c.keyY))).sort((a, b) => {
-		if (dimY === 'hourStart' || dimY === 'hourEnd') return parseInt(a) - parseInt(b)
-		if (dimY === 'dayOfWeekOpen' || dimY === 'dayOfWeekClose') return parseInt(a) - parseInt(b)
-		if (dimY === 'monthOpen' || dimY === 'monthClose') return parseInt(a) - parseInt(b)
-		return a.localeCompare(b)
-	})
-	const xLabelMap = new Map<string, number>(xKeys.map((k, i) => [k, i]))
-	const yLabelMap = new Map<string, number>(yKeys.map((k, i) => [k, i]))
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor, borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const [xi, yi] = p.value as unknown as [number, number, number]
-				const xLabel = xLabels[xi] ?? ''
-				const yLabel = yLabels[yi] ?? ''
-				// Retrouve la cell pour les tooltip metrics
-				const cell = heatmap2DCells.value.find(c => xLabelMap.get(c.keyX) === xi && yLabelMap.get(c.keyY) === yi)
-				const val = (p.value as unknown as [number, number, number])[2]
-				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`]
-				return makeTooltip(`${yLabel} × ${xLabel}`, primaryLines, cell?.metrics, new Set([metric]))
-			},
-		},
-		grid: { left: 60, right: 16, top: 12, bottom: 28 },
-		xAxis: {
-			type: 'category',
-			data: xLabels,
-			splitArea: { show: true },
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 10 },
-			axisPointer: { show: false },
-			splitLine: { show: false },
-		},
-		yAxis: {
-			type: 'category',
-			data: yLabels,
-			inverse: true,
-			splitArea: { show: true },
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 13 },
-			splitLine: { show: false },
-		},
-		visualMap: {
-			min: -maxAbs,
-			max: maxAbs,
-			calculable: true,
-			orient: 'horizontal',
-			left: 'center',
-			bottom: 0,
-			textStyle: { color: textColor, fontSize: 10 },
-			inRange: {
-				color: [heatmapColors.value.min, heatmapColors.value.max],
-			},
-			outOfRange: {
-				color: isDark.value ? '#111827' : '#f3f4f6',
-			},
-			show: false,
-		},
-		series: [{
-			type: 'heatmap',
-			data,
-			label: { show: false },
-			emphasis: {
-				itemStyle: {
-					borderColor: isDark.value ? '#ffffff' : '#1f2937',
-					borderWidth: 2,
-				},
-			},
-		}],
-	}
 })
 
 // --- Boxplot chart option (distribution de la métrique par dimension) ---
@@ -1359,65 +702,14 @@ const boxplotData = computed(() => {
 })
 
 const boxplotChartOption = computed<EChartsOption>(() => {
-	const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 60 })
-	const { base, axisColor, textColor, backgroundColor, borderColor, tooltipTextColor, grid } = ctx
 	const { categories, data, rawTrades } = boxplotData.value
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor, borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'item',
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const idx = p.dataIndex
-				const cat = categories[idx] ?? ''
-				const d = data[idx]
-				if (!d) return ''
-				const raw = rawTrades[idx] || []
-				const lines = [
-					`<strong>${cat}</strong>`,
-					`${t('components.dashboard.breakdown.boxplot.min')}: ${formatMetricValueForMetric(d[0], 'pnl')}`,
-					`${t('components.dashboard.breakdown.boxplot.q1')}: ${formatMetricValueForMetric(d[1], 'pnl')}`,
-					`${t('components.dashboard.breakdown.boxplot.median')}: ${formatMetricValueForMetric(d[2], 'pnl')}`,
-					`${t('components.dashboard.breakdown.boxplot.q3')}: ${formatMetricValueForMetric(d[3], 'pnl')}`,
-					`${t('components.dashboard.breakdown.boxplot.max')}: ${formatMetricValueForMetric(d[4], 'pnl')}`,
-					`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${raw.length}`,
-				]
-				return lines.join('<br/>')
-			},
-		},
-		grid,
-		xAxis: {
-			type: 'category',
-			data: categories,
-			axisLine: { lineStyle: { color: axisColor } },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: categories.length > 6 ? 30 : 0 },
-			splitLine: { show: false },
-		},
-		yAxis: {
-			type: 'value',
-			name: t('components.dashboard.breakdown.metrics.pnl'),
-			axisLine: { show: false },
-			axisTick: { show: false },
-			axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => formatMetricValueForMetric(v, 'pnl') },
-			splitLine: { lineStyle: { color: axisColor } },
-			nameTextStyle: { color: textColor, fontSize: 11 },
-		},
-		series: [{
-			type: 'boxplot',
-			data,
-			itemStyle: {
-				color: isDark.value ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.25)',
-				borderColor: barColor.value,
-				borderWidth: 1.5,
-			},
-		}],
-	}
+	return buildBoxplotChartOption({
+		categories,
+		data,
+		rawTrades,
+		barColor: barColor.value,
+		isDark: isDark.value,
+	})
 })
 
 // --- Radar chart option (profil de performance multi-axes) ---
@@ -1453,62 +745,13 @@ const radarMetrics = computed(() => {
 })
 
 const radarChartOption = computed<EChartsOption>(() => {
-	const ctx = getChartContext()
-	const { base, textColor, backgroundColor, borderColor, tooltipTextColor, isDark: dark } = ctx
 	const { indicators, values, names } = radarMetrics.value
-	if (!indicators.length) return { ...base }
-
-	// Palette de couleurs pour les différentes séries
-	const palette = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
-
-	return {
-		...base,
-		tooltip: {
-			backgroundColor, borderColor,
-			textStyle: { color: tooltipTextColor, fontSize: 13 },
-			appendTo: document.body,
-			className: 'echarts-custom-tooltip',
-			trigger: 'item',
-			formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-				const p = Array.isArray(params) ? params[0] : params
-				const idx = p.dataIndex
-				const name = names[idx] ?? ''
-				const vals = values[idx] || []
-				const lines = [`<strong>${name}</strong>`]
-				indicators.forEach((ind, i) => {
-					const val = vals[i] ?? 0
-					const metricKey = ['winrate', 'profitFactor', 'expectancy', 'pnl', 'tradesCount'][i]
-					lines.push(`${ind.name}: ${formatMetricValueForMetric(val, metricKey as BreakdownMetric)}`)
-				})
-				return lines.join('<br/>')
-			},
-		},
-		legend: {
-			data: names,
-			bottom: 0,
-			textStyle: { color: textColor, fontSize: 10 },
-			type: 'scroll',
-		},
-		radar: {
-			indicator: indicators,
-			center: ['50%', '50%'],
-			radius: '60%',
-			axisName: { color: textColor, fontSize: 10 },
-			splitArea: { areaStyle: { color: dark ? ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.05)'] : ['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.04)'] } },
-			splitLine: { lineStyle: { color: dark ? '#374151' : '#d1d5db' } },
-			axisLine: { lineStyle: { color: dark ? '#374151' : '#d1d5db' } },
-		},
-		series: [{
-			type: 'radar',
-			data: values.map((v, i) => ({
-				value: v,
-				name: names[i],
-				areaStyle: { opacity: 0.1 },
-				lineStyle: { color: palette[i % palette.length], width: 2 },
-				itemStyle: { color: palette[i % palette.length] },
-			})),
-		}],
-	}
+	return buildRadarChartOption({
+		indicators,
+		values,
+		names,
+		isDark: isDark.value,
+	})
 })
 
 // Chart option finale selon le type
