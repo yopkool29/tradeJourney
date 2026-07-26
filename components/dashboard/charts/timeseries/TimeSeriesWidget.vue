@@ -20,24 +20,24 @@
         <!-- Menu settings : paramètres selon le type de chart -->
         <template #settings>
             <div class="space-y-2">
-                <!-- Agrégation (sauf pour bar = par trade) -->
+                <!-- Agrégation (sauf pour bar = par trade) — draft validé au moment de l'apply -->
                 <div v-if="config.seriesType !== 'bar'" class="flex flex-col gap-1">
                     <span class="text-sm font-medium">{{ $t('components.dashboard.common.aggregation') }}</span>
-                    <USelect v-model="aggregation" :items="aggregationOptions" size="sm" />
+                    <USelect v-model="draftAggregation" :items="aggregationOptions" size="sm" />
                 </div>
                 <!-- Max trades (bar = par trade seulement) -->
                 <div v-if="config.seriesType === 'bar'" class="flex flex-col gap-1">
                     <span class="text-sm font-medium">{{ $t('components.dashboard.common.max_trades') }}</span>
                     <USelect v-model="maxTrades" :items="maxTradesOptions" size="sm" />
                 </div>
-                <!-- Show bars (barMA) -->
+                <!-- Show bars (barMA) — draft validé au moment de l'apply -->
                 <div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
-                    <UCheckbox v-model="showBars" />
+                    <UCheckbox v-model="draftShowBars" />
                     <span class="text-sm">{{ $t('components.dashboard.common.show_bars') }}</span>
                 </div>
-                <!-- Show MA (barMA) -->
+                <!-- Show MA (barMA) — draft validé au moment de l'apply -->
                 <div v-if="config.seriesType === 'barMA'" class="flex items-center gap-2">
-                    <UCheckbox v-model="showMovingAverage" />
+                    <UCheckbox v-model="draftShowMovingAverage" />
                     <span class="text-sm">{{ $t('components.dashboard.common.show_moving_average') }}</span>
                 </div>
                 <!-- Show threshold (area + pnl seulement) -->
@@ -124,15 +124,31 @@ const updateConfig = (partial: Partial<TimeSeriesConfig>) => {
 }
 
 // Snapshot de la config pour Cancel/Apply dans le popover settings
+// Pour aggregation, showBars, showMovingAverage : on utilise un draft local
+// qui ne se sync à la config qu'au moment de l'apply (pas en live)
 let configSnapshot: TimeSeriesConfig | null = null
+const draftAggregation = ref<AggregationMode>('week')
+const draftShowBars = ref(true)
+const draftShowMovingAverage = ref(true)
+
 const onSettingsOpen = () => {
     configSnapshot = { ...config.value } as TimeSeriesConfig
+    // Initialise les drafts avec les valeurs actuelles
+    draftAggregation.value = (config.value.aggregation as AggregationMode) ?? 'week'
+    draftShowBars.value = config.value.showBars ?? true
+    draftShowMovingAverage.value = config.value.showMovingAverage ?? true
 }
 const onSettingsCancel = () => {
     if (configSnapshot) updateConfig(configSnapshot)
     configSnapshot = null
 }
 const onSettingsApply = () => {
+    // Applique les drafts à la config
+    updateConfig({
+        aggregation: draftAggregation.value as TimeSeriesAggregation,
+        showBars: draftShowBars.value,
+        showMovingAverage: draftShowMovingAverage.value,
+    })
     configSnapshot = null
 }
 

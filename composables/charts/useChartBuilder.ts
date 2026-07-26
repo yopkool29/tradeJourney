@@ -391,7 +391,7 @@ export const useChartBuilder = () => {
 						return formatDimensionLabel(dimension, key)
 					},
 					color: textColor,
-					fontSize: 10,
+					fontSize: 12,
 				},
 			}],
 		}
@@ -490,6 +490,13 @@ export const useChartBuilder = () => {
 						`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
 						`Side: ${tr.type}`,
 					]
+					// Affiche MFE/MAE si sélectionné sur X ou Y (pas dans les options de tooltip metrics)
+					if ((propX === 'mfe' || propY === 'mfe') && tr.mfe != null) {
+						lines.push(`MFE: ${formatTradePropertyValue(tr.mfe, 'mfe')}`)
+					}
+					if ((propX === 'mae' || propY === 'mae') && tr.mae != null) {
+						lines.push(`MAE: ${formatTradePropertyValue(tr.mae, 'mae')}`)
+					}
 					return lines.join('<br/>')
 				},
 			},

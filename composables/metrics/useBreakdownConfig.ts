@@ -91,17 +91,15 @@ export const breakdownTypes: { baseKey: BreakdownBaseKey; labelKey: string }[] =
 // Templates prêts à l'emploi (raccourcis pour créer un chart pré-configuré)
 export const chartTemplates: ChartTemplate[] = [
 	// --- Répartition : Barres ---
-	{ id: 'pnlByTicker', labelKey: 'components.dashboard.templates.pnl_by_ticker', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } },
 	{ id: 'pnlByDayOfWeek', labelKey: 'components.dashboard.templates.pnl_by_day_of_week', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } },
 	{ id: 'winrateByHour', labelKey: 'components.dashboard.templates.winrate_by_hour', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBarVertical', config: { dimension: 'hourStart', metric: 'winrate', chartType: 'barVertical' } },
 	{ id: 'pnlByMonth', labelKey: 'components.dashboard.templates.pnl_by_month', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'monthOpen', metric: 'pnl', chartType: 'bar' } },
 	{ id: 'pnlByMonthYear', labelKey: 'components.dashboard.templates.pnl_by_month_year', category: 'breakdown', subcategory: 'bars', baseKey: 'breakdownBar', config: { dimension: 'monthYearOpen', metric: 'pnl', chartType: 'bar' } },
-	// --- Répartition : Nuage & Heatmap ---
-	{ id: 'winrateByTicker', labelKey: 'components.dashboard.templates.winrate_by_ticker', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownScatter', config: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } },
+	// --- Répartition : Heatmap ---
 	{ id: 'heatmapHourDay', labelKey: 'components.dashboard.templates.heatmap_hour_day', category: 'breakdown', subcategory: 'scatterHeatmap', baseKey: 'breakdownHeatmap', config: { dimension: 'hourStart', dimension2: 'dayOfWeekOpen', metric: 'pnl', chartType: 'heatmap' } },
 	// --- Distribution & profils ---
 	{ id: 'pnlCalendar', labelKey: 'components.dashboard.templates.pnl_calendar', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownCalendar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'calendar' } },
-	// Scatter 2D : corrélations entre métriques
+	// Scatter 2D : corrélations entre métriques agrégées
 	{ id: 'winrateVsProfitFactor', labelKey: 'components.dashboard.templates.winrate_vs_profit_factor', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'winrate', metric2: 'profitFactor', colorMetric: 'tradesCount', chartType: 'scatter2D' } },
 	{ id: 'avgWinVsAvgLoss', labelKey: 'components.dashboard.templates.avg_win_vs_avg_loss', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'avgWin', metric2: 'avgLoss', colorMetric: 'expectancy', chartType: 'scatter2D' } },
 	{ id: 'pnlVsDrawdown', labelKey: 'components.dashboard.templates.pnl_vs_drawdown', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownScatter2D', config: { dimension: 'ticker', metric: 'pnl', metric2: 'drawdown', colorMetric: 'tradesCount', chartType: 'scatter2D' } },
@@ -113,7 +111,6 @@ export const chartTemplates: ChartTemplate[] = [
 	// { id: 'performanceRadar', labelKey: 'components.dashboard.templates.performance_radar', category: 'breakdown', subcategory: 'distribution', baseKey: 'breakdownRadar', config: { dimension: 'ticker', metric: 'winrate', chartType: 'radar' } },
 	// --- Séries temporelles (presets) ---
 	{ id: 'pnlByTrade', labelKey: 'components.dashboard.templates.pnl_by_trade', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'bar', metric: 'pnl', chartType: 'timeSeries', maxTrades: 50, yAxisFormat: 'currency', crosshairType: 'cross' } },
-	{ id: 'cumulatedPnl', labelKey: 'components.dashboard.templates.cumulated_pnl', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'area', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showThreshold: true, yAxisFormat: 'currency', crosshairType: 'line' } },
 	{ id: 'appt', labelKey: 'components.dashboard.templates.appt', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'barMA', metric: 'appt', chartType: 'timeSeries', aggregation: 'week', showBars: true, showMovingAverage: true, movingAverageWindow: 5, yAxisFormat: 'currency', crosshairType: 'cross' } },
 	{ id: 'winrate', labelKey: 'components.dashboard.templates.winrate', category: 'breakdown', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'barMA', metric: 'winrate', chartType: 'timeSeries', aggregation: 'week', showBars: true, showMovingAverage: true, movingAverageWindow: 3, yAxisMin: 0, yAxisMax: 100, yAxisFormat: 'percent', crosshairType: 'cross' } },
 	// --- Avancé (from scratch) ---
