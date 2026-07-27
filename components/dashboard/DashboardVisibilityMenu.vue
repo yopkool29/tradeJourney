@@ -1,5 +1,5 @@
 <template>
-	<UPopover v-model:open="isOpen" :content="{ align: 'start', sideOffset: 8 }" @update:open="onPopoverChange">
+	<UPopover v-model:open="isOpen" :content="{ align: 'start', sideOffset: 8 }" :ui="{ content: 'max-h-[80vh] overflow-y-auto' }" @update:open="onPopoverChange">
 		<UButton icon="i-lucide-eye" size="sm" color="primary">
 			{{ $t('components.dashboard.visibility.title') }}
 		</UButton>
@@ -63,10 +63,26 @@
 						<!-- Catégorie : Avancé -->
 						<div>
 							<div class="text-xs text-muted mb-1">{{ $t('components.dashboard.visibility.templates_advanced') }}</div>
-							<div class="space-y-1">
-								<div v-for="tmpl in templatesByCategory.advanced" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
-									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
-									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
+							<div class="space-y-2">
+								<!-- Avancé : Breakdown -->
+								<div>
+									<div class="text-[10px] text-muted/70 mb-0.5">{{ $t('components.dashboard.visibility.templates_advanced_breakdown') }}</div>
+									<div class="space-y-1">
+										<div v-for="tmpl in advancedTemplatesBySubcategory.breakdown" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+											<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
+											<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
+										</div>
+									</div>
+								</div>
+								<!-- Avancé : Séries temporelles -->
+								<div>
+									<div class="text-[10px] text-muted/70 mb-0.5">{{ $t('components.dashboard.visibility.templates_advanced_timeseries') }}</div>
+									<div class="space-y-1">
+										<div v-for="tmpl in advancedTemplatesBySubcategory.timeSeries" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+											<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
+											<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -109,7 +125,7 @@
 
 <script setup lang="ts">
 import type { ChartKey, SectionKey } from '~/type'
-import { templatesByCategory, breakdownTemplatesBySubcategory, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
+import { breakdownTemplatesBySubcategory, advancedTemplatesBySubcategory, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
 
 const props = defineProps<{
 	chartVisibility: Record<string, boolean>

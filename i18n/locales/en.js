@@ -612,6 +612,8 @@ export default {
                 templates_breakdown_distribution: 'Distribution & Profiles',
                 templates_time_series: 'Time Series',
                 templates_advanced: 'Custom',
+                templates_advanced_breakdown: 'Breakdown',
+                templates_advanced_timeseries: 'Time Series',
             },
             sections: {
                 all_trades: 'All Trades',
