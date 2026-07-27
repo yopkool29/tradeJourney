@@ -117,6 +117,7 @@ export const chartTemplates: ChartTemplate[] = [
 	{ id: 'customBar', labelKey: 'components.dashboard.templates.custom_bar', category: 'advanced', subcategory: 'breakdown', baseKey: 'breakdownBar', config: { dimension: 'ticker', metric: 'pnl', chartType: 'bar' } },
 	{ id: 'customBarVertical', labelKey: 'components.dashboard.templates.custom_bar_vertical', category: 'advanced', subcategory: 'breakdown', baseKey: 'breakdownBarVertical', config: { dimension: 'dayOfWeekOpen', metric: 'pnl', chartType: 'barVertical' } },
 	{ id: 'customScatter', labelKey: 'components.dashboard.templates.custom_scatter', category: 'advanced', subcategory: 'breakdown', baseKey: 'breakdownScatter', config: { dimension: 'ticker', metric: 'winrate', chartType: 'scatter' } },
+	{ id: 'customScatterTrades', labelKey: 'components.dashboard.templates.duration_vs_pnl', category: 'advanced', subcategory: 'trades', baseKey: 'breakdownScatterTrades', config: { dimension: 'ticker', metric: 'pnl', chartType: 'scatterTrades', tradePropertyX: 'duration', tradePropertyY: 'pnl', tickerFilter: null, logScale: false } },
 	{ id: 'customTable', labelKey: 'components.dashboard.templates.custom_table', category: 'advanced', subcategory: 'breakdown', baseKey: 'breakdownTable', config: { dimension: 'ticker', metric: 'pnl', chartType: 'table' } },
 	{ id: 'customBarMA', labelKey: 'components.dashboard.templates.custom_bar_ma', category: 'advanced', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'barMA', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showBars: true, showMovingAverage: true, movingAverageWindow: 5, yAxisFormat: 'currency', crosshairType: 'cross' } },
 	{ id: 'customAreaChart', labelKey: 'components.dashboard.templates.custom_area_chart', category: 'advanced', subcategory: 'timeSeries', baseKey: 'timeSeries', config: { seriesType: 'area', metric: 'pnl', chartType: 'timeSeries', aggregation: 'week', showThreshold: true, yAxisFormat: 'currency', crosshairType: 'line' } },
@@ -136,10 +137,11 @@ export const migrateDimension = (dim: string): string => dimensionMigration[dim]
 export const getTemplateById = (id: string): ChartTemplate | undefined =>
 	chartTemplates.find(t => t.id === id)
 
-// Templates avancés groupés par sous-catégorie (breakdown vs timeSeries)
+// Templates avancés groupés par sous-catégorie (breakdown vs timeSeries vs trades)
 export const advancedTemplatesBySubcategory = {
 	breakdown: chartTemplates.filter(t => t.category === 'advanced' && t.subcategory === 'breakdown'),
 	timeSeries: chartTemplates.filter(t => t.category === 'advanced' && t.subcategory === 'timeSeries'),
+	trades: chartTemplates.filter(t => t.category === 'advanced' && t.subcategory === 'trades'),
 }
 
 // Templates de répartition groupés par sous-catégorie

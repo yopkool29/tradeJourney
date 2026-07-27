@@ -22,8 +22,23 @@
 				<!-- Templates : raccourcis pour créer un chart pré-configuré -->
 				<div class="border-t border-default pt-2">
 					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.add_chart') }}</div>
-					<UAccordion :items="chartAccordionItems" :ui="{ trigger: 'text-sm' }">
-						<template v-for="group in chartTemplateGroups" :key="group.id" #[group.id]>
+					<UAccordion :items="presetAccordionItems" :ui="{ trigger: 'text-sm' }">
+						<template v-for="group in presetTemplateGroups" :key="group.id" #[group.id]>
+							<div class="space-y-1">
+								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
+									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
+								</div>
+							</div>
+						</template>
+					</UAccordion>
+				</div>
+
+				<!-- Templates avancés -->
+				<div class="border-t border-default pt-2">
+					<div class="text-xs font-semibold text-secondary mb-2">{{ $t('components.dashboard.visibility.templates_advanced') }}</div>
+					<UAccordion :items="advancedAccordionItems" :ui="{ trigger: 'text-sm' }">
+						<template v-for="group in advancedTemplateGroups" :key="group.id" #[group.id]>
 							<div class="space-y-1">
 								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
@@ -102,19 +117,29 @@ const sectionOptions = computed<SectionOption[]>(() => [
 	{ id: 'dayStatistics', label: t('components.dashboard.sections.day_statistics') },
 ])
 
-// Items pour l'accordéon "Ajouter un chart"
+// Items pour l'accordéon "Ajouter un chart" (presets)
 type ChartTemplateGroup = { id: string; labelKey: string; templates: { id: string; labelKey: string }[] }
-const chartTemplateGroups = computed<ChartTemplateGroup[]>(() => [
+const presetTemplateGroups = computed<ChartTemplateGroup[]>(() => [
 	{ id: 'bars', labelKey: 'components.dashboard.visibility.templates_breakdown_bars', templates: breakdownTemplatesBySubcategory.bars },
 	{ id: 'scatterHeatmap', labelKey: 'components.dashboard.visibility.templates_breakdown_scatter_heatmap', templates: breakdownTemplatesBySubcategory.scatterHeatmap },
 	{ id: 'distribution', labelKey: 'components.dashboard.visibility.templates_breakdown_distribution', templates: breakdownTemplatesBySubcategory.distribution },
 	{ id: 'timeSeries', labelKey: 'components.dashboard.visibility.templates_time_series', templates: breakdownTemplatesBySubcategory.timeSeries },
-	{ id: 'advancedBreakdown', labelKey: 'components.dashboard.visibility.templates_advanced_breakdown', templates: advancedTemplatesBySubcategory.breakdown },
-	{ id: 'advancedTimeSeries', labelKey: 'components.dashboard.visibility.templates_advanced_timeseries', templates: advancedTemplatesBySubcategory.timeSeries },
 ])
 
-const chartAccordionItems = computed<AccordionItem[]>(() =>
-	chartTemplateGroups.value
+const advancedTemplateGroups = computed<ChartTemplateGroup[]>(() => [
+	{ id: 'advancedBreakdown', labelKey: 'components.dashboard.visibility.templates_advanced_breakdown', templates: advancedTemplatesBySubcategory.breakdown },
+	{ id: 'advancedTimeSeries', labelKey: 'components.dashboard.visibility.templates_advanced_timeseries', templates: advancedTemplatesBySubcategory.timeSeries },
+	{ id: 'advancedTrades', labelKey: 'components.dashboard.visibility.templates_advanced_trades', templates: advancedTemplatesBySubcategory.trades },
+])
+
+const presetAccordionItems = computed<AccordionItem[]>(() =>
+	presetTemplateGroups.value
+		.filter(g => g.templates.length > 0)
+		.map(g => ({ label: t(g.labelKey), slot: g.id })),
+)
+
+const advancedAccordionItems = computed<AccordionItem[]>(() =>
+	advancedTemplateGroups.value
 		.filter(g => g.templates.length > 0)
 		.map(g => ({ label: t(g.labelKey), slot: g.id })),
 )

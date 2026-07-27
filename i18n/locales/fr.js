@@ -624,6 +624,7 @@ export default {
                 templates_advanced: 'Personnalisé',
                 templates_advanced_breakdown: 'Breakdown',
                 templates_advanced_timeseries: 'Séries temporelles',
+                templates_advanced_trades: 'Séries / Trades',
             },
             sections: {
                 all_trades: 'Tous les trades',
