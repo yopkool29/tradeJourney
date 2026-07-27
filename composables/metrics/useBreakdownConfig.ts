@@ -136,12 +136,6 @@ export const migrateDimension = (dim: string): string => dimensionMigration[dim]
 export const getTemplateById = (id: string): ChartTemplate | undefined =>
 	chartTemplates.find(t => t.id === id)
 
-// Templates groupés par catégorie (pour le menu visibilité)
-export const templatesByCategory = {
-	breakdown: chartTemplates.filter(t => t.category === 'breakdown'),
-	advanced: chartTemplates.filter(t => t.category === 'advanced'),
-}
-
 // Templates avancés groupés par sous-catégorie (breakdown vs timeSeries)
 export const advancedTemplatesBySubcategory = {
 	breakdown: chartTemplates.filter(t => t.category === 'advanced' && t.subcategory === 'breakdown'),
