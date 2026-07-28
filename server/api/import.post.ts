@@ -165,16 +165,17 @@ const processTrades = async (
 
     if (!keepExistingTrades) {
         // Supprimer les trades existants pour les jours qui vont être réimportés
+        // tradingDays est basé sur closeDate, on supprime donc par closeDate
         for (const day of parsedTrades.accountInfo.tradingDays) {
             const startOfDay = new Date(day);
             const endOfDay = new Date(day);
             endOfDay.setDate(endOfDay.getDate() + 1);
 
-            // Supprimer directement les trades de la bonne base de données
+            // Supprimer les trades du compte clôturés ce jour-là, pour la même source d'import
             const result = await dataDb.trade.deleteMany({
                 where: {
                     accountId: account.id,
-                    openDate: {
+                    closeDate: {
                         gte: startOfDay,
                         lt: endOfDay
                     },

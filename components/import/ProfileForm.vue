@@ -38,7 +38,7 @@
             />
 
             <!-- Keep existing trades -->
-            <UFormField name="keepExistingTrades" class="select-none">
+            <UFormField name="keepExistingTrades">
                 <UCheckbox v-model="formState.keepExistingTrades" :label="$t('components.import.index.keep_existing_trades')" />
             </UFormField>
 
