@@ -10,11 +10,17 @@
         @settings-cancel="onSettingsCancel"
         @settings-apply="onSettingsApply"
     >
-        <!-- Dropdown métrique dans le header (barMA et area) -->
+        <!-- Dropdown métrique dans le header (barMA et area) + toggle scrollX -->
         <template #header-extra>
-            <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="flex items-center gap-1.5">
-                <span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
-                <USelectMenu v-model="selectedMetric" :items="metricItems" value-key="value" class="w-32" size="xs" />
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="flex items-center gap-1.5">
+                    <span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.metric') }}</span>
+                    <USelectMenu v-model="selectedMetric" :items="metricItems" value-key="value" class="w-32" size="xs" />
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-secondary">{{ $t('components.dashboard.breakdown.scroll_x') }}</span>
+                    <USwitch v-model="showScrollX" size="xs" />
+                </div>
             </div>
         </template>
         <!-- Menu settings : paramètres selon le type de chart -->
@@ -214,6 +220,11 @@ const crosshairType = computed<'cross' | 'line'>({
     set: (val: 'cross' | 'line') => updateConfig({ crosshairType: val }),
 })
 
+const showScrollX = computed<boolean>({
+    get: () => config.value.showScrollX ?? false,
+    set: (val: boolean) => updateConfig({ showScrollX: val }),
+})
+
 // --- Métriques supplémentaires dans le tooltip (barMA seulement) ---
 const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
 
@@ -350,6 +361,8 @@ const chartOption = computed<EChartsOption | undefined>(() => {
     const localeVal = locale.value as 'fr' | 'en' | 'us'
     const axisPointerConfig = getCrosshairConfig(crosshairType.value)
 
+    const scrollXEnabled = showScrollX.value
+
     // --- PnL par trade : bar chart (seriesType: 'bar') ---
     if (st === 'bar' && pnlData.value) {
         const { labels, values, trades } = pnlData.value
@@ -373,7 +386,11 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return [date ? `Date: ${date}` : '', `P&L: ${formatCurrency(val)}`, trade.account_displayName || ''].filter(Boolean).join('<br/>')
                 },
             },
-            grid,
+            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
+            dataZoom: [
+                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
+            ],
             xAxis: {
                 type: 'category',
                 data: labels,
@@ -491,7 +508,11 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
-            grid,
+            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
+            dataZoom: [
+                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
+            ],
             xAxis: {
                 type: 'value',
                 min: 0,
@@ -613,7 +634,11 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
-            grid,
+            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
+            dataZoom: [
+                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
+            ],
             xAxis: {
                 type: 'category',
                 data: labels,

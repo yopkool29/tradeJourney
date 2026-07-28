@@ -255,6 +255,8 @@ export interface TimeSeriesConfig {
 	crosshairType?: 'cross' | 'line'
 	// Métriques supplémentaires affichées dans le tooltip (barMA seulement)
 	tooltipMetrics?: BreakdownMetric[]
+	// Afficher la scrollbar horizontale (dataZoom) pour zoomer sur l'axe X
+	showScrollX?: boolean
 }
 
 export interface DashboardGridItem {
