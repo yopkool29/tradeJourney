@@ -286,18 +286,25 @@ export const useChartBuilder = () => {
 		const xAxisConfig = buildAxisConfig(xFinite, metricX, logScale)
 		const yAxisConfig = buildAxisConfig(yFinite, metricY, logScale)
 
+		// Clamp colorMetric to a finite value so points with Infinity (e.g. profitFactor
+		// when no losses) are still displayed on the chart instead of being filtered out
+		const clampColorValue = (v: number): number => {
+			if (!Number.isFinite(v)) return v > 0 ? 999 : -999
+			return v
+		}
+
 		const data = rawPoints
-			.filter(p => Number.isFinite(p.vc))
 			.map(p => ({
 				value: [
 					scaleValue(p.vx, xAxisConfig.bounds, logScale),
 					scaleValue(p.vy, yAxisConfig.bounds, logScale),
 					p.key,
-					p.vc,
+					clampColorValue(p.vc),
 					p.vx,
 					p.vy,
 				] as unknown as number[],
 			}))
+			.filter(p => Number.isFinite(p.value[0] as number) && Number.isFinite(p.value[1] as number))
 
 		const colorValues = data.map(d => d.value[3] as number)
 		const colorMin = Math.min(...colorValues, 0)
