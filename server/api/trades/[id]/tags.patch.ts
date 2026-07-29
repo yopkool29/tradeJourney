@@ -55,19 +55,19 @@ export default defineEventHandler(async (event) => {
                 }
             })
 
-            const validTagIds = userTags.map(tag => tag.id)
+            const validTagIds = new Set(userTags.map(tag => tag.id))
+            // Conserver l'ordre des tagIds envoyés par l'utilisateur
+            const orderedTagIds = tagIds.filter(id => validTagIds.has(id))
 
-            // Créer les associations pour les tags valides
-            await Promise.all(
-                validTagIds.map(tagId =>
-                    prisma.tradeTagAssociation.create({
-                        data: {
-                            tradeId,
-                            tagId
-                        }
-                    })
-                )
-            )
+            // Créer les associations pour les tags valides (séquentiellement pour préserver l'ordre)
+            for (const tagId of orderedTagIds) {
+                await prisma.tradeTagAssociation.create({
+                    data: {
+                        tradeId,
+                        tagId
+                    }
+                })
+            }
         }
 
         // Récupérer les nouvelles associations pour les renvoyer
