@@ -67,7 +67,8 @@
                     :key="group.key">
                     <DailyTradeGroup :show-table="expandedGroups[group.key]" :group-date="group.day"
                         :group-trades="[...group.trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())"
-                        :index="index" @update:show-table="(val) => { expandedGroups = { ...expandedGroups, [group.key]: val } }" />
+                        :index="index" @update:show-table="(val) => { expandedGroups = { ...expandedGroups, [group.key]: val } }"
+                        @trade-status-changed="onTradeStatusChanged" />
                 </template>
             </div>
         </div>
@@ -93,6 +94,12 @@ const { tagGroups, fetchGroups } = useTags()
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 const groupsReady = ref(false)
+
+// Force le recalcul de dayStats quand le statut d'un trade change (active/inactive)
+// displayResults est un shallowRef, donc les mutations d'objets ne déclenchent pas de re-render
+const onTradeStatusChanged = () => {
+    refreshTrigger.value++
+}
 
 const expandedGroups = shallowRef<{ [key: string]: boolean }>({})
 
@@ -269,7 +276,8 @@ const dayStats = computed(() => {
 
 // Extraction des groupes avec au moins un trade pour éviter la duplication de code
 const filteredGroups = computed(() => {
-    return Object.values(dayStats.value).filter((g) => g.trades.length > 0)
+    const showInactive = dbStateStore.dailyFilters.showInactive
+    return Object.values(dayStats.value).filter((g) => showInactive ? g.trades.length > 0 : g.count > 0)
 })
 
 const displayGroups = computed(() => {
