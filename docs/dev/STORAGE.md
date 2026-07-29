@@ -1,20 +1,27 @@
 # Storage Server
 
+Le `docker-compose.storage.yml` et la doc de déploiement complète ont été déplacés dans le repo privé `pnltracker-private-tools`.
+
+Voir : [`pnltracker-private-tools/docs/STORAGE_DEPLOY.md`](../../pnltracker-private-tools/docs/STORAGE_DEPLOY.md)
+
 ## Lancer avec Docker
 
 ```bash
+cd pnltracker-private-tools
 docker compose -f docker-compose.storage.yml up -d --build
 ```
 
 ## Arrêter
 
 ```bash
+cd pnltracker-private-tools
 docker compose -f docker-compose.storage.yml down
 ```
 
 ## Voir les logs
 
 ```bash
+cd pnltracker-private-tools
 docker compose -f docker-compose.storage.yml logs -f
 ```
 
