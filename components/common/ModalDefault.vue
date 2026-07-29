@@ -75,7 +75,12 @@ const onAfterEnter = () => {
         if (body instanceof HTMLElement) {
             scrollEl = body
             body.setAttribute('tabindex', '0')
-            body.focus({ preventScroll: true })
+            // Ne pas voler le focus si un input/textarea a déjà le focus (ex: autofocus)
+            const activeEl = document.activeElement
+            const inputHasFocus = activeEl && content.contains(activeEl) && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || (activeEl as HTMLElement).isContentEditable)
+            if (!inputHasFocus) {
+                body.focus({ preventScroll: true })
+            }
 
             keydownHandler = (e: KeyboardEvent) => {
                 if (!scrollEl) return

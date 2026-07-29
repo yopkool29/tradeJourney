@@ -131,7 +131,7 @@ export default {
         validation: {
             tag: {
                 description_min:
-                    'La description doit faire plus de 3 caractères ou être vide',
+                    'La description doit faire au moins 2 caractères ou être vide',
             },
             symbol: {
                 symbol_min: 'Le symbole est requis',

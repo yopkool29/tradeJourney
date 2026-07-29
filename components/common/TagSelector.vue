@@ -20,7 +20,7 @@
 
             <!-- Liste des groupes de tags disponibles -->
             <div v-if="localTagGroups.length > 0" class="border rounded-md p-2 max-h-64 overflow-y-auto">
-                <div v-for="group in localTagGroups" :key="group.id" class="mb-3">
+                <div v-for="group in sortedTagGroups" :key="group.id" class="mb-3">
                     <div class="font-semibold mb-1">{{ group.name }}</div>
                     <div class="flex flex-wrap gap-1">
                         <UBadge
@@ -69,6 +69,13 @@ const props = withDefaults(
 
 const localTagGroups = ref<TagGroupType[]>(props.tagGroups)
 
+const sortedTagGroups = computed<TagGroupType[]>(() => {
+    return localTagGroups.value.map(group => ({
+        ...group,
+        tags: [...group.tags].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+    }))
+})
+
 watch(() => props.tagGroups, (val) => {
     localTagGroups.value = val
 })
@@ -90,17 +97,15 @@ const emit = defineEmits<{
     'tag-removed': [tagId: number]
 }>()
 
-// Tags sélectionnés (calculés à partir des IDs, triés par ordre de groupe puis par nom)
+// Tags sélectionnés (dans l'ordre d'insertion de l'utilisateur)
 const selectedTags = computed<TagType[]>(() => {
-    const result: TagType[] = []
-    localTagGroups.value.forEach((group: TagGroupType) => {
-        group.tags.forEach((tag: TagType) => {
-            if (modelValue.value.includes(tag.id)) {
-                result.push(tag)
-            }
-        })
-    })
-    return result
+    return modelValue.value.map(id => {
+        for (const group of localTagGroups.value) {
+            const tag = group.tags.find((t: TagType) => t.id === id)
+            if (tag) return tag
+        }
+        return null
+    }).filter((tag): tag is TagType => tag !== null)
 })
 
 // Ajouter un tag

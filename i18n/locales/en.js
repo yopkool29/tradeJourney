@@ -129,7 +129,7 @@ export default {
         validation: {
             tag: {
                 description_min:
-                    'Description must be more than 3 characters or empty',
+                    'Description must be at least 2 characters or empty',
             },
             symbol: {
                 symbol_min: 'Symbol is required',

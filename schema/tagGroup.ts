@@ -4,7 +4,7 @@ import { nameFormatRefine } from './index'
 
 export const TagGroupSchema = z.object({
     id: z.number(),
-    name: nameFormatRefine(z.string().min(3).max(64)),
+    name: nameFormatRefine(z.string().min(2).max(64)),
     // name: z.string().min(3).max(64),
     tags: z.array(TagSchema).default([]),
     metadata: z.preprocess(

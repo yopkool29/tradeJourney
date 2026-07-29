@@ -36,15 +36,15 @@
 			$t('components.settings.tags.no_tags') }}
 		</div>
 		<div class="flex flex-col gap-6">
-			<div v-for="group in tagGroups" :key="group.id"
+			<div v-for="group in sortedTagGroups" :key="group.id"
 				class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
 				<div class="flex items-center justify-between mb-3">
 					<div class="form-row-lg">
 						<div class="flex items-center gap-1">
 							<UButton icon="i-lucide-chevron-up" size="md" color="neutral" variant="ghost"
-								:disabled="tagGroups.indexOf(group) === 0" @click="moveGroup(group, -1)" />
+								:disabled="sortedTagGroups.indexOf(group) === 0" @click="moveGroup(group, -1)" />
 							<UButton icon="i-lucide-chevron-down" size="md" color="neutral" variant="ghost"
-								:disabled="tagGroups.indexOf(group) === tagGroups.length - 1"
+								:disabled="sortedTagGroups.indexOf(group) === sortedTagGroups.length - 1"
 								@click="moveGroup(group, 1)" />
 						</div>
 						<span class="font-semibold text-lg">{{ group.name }}</span>
@@ -101,6 +101,7 @@
 								</div>
 							</template>
 						</CommonModalDelete>
+						<div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
 						<CommonModalDefault :ui="{ overlay: 'z-[300]', content: 'z-[301]' }"
 							:open="groupTagToAdd?.id == group.id" :title="$t('components.settings.tags.add_tag')"
 							@update:open="(open) => { if (!open) groupTagToAdd = null }">
@@ -257,6 +258,13 @@ const isDark = useIsDark()
 
 const { getTagStyle, fetchGroups: fetchGroupsBase, createGroup, updateGroup, deleteGroup, createTag, updateTag, deleteTag, reorderGroups, tagGroups } = useTags()
 
+const sortedTagGroups = computed(() => {
+	return tagGroups.value.map(group => ({
+		...group,
+		tags: [...group.tags].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+	}))
+})
+
 const isLoading = ref(false)
 
 const fetchGroups = async () => {
@@ -272,9 +280,10 @@ const { log_error } = useLogView()
 const { errorStr, successStr, displayMessage } = useAlert()
 
 const deleteAssoc = ref<boolean>(false)
+const lastDarkFgReverse = ref<boolean>(false)
 
 const getDefaultTagGroup = () => ({ name: '' })
-const getDefaultTag = () => ({ name: '', color: undefined, dark_fg_reverse: false, description: '' })
+const getDefaultTag = () => ({ name: '', color: dbStateStore.recentColors[0] || undefined, dark_fg_reverse: lastDarkFgReverse.value, description: '' })
 
 const newGroupState = ref<CreateTagGroupType>(getDefaultTagGroup())
 const editGroupStateId = ref<number | null>(null)
@@ -352,12 +361,12 @@ onMounted(async () => {
 })
 
 async function moveGroup(group: TagGroupType, direction: number) {
-	const index = tagGroups.value.indexOf(group)
+	const index = tagGroups.value.findIndex(g => g.id === group.id)
 	const newIndex = index + direction
 	if (newIndex < 0 || newIndex >= tagGroups.value.length) return
 	const reordered = [...tagGroups.value]
 	reordered.splice(index, 1)
-	reordered.splice(newIndex, 0, group)
+	reordered.splice(newIndex, 0, tagGroups.value[index])
 	tagGroups.value = reordered
 	try {
 		await reorderGroups(reordered)
@@ -389,12 +398,14 @@ async function onSubmitTag(event: FormSubmitEvent<CreateTagType | UpdateTagType>
 		if (editTagStateId.value) {
 			await updateTag(editSaveGroupStateId.value!, editTagStateId.value, event.data as UpdateTagType)
 			if (event.data.color) onColorPicked(event.data.color)
+			lastDarkFgReverse.value = event.data.dark_fg_reverse ?? false
 			displayMessage(t('components.settings.tags.tag_updated'), null)
 			await fetchGroups()
 			editTagStateId.value = null
 		} else {
 			await createTag(editSaveGroupStateId.value!, event.data as CreateTagType)
 			if (event.data.color) onColorPicked(event.data.color)
+			lastDarkFgReverse.value = event.data.dark_fg_reverse ?? false
 			displayMessage(t('components.settings.tags.tag_created'), null)
 			await fetchGroups()
 			groupTagToAdd.value = null
