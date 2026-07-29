@@ -75,11 +75,13 @@ export const createEmptyMetrics = (key: string): BreakdownMetrics => ({
 })
 
 // Récupère la valeur d'une métrique spécifique depuis un BreakdownMetrics
+// Retourne NaN pour les tags sans trades (sauf tradesCount qui retourne 0)
 export const getMetricValueForMetric = (m: BreakdownMetrics, metric: BreakdownMetric): number => {
+	if (metric !== 'tradesCount' && m.tradesCount === 0) return NaN
 	switch (metric) {
 		case 'pnl': return m.pnl
 		case 'winrate': return m.winrate
-		case 'profitFactor': return m.profitFactor === Infinity ? 999 : m.profitFactor
+		case 'profitFactor': return m.profitFactor === Infinity ? Number.MAX_SAFE_INTEGER : m.profitFactor
 		case 'avgWin': return m.avgWin
 		case 'avgLoss': return -m.avgLoss
 		case 'expectancy': return m.expectancy
@@ -87,7 +89,7 @@ export const getMetricValueForMetric = (m: BreakdownMetrics, metric: BreakdownMe
 		case 'drawdown': return m.drawdown
 		case 'currentDrawdown': return m.currentDrawdown
 		case 'tradesCount': return m.tradesCount
-		case 'appt': return m.tradesCount > 0 ? m.pnl / m.tradesCount : 0
+		case 'appt': return m.tradesCount > 0 ? m.pnl / m.tradesCount : NaN
 		default: return m.pnl
 	}
 }
@@ -167,10 +169,21 @@ export const sortMetricsByDimension = (
 	// avgLoss : la valeur retournée est -avgLoss (négative), donc le tri décroissant
 	// met la plus petite perte en premier. On inverse pour que la plus grande perte
 	// arrive en premier (utile avec le filtre Top N).
-	if (metric === 'avgLoss') {
-		return [...metrics].sort((a, b) => getMetricValueForMetric(a, metric) - getMetricValueForMetric(b, metric))
+	// NaN (pas de donnée) toujours à la fin.
+	const nanLast = (a: BreakdownMetrics, b: BreakdownMetrics, metric: BreakdownMetric, asc: boolean): number => {
+		const va = getMetricValueForMetric(a, metric)
+		const vb = getMetricValueForMetric(b, metric)
+		const aNaN = isNaN(va)
+		const bNaN = isNaN(vb)
+		if (aNaN && bNaN) return 0
+		if (aNaN) return 1
+		if (bNaN) return -1
+		return asc ? va - vb : vb - va
 	}
-	return [...metrics].sort((a, b) => getMetricValueForMetric(b, metric) - getMetricValueForMetric(a, metric))
+	if (metric === 'avgLoss') {
+		return [...metrics].sort((a, b) => nanLast(a, b, metric, true))
+	}
+	return [...metrics].sort((a, b) => nanLast(a, b, metric, false))
 }
 
 // Pour les tag groups : injecte les tags du groupe qui ont 0 trade

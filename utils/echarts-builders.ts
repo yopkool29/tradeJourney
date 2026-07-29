@@ -51,6 +51,7 @@ export interface BarDataItem {
 export interface BarSeriesConfig {
 	data: BarDataItem[]
 	barMaxWidth?: number
+	barMinHeight?: number
 	barGap?: string
 	barCategoryGap?: string
 	emphasis?: {
@@ -122,7 +123,7 @@ export const buildBarColors = (
 }
 
 export const buildBarData = (
-	values: number[],
+	values: (number | null)[],
 	colors: string[],
 	borderRadiusFn?: (v: number) => number[]
 ): BarDataItem[] => {
@@ -130,7 +131,7 @@ export const buildBarData = (
 		value: v,
 		itemStyle: {
 			color: colors[i],
-			borderRadius: borderRadiusFn ? borderRadiusFn(v) : [3, 3, 0, 0],
+			borderRadius: borderRadiusFn && v != null ? borderRadiusFn(v) : [3, 3, 0, 0],
 		},
 	}))
 }
@@ -140,6 +141,7 @@ export const buildBarSeries = (config: BarSeriesConfig): EChartsOption['series']
 		type: 'bar' as const,
 		data: config.data,
 		barMaxWidth: config.barMaxWidth ?? 32,
+		barMinHeight: config.barMinHeight ?? 1,
 		barGap: config.barGap,
 		barCategoryGap: config.barCategoryGap,
 		emphasis: config.emphasis ?? { disabled: true },

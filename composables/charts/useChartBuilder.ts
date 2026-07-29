@@ -1,4 +1,4 @@
-import type { EChartsOption } from 'echarts'
+import type { EChartsOption, SeriesOption } from 'echarts'
 import type { BreakdownMetric, BreakdownDimension, TradeProperty } from '~/type'
 import type { BreakdownMetrics, HeatmapCell2D } from '~/composables/useAnalytics'
 import type { TradeExtendedType } from '~/schema/trade'
@@ -52,6 +52,13 @@ export const useChartBuilder = () => {
 	const { buildTooltipConfig, formatDimensionLabel, formatBreakdownTooltip, sortDimensionKeys, formatScatter2DTooltip } = useChartTooltip()
 	const { t } = useI18n()
 
+	// Calcule l'interval des splitLines pour qu'elles tombent sur 0%, 12.5%, ..., 100%
+	// (9 lignes, 8 intervalles) — cohérent avec le step de computeAxisBounds
+	const splitInterval = (axisMin: number, axisMax: number): number => {
+		const range = axisMax - axisMin
+		return range / 8
+	}
+
 	const buildBarChartOption = (config: BarChartConfig): EChartsOption => {
 		const { metrics, dimension, metric, logScale, selectedTooltipMetrics, orientation, colors } = config
 
@@ -60,7 +67,8 @@ export const useChartBuilder = () => {
 		const finiteValues = rawValues.filter(v => Number.isFinite(v))
 
 		const axisConfig = buildAxisConfig(finiteValues, metric, logScale)
-		const scaledValues = rawValues.map(v => scaleValue(v, axisConfig.bounds, logScale))
+		// NaN (pas de donnée) → null (pas de bar), valeurs réelles → clamp aux bornes
+		const scaledValues = rawValues.map(v => isNaN(v) ? null : scaleValue(v, axisConfig.bounds, logScale))
 
 		const itemColors = metrics.map(m => getMetricColor(m, metric, colors))
 		const borderRadiusFn = orientation === 'horizontal'
@@ -79,6 +87,9 @@ export const useChartBuilder = () => {
 			: { left: 60, right: 16, top: 12, bottom: 60 }
 		const ctx = getChartContext(gridConfig)
 		const { base, axisColor, textColor, grid } = ctx
+
+		// Forcer l'interval des splitLines pour qu'elles tombent sur 0%, 12.5%, ..., 100%
+		const barInterval = splitInterval(axisConfig.min, axisConfig.max)
 
 		const zoomConfig = buildDataZoomConfig(
 			categories.length,
@@ -126,6 +137,7 @@ export const useChartBuilder = () => {
 				type: 'value',
 				min: axisConfig.min,
 				max: axisConfig.max,
+				interval: barInterval,
 				axisLine: { lineStyle: { color: axisColor } },
 				axisTick: { show: false },
 				axisLabel: { color: textColor, fontSize: 11, formatter: axisConfig.formatter },
@@ -153,6 +165,7 @@ export const useChartBuilder = () => {
 				type: 'value',
 				min: axisConfig.min,
 				max: axisConfig.max,
+				interval: barInterval,
 				axisLine: { lineStyle: { color: axisColor } },
 				axisTick: { show: false },
 				axisLabel: { color: textColor, fontSize: 11, formatter: axisConfig.formatter },
@@ -314,6 +327,9 @@ export const useChartBuilder = () => {
 		const dataZoom = buildScatter2DDataZoom(showScrollX, showScrollY)
 		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
+		const xInterval = splitInterval(xAxisConfig.min, xAxisConfig.max)
+		const yInterval = splitInterval(yAxisConfig.min, yAxisConfig.max)
+
 		return {
 			...base,
 			tooltip: {
@@ -360,6 +376,7 @@ export const useChartBuilder = () => {
 			xAxis: {
 				min: xAxisConfig.min,
 				max: xAxisConfig.max,
+				interval: xInterval,
 				axisLine: { lineStyle: { color: axisColor } },
 				axisTick: { show: false },
 				axisLabel: { color: textColor, fontSize: 11, formatter: xAxisConfig.formatter },
@@ -374,6 +391,7 @@ export const useChartBuilder = () => {
 				name: t(`components.dashboard.breakdown.metrics.${metricY}`),
 				min: yAxisConfig.min,
 				max: yAxisConfig.max,
+				interval: yInterval,
 				axisLine: { show: false },
 				axisTick: { show: false },
 				axisLabel: { color: textColor, fontSize: 11, formatter: yAxisConfig.formatter },
@@ -400,7 +418,7 @@ export const useChartBuilder = () => {
 					color: textColor,
 					fontSize: 12,
 				},
-			}],
+			}] as SeriesOption[],
 		}
 	}
 
@@ -446,7 +464,7 @@ export const useChartBuilder = () => {
 		}))
 
 		const ctx = getChartContext({ left: 70, right: 40, top: 50, bottom: 40 })
-		const { base, axisColor, textColor, grid } = ctx
+		const { base, axisColor, textColor, grid, isDark } = ctx
 
 		const xFinite = rawPoints.filter(p => Number.isFinite(p.vx)).map(p => p.vx)
 		const yFinite = rawPoints.filter(p => Number.isFinite(p.vy)).map(p => p.vy)
@@ -513,6 +531,7 @@ export const useChartBuilder = () => {
 				type: 'value',
 				min: xBounds.axisMin,
 				max: xBounds.axisMax,
+				interval: splitInterval(xBounds.axisMin, xBounds.axisMax),
 				name: t(`components.dashboard.breakdown.trade_property.${propX}`),
 				nameLocation: 'middle',
 				nameGap: 28,
@@ -526,6 +545,7 @@ export const useChartBuilder = () => {
 				type: 'value',
 				min: yBounds.axisMin,
 				max: yBounds.axisMax,
+				interval: splitInterval(yBounds.axisMin, yBounds.axisMax),
 				name: t(`components.dashboard.breakdown.trade_property.${propY}`),
 				nameLocation: 'middle',
 				nameGap: 50,
@@ -543,7 +563,7 @@ export const useChartBuilder = () => {
 					focus: 'series',
 					itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.3)' },
 				},
-			}],
+			}] as SeriesOption[],
 		}
 	}
 

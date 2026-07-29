@@ -205,6 +205,15 @@ export default {
             sell: 'Sell',
         },
         weekdays: {
+            narrow: {
+                sunday: 'S',
+                monday: 'M',
+                tuesday: 'T',
+                wednesday: 'W',
+                thursday: 'T',
+                friday: 'F',
+                saturday: 'S',
+            },
             short: {
                 monday: 'Mon',
                 tuesday: 'Tue',
