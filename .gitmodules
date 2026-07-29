@@ -1,3 +1,4 @@
 [submodule "pnltracker-private-tools"]
 	path = pnltracker-private-tools
-	url = https://github.com/yopkool29/pnltracker-private-tools.git
+	url = git@github.com:yopkool29/pnltracker-private-tools.git
+	branch = dev
