@@ -12,6 +12,9 @@
 .milkdown-editor  .milkdown {
     --crepe-color-outline: #555555;
     --crepe-color-primary: #1a1a1a;
+    --crepe-font-default: ui-sans-serif, system-ui, sans-serif;
+    --crepe-font-title: ui-sans-serif, system-ui, sans-serif;
+    --crepe-font-code: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 /* Styles pour le mode sombre de Milkdown */
