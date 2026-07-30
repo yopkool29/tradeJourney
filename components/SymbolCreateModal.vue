@@ -30,12 +30,19 @@
                     <UFormField name="digit" :label="$t('components.settings.tradingSymbols.digit_label')">
                         <UInput
                             v-model="newSymbolState.digit"
+                            class="w-32"
+                            type="number"
+                            min="0"
+                            max="6"
                             :placeholder="$t('components.settings.tradingSymbols.digit_placeholder')"
                         />
                     </UFormField>
                     <UFormField name="pricePerPoint" :label="$t('components.settings.tradingSymbols.price_per_point_label')">
                         <UInput
                             v-model="newSymbolState.pricePerPoint"
+                            class="w-32"
+                            type="number"
+                            step="0.01"
                             :placeholder="$t('components.settings.tradingSymbols.price_per_point_placeholder')"
                         />
                     </UFormField>
