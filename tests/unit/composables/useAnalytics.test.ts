@@ -181,9 +181,9 @@ describe('useAnalytics — calculateMetricsByDimension', () => {
 			expect(getMetricValueForMetric(m, 'winrate')).toBe(100)
 		})
 
-		it('should cap profitFactor at 999 for Infinity', () => {
+		it('should return Number.MAX_SAFE_INTEGER for Infinity profitFactor', () => {
 			const m = calculateMetricsByDimension(mockTrades, groupByTicker).find(m => m.key === 'MSFT')!
-			expect(getMetricValueForMetric(m, 'profitFactor')).toBe(999)
+			expect(getMetricValueForMetric(m, 'profitFactor')).toBe(Number.MAX_SAFE_INTEGER)
 		})
 
 		it('should return negated avgLoss', () => {
@@ -198,9 +198,9 @@ describe('useAnalytics — calculateMetricsByDimension', () => {
 			expect(getMetricValueForMetric(m, 'appt')).toBe(25)
 		})
 
-		it('should return 0 appt for 0 trades', () => {
+		it('should return NaN appt for 0 trades', () => {
 			const empty = createEmptyMetrics('test')
-			expect(getMetricValueForMetric(empty, 'appt')).toBe(0)
+			expect(getMetricValueForMetric(empty, 'appt')).toBeNaN()
 		})
 
 		it('should return tradesCount', () => {
