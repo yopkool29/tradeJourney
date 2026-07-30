@@ -132,6 +132,7 @@
                         <DailyTradeGroupTable v-if="tableVisible" :columns="columns as any" :table-data="tableData"
                             :label-columns-header="labelColumnsHeader" :show-table="showTable" :timezone-key="timezoneKey"
                             :get-tag-style="getTagStyle as any" @activate="onActivate" @deactivate="onDeactivate"
+                            @edit-trade="onEditTrade"
                             @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
                             @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
                             @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
@@ -145,6 +146,13 @@
 
         <CommonModalScreenshotCarousel :open="showScreenshots" :screenshots="currentScreenshots"
             @closed="showScreenshots = false" />
+
+        <TradeFormModal
+            :open="showEditTrade"
+            :trade="editingTrade"
+            @update:open="showEditTrade = $event"
+            @saved="onTradeSaved"
+        />
 
         <TradeDetailedNoteModal v-model:open="showDirectDetailedNote" v-model:model-value="directDetailedNote"
             :trade-id="selectedTradeForNote?.id" @close="onDirectDetailedNoteClose" />
@@ -330,6 +338,7 @@ const labelColumnsHeader = computed(() => {
         commission: t('components.common.columns.headers.commission'),
         stopLoss: t('components.common.columns.headers.stopLoss'),
         takeProfit: t('components.common.columns.headers.takeProfit'),
+        riskReward: t('components.common.columns.headers.riskReward'),
         // Index signature is added via the type assertion below
     }
 })
@@ -340,9 +349,9 @@ const columns = computed(() => {
         { id: 'symbol', accessorKey: 'symbol', header: labelColumnsHeader.value.symbol, meta: addMeta() },
         { id: 'account', accessorKey: 'account', header: labelColumnsHeader.value.account, meta: addMeta() },
         { id: 'type', accessorKey: 'type', header: labelColumnsHeader.value.type, meta: addMeta() },
-        { id: 'lot', accessorKey: 'lot', header: labelColumnsHeader.value.lot, meta: addMeta() },
         { id: 'openDate', accessorKey: 'openDate', header: labelColumnsHeader.value.openHour, meta: addMeta() },
         { id: 'closeDate', accessorKey: 'closeDate', header: labelColumnsHeader.value.closeHour, meta: addMeta() },
+        { id: 'lot', accessorKey: 'lot', header: labelColumnsHeader.value.lot, meta: addMeta() },
         { id: 'openPrice', accessorKey: 'openPrice', header: labelColumnsHeader.value.openPrice, meta: addMeta() },
         { id: 'closePrice', accessorKey: 'closePrice', header: labelColumnsHeader.value.closePrice, meta: addMeta() },
         { id: 'profit', accessorKey: 'netProfit', header: labelColumnsHeader.value.profit, meta: addMeta() },
@@ -371,6 +380,23 @@ const columns = computed(() => {
             accessorKey: 'takeProfit',
             header: labelColumnsHeader.value.takeProfit,
             meta: addMeta('w-[100px]')
+        },
+        {
+            id: 'riskReward',
+            header: labelColumnsHeader.value.riskReward,
+            cell: ({ row }: { row: { original: TradeExtendedType } }) => {
+                const metadata = row.original.metadata as Record<string, unknown> | null | undefined
+                const storedValue = metadata?.riskReward as number | undefined
+                if (storedValue === undefined || storedValue === null || storedValue === 0) return '---'
+                const value = Number(storedValue)
+                if (isNaN(value)) return '---'
+                const formatted = value.toFixed(2)
+                if (value < 0) {
+                    return h('span', { class: 'text-red-500 dark:text-red-400' }, formatted)
+                }
+                return formatted
+            },
+            meta: addMeta('w-[80px]')
         },
     ]
 })
@@ -505,6 +531,30 @@ const openTradeDetailModal = (trade: TradeExtendedType) => {
 const showDirectDetailedNote = ref(false)
 const directDetailedNote = ref('')
 const selectedTradeForNote = ref<TradeExtendedType | null>(null)
+
+const showEditTrade = ref(false)
+const editingTrade = ref<TradeExtendedType | null>(null)
+
+const onEditTrade = (trade: TradeExtendedType) => {
+    editingTrade.value = { ...trade }
+    showEditTrade.value = true
+}
+
+const onTradeSaved = async () => {
+    const savedId = editingTrade.value?.id
+    showEditTrade.value = false
+    editingTrade.value = null
+    if (savedId) {
+        const result = await fetchTrade(savedId)
+        if (result) {
+            const trade = props.groupTrades.find(t => t.id === savedId)
+            if (trade) {
+                Object.assign(trade, result)
+            }
+        }
+    }
+    emit('tradeStatusChanged', 0, true)
+}
 
 const openDirectDetailedNote = async (trade: TradeExtendedType) => {
     const { fetchTrade } = useTrades()

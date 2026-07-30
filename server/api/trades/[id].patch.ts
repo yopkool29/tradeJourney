@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
         const parsed = UpdateTradeSchema.parse(body)
 
         // Extraire l'ID et isoler les données à mettre à jour
-        const { id: _, screenshots, metadata: incomingMetadata, detailedNote, accountId, ...restData } = parsed
+        const { id: _, screenshots, metadata: incomingMetadata, detailedNote, riskReward, accountId, ...restData } = parsed
 
         // Merge metadata with existing values to avoid overwriting option fields
         const existingMetadata: Record<string, unknown> = existing.metadata
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
             : {}
 
         let mergedMetadata: Record<string, unknown> | null = null
-        if (incomingMetadata !== undefined || detailedNote !== undefined) {
+        if (incomingMetadata !== undefined || detailedNote !== undefined || riskReward !== undefined) {
             mergedMetadata = { ...existingMetadata }
             if (incomingMetadata !== undefined) {
                 Object.assign(mergedMetadata, incomingMetadata as Record<string, unknown>)
@@ -57,6 +57,9 @@ export default defineEventHandler(async (event) => {
                 } else {
                     delete mergedMetadata.detailedNote
                 }
+            }
+            if (riskReward !== undefined) {
+                mergedMetadata.riskReward = riskReward
             }
         }
 

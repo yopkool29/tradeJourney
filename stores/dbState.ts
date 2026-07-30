@@ -327,6 +327,7 @@ export const useDbStateStore = defineStore(
 							commission: false,
 							stopLoss: false,
 							takeProfit: false,
+							riskReward: true,
 						}),
 						filters: [] as TradeFilter[],
 						lastFilterColumn: 'symbol',
@@ -465,6 +466,7 @@ export const useDbStateStore = defineStore(
 						commission: false,
 						stopLoss: false,
 						takeProfit: false,
+						riskReward: true,
                         instrumentType: false,
 					}
 				}

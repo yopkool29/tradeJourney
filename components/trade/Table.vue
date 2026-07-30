@@ -3,11 +3,15 @@
         <!-- Barre de filtres avancés -->
         <UCard class="card-container-xl">
             <template #default>
-                <CommonTradeFilters :title="$t('components.trade.table.accounts.title')" slot-id="page-trade"
-                        :show-plugin-slot="true" v-model:account-ids="dbStateStore.tradeOptions.accountIds"
-                        v-model:show-inactive="dbStateStore.tradeOptions.showInactive" v-model:filters="filters"
+                <CommonTradeFilters
+                        v-model:account-ids="dbStateStore.tradeOptions.accountIds"
+                        v-model:show-inactive="dbStateStore.tradeOptions.showInactive"
+                        v-model:filters="filters"
                         v-model:show-advanced-filters="dbStateStore.tradeOptions.showAdvancedFilters"
-                        :filter-loading="filterLoading" :account-options="accountOptions"
+                        v-model:last-filter-column="dbStateStore.tradeOptions.lastFilterColumn"
+                        :title="$t('components.trade.table.accounts.title')" slot-id="page-trade"
+                        :show-plugin-slot="true"
+                        :filter_loading="filterLoading" :account-options="accountOptions"
                         :placeholder="$t('components.trade.table.accounts.placeholder')"
                         :all-label="$t('components.trade.table.accounts.all')"
                         :selected-label="$t('components.trade.table.accounts.selected', { count: dbStateStore.tradeOptions.accountIds?.length })"
@@ -15,7 +19,6 @@
                         :table="table" :label-columns-header="labelColumnsHeader"
                         :exclude-columns="['actions', 'symbol', 'type', 'profit']" column-visibility-button-class="w-36"
                         :show-inactive-checkbox="true" :tag-groups="tagGroups"
-                        v-model:last-filter-column="dbStateStore.tradeOptions.lastFilterColumn"
                         @apply="onApplyFiltersDebounced" @reset="resetFilters" />
             </template>
         </UCard>
@@ -246,6 +249,7 @@ const labelColumnsHeader = computed(() => {
         commission: t('components.common.columns.headers.commission'),
         stopLoss: t('components.common.columns.headers.stopLoss'),
         takeProfit: t('components.common.columns.headers.takeProfit'),
+        riskReward: t('components.common.columns.headers.riskReward'),
         instrumentType: t('components.common.columns.headers.instrumentType'),
         // Index signature is added via the type assertion below
     }
@@ -683,6 +687,24 @@ const columns = [
         header: () => t('components.common.columns.headers.takeProfit'),
         sortable: false,
         meta: addMeta('w-[100px]'),
+    },
+    {
+        id: 'riskReward',
+        header: () => t('components.common.columns.headers.riskReward'),
+        cell: ({ row }) => {
+            const metadata = row.original.metadata as Record<string, unknown> | null | undefined
+            const storedValue = metadata?.riskReward as number | undefined
+            if (storedValue === undefined || storedValue === null || storedValue === 0) return '---'
+            const value = Number(storedValue)
+            if (isNaN(value)) return '---'
+            const formatted = value.toFixed(2)
+            if (value < 0) {
+                return h('span', { class: 'text-red-500 dark:text-red-400' }, formatted)
+            }
+            return formatted
+        },
+        sortable: false,
+        meta: addMeta('w-[80px]'),
     },
 ]
 

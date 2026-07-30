@@ -33,8 +33,16 @@ export default defineEventHandler(async (event) => {
 
         const uniqueId = generateUniqueId("Default", body.accountId, body.symbol, body.openDate, body.closeDate)
 
-        // Extraire screenshots du body pour les formater correctement
-        const { screenshots, ...tradeData } = body
+        // Extraire screenshots et riskReward du body pour les formater correctement
+        const { screenshots, riskReward, ...tradeData } = body
+
+        // Merge riskReward into metadata
+        if (riskReward !== undefined) {
+            const existingMetadata = tradeData.metadata
+                ? (typeof tradeData.metadata === 'string' ? JSON.parse(tradeData.metadata) : tradeData.metadata)
+                : {}
+            tradeData.metadata = { ...existingMetadata, riskReward }
+        }
 
         // Créer le trade avec le format correct pour les relations Prisma
         const trade = await prisma.trade.create({

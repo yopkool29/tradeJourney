@@ -182,12 +182,15 @@ export const getColumnType = (column: string): 'number' | 'string' | 'date' => {
 
 export type TradeType = z.output<typeof TradeSchema>;
 
-export const CreateTradeSchema = TradeSchema.omit({ id: true });
+export const CreateTradeSchema = TradeSchema.omit({ id: true }).extend({
+    riskReward: z.number().min(0).max(500).optional(),
+});
 
 export type CreateTradeType = z.output<typeof CreateTradeSchema>;
 
 export const UpdateTradeSchema = TradeSchema.partial().required({ id: true }).extend({
     detailedNote: z.string().optional(),
+    riskReward: z.number().min(0).max(500).optional(),
 });
 
 export type UpdateTradeType = z.output<typeof UpdateTradeSchema>;

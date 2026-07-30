@@ -19,7 +19,11 @@
             class="trade-table custom-table-hover"
             @select="(row) => row.original.active !== false && emit('open-detail-modal', row.original)">
             <template #actionToggle-cell="{ row }">
-                <div class="action-buttons" :class="{ 'row-inactive': row.original.active === false }">
+                <div class="action-buttons px-1 py-1 rounded" :class="{ 'row-inactive': row.original.active === false }" @click.stop>
+                    <UButton icon="i-heroicons-pencil-square" size="xs" color="primary" variant="ghost"
+                            :title="$t('components.daily.trade_group.edit_trade_button')"
+                            @click="emit('edit-trade', row.original)">{{ $t('components.daily.trade_group.edit_button') }}
+                    </UButton>
                     <CommonModalDelete v-if="row.original.active === false" :from="'trade'"
                         :title="$t('components.trade.table.activate_title')"
                         :confirm-text="$t('common.actions.confirm')" confirm-color="primary"
@@ -119,6 +123,18 @@
             <template #takeProfit-cell="{ row }">
                 <span class="font-semibold">
                     {{ !row.original.takeProfit ? '---' : row.original.takeProfit.toFixed(getDigitFromSymbol(row.original.symbol, true)) }}
+                </span>
+            </template>
+            <template #riskReward-cell="{ row }">
+                <span class="font-semibold">
+                    {{ (() => {
+                        const metadata = row.original.metadata as Record<string, unknown> | null | undefined
+                        const storedValue = metadata?.riskReward as number | undefined
+                        if (storedValue === undefined || storedValue === null || storedValue === 0) return '---'
+                        const value = Number(storedValue)
+                        if (isNaN(value)) return '---'
+                        return value.toFixed(2)
+                    })() }}
                 </span>
             </template>
             <template #note-cell="{ row }">
@@ -283,6 +299,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     activate: [id: number]
     deactivate: [id: number]
+    'edit-trade': [trade: TradeExtendedType]
     'open-tag-modal': [trade: TradeExtendedType]
     'open-detail-modal': [trade: TradeExtendedType]
     'open-screenshots': [trade: TradeExtendedType]

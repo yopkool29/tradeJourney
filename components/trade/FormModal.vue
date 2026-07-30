@@ -1,5 +1,11 @@
 <template>
-    <UModal v-if="!isLoading" v-model:open="open" :dismissible="true" :title="$t('components.trade.formModal.title')" :ui="{ content: 'sm:max-w-6xl' }">
+    <UModal
+        v-if="!isLoading"
+        v-model:open="open"
+        :dismissible="true"
+        :title="$t('components.trade.formModal.title')"
+        :ui="{ content: 'sm:max-w-6xl' }"
+    >
         <template #body>
             <div class="p-4">
                 <h3 class="modal-title">
@@ -13,7 +19,12 @@
                     </div>
                     <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                     <div class="flex">
-                        <UFormField :label="$t('components.trade.formModal.account.label')" name="accountId" :help="$t('components.trade.formModal.account.help')" class="text-base">
+                        <UFormField
+                            :label="$t('components.trade.formModal.account.label')"
+                            name="accountId"
+                            :help="$t('components.trade.formModal.account.help')"
+                            class="text-base"
+                        >
                             <USelect
                                 v-model="newState.accountId"
                                 :items="accounts.map((item) => ({ value: item.id, label: item.displayName }))"
@@ -34,11 +45,7 @@
                             :label="$t('components.trade.formModal.symbol.label')"
                             name="symbol"
                             class="text-base"
-                            :error="
-                                availableSymbols.length === 0
-                                    ? $t('components.trade.formModal.symbol.no_symbols_error')
-                                    : ''
-                            "
+                            :error="availableSymbols.length === 0 ? $t('components.trade.formModal.symbol.no_symbols_error') : ''"
                         >
                             <div class="flex gap-2 items-center">
                                 <USelect
@@ -78,34 +85,108 @@
                         <UFormField :label="$t('components.trade.formModal.instrumentType.label')" name="instrumentType" class="text-base">
                             <USelect
                                 v-model="newState.instrumentType"
-                                :items="INSTRUMENT_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))"
+                                :items="INSTRUMENT_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))"
                                 class="min-w-[150px]"
                             />
                             <div class="field-help-text">{{ $t('components.trade.formModal.instrumentType.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.openPrice.label')" name="openPrice" class="text-base">
-                            <UInput v-model="newState.openPrice" :step="step" type="number" :placeholder="$t('components.trade.formModal.openPrice.placeholder')" size="lg" />
+                            <UInput
+                                v-model="newState.openPrice"
+                                :step="step"
+                                type="number"
+                                :placeholder="$t('components.trade.formModal.openPrice.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.openPrice.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.closePrice.label')" name="closePrice" class="text-base">
-                            <UInput v-model="newState.closePrice" :step="step" type="number" :placeholder="$t('components.trade.formModal.closePrice.placeholder')" size="lg" />
+                            <UInput
+                                v-model="newState.closePrice"
+                                :step="step"
+                                type="number"
+                                :placeholder="$t('components.trade.formModal.closePrice.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.closePrice.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.lot.label')" name="lot" class="text-base">
-                            <UInput v-model="newState.lot" type="number" step="0.01" :placeholder="$t('components.trade.formModal.lot.placeholder')" size="lg" />
+                            <UInput
+                                v-model="newState.lot"
+                                type="number"
+                                step="0.01"
+                                :placeholder="$t('components.trade.formModal.lot.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.lot.help') }}</div>
                         </UFormField>
-                        <UFormField :label="$t('components.trade.formModal.profit.label')" name="profit" :help="$t('components.trade.formModal.profit.help')" class="text-base">
-                            <UInput v-model="newState.profit" type="number" step="0.01" :placeholder="$t('components.trade.formModal.profit.placeholder')" size="lg" />
+                        <UFormField
+                            :label="$t('components.trade.formModal.profit.label')"
+                            name="profit"
+                            :help="$t('components.trade.formModal.profit.help')"
+                            class="text-base"
+                        >
+                            <UInput
+                                v-model="newState.profit"
+                                type="number"
+                                step="0.01"
+                                :placeholder="$t('components.trade.formModal.profit.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.profit.subhelp') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.stopLoss.label')" name="stopLoss" class="text-base">
-                            <UInput v-model="newState.stopLoss" :step="step" type="number" :placeholder="$t('components.trade.formModal.stopLoss.placeholder')" size="lg" />
+                            <UInput
+                                v-model="newState.stopLoss"
+                                :step="step"
+                                type="number"
+                                :placeholder="$t('components.trade.formModal.stopLoss.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.stopLoss.help') }}</div>
                         </UFormField>
                         <UFormField :label="$t('components.trade.formModal.takeProfit.label')" name="takeProfit" class="text-base">
-                            <UInput v-model="newState.takeProfit" :step="step" type="number" :placeholder="$t('components.trade.formModal.takeProfit.placeholder')" size="lg" />
+                            <UInput
+                                v-model="newState.takeProfit"
+                                :step="step"
+                                type="number"
+                                :placeholder="$t('components.trade.formModal.takeProfit.placeholder')"
+                                size="lg"
+                            />
                             <div class="field-help-text">{{ $t('components.trade.formModal.takeProfit.help') }}</div>
+                        </UFormField>
+                        <UFormField :label="$t('components.trade.formModal.riskReward.label')" name="riskReward" class="text-base">
+                            <div class="flex gap-1 items-center">
+                                <UInput
+                                    v-model="newState.riskReward"
+                                    type="number"
+                                    step="0.01"
+                                    max="500"
+                                    :placeholder="$t('components.trade.formModal.riskReward.placeholder')"
+                                    size="lg"
+                                    class="w-24"
+                                    :class="isRiskRewardNegative ? 'ring-2 ring-red-500 dark:ring-red-400' : ''"
+                                />
+                                <UButton
+                                    icon="i-lucide-calculator"
+                                    color="neutral"
+                                    variant="soft"
+                                    size="xs"
+                                    :disabled="!canCalculateRR"
+                                    :title="$t('components.trade.formModal.riskReward.calc_button')"
+                                    @click="calculateRR"
+                                />
+                                <UButton
+                                    icon="i-lucide-trash-2"
+                                    color="neutral"
+                                    variant="soft"
+                                    size="xs"
+                                    :disabled="!newState.riskReward"
+                                    :title="$t('components.trade.formModal.riskReward.clear_button')"
+                                    @click="clearRR"
+                                />
+                            </div>
+                            <div class="field-help-text">{{ $t('components.trade.formModal.riskReward.help') }}</div>
                         </UFormField>
                     </div>
                     <div class="screenshot-container">
@@ -117,7 +198,6 @@
             </div>
         </template>
     </UModal>
-
 </template>
 
 <script setup lang="ts">
@@ -126,6 +206,7 @@ import type { CreateTradeType, UpdateTradeType, TradeType } from '~/schema/trade
 import type { SymbolType } from '~/schema/symbol'
 import { INSTRUMENT_TYPES } from '~/schema/importProfile'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
+import { calculateRiskReward } from '~/utils/rMultiple'
 
 const { symbols: availableSymbols, fetchActiveSymbols } = useSymbols()
 const { createTrade, updateTrade } = useTrades()
@@ -135,7 +216,6 @@ const isLoading = ref(false)
 
 const { t } = useI18n()
 
-const { log_error } = useLogView()
 // Gérer la création d'un nouveau symbole
 const onSymbolCreated = async (symbol: SymbolType) => {
     displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
@@ -175,12 +255,14 @@ const getDefaultForm = () =>
         closePrice: 0,
         stopLoss: 0,
         takeProfit: 0,
-        profit: 0,  // Pour les trades manuels, profit = netProfit (commission = 0)
+        profit: 0, // Pour les trades manuels, profit = netProfit (commission = 0)
         netProfit: 0,
         instrumentType: 'any',
         commission: 0,
         exchange: 0,
         screenshotUrl: null,
+        metadata: {},
+        riskReward: undefined,
     }) as CreateTradeType
 
 const newState = ref<CreateTradeType>(getDefaultForm())
@@ -247,9 +329,44 @@ function newForm() {
     initializeScreenshots([])
 }
 
+const isRiskRewardNegative = computed(() => {
+    const value = Number(newState.value.riskReward)
+    return !isNaN(value) && value < 0
+})
+
+const canCalculateRR = computed(() => {
+    return (
+        calculateRiskReward(
+            newState.value.type as 'buy' | 'sell',
+            Number(newState.value.openPrice) || 0,
+            Number(newState.value.stopLoss) || 0,
+            Number(newState.value.takeProfit) || 0
+        ) !== null
+    )
+})
+
+function calculateRR() {
+    const calculated = calculateRiskReward(
+        newState.value.type as 'buy' | 'sell',
+        Number(newState.value.openPrice) || 0,
+        Number(newState.value.stopLoss) || 0,
+        Number(newState.value.takeProfit) || 0
+    )
+    if (calculated !== null) {
+        const value = Number(calculated.toFixed(2))
+        const capped = Math.min(value, 50)
+        newState.value.riskReward = capped < 0 ? 0 : capped
+    }
+}
+
+function clearRR() {
+    newState.value.riskReward = 0
+}
+
 function editForm(trade: TradeType) {
     errorStr.value = null
-    newState.value = { ...trade }
+    const metadata = trade.metadata as Record<string, unknown> | null | undefined
+    newState.value = { ...trade, metadata: trade.metadata ?? {}, riskReward: metadata?.riskReward as number | undefined }
     initializeScreenshotsFrom(trade)
 }
 

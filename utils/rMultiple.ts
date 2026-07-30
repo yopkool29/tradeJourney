@@ -1,5 +1,25 @@
 import { round as _round } from '~/utils'
 
+// Calcule le ratio risque/rendement depuis le TP/SL
+export const calculateRiskReward = (
+	type: 'buy' | 'sell',
+	openPrice: number,
+	stopLoss: number,
+	takeProfit: number,
+): number | null => {
+	if (!openPrice || !stopLoss || !takeProfit) return null
+	if (type === 'buy') {
+		const reward = takeProfit - openPrice
+		const risk = openPrice - stopLoss
+		if (risk === 0) return null
+		return reward / risk
+	}
+	const reward = openPrice - takeProfit
+	const risk = stopLoss - openPrice
+	if (risk === 0) return null
+	return reward / risk
+}
+
 // Trade minimal pour le calcul du R-multiple
 // Besoin de : P&L (numérateur), prix + SL + type (pour le ratio de prix)
 export interface RMultipleTrade {
@@ -9,6 +29,7 @@ export interface RMultipleTrade {
 	closePrice: number
 	stopLoss: number
 	type: 'buy' | 'sell'
+	metadata?: Record<string, unknown> | null
 }
 
 // Vérifie si le stopLoss est valide (du bon côté de l'entry, non nul)
@@ -66,6 +87,12 @@ const getAvgLossInEuros = (trades: RMultipleTrade[], useNet: boolean): number =>
 export const getRMultiple = (trade: RMultipleTrade, avgLossInEuros: number, useNet = true): number | null => {
 	const pnl = useNet ? trade.netProfit : trade.profit
 
+	// 0. R/R réalisé stocké manuellement dans metadata (priorité si > 0)
+	const storedRR = trade.metadata?.riskReward
+	if (typeof storedRR === 'number' && storedRR > 0) {
+		return storedRR
+	}
+
 	// 1. SL présent et valide → R réel
 	const rFromSL = getRMultipleFromStopLoss(trade)
 	if (rFromSL !== null) return rFromSL
@@ -92,9 +119,16 @@ export const getRMultiples = (trades: RMultipleTrade[], useNet = true): number[]
 		.filter((r): r is number => r !== null)
 }
 
-// Compte le nombre de trades avec SL valide (R réel)
+// Vérifie si un trade a un R-multiple valide (SL valide ou R/R stocké manuellement)
+const hasValidRMultiple = (trade: RMultipleTrade): boolean => {
+	if (isValidStopLoss(trade)) return true
+	const storedRR = trade.metadata?.riskReward
+	return typeof storedRR === 'number' && storedRR > 0
+}
+
+// Compte le nombre de trades avec R-multiple valide (SL valide ou R/R stocké)
 export const countTradesWithStopLoss = (trades: RMultipleTrade[]): number => {
-	return trades.filter(isValidStopLoss).length
+	return trades.filter(hasValidRMultiple).length
 }
 
 // Calcule le coverage (% de trades avec SL valide, entre 0 et 1)
