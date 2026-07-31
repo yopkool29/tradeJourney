@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { nameFormatRefine } from './index'
+import { idField, nameField } from './primitives'
 
 export const TagSchema = z.object({
-    id: z.number(),
-    name: nameFormatRefine(z.string().min(2).max(64)),
+    id: idField,
+    name: nameField(2, 64),
     // name: z.string().min(3).max(32),
     color: z.string().optional().nullable().transform((val) => val === null ? undefined : val),
     dark_fg_reverse: z.boolean().default(false),
@@ -14,7 +14,7 @@ export const TagSchema = z.object({
         }
     ),
     // ID du groupe auquel appartient le tag (pour le breakdown par groupe de tags)
-    groupId: z.number().optional(),
+    groupId: idField.optional(),
     metadata: z.preprocess(
         val => {
             if (!val) return null;

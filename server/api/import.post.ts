@@ -7,7 +7,6 @@ import { createAppError } from '../utils/errors'
 import { getImportProvider } from '../utils/import/registry'
 import { processTrades, updateSymbols } from '../utils/import/importService'
 import type { ParseContext } from '../utils/import/types'
-import type { AccountTradesWithImportName } from '../utils/standard-csv-parser'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -76,7 +75,7 @@ export default defineEventHandler(async (event: H3Event<EventHandlerRequest>) =>
 				}
 
 				// Parser le fichier avec le provider
-				const accountsTrades = provider.parse(realFile.filepath, parseContext) as AccountTradesWithImportName[] | null
+				const accountsTrades = provider.parse(realFile.filepath, parseContext)
 
 				if (!accountsTrades || accountsTrades.length === 0) {
 					throw { statusCode: 400, message: `Invalid ${provider.defaultImportName} file format. Could not find account information.` }

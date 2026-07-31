@@ -7,6 +7,13 @@ import { parseIBKRTrades } from '../ibkr-parser'
 import { parseStandardCSV } from '../standard-csv-parser'
 import type { ImportProvider } from './types'
 import type { AccountTradesWithImportName } from '../standard-csv-parser'
+import type { AccountTrades } from '../index'
+
+// Ajoute importName à chaque AccountTrades si manquant
+const withImportName = (trades: AccountTrades[] | null, importName: string): AccountTradesWithImportName[] | null => {
+	if (!trades) return null
+	return trades.map(t => ({ ...t, importName: (t as AccountTradesWithImportName).importName || importName }))
+}
 
 // Provider MT5 — format XLS, un seul compte
 const mt5Provider: ImportProvider = {
@@ -21,7 +28,7 @@ const mt5Provider: ImportProvider = {
 		const sheetName = workbook.SheetNames[0]
 		const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 }) as MT5XlsRawRow[]
 		const result = parseMT5Xls(rows, ctx.timezone, ctx.importMode, ctx.accountTimezones)
-		return result ? [result] : null
+		return result ? [{ ...result, importName: 'MT5' }] : null
 	},
 }
 
@@ -34,7 +41,8 @@ const nt8Provider: ImportProvider = {
 	multiAccount: true,
 	parse(filePath, ctx) {
 		const csvContent = readFileSync(filePath, 'utf-8')
-		return parseNTExecutions(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		const result = parseNTExecutions(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		return withImportName(result, 'NT8')
 	},
 }
 
@@ -47,7 +55,8 @@ const quantowerProvider: ImportProvider = {
 	multiAccount: true,
 	parse(filePath, ctx) {
 		const csvContent = readFileSync(filePath, 'utf-8')
-		return parseQuantowerExecutions(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		const result = parseQuantowerExecutions(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		return withImportName(result, 'Quantower')
 	},
 }
 
@@ -60,7 +69,8 @@ const ibkrProvider: ImportProvider = {
 	multiAccount: true,
 	parse(filePath, ctx) {
 		const csvContent = readFileSync(filePath, 'utf-8')
-		return parseIBKRTrades(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		const result = parseIBKRTrades(csvContent, ctx.timezone, ctx.importMode, ctx.accountTimezones)
+		return withImportName(result, 'IBKR')
 	},
 }
 

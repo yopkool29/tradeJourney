@@ -5,7 +5,6 @@ import { TradeExtendedShema, TradeSchema } from '~/schema/trade'
 export const useTrades = () => {
     const trades = ref<TradeExtendedType[]>([])
     const loading = ref(false)
-    const { log_info } = useLogView()
 
     const fetchTrades = async (params = {}, limit = 1000, showInactive = false): Promise<TradeExtendedType[]> => {
         loading.value = true

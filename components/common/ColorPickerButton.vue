@@ -47,7 +47,6 @@ const props = defineProps<{
     defaultColor?: string
 }>()
 
-const { t } = useI18n()
 const dbStateStore = useDbStateStore()
 const modelValue = defineModel<string>()
 const isOpen = ref(false)

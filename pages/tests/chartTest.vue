@@ -3,8 +3,8 @@
         <h1 class="text-2xl font-bold mb-4">Chart.js Fill Test</h1>
 
         <div class="mb-4 flex gap-2 flex-wrap">
-            <button v-for="action in actions" :key="action.name" @click="action.handler"
-                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            <button v-for="action in actions" :key="action.name" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                @click="action.handler">
                 {{ action.name }}
             </button>
         </div>
@@ -138,7 +138,7 @@ const actions = [
 ]
 
 definePageMeta({
-	middleware: (to, from) => {
+	middleware: (_to, _from) => {
 		const config = useRuntimeConfig()
 		if (!config.public.debugMode) {
 			return navigateTo('/login')

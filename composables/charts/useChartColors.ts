@@ -9,9 +9,6 @@ const monetaryMetrics: BreakdownMetric[] = ['pnl', 'appt', 'avgWin', 'avgLoss', 
 // Métriques en pourcentage : toujours >= 0 (couleur uniforme)
 const percentMetrics: BreakdownMetric[] = ['winrate']
 
-// Métriques de valeur brute : toujours >= 0 (couleur uniforme)
-const rawMetrics: BreakdownMetric[] = ['profitFactor', 'avgDuration', 'tradesCount']
-
 export const getMetricCategory = (metric: BreakdownMetric): MetricCategory => {
 	if (monetaryMetrics.includes(metric)) return 'monetary'
 	if (percentMetrics.includes(metric)) return 'percent'

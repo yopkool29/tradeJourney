@@ -1,6 +1,7 @@
 import type { ImportMode } from '~/utils/date-utils'
 import type { InstrumentType } from '~/type'
 import type { H3Event, EventHandlerRequest } from 'h3'
+import type { AccountTradesWithImportName } from '../standard-csv-parser'
 
 // Contexte passé aux providers pour parser un fichier
 export interface ParseContext {

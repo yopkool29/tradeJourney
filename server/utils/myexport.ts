@@ -6,6 +6,7 @@ import archiver from 'archiver'
 import { formatDateForFilename } from '~/utils/date-utils'
 import extract from 'extract-zip'
 import { getDataDb, validateSchemaExists } from '../utils/db'
+import type { Prisma } from '~/generated/prisma-data'
 import { getUploadPath } from "./index"
 import { createAppError } from './errors'
 import { migrateImageUrlsInContent, migrateScreenshotUrl, migrateScreenshotsDir } from './export-utils'
@@ -76,7 +77,7 @@ interface ImportData {
         instrumentType: InstrumentType
         ibkrFlexQueryToken: string | null
         ibkrFlexQueryId: string | null
-        metadata: any | null
+        metadata: Prisma.JsonValue | null
         createdAt: Date | string
         updatedAt: Date | string
         dayTags: Array<{ tagId: number }>
@@ -418,7 +419,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: group.id,
                         name: sanitizeName_1_0_0(group.name),
-                        metadata: (group as any).metadata || null,
+                        metadata: (group as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         createdAt: new Date(group.createdAt),
                         updatedAt: new Date(group.updatedAt)
                     }
@@ -435,7 +436,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         color: tag.color,
                         dark_fg_reverse: tag.dark_fg_reverse ?? false,
                         groupId: tag.groupId,
-                        metadata: (tag as any).metadata || null,
+                        metadata: (tag as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         createdAt: new Date(tag.createdAt),
                         updatedAt: new Date(tag.updatedAt)
                     }
@@ -451,7 +452,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         displayName: account.displayName || 'abcdef',
                         fullname: account.fullname,
                         aliases: account.aliases || '',
-                        metadata: (account as any).metadata || null,
+                        metadata: (account as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         createdAt: new Date(account.createdAt),
                     }
                 })
@@ -477,7 +478,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     screenshots: {
                         create: trade.screenshots.map(screenshot => ({
                             url: screenshot.url,
-                            metadata: (screenshot as any).metadata || null,
+                            metadata: (screenshot as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                             createdAt: new Date(screenshot.createdAt)
                         }))
                     }
@@ -497,7 +498,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         notes: symbol.notes,
                         aliases: symbol.aliases || '',
                         pricePerPoint: symbol.pricePerPoint ?? -1,
-                        metadata: (symbol as any).metadata || null,
+                        metadata: (symbol as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         createdAt: new Date(symbol.createdAt),
                         updatedAt: new Date(symbol.updatedAt)
                     }
@@ -510,7 +511,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: dayTag.id,
                         note: dayTag.note,
-                        metadata: (dayTag as any).metadata || null,
+                        metadata: (dayTag as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         date: new Date(dayTag.date),
                         createdAt: new Date(dayTag.createdAt),
                         updatedAt: new Date(dayTag.updatedAt),
@@ -529,7 +530,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                     data: {
                         id: note.id,
                         content: note.content,
-                        metadata: (note as any).metadata || null,
+                        metadata: (note as { metadata?: Prisma.JsonValue }).metadata || null as Prisma.InputJsonValue | null,
                         date: new Date(note.date),
                         createdAt: new Date(note.createdAt),
                         updatedAt: new Date(note.updatedAt)
@@ -550,7 +551,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                         instrumentType: profile.instrumentType || "any",
                         ibkrFlexQueryToken: profile.ibkrFlexQueryToken,
                         ibkrFlexQueryId: profile.ibkrFlexQueryId,
-                        metadata: profile.metadata || null,
+                        metadata: profile.metadata || null as Prisma.InputJsonValue | null,
                         createdAt: new Date(profile.createdAt),
                         updatedAt: new Date(profile.updatedAt),
                         dayTags: {
@@ -597,7 +598,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
                 await dataDb.$executeRawUnsafe(
                     `SELECT setval(pg_get_serial_sequence('"${table}"', 'id'), COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1, false)`
                 )
-            } catch (e) {
+            } catch {
                 // Some tables might not have a serial sequence, ignore
             }
         }

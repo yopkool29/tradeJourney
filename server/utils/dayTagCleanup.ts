@@ -1,10 +1,12 @@
+import type { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
+
 /**
  * Nettoie les DayTags et DayTagAssociations orphelins
  * - Supprime les DayTags sans trades et sans note
  * - Supprime les DayTagAssociations sans DayTag parent
  * À appeler après la suppression de trades
  */
-export async function cleanupDayTagData(prisma: any) {
+export async function cleanupDayTagData(prisma: DataPrismaClient) {
     // 1. Nettoyer les DayTags orphelins (sans trades et sans note)
     const allDayTags = await prisma.dayTag.findMany({
         select: { id: true, date: true, note: true }

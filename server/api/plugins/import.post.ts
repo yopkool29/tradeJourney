@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises'
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 import auth from '~/server/utils/auth'
 import { createAppError } from '~/server/utils/errors'

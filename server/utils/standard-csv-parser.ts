@@ -2,7 +2,7 @@ import type { AccountTrades, TradesImport, AccountInfoImport } from './index'
 import { ImportMode, parseISO8601Date } from '~/utils/date-utils'
 import { DateTime } from 'luxon'
 import { parseCSVLine } from './csv-utils'
-import { InstrumentType } from '~/type'
+import type { InstrumentType } from '~/type'
 
 export interface AccountTradesWithImportName extends AccountTrades {
     importName: string

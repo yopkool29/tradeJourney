@@ -1,4 +1,3 @@
-import type { EChartsOption } from 'echarts'
 import type { EChartsGridOption } from '~/utils/echarts-builders'
 import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
 

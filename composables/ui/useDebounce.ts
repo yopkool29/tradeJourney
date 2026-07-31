@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyFn = (...args: any[]) => any
+type AnyFn = (...args: any[]) => unknown
 
 type Options = {
 	leading?: boolean

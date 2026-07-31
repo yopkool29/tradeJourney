@@ -1,6 +1,7 @@
 import { createAppError } from '../../utils/errors'
 import { getApiContext } from '../../utils/apiHelpers'
 import { getCustomFieldValue } from '../../utils/symbolResolver'
+import type { Prisma } from '~/generated/prisma-data'
 import { CreateAccountSchema } from '~/schema/account'
 
 export default defineEventHandler(async (event) => {
@@ -44,7 +45,7 @@ export default defineEventHandler(async (event) => {
                 displayName: parsed.displayName,
                 fullname: parsed.fullname,
                 aliases,
-                ...(metadata && { metadata: metadata as any }),
+                ...(metadata && { metadata: metadata as Prisma.InputJsonValue }),
             }
         })
 

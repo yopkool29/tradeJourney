@@ -1,5 +1,6 @@
 import { migrateImageUrlsInContent, migrateScreenshotUrl } from '~/server/utils/export-utils'
 import { getApiContext } from '../../utils/apiHelpers'
+import type { Prisma } from '~/generated/prisma-data'
 
 export default defineEventHandler(async (event) => {
 	const { prisma } = await getApiContext(event)
@@ -43,7 +44,7 @@ export default defineEventHandler(async (event) => {
 				if (migratedNote && metadata && typeof metadata === 'object') {
 					await prisma.trade.update({
 						where: { id: trade.id },
-						data: { metadata: { ...metadata, detailedNote: migratedNote } as any }
+						data: { metadata: { ...metadata, detailedNote: migratedNote } as Prisma.InputJsonValue }
 					})
 				}
 			}
@@ -78,7 +79,7 @@ export default defineEventHandler(async (event) => {
 				if (!dryRun) {
 					await prisma.dailyNote.update({
 						where: { id: note.id },
-						data: { content: migratedContent as any }
+						data: { content: migratedContent as Prisma.InputJsonValue }
 					})
 				}
 

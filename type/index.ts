@@ -2,6 +2,8 @@
 // Les types principaux ont été déplacés vers les schémas Zod correspondants :
 // - TradeType -> schema/trade.ts
 // - ConfigSymbol -> schema/symbol.ts
+import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils';
+
 interface ILogView {
     onClose: () => void
     onOpen: () => void
@@ -42,7 +44,7 @@ export interface FilterColumn {
     dataType?: 'text' | 'number' | 'date' | 'select'
     operators?: string[]
     defaultOperator?: string
-    defaultValue?: any
+    defaultValue?: unknown
 }
 
 // Store types
@@ -421,8 +423,6 @@ export interface DashBoardResult {
     rMultipleCoverage: number
     rMultipleReliability: 'reliable' | 'partial' | 'approximate' | 'none'
 }
-
-import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils';
 
 // Type pour les fuseaux horaires IANA valides
 export type IANATimezone = typeof IANA_TIMEZONES[number];

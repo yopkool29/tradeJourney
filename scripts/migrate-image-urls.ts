@@ -73,7 +73,7 @@ const main = async () => {
 				if (migratedNote && metadata && typeof metadata === 'object') {
 					await prisma.trade.update({
 						where: { id: trade.id },
-						data: { metadata: { ...metadata, detailedNote: migratedNote } as any }
+						data: { metadata: { ...metadata, detailedNote: migratedNote } as unknown as Record<string, unknown> }
 					})
 				}
 				console.log(`  ✅ Trade #${trade.id} migré`)
@@ -107,7 +107,7 @@ const main = async () => {
 					await prisma.dailyNote.update({
 						where: { id: note.id },
 						data: {
-							content: migratedContent as any
+							content: migratedContent as unknown as string
 						}
 					})
 					console.log(`  ✅ Daily note ${dateStr} migrée`)

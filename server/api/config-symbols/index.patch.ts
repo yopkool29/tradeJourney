@@ -24,20 +24,21 @@ export default defineEventHandler(async (event) => {
 
         // Mettre à jour le symbole avec seulement les champs fournis (customFields n'est pas un champ Prisma)
         const { id: _, customFields: _customFields, ...updateData } = parsed.data
+        const symbolUpdateData = updateData as Prisma.ConfigSymbolUpdateInput & Record<string, unknown>
 
         // Merger customFields dans metadata côté serveur
         const customFields = body.customFields ?? null
         if (customFields) {
             const existing = await prisma.configSymbol.findUnique({ where: { id }, select: { metadata: true } })
             const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
-            updateData.aliases = getCustomFieldValue(customFields, 'aliases') ?? updateData.aliases ?? ''
-            ;(updateData as any).metadata = { ...currentMetadata, customFields }
+            symbolUpdateData.aliases = getCustomFieldValue(customFields, 'aliases') ?? symbolUpdateData.aliases ?? ''
+            symbolUpdateData.metadata = { ...currentMetadata, customFields } as Prisma.InputJsonValue
         }
 
         try {
             const symbol = await prisma.configSymbol.update({
                 where: { id },
-                data: updateData as any
+                data: symbolUpdateData
             });
 
             return symbol;

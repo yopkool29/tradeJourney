@@ -206,6 +206,10 @@ export default {
             success: 'Success',
             error: 'Error',
         },
+        modal: {
+            chart_title: 'Graphique',
+            default_title: 'Dialogue',
+        },
         trade_types: {
             buy: 'Achat',
             sell: 'Vente',
@@ -1595,6 +1599,10 @@ export default {
                     generic: 'Une erreur est survenue',
                 },
             },
+            journal: {
+                title: 'Journal — {month}',
+                empty: 'Aucun trade pour ce mois',
+            },
         },
         daily: {
             day_tag_modal: {
@@ -1660,6 +1668,8 @@ export default {
                 pnl: 'PnL',
                 week_total: 'Total Semaine',
                 total: 'Total',
+                no_trades_for_day: 'Aucun trade pour ce jour',
+                no_trades_for_week: 'Aucun trade pour cette semaine',
             },
         },
     },

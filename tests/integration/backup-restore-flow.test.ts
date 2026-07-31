@@ -43,7 +43,7 @@ describe('Database Integration - Backup Restore Flow', () => {
 	})
 
 	it('should create source database with data', async () => {
-		const { createDatabase, selectDatabase } = useDatabase()
+		const { createDatabase } = useDatabase()
 
 		// Create source database
 		sourceDbName = generateTestDbName()

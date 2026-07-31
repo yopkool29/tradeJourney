@@ -99,10 +99,12 @@ export default defineEventHandler(async (event) => {
                         }
                         const parsed = JSON.parse(jsonLine)
                         // Nettoyer le fichier temporaire
-                        try { await unlink(file.filepath) } catch {}
+                        try { await unlink(file.filepath) } catch { // ignore
+                        }
                         resolve(parsed)
                     } catch (execError: unknown) {
-                        try { await unlink(file.filepath) } catch {}
+                        try { await unlink(file.filepath) } catch { // ignore
+                        }
                         const execErr = execError as { stderr?: string; message?: string }
                         throw createError({
                             statusCode: 500,

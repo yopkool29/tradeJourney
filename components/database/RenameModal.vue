@@ -96,7 +96,7 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
 
     try {
         // Call API to rename database
-        const response = await $fetch(`/api/database/${props.database.id}/rename`, {
+        await $fetch(`/api/database/${props.database.id}/rename`, {
             method: 'PATCH',
             body: {
                 displayName: event.data.displayName,

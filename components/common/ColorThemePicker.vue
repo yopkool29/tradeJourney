@@ -19,7 +19,7 @@ type ThemeColors = Record<ThemeKey, string>
 
 const modelValue = defineModel<ThemeColors>({ required: true })
 
-const props = defineProps<{
+defineProps<{
 	label: string
 	defaultColors: ThemeColors
 }>()

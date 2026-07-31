@@ -120,6 +120,7 @@ const props = withDefaults(
     }>(),
     {
         modelValue: () => [],
+        maxScreenshots: 9,
         maxImageWidth: 96,
         maxImageHeight: 96,
         readonly: false,
@@ -178,20 +179,40 @@ const pasteFromClipboard = async () => {
     }
 }
 
-// Gestion du raccourci clavier Ctrl+V
-const handleKeyDown = (e: KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        pasteFromClipboard()
+// Événement paste natif — fonctionne sur tous les navigateurs (Firefox, Chrome, etc.)
+// navigator.clipboard.read() nécessite HTTPS + permissions explicites, l'événement paste non
+const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    for (const item of items) {
+        if (item.type.startsWith('image/')) {
+            const blob = item.getAsFile()
+            if (!blob) continue
+
+            if (sharedScreenshots.value.length >= effectiveMaxScreenshots.value) {
+                toastWarning('Limite atteinte', `Vous ne pouvez pas ajouter plus de ${effectiveMaxScreenshots.value} images`)
+                e.preventDefault()
+                return
+            }
+
+            const file = new File([blob], `screenshot-${Date.now()}.png`, { type: blob.type })
+            const url = URL.createObjectURL(file)
+            sharedScreenshots.value.push({ url, file, isNew: true })
+            toastSuccess(t('components.screenshot.manager.toast_success_title'), t('components.screenshot.manager.toast_success_desc'))
+            e.preventDefault()
+            break
+        }
     }
 }
 
 // Ajouter/retirer l'écouteur d'événements
 onMounted(() => {
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('paste', handlePaste)
 })
 
 onBeforeUnmount(() => {
-    document.removeEventListener('keydown', handleKeyDown)
+    document.removeEventListener('paste', handlePaste)
 })
 
 const openPreview = (screenshot: ScreenshotItem) => {
@@ -211,7 +232,7 @@ onMounted(() => {
 })
 
 // Initialiser le composable avec état partagé
-const { screenshots: sharedScreenshots, handleFileUpload, removeScreenshot, cleanup } = useSharedScreenshots(effectiveMaxScreenshots.value)
+const { screenshots: sharedScreenshots, handleFileUpload, removeScreenshot } = useSharedScreenshots(effectiveMaxScreenshots.value)
 
 // In readonly mode, display screenshots from modelValue; otherwise use shared state
 const screenshots = computed((): ScreenshotItem[] => {

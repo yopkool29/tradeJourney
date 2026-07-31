@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import { TagSchema } from './tag'
 import { InstrumentType } from '~/type'
+import { idField, dateField, nullableOptionalString, idArrayField } from './primitives'
 
 export const TradeSchema = z.object({
     // Champs obligatoires
-    id: z.number(),
-    openDate: (z.string().or(z.date())).transform(val => new Date(val)),
-    closeDate: (z.string().or(z.date())).transform(val => new Date(val)),
+    id: idField,
+    openDate: dateField,
+    closeDate: dateField,
     symbol: z.string().refine(val => val.length >= 1, {
         params: { i18n: 'zodI18n.validation.trade.symbol_required' }
     }),
@@ -97,9 +98,9 @@ export const TradeSchema = z.object({
     commission: z.number().optional().default(0),
     exchange: z.number().optional().default(0),
 
-    screenshotUrl: z.string().nullable().optional(), // Garder pour compatibilité
+    screenshotUrl: nullableOptionalString, // Garder pour compatibilité
     screenshots: z.array(z.object({
-        id: z.number().optional(),
+        id: idField.optional(),
         url: z.string(),
         metadata: z.preprocess(
             val => {
@@ -117,10 +118,9 @@ export const TradeSchema = z.object({
         ),
     })).optional().default([]),
 
-    note: z.string().nullable().optional(),
+    note: nullableOptionalString,
 
-    accountId: z.number()
-        .int()
+    accountId: idField
         .refine(val => val !== undefined && val !== null, {
             params: { i18n: 'zodI18n.validation.trade.account_id_required' }
         })
@@ -136,7 +136,7 @@ export const TradeSchema = z.object({
         val => val ? (typeof val === 'string' ? new Date(val) : val) : null,
         z.date().nullable().optional()
     ),
-    optionType: z.string().nullable().optional(),
+    optionType: nullableOptionalString,
     premium: z.number().nullable().optional(),
     metadata: z.preprocess(
         val => {
@@ -201,7 +201,7 @@ export type ImportTypeResult = { success: boolean, message: string, countUpdated
 export type DeleteAccountTradesResult = { message: string, count: number }
 
 export const UpdateTradeTagsSchema = z.object({
-    tagIds: z.array(z.number())
+    tagIds: idArrayField
 });
 
 export type UpdateTradeExtendedType = z.output<typeof UpdateTradeTagsSchema>;
@@ -213,9 +213,9 @@ const validateNoteOrTags = (data: { note?: string | null; tagIds?: number[] }) =
 }
 
 export const NoteTagIdsBaseSchema = z.object({
-    idTrade: z.number(),
+    idTrade: idField,
     note: z.string(),
-    tagIds: z.array(z.number())
+    tagIds: idArrayField
 })
 
 export const NoteTagIdsSchema = NoteTagIdsBaseSchema.refine(
@@ -238,8 +238,8 @@ export const TradeExtendedShema = TradeSchema.extend({
 export type TradeExtendedType = z.infer<typeof TradeExtendedShema>
 
 export const TradeTagAssociationSchema = z.object({
-    tradeId: z.number(),
-    tagId: z.number(),
+    tradeId: idField,
+    tagId: idField,
     tag: TagSchema
 })
 

@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
         }
 
         type PrismaUpdateInput = typeof restData & {
-            metadata?: any;
+            metadata?: unknown;
             screenshots?: {
                 deleteMany: Record<string, unknown>;
                 create?: Array<{ url: string }>;

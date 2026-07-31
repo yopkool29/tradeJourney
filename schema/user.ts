@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { idField } from './primitives'
 
 // Reusable theme color type for 4 themes
 const ThemeColor = z.object({
@@ -9,7 +10,7 @@ const ThemeColor = z.object({
 })
 
 export const UserSchema = z.object({
-    id: z.number(),
+    id: idField,
     email: z.string(),
     token: z.string().optional(),
     settings: z.string(),

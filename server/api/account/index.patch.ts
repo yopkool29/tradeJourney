@@ -1,6 +1,7 @@
 import { createAppError } from '../../utils/errors'
 import { getApiContext } from '../../utils/apiHelpers'
 import { getCustomFieldValue } from '../../utils/symbolResolver'
+import type { Prisma } from '~/generated/prisma-data'
 import { UpdateAccountSchema } from '~/schema/account'
 
 export default defineEventHandler(async (event) => {
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
 
         const id = parsed.id
         const { id: _, customFields: _customFields, ...updateData } = parsed
+        const accountUpdateData = updateData as Prisma.AccountUpdateInput & Record<string, unknown>
 
         // Merger startingCapital et customFields dans metadata côté serveur
         const needsMetadataUpdate = body.startingCapital !== undefined || body.customFields !== undefined
@@ -42,18 +44,18 @@ export default defineEventHandler(async (event) => {
             if (body.customFields) {
                 const aliasFromFields = getCustomFieldValue(body.customFields, 'aliases')
                 if (aliasFromFields !== null) {
-                    ;(updateData as any).aliases = aliasFromFields
+                    accountUpdateData.aliases = aliasFromFields
                 }
                 currentMetadata = { ...currentMetadata, customFields: body.customFields }
             }
 
-            ;(updateData as any).metadata = Object.keys(currentMetadata).length > 0 ? currentMetadata : null
+            accountUpdateData.metadata = Object.keys(currentMetadata).length > 0 ? currentMetadata : null
         }
 
         // Mise à jour du compte
         const updatedAccount = await prisma.account.update({
             where: { id },
-            data: updateData as any
+            data: accountUpdateData
         })
 
         return {

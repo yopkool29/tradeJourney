@@ -5,7 +5,7 @@ import { exec } from 'child_process'
 
 exec('npx tsx scripts/create-user.ts', (error, stdout, stderr) => {
     if (error) {
-        console.error(`Erreur d\'exécution : ${error.message}`)
+        console.error(`Erreur d'exécution : ${error.message}`)
         process.exit(1)
     }
     if (stderr) {

@@ -53,7 +53,7 @@ export const scaleValue = (val: number, bounds: AxisBounds, _useLog: boolean): n
 
 // inverseScaleValue : retourne la valeur réelle correspondant à une position sur l'axe
 // Avec l'approche simple, la position = la valeur réelle (pas de transformation)
-export const inverseScaleValue = (pos: number, bounds: AxisBounds, _useLog: boolean): number => {
+export const inverseScaleValue = (pos: number, _bounds: AxisBounds, _useLog: boolean): number => {
 	return pos
 }
 

@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import type { AccountTrades, TradesImport } from './index';
-import { parseNTDate, toISODate, ImportMode } from '~/utils/date-utils';
+import type { ImportMode } from '~/utils/date-utils';
+import { parseNTDate } from '~/utils/date-utils';
 
 export interface NTRawTrade {
     'Trade number': string;
@@ -35,7 +36,7 @@ export function parseNTCsv(csvContent: string): NTRawTrade[] {
     return lines.slice(1).map(line => {
         const values = line.split(';').map(v => v.trim());
         return headers.reduce((obj, header, index) => {
-            (obj as any)[header] = values[index] || '';
+            (obj as unknown as Record<string, string>)[header] = values[index] || '';
             return obj;
         }, {} as NTRawTrade);
     });
@@ -135,7 +136,6 @@ function aggregateTradeGroup(tradeGroup: TradesImport[], aggCounter: number): Tr
     let totalLot = 0;
     let totalProfit = 0;
     let totalCommission = 0;
-    let totalExchange = 0;
 
     // Utiliser les dates d'ouverture/fermeture les plus anciennes/récentes
     let earliestOpenDate = firstTrade.openDate;
@@ -146,7 +146,6 @@ function aggregateTradeGroup(tradeGroup: TradesImport[], aggCounter: number): Tr
         totalLot += trade.lot;
         totalProfit += trade.profit;
         totalCommission += trade.commission;
-        totalExchange += trade.exchange;
 
         // Mettre à jour les dates si nécessaire
         if (trade.openDate < earliestOpenDate) {

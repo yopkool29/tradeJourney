@@ -1,6 +1,6 @@
 import type { ILogView } from '~/type'
 
-type LogFunction<T> = (...input: LogArgs) => void
+type LogFunction = (...input: LogArgs) => void
 type LogArgs = (string | object | boolean | null | number | undefined)[]
 
 export const useLogView = <T extends ILogView>() => {
@@ -22,7 +22,7 @@ export const useLogView = <T extends ILogView>() => {
         return result as string[]
     }
 
-    const logFunction = (logMethod: (logView: T, message: string) => void): LogFunction<T> => {
+    const logFunction = (logMethod: (logView: T, message: string) => void): LogFunction => {
         return (...input: LogArgs) => {
             const finalStr = argsToString2Array(input).join('\n')
             const logView = getLogView()

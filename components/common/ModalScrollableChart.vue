@@ -14,7 +14,7 @@ import type { PropType } from 'vue'
 
 const modelValue = defineModel<boolean>('modelValue', { required: true })
 
-const props = defineProps({
+defineProps({
 	title: {
 		type: String,
 		required: true,

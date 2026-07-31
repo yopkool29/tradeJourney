@@ -190,7 +190,7 @@ export interface HourlyHeatmapCell {
 
 export const calculateMetricsByHour = (
 	trades: TradeExtendedType[],
-	useNet: boolean = true,
+	_useNet: boolean = true,
 	timezoneMode: 'CURRENT' | 'LOCAL' | 'UTC' = 'CURRENT',
 	timezoneLocal: string = 'Europe/Paris',
 	timezoneUtcOffset: number = 0

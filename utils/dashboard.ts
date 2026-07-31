@@ -319,8 +319,13 @@ export const groupTradesByPeriod = (
     return groupedTrades
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getSmartLabelAlign = (context: any) => {
+interface LabelContext {
+	dataset: { data: number[] }
+	dataIndex: number
+	chart: { scales: { y: { min: number; max: number } } }
+}
+
+export const getSmartLabelAlign = (context: LabelContext) => {
     const value = context.dataset.data[context.dataIndex] as number;
     const chart = context.chart;
     const yScale = chart.scales.y;
@@ -347,8 +352,7 @@ export const getSmartLabelAlign = (context: any) => {
  * @param context Le contexte du label fourni par chartjs-plugin-datalabels
  * @returns Le point d'ancrage ('start', 'end', 'center')
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getSmartLabelAnchor = (context: any) => {
+export const getSmartLabelAnchor = (context: LabelContext) => {
     const value = context.dataset.data[context.dataIndex] as number;
     const chart = context.chart;
     const yScale = chart.scales.y;

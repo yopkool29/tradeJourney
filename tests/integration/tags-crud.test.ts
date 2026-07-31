@@ -124,7 +124,7 @@ describe('Database Integration - Tags CRUD', () => {
 		}
 		await deleteTag(createdGroup.id, createdTag.id)
 		await fetchGroups()
-		const foundGroup = (await useTags().tagGroups.value).find(g => g.id === createdGroup?.id)
+		const _foundGroup = (await useTags().tagGroups.value).find(g => g.id === createdGroup?.id)
 		// Re-fetch groups properly
 		const { tagGroups } = useTags()
 		await fetchGroups()

@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import type { NoteType } from '~/schema/note'
-import { formatDateLongString, formatDateToYYYYMMDD, formatDateString } from '~/utils/date-utils'
+import { formatDateToYYYYMMDD, formatDateString } from '~/utils/date-utils'
 
 const { locale } = useI18n()
 const { fetchNoteDates } = useNotes()

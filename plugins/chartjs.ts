@@ -24,7 +24,7 @@ interface CrosshairPluginHooks {
 	afterInit?: (chart: CrosshairChart, ...args: unknown[]) => void;
 	afterEvent?: (chart: CrosshairChart, ...args: unknown[]) => void;
 	afterDraw?: (chart: CrosshairChart, ...args: unknown[]) => void;
-	beforeTooltipDraw?: (chart: CrosshairChart, ...args: unknown[]) => boolean | void;
+	beforeTooltipDraw?: (chart: CrosshairChart, ...args: unknown[]) => boolean | undefined;
 	afterDestroy?: (chart: CrosshairChart, ...args: unknown[]) => void;
 }
 

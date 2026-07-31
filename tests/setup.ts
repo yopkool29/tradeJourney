@@ -69,8 +69,8 @@ if (typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'func
 		value: {
 			getItem: (key: string) => store[key] ?? null,
 			setItem: (key: string, value: string) => { store[key] = value },
-			removeItem: (key: string) => { delete store[key] },
-			clear: () => { Object.keys(store).forEach(k => delete store[k]) },
+			removeItem: (key: string) => { Reflect.deleteProperty(store, key) },
+			clear: () => { Object.keys(store).forEach(k => Reflect.deleteProperty(store, k)) },
 			get length() { return Object.keys(store).length },
 			key: (index: number) => Object.keys(store)[index] ?? null,
 		},

@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest'
+import type { TradeType } from '~/schema/trade'
 import {
 	getWeekNumber,
 	formatDateByMode,
 	getPeriodDates,
 	groupTradesByPeriod,
 	periodTranslations,
-	periodOptions,
-	getSmartLabelAlign,
-	getSmartLabelAnchor
+	periodOptions
 } from '~/utils/dashboard'
 import {
 	generateIntradayPnlChartData,
@@ -114,25 +113,25 @@ describe('dashboard utils', () => {
 
 	describe('groupTradesByPeriod', () => {
 		it('should group trades by day', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'day', null)
+			const result = groupTradesByPeriod(mockTrades as unknown as TradeType[], 'day', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(5)
 		})
 
 		it('should group trades by week', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'week', null)
+			const result = groupTradesByPeriod(mockTrades as unknown as TradeType[], 'week', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBeGreaterThan(0)
 		})
 
 		it('should group trades by month', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'month', null)
+			const result = groupTradesByPeriod(mockTrades as unknown as TradeType[], 'month', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(1)
 		})
 
 		it('should group trades by year', () => {
-			const result = groupTradesByPeriod(mockTrades as any, 'year', null)
+			const result = groupTradesByPeriod(mockTrades as unknown as TradeType[], 'year', null)
 			expect(typeof result).toBe('object')
 			expect(Object.keys(result).length).toBe(1)
 		})
@@ -140,7 +139,7 @@ describe('dashboard utils', () => {
 
 	describe('generateIntradayPnlChartData', () => {
 		it('should return data points for trades', () => {
-			const result = generateIntradayPnlChartData(mockTrades as any) as Array<{ count: number; pnl: number; date?: Date }>
+			const result = generateIntradayPnlChartData(mockTrades as unknown as TradeType[]) as Array<{ count: number; pnl: number; date?: Date }>
 			expect(Array.isArray(result)).toBe(true)
 			expect(result.length).toBe(6) // 5 trades + initial point at 0
 			expect(result[0].pnl).toBe(0)
@@ -154,7 +153,7 @@ describe('dashboard utils', () => {
 
 	describe('generateCumulatedPnlChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateCumulatedPnlChartData(mockTrades as any, 'day', true, null)
+			const result = generateCumulatedPnlChartData(mockTrades as unknown as TradeType[], 'day', true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 			expect(Array.isArray(result.labels)).toBe(true)
@@ -171,7 +170,7 @@ describe('dashboard utils', () => {
 
 	describe('generateApptChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateApptChartData(mockTrades as any, 'day', 3, true, null)
+			const result = generateApptChartData(mockTrades as unknown as TradeType[], 'day', 3, true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 			expect(Array.isArray(result.datasets)).toBe(true)
@@ -185,7 +184,7 @@ describe('dashboard utils', () => {
 
 	describe('generatePlRatioChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generatePlRatioChartData(mockTrades as any, 'day', 3, null)
+			const result = generatePlRatioChartData(mockTrades as unknown as TradeType[], 'day', 3, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 		})
@@ -198,7 +197,7 @@ describe('dashboard utils', () => {
 
 	describe('generateWinrateChartData', () => {
 		it('should return chart data structure', () => {
-			const result = generateWinrateChartData(mockTrades as any, 'day', 3, true, null)
+			const result = generateWinrateChartData(mockTrades as unknown as TradeType[], 'day', 3, true, null)
 			expect(result).toHaveProperty('labels')
 			expect(result).toHaveProperty('datasets')
 		})

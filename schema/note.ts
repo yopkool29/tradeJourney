@@ -1,8 +1,9 @@
 import { z } from 'zod'
+import { idField, dateOrStringField } from './primitives'
 
 export const NoteSchema = z.object({
-    id: z.number(),
-    date: z.string().or(z.date()),
+    id: idField,
+    date: dateOrStringField,
     content: z.string().optional(),
     metadata: z.preprocess(
         val => {
@@ -18,8 +19,8 @@ export const NoteSchema = z.object({
         },
         z.any().nullable().optional()
     ),
-    createdAt: z.string().or(z.date()),
-    updatedAt: z.string().or(z.date()),
+    createdAt: dateOrStringField,
+    updatedAt: dateOrStringField,
 })
 
 export type NoteType = z.output<typeof NoteSchema>

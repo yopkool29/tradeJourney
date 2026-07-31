@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { nameFormatRefine } from './index'
 import { CustomFieldSchema } from './symbol'
+import { idField, dateOrStringField } from './primitives'
 
 export const AccountSchema = z.object({
-    id: z.number(),
+    id: idField,
     name: z.string().min(3).max(64),
     fullname: z.string().min(3).max(256),
     displayName: z.string().min(3).max(256),
@@ -30,7 +30,7 @@ export const AccountSchema = z.object({
         },
         z.any().nullable().optional()
     ),
-    createdAt: z.string().or(z.date()),
+    createdAt: dateOrStringField,
 })
 
 export type AccountType = z.output<typeof AccountSchema>;

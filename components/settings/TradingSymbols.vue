@@ -165,7 +165,7 @@ const columns = computed(() => {
     ]
 })
 
-const { fetchSymbols: fetchSymbolsBase, createSymbol, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
+const { fetchSymbols: fetchSymbolsBase, updateSymbol, deleteSymbol: deleteSymbol_, symbols } = useSymbols()
 
 const isLoading = ref(false)
 

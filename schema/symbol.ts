@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { idField, dateOrStringField } from './primitives'
 
 export type CustomField = { key: string; value: string }
 
@@ -12,7 +13,7 @@ const MetadataSchema = z.object({
 }).passthrough()
 
 export const SymbolSchema = z.object({
-    id: z.number(),
+    id: idField,
     symbol: z.string().min(1).transform(val => val.toUpperCase()),
     digit: z.preprocess((v) => typeof v === 'string' ? Number(v) : v, z.number().int().min(0).max(6)),
     active: z.boolean().default(true),
@@ -41,8 +42,8 @@ export const SymbolSchema = z.object({
         },
         MetadataSchema.nullable().optional()
     ),
-    createdAt: z.string().or(z.date()),
-    updatedAt: z.string().or(z.date())
+    createdAt: dateOrStringField,
+    updatedAt: dateOrStringField
 });
 
 export type SymbolType = z.output<typeof SymbolSchema>;

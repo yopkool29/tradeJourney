@@ -130,7 +130,7 @@
                 </div>
                 <div v-if="allScreenshots.length > 0" @click.stop>
                     <span class="text-secondary-sm block">{{ $t('components.common.columns.headers.screenshots') }}</span>
-                    <ScreenshotManager :model-value="allScreenshots as any" :readonly="true" :max-image-width="128" :max-image-height="128" />
+                    <ScreenshotManager :model-value="allScreenshots" :readonly="true" :max-image-width="128" :max-image-height="128" />
                 </div>
                 <div v-if="showChart" class="border-t pt-4" @click.stop>
                     <TradeChart :key="trade.id" :trade="trade" :adjacent-trades="adjacentTrades" />
@@ -193,9 +193,9 @@ const allScreenshots = computed(() => {
     if (!hasScreenshots) return []
 
     return [
-        ...screenshots,
+        ...screenshots.map((s: { id?: number; url: string }) => ({ id: s.id, url: s.url, isNew: false })),
         ...(props.trade && props.trade.screenshotUrl && !screenshots.some((s: { url: string }) => s.url === props.trade!.screenshotUrl)
-            ? [{ url: props.trade.screenshotUrl }]
+            ? [{ url: props.trade.screenshotUrl, isNew: false }]
             : []),
     ]
 })

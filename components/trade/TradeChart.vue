@@ -70,7 +70,7 @@ const loadAdjacentTrades = async () => {
         filters.push({ column: 'accountId', operator: 'in', value: selectedAccountIds })
     }
 
-    const result = await fetchTrades(filters, 500, true)
+    const result = await fetchTrades(filters, 500, false)
     chartAdjacentTrades.value = result.filter(t => t.id !== props.trade.id)
 }
 
@@ -207,6 +207,24 @@ const addTradeMarkers = (data: PolygonBar[]) => {
     priceSegments = clearPriceSegments(chart, priceSegments)
     if (entryInBounds && chart) priceSegments = addPriceSegment(chart, data, entryIdx, props.trade.openPrice, entryColor, priceSegments)
     if (exitInBounds && chart) priceSegments = addPriceSegment(chart, data, exitIdx, props.trade.closePrice, colors.exitColor, priceSegments)
+
+    // Ligne reliant l'entry à l'exit du trade principal (uniquement si trade actif)
+    if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
+    if (entryInBounds && exitInBounds && chart && props.trade.active !== false) {
+        tradeLine = chart.addSeries(LineSeries, {
+            color: colors.lineColor,
+            lineWidth: 1,
+            lineStyle: 2,
+            crosshairMarkerVisible: false,
+            lastValueVisible: false,
+            priceLineVisible: false,
+            pointMarkersVisible: false,
+        })
+        tradeLine.setData([
+            { time: entryTime, value: props.trade.openPrice },
+            { time: exitTime, value: props.trade.closePrice },
+        ])
+    }
 
     for (const adj of sortedAdjacent) {
         const adjEntryTs = Math.floor(new Date(adj.openDate).getTime() / 1000)

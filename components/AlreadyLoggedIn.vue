@@ -86,7 +86,7 @@ const onLogout = async () => {
         await logout()
         router.push('/login')
     } catch (err) {
-        const { tag, message } = catchTagMessage(err, t)
+        const { message } = catchTagMessage(err, t)
         log_error(message)
     } finally {
         isLoading.value = false

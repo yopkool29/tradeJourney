@@ -82,7 +82,6 @@ import type { CreateSymbolType, SymbolType, CustomField } from '~/schema/symbol'
 
 const { t } = useI18n()
 const { log_error } = useLogView()
-const { success: toastSuccess, error: toastError } = useAppToast()
 
 const props = defineProps<{
     symbol?: SymbolType | null
@@ -138,7 +137,7 @@ const initCustomFields = (symbol: SymbolType | null | undefined) => {
 }
 
 // Fonction pour déclencher la soumission du formulaire
-const handleSubmit = async () => {
+const _handleSubmit = async () => {
     if (formRef.value) {
         await formRef.value.submit()
     }

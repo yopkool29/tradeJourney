@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import type { AccountTrades, TradesImport } from './index';
-import { parseQuantowerDate, toISODate, ImportMode } from '~/utils/date-utils';
+import type { ImportMode } from '~/utils/date-utils';
+import { parseQuantowerDate } from '~/utils/date-utils';
 
 export interface QuantowerRawExecution {
     'Account': string;
@@ -144,7 +145,7 @@ export function parseQuantowerCsv(csvContent: string): QuantowerRawExecution[] {
         values.push(current.trim());
         
         return headers.reduce((obj, header, index) => {
-            (obj as any)[header] = values[index] || '';
+            (obj as unknown as Record<string, string>)[header] = values[index] || '';
             return obj;
         }, {} as QuantowerRawExecution);
     });
@@ -310,8 +311,6 @@ function createTrade(
     const type = closeExec['Side'] === 'Sell' ? 'buy' : 'sell' as const;
     
     // Use the quantity from the opening execution
-    const actualQuantity = Math.abs(parseNumber(openExec['Quantity']))
-    
     // Calculate profit points
     let profit_points = type === 'buy' 
         ? closePrice - openPrice 

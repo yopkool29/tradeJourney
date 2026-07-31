@@ -92,7 +92,7 @@ describe('Database Integration - Import Standard CSV', () => {
 		expect(trades.length).toBe(3)
 
 		// Sort by openDate to match CSV order (excluding the rejected open trade)
-		const sorted = trades.sort((a: any, b: any) =>
+		const sorted = trades.sort((a: { openDate: string | Date }, b: { openDate: string | Date }) =>
 			new Date(a.openDate).getTime() - new Date(b.openDate).getTime()
 		)
 
@@ -151,7 +151,7 @@ describe('Database Integration - Import Standard CSV', () => {
 		const { fetchSymbols } = useSymbols()
 		const symbols = await fetchSymbols()
 		expect(symbols.length).toBe(2)
-		const names = symbols.map((s: any) => s.symbol).sort()
+		const names = symbols.map((s: { symbol: string }) => s.symbol).sort()
 		expect(names).toEqual(['DJ30', 'GOLD'])
 	})
 })

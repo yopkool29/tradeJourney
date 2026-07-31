@@ -1,5 +1,4 @@
 import { getAuthDb } from '../../utils/db'
-import { Prisma } from '~/generated/prisma-auth'
 import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
 

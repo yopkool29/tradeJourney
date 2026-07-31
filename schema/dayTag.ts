@@ -1,10 +1,11 @@
 import { z } from 'zod'
 import { TagSchema } from './tag'
+import { idField, dateOrStringField, nullableOptionalString, idArrayField } from './primitives'
 
 export const DayTagSchema = z.object({
-    id: z.number(),
-    date: z.string().or(z.date()),
-    note: z.string().nullable().optional(),
+    id: idField,
+    date: dateOrStringField,
+    note: nullableOptionalString,
     metadata: z.preprocess(
         val => {
             if (!val) return null;
@@ -19,8 +20,8 @@ export const DayTagSchema = z.object({
         },
         z.any().nullable().optional()
     ),
-    createdAt: z.string().or(z.date()),
-    updatedAt: z.string().or(z.date()),
+    createdAt: dateOrStringField,
+    updatedAt: dateOrStringField,
     tags: z.array(TagSchema).default([]),
 })
 
@@ -33,12 +34,12 @@ const validateNoteOrTags = (data: { note?: string | null; tagIds?: number[] }) =
 }
 
 export const CreateDayTagSchema = z.object({
-    date: z.string().or(z.date()),
+    date: dateOrStringField,
     note: z.preprocess(
         (val) => val === '' ? null : val,
-        z.string().nullable().optional()
+        nullableOptionalString
     ),
-    tagIds: z.array(z.number()).default([])
+    tagIds: idArrayField.default([])
 }).refine(
     validateNoteOrTags,
     {
@@ -50,13 +51,13 @@ export const CreateDayTagSchema = z.object({
 export type CreateDayTagType = z.output<typeof CreateDayTagSchema>
 
 export const UpdateDayTagSchema = z.object({
-    id: z.number(),
+    id: idField,
     note: z.preprocess(
         (val) => val === '' ? null : val,
-        z.string().nullable().optional()
+        nullableOptionalString
     ),
-    date: z.string().or(z.date()).optional(),
-    tagIds: z.array(z.number()).default([]).optional()
+    date: dateOrStringField.optional(),
+    tagIds: idArrayField.default([]).optional()
 }).refine(
     validateNoteOrTags,
     {

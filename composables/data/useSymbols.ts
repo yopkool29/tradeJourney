@@ -4,7 +4,6 @@ import { SymbolSchema } from '~/schema/symbol'
 
 export const useSymbols = () => {
     const dataStore = useDataStore()
-    const userStore = useUserStore()
     const { currentDatabase } = useDatabase()
     const dbName = computed(() => currentDatabase.value?.name || 'default')
     const symbols = ref<SymbolType[]>(dataStore.symbolsPerDb[dbName.value] || [])

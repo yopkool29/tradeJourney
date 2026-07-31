@@ -1,4 +1,3 @@
-import type { Ref } from 'vue'
 import { decryptData } from '~/utils/decrypt'
 
 export interface StorageFile {

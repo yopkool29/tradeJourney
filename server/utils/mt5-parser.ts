@@ -1,7 +1,8 @@
 import { DateTime } from "luxon";
 import type { AccountInfoImport, AccountTrades, TradesImport } from '.';
 import { round } from "~/utils";
-import { parseMT5Date, ImportMode } from '~/utils/date-utils';
+import type { ImportMode } from '~/utils/date-utils';
+import { parseMT5Date } from '~/utils/date-utils';
 
 export type MT5XlsRawRow = [
     openTime: string,      // "Time" (date/heure d'ouverture)

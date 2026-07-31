@@ -6,7 +6,7 @@
                 @click="goBack" />
         </div>
 
-        <UTabs :orientation="isMobile ? 'vertical' : 'horizontal'" v-model="active" :items="items"
+        <UTabs v-model="active" :orientation="isMobile ? 'vertical' : 'horizontal'" :items="items"
             class="w-full md:w-4xl" :ui="{ list: 'items-start', trigger: ['cursor-pointer', 'justify-start', 'w-full'] }" />
         <div class="mt-6">
             <KeepAlive :include="whitelistedViews">

@@ -37,23 +37,6 @@ const base64ToBytes = (text: string): number[] | null => {
   }
 }
 
-const bytesToBase64 = (bytes: number[]): string => {
-  const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-  let result = ''
-  for (let i = 0; i < bytes.length; i += 3) {
-    const b1 = bytes[i]
-    const b2 = bytes[i + 1] ?? 0
-    const b3 = bytes[i + 2] ?? 0
-    
-    const n = (b1 << 16) | (b2 << 8) | b3
-    result += base64Chars[(n >> 18) & 63]
-    result += base64Chars[(n >> 12) & 63]
-    result += (i + 1 < bytes.length) ? base64Chars[(n >> 6) & 63] : '='
-    result += (i + 2 < bytes.length) ? base64Chars[n & 63] : '='
-  }
-  return result
-}
-
 export const decodeBase64 = (text: string): string | null => {
   const bytes = base64ToBytes(text)
   if (!bytes) return null

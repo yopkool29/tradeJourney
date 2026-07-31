@@ -6,7 +6,7 @@
                     <div class="cursor-pointer" @click="() => { displayTitle ? showTable = !showTable : null}">
                         <div v-if="displayTitle" class="flex items-center gap-2">
                             <div class="section-title-semibold">
-                                {{ groupDate ? formatDateLongString(groupDate, locale as any, true) : '' }}
+                                {{ groupDate ? formatDateLongString(groupDate, locale as 'fr' | 'en' | 'us', true) : '' }}
                             </div>
                             <div v-if="totalScreenshots > 0" class="stat-item items-center gap-1">
                                 <UIcon name="i-heroicons-photo" class="w-4 h-4 text-primary-500" />

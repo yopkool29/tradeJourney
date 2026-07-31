@@ -260,8 +260,6 @@ watch(() => userStore.user, (newUser) => {
 
 const isDevMode = computed(() => import.meta.env.DEV)
 
-const isDark = useIsDark()
-
 const themeIcon = computed(() => {
     switch (colorMode.value) {
         case 'dark': return 'i-heroicons-moon'
