@@ -262,15 +262,14 @@
 </template>
 
 <script setup lang="ts">
-import type { EChartsOption } from 'echarts'
-import type { BreakdownConfig, BreakdownDimension, BreakdownMetric } from '~/type'
-import type { TimezoneSettings } from '~/composables/useAnalytics'
-import { dimensionOptions, metricOptions, defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
-import { getGroupFn, calculateMetricsBy2Dimensions } from '~/composables/useAnalytics'
-import { useTooltipMetrics } from '~/composables/useTooltipMetrics'
+import type { BreakdownConfig } from '~/type'
+import type { TimezoneSettings } from '~/composables/analytics/useAnalytics'
+import { migrateDimension } from '~/composables/dashboard/useBreakdownConfig'
+import { useBreakdownWidgetControls } from '~/composables/dashboard/useBreakdownWidgetControls'
+import { useTooltipMetrics } from '~/composables/charts/useTooltipMetrics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { useChartBuilder } from '~/composables/charts/useChartBuilder'
 import { useMetricsCalculation } from '~/composables/charts/useMetricsCalculation'
+import { useBreakdownChartOptions } from '~/composables/charts/useBreakdownChartOptions'
 
 const props = defineProps<{
 	itemId: string
@@ -299,12 +298,9 @@ const config = computed(() => {
 })
 const { t } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
-const isDark = useIsDark()
-const { profitColor, lossColor, barColor, rawMetricColor, heatmapColors, scatter2DColors } = useTypeColors('timeSeriesChart')
 const dataStore = useDataStore()
 const dbStateStore = useDbStateStore()
 const userStore = useUserStore()
-const { buildBarChartOption, buildScatterChartOption, buildScatter2DChartOption, buildScatterTradesChartOption, buildHeatmapChartOption, buildBoxplotChartOption, buildRadarChartOption } = useChartBuilder()
 const { calculateMetrics } = useMetricsCalculation()
 
 // Tous les trades (pour scatterTrades)
@@ -321,143 +317,33 @@ const timezoneSettings = computed<TimezoneSettings | undefined>(() => {
 	}
 })
 
-// Items pour les select menus (avec labels traduits + tag groups dynamiques)
-const dimensionItems = computed(() => {
-	const fixed = dimensionOptions.map(d => ({ value: d.value, label: t(d.labelKey) }))
-	// Ajoute dynamiquement une dimension par tag group
-	const tagGroups = dbStateStore.tagGroups || []
-	const tagGroupItems = tagGroups.map(g => ({
-		value: `tagGroup_${g.name}`,
-		label: `${t('components.dashboard.breakdown.dimensions.tag')}: ${g.name}`,
-	}))
-	return [...fixed, ...tagGroupItems]
-})
-const metricItems = computed(() =>
-	metricOptions.map(m => ({ value: m.value, label: t(m.labelKey) }))
-)
-
-// Options topN (réactif aux changements de langue)
-const topNOptions = computed(() => [
-	{ value: 0, label: t('components.dashboard.breakdown.all') },
-	{ value: 50, label: '50' },
-	{ value: 40, label: '40' },
-	{ value: 30, label: '30' },
-	{ value: 20, label: '20' },
-	{ value: 15, label: '15' },
-	{ value: 10, label: '10' },
-])
-
-// v-model wrappers qui persistent la config
-const selectedDimension = computed({
-	get: () => config.value.dimension,
-	set: (val: BreakdownDimension) => setDimension(val),
-})
-
-// Deuxième dimension pour la heatmap (axe Y)
-const selectedDimension2 = computed<BreakdownDimension>({
-	get: () => config.value.dimension2 ?? 'dayOfWeekOpen',
-	set: (val: BreakdownDimension) => updateConfig({ dimension2: val }),
-})
-
-// Dimensions disponibles pour la heatmap
-const heatmapDimensionItems = computed(() => {
-	const fixed = dimensionOptions.map(d => ({ value: d.value, label: t(d.labelKey) }))
-	const tagGroups = dbStateStore.tagGroups || []
-	const tagGroupItems = tagGroups.map(g => ({
-		value: `tagGroup_${g.name}`,
-		label: `${t('components.dashboard.breakdown.dimensions.tag')}: ${g.name}`,
-	}))
-	return [...fixed, ...tagGroupItems]
-})
-
-const selectedMetric = computed({
-	get: () => config.value.metric,
-	set: (val: BreakdownMetric) => setMetric(val),
-})
-
-// Scatter 2D : métrique axe Y
-const selectedMetric2 = computed({
-	get: () => config.value.metric2 ?? 'profitFactor',
-	set: (val: BreakdownMetric) => updateConfig({ metric2: val }),
-})
-
-// Scatter 2D : métrique couleur (visualMap)
-const selectedColorMetric = computed({
-	get: () => config.value.colorMetric ?? 'tradesCount',
-	set: (val: BreakdownMetric) => updateConfig({ colorMetric: val }),
-})
-
-// Scatter 2D : affichage des scrollbars X et Y
-const showScrollX = computed({
-	get: () => config.value.showScrollX ?? true,
-	set: (val: boolean) => updateConfig({ showScrollX: val }),
-})
-const showScrollY = computed({
-	get: () => config.value.showScrollY ?? true,
-	set: (val: boolean) => updateConfig({ showScrollY: val }),
-})
-// Scatter 2D : afficher le label de la dimension au-dessus de chaque point
-const showLabels = computed({
-	get: () => config.value.showLabels ?? true,
-	set: (val: boolean) => updateConfig({ showLabels: val }),
-})
-
-// Scatter 2D : échelle logarithmique (true) ou linéaire (false)
-const logScale = computed({
-	get: () => config.value.logScale ?? false,
-	set: (val: boolean) => updateConfig({ logScale: val }),
-})
-
-// scatterTrades : propriété du trade sur l'axe X
-const selectedTradePropertyX = computed({
-	get: () => config.value.tradePropertyX ?? 'duration',
-	set: (val: TradeProperty) => updateConfig({ tradePropertyX: val }),
-})
-
-// scatterTrades : propriété du trade sur l'axe Y
-const selectedTradePropertyY = computed({
-	get: () => config.value.tradePropertyY ?? 'pnl',
-	set: (val: TradeProperty) => updateConfig({ tradePropertyY: val }),
-})
-
-// scatterTrades : filtre par ticker (null = tous)
-const selectedTickerFilter = computed({
-	get: () => config.value.tickerFilter ?? null,
-	set: (val: string | null) => updateConfig({ tickerFilter: val }),
-})
-
-// scatterTrades : items pour le sélecteur de propriétés de trade
-const tradePropertyItems = [
-	{ label: t('components.dashboard.breakdown.trade_property.duration'), value: 'duration' },
-	{ label: t('components.dashboard.breakdown.trade_property.pnl'), value: 'pnl' },
-	{ label: t('components.dashboard.breakdown.trade_property.mfe'), value: 'mfe' },
-	{ label: t('components.dashboard.breakdown.trade_property.mae'), value: 'mae' },
-]
-
-// scatterTrades : items pour le filtre ticker (tous + 1 par ticker unique)
-const tickerFilterItems = computed(() => {
-	const tickers = new Set<string>()
-	for (const tr of allTrades.value) {
-		if (tr.symbol) tickers.add(tr.symbol)
-	}
-	return [
-		{ label: t('components.dashboard.breakdown.all_tickers'), value: null },
-		...[...tickers].sort().map(tk => ({ label: tk, value: tk })),
-	]
-})
-
-const selectedTopN = computed({
-	get: () => config.value.filter?.topN ?? 0,
-	set: (val: number) => {
-		const newFilter = { ...(config.value.filter || {}), topN: val || undefined }
-		updateConfig({ filter: newFilter })
-	},
-})
-
-// Colonnes affichées par la table (multi-select)
-const selectedColumns = computed<BreakdownMetric[]>({
-	get: () => config.value.columns ?? defaultTableColumns,
-	set: (val: BreakdownMetric[]) => updateConfig({ columns: val }),
+const {
+	dimensionItems,
+	heatmapDimensionItems,
+	metricItems,
+	topNOptions,
+	selectedDimension,
+	selectedDimension2,
+	selectedMetric,
+	selectedMetric2,
+	selectedColorMetric,
+	showScrollX,
+	showScrollY,
+	showLabels,
+	logScale,
+	selectedTradePropertyX,
+	selectedTradePropertyY,
+	selectedTickerFilter,
+	tradePropertyItems,
+	tickerFilterItems,
+	selectedTopN,
+	selectedColumns,
+} = useBreakdownWidgetControls({
+	config,
+	setDimension,
+	setMetric,
+	updateConfig,
+	allTrades,
 })
 
 // Métriques supplémentaires affichées dans le tooltip (bar/scatter)
@@ -466,7 +352,6 @@ const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config
 // Titre du chart
 const chartTitle = computed(() => {
 	const dim = config.value?.dimension || 'ticker'
-	// Label de la dimension : traduit pour les dimensions fixes, "Tag: <group>" pour les tag groups
 	let dimLabel: string
 	if (isTagGroupDimension(dim)) {
 		const groupName = getTagGroupName(dim) || ''
@@ -482,9 +367,6 @@ const chartTitle = computed(() => {
 	return `${metricLabel} ${t('components.dashboard.breakdown.by')} ${dimLabel}`
 })
 
-// Génère les lignes de tooltip pour les métriques supplémentaires sélectionnées
-// (évite les doublons avec la métrique principale et les lignes déjà affichées)
-// Si isEmpty=true, affiche les labels avec valeurs vides sauf tradesCount qui affiche 0
 const allMetrics = computed(() => {
 	const trades = dataStore.lastTrades || []
 	if (!trades.length) return []
@@ -495,35 +377,8 @@ const allMetrics = computed(() => {
 	})
 })
 
-// Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
-const formatDimensionLabel = (dimension: BreakdownDimension, key: string): string => {
-	if (dimension === 'dayOfWeekOpen' || dimension === 'dayOfWeekClose') {
-		const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-		const idx = parseInt(key, 10)
-		if (idx >= 0 && idx <= 6) return t(`common.weekdays.long.${dayKeys[idx]}`)
-		return key
-	}
-	if (dimension === 'monthOpen' || dimension === 'monthClose') {
-		const idx = parseInt(key, 10)
-		if (idx >= 0 && idx <= 11) return t(`common.months.long.${idx}`)
-		return key
-	}
-	if (dimension === 'monthYearOpen' || dimension === 'monthYearClose') {
-		// Format 'YYYY-MM' → 'Mois Année'
-		const [year, monthNum] = key.split('-')
-		const monthIdx = parseInt(monthNum, 10) - 1
-		if (monthIdx >= 0 && monthIdx <= 11) {
-			return `${t(`common.months.long.${monthIdx}`)} ${year}`
-		}
-		return key
-	}
-	// ticker, tag, side, hourStart, hourEnd : clé brute
-	return key
-}
-
 const filteredMetrics = computed(() => {
 	let metrics = allMetrics.value
-	// avgLoss/avgWin : masquer les groupes sans trade correspondant (valeur 0 n'a pas de sens)
 	if (config.value.metric === 'avgLoss') {
 		metrics = metrics.filter(m => m.losingTradesCount > 0)
 	} else if (config.value.metric === 'avgWin') {
@@ -531,7 +386,6 @@ const filteredMetrics = computed(() => {
 	}
 	const topN = config.value.filter?.topN
 	if (!topN || topN <= 0) return metrics
-	// TopN prend les N premiers après le tri (pas de re-tri)
 	return metrics.slice(0, topN)
 })
 
@@ -541,229 +395,13 @@ const modalHeightClass = computed(() => {
 	return filteredMetrics.value.length > 10 ? 'h-[300px] sm:h-[700px]' : undefined
 })
 
-const barChartOption = computed<EChartsOption>(() => {
-	return buildBarChartOption({
-		metrics: filteredMetrics.value,
-		dimension: config.value.dimension,
-		metric: config.value.metric,
-		logScale: logScale.value,
-		selectedTooltipMetrics: selectedTooltipMetrics.value,
-		orientation: 'horizontal',
-		colors: {
-			profit: profitColor.value,
-			loss: lossColor.value,
-			bar: barColor.value,
-			rawMetric: rawMetricColor.value,
-		},
-	})
-})
-
-const barVerticalChartOption = computed<EChartsOption>(() => {
-	return buildBarChartOption({
-		metrics: filteredMetrics.value,
-		dimension: config.value.dimension,
-		metric: config.value.metric,
-		logScale: logScale.value,
-		selectedTooltipMetrics: selectedTooltipMetrics.value,
-		orientation: 'vertical',
-		colors: {
-			profit: profitColor.value,
-			loss: lossColor.value,
-			bar: barColor.value,
-			rawMetric: rawMetricColor.value,
-		},
-	})
-})
-
-const scatterChartOption = computed<EChartsOption>(() => {
-	return buildScatterChartOption({
-		metrics: filteredMetrics.value,
-		dimension: config.value.dimension,
-		metric: config.value.metric,
-		selectedTooltipMetrics: selectedTooltipMetrics.value,
-		colors: {
-			profit: profitColor.value,
-			loss: lossColor.value,
-			bar: barColor.value,
-			rawMetric: rawMetricColor.value,
-		},
-		isDark: isDark.value,
-	})
-})
-
-const scatter2DChartOption = computed<EChartsOption>(() => {
-	return buildScatter2DChartOption({
-		metrics: filteredMetrics.value,
-		dimension: config.value.dimension,
-		metricX: config.value.metric,
-		metricY: config.value.metric2 ?? 'profitFactor',
-		colorMetric: config.value.colorMetric ?? 'tradesCount',
-		logScale: logScale.value,
-		selectedTooltipMetrics: selectedTooltipMetrics.value,
-		showScrollX: config.value.showScrollX ?? true,
-		showScrollY: config.value.showScrollY ?? true,
-		showLabels: config.value.showLabels ?? true,
-		scatter2DColors: scatter2DColors.value,
-		isDark: isDark.value,
-	})
-})
-
-const scatterTradesChartOption = computed<EChartsOption>(() => {
-	const tickerFilter = config.value.tickerFilter ?? null
-	const trades = tickerFilter
-		? allTrades.value.filter(tr => tr.symbol === tickerFilter)
-		: allTrades.value
-
-	return buildScatterTradesChartOption({
-		trades,
-		propX: config.value.tradePropertyX ?? 'duration',
-		propY: config.value.tradePropertyY ?? 'pnl',
-		logScale: logScale.value,
-		showScrollX: config.value.showScrollX ?? false,
-		showScrollY: config.value.showScrollY ?? false,
-		profitColor: profitColor.value,
-		lossColor: lossColor.value,
-		displayModeNet: displayModeNet.value,
-	})
-})
-
-// --- Heatmap chart option (2D générique : dimension X × dimension Y) ---
-const heatmap2DCells = computed(() => {
-	if (chartType.value !== 'heatmap') return []
-	const trades = dataStore.lastTrades || []
-	if (!trades.length) return []
-	const tagGroups = dbStateStore.tagGroups || []
-	const tz = timezoneSettings.value
-	const dimX = config.value.dimension
-	const dimY = config.value.dimension2 ?? 'dayOfWeekOpen'
-	const groupFnX = getGroupFn(dimX, tagGroups, tz)
-	const groupFnY = getGroupFn(dimY, tagGroups, tz)
-	return calculateMetricsBy2Dimensions(trades, groupFnX, groupFnY, displayModeNet.value)
-})
-
-const heatmapChartOption = computed<EChartsOption>(() => {
-	return buildHeatmapChartOption({
-		cells: heatmap2DCells.value,
-		dimensionX: config.value.dimension,
-		dimensionY: config.value.dimension2 ?? 'dayOfWeekOpen',
-		metric: config.value.metric,
-		selectedTooltipMetrics: selectedTooltipMetrics.value,
-		heatmapColors: heatmapColors.value,
-		isDark: isDark.value,
-	})
-})
-
-// --- Boxplot chart option (distribution de la métrique par dimension) ---
-// Affiche la distribution des valeurs individuelles (P&L par trade) pour chaque groupe
-const boxplotData = computed(() => {
-	const trades = dataStore.lastTrades || []
-	if (!trades.length) return { categories: [] as string[], data: [] as number[][], rawTrades: [] as number[][] }
-	const tagGroups = dbStateStore.tagGroups || []
-	const dim = config.value.dimension
-	const groupFn = getGroupFn(dim, tagGroups, timezoneSettings.value)
-	// Grouper les trades bruts par dimension
-	const groups = new Map<string, number[]>()
-	for (const trade of trades) {
-		const key = groupFn(trade)
-		if (key === null || key === undefined) continue
-		const val = displayModeNet.value ? trade.netProfit : trade.profit
-		// Pour les métriques non-PnL, on garde le PnL comme valeur de distribution
-		// (le boxplot montre la distribution des trades, pas la métrique agrégée)
-		if (!groups.has(key)) groups.set(key, [])
-		groups.get(key)!.push(val)
-	}
-	// Trier les groupes selon la même logique que sortedMetrics
-	const sortedKeys = [...groups.keys()].sort((a, b) => {
-		const sa = String(a), sb = String(b)
-		if (dim === 'hourStart' || dim === 'hourEnd') return parseInt(sa) - parseInt(sb)
-		if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') return parseInt(sa) - parseInt(sb)
-		if (dim === 'monthOpen' || dim === 'monthClose') return parseInt(sa) - parseInt(sb)
-		return sa.localeCompare(sb)
-	})
-	// Appliquer le topN
-	const topN = config.value.filter?.topN
-	const limitedKeys = (!topN || topN <= 0) ? sortedKeys : sortedKeys.slice(0, topN)
-	const categories = limitedKeys.map(k => formatDimensionLabel(dim, String(k)))
-	const data = limitedKeys.map(k => {
-		const vals = groups.get(k) || []
-		if (!vals.length) return [0, 0, 0, 0, 0]
-		const sorted = [...vals].sort((a, b) => a - b)
-		const q = (p: number) => {
-			const idx = p * (sorted.length - 1)
-			const lo = Math.floor(idx)
-			const hi = Math.ceil(idx)
-			if (lo === hi) return sorted[lo]
-			return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo)
-		}
-		return [sorted[0], q(0.25), q(0.5), q(0.75), sorted[sorted.length - 1]]
-	})
-	const rawTrades = limitedKeys.map(k => groups.get(k) || [])
-	return { categories, data, rawTrades }
-})
-
-const boxplotChartOption = computed<EChartsOption>(() => {
-	const { categories, data, rawTrades } = boxplotData.value
-	return buildBoxplotChartOption({
-		categories,
-		data,
-		rawTrades,
-		barColor: barColor.value,
-		isDark: isDark.value,
-	})
-})
-
-// --- Radar chart option (profil de performance multi-axes) ---
-// Compare plusieurs dimensions sur des axes normalisés (0-100)
-const radarMetrics = computed(() => {
-	const metrics = filteredMetrics.value
-	if (!metrics.length) return { indicators: [] as { name: string, max: number }[], values: [] as number[][], names: [] as string[] }
-	const dim = config.value.dimension
-	// Pour chaque groupe, on calcule un profil normalisé sur plusieurs métriques
-	// Axes : Winrate, Profit Factor, Expectancy, P&L, Trades Count
-	const maxPF = Math.max(...metrics.map(m => m.profitFactor || 0), 1)
-	const maxExp = Math.max(...metrics.map(m => Math.abs(m.appt || 0)), 1)
-	const maxPnl = Math.max(...metrics.map(m => Math.abs(m.pnl || 0)), 1)
-	const maxCount = Math.max(...metrics.map(m => m.tradesCount || 0), 1)
-	// Top 8 pour la lisibilité du radar
-	const limited = metrics.slice(0, 8)
-	const names = limited.map(m => formatDimensionLabel(dim, m.key))
-	const indicators = [
-		{ name: t('components.dashboard.breakdown.metrics.winrate'), max: 100 },
-		{ name: t('components.dashboard.breakdown.metrics.profitFactor'), max: maxPF },
-		{ name: t('components.dashboard.breakdown.metrics.expectancy'), max: maxExp },
-		{ name: t('components.dashboard.breakdown.metrics.pnl'), max: maxPnl },
-		{ name: t('components.dashboard.breakdown.metrics.tradesCount'), max: maxCount },
-	]
-	const values = limited.map(m => [
-		m.winrate || 0,
-		m.profitFactor || 0,
-		m.appt || 0,
-		m.pnl || 0,
-		m.tradesCount || 0,
-	])
-	return { indicators, values, names }
-})
-
-const radarChartOption = computed<EChartsOption>(() => {
-	const { indicators, values, names } = radarMetrics.value
-	return buildRadarChartOption({
-		indicators,
-		values,
-		names,
-		isDark: isDark.value,
-	})
-})
-
-// Chart option finale selon le type
-const chartOption = computed<EChartsOption | undefined>(() => {
-	if (chartType.value === 'bar') return barChartOption.value
-	if (chartType.value === 'barVertical') return barVerticalChartOption.value
-	if (chartType.value === 'scatter') return scatterChartOption.value
-	if (chartType.value === 'scatter2D') return scatter2DChartOption.value
-	if (chartType.value === 'scatterTrades') return scatterTradesChartOption.value
-	if (chartType.value === 'heatmap') return heatmapChartOption.value
-	if (chartType.value === 'boxplot') return boxplotChartOption.value
-	if (chartType.value === 'radar') return radarChartOption.value
-	return undefined
-})
+const { chartOption } = useBreakdownChartOptions(
+	config,
+	chartType,
+	filteredMetrics,
+	allTrades,
+	timezoneSettings,
+	selectedTooltipMetrics,
+	logScale,
+)
 </script>

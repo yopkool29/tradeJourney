@@ -1,22 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    const prisma = await getPrisma(event)
     try {
+        const { prisma } = await getApiContext(event)
 
-        const accountId = Number(event.context.params?.id)
-
-        // Vérification de l'ID du compte
-        if (!accountId || isNaN(accountId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid account ID',
-                tag: 'api.account.delete.invalid_id'
-            })
-        }
+        const accountId = getValidatedId(event, 'id', 'api.account.delete.invalid_id')
 
         // Vérifier s'il y a des trades associés
         const tradeCount = await prisma.trade.count({

@@ -12,8 +12,8 @@
         </template>
         <template #content>
             <UForm
-                ref="formRef"
                 id="createSymbolFormQuick"
+                ref="formRef"
                 :state="newSymbolState"
                 :schema="CreateSymbolSchema"
                 :validate-on="['change', 'input']"
@@ -95,7 +95,8 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
-const formRef = ref<any>(null)
+type FormRef = { submit: () => Promise<void> | void }
+const formRef = ref<FormRef | null>(null)
 
 const getDefaultSymbol = () => ({ 
     symbol: '', 

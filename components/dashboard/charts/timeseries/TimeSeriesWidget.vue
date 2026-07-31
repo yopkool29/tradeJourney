@@ -4,7 +4,6 @@
         :enlarged-title="chartTitle + ' (enlarged)'"
         :chart-option="chartOption"
         :loading="loading"
-        :modal-height-class="modalHeightClass"
         :subtitle="aggregationLabel"
         @settings-open="onSettingsOpen"
         @settings-cancel="onSettingsCancel"
@@ -79,17 +78,18 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import type { TimeSeriesConfig, TimeSeriesAggregation, BreakdownMetric } from '~/type'
-import { calculateMetricsByDimension, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
-import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
-import { buildTooltipLines, useTooltipMetrics } from '~/composables/useTooltipMetrics'
+import type { BreakdownMetric } from '~/type'
+import { calculateMetricsByDimension } from '~/composables/analytics/useAnalytics'
+import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import { buildTooltipLines, useTooltipMetrics } from '~/composables/charts/useTooltipMetrics'
 import { buildBarData, buildBarSeries, buildLineSeries, buildBarColors } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams, EChartsAreaStyle } from '~/utils/echarts-builders'
-import { chartColors, isMonetaryMetric } from '~/composables/useChartColors'
+import { chartColors, isMonetaryMetric } from '~/composables/charts/useChartColors'
 import { colorToRgba } from '~/utils/color-utils'
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
 import type { TradeExtendedType } from '~/schema/trade'
+import { useTimeSeriesConfig } from '~/composables/charts/useTimeSeriesConfig'
 
 const props = defineProps<{
     itemId: string
@@ -97,8 +97,6 @@ const props = defineProps<{
     startingCapital?: number | null
 }>()
 
-// Récupère la config depuis breakdownConfigs (même mécanisme que BreakdownWidget)
-const { activeWorkspace, updateActiveWorkspace } = useDashboardWorkspace()
 const { t, locale } = useI18n()
 const { displayModeNet } = useNetGrossDisplay()
 const { formatCurrency } = useUtils()
@@ -110,142 +108,19 @@ const { getGroupedTrades } = useAggregationCache()
 const pnlColors = useTypeColors('pnlBarChart')
 const timeSeriesColors = useTypeColors('timeSeriesChart')
 
-const config = computed<TimeSeriesConfig>(() => {
-    const configs = activeWorkspace.value?.breakdownConfigs || {}
-    return (
-        (configs[props.itemId] as TimeSeriesConfig) || {
-            seriesType: 'bar',
-            metric: 'pnl',
-            chartType: 'timeSeries',
-            maxTrades: 50,
-            yAxisFormat: 'currency',
-        }
-    )
-})
-
-const updateConfig = (partial: Partial<TimeSeriesConfig>) => {
-    const configs = { ...(activeWorkspace.value?.breakdownConfigs || {}) }
-    configs[props.itemId] = { ...config.value, ...partial } as TimeSeriesConfig
-    updateActiveWorkspace({ breakdownConfigs: configs } as never)
-}
-
-// Snapshot de la config pour Cancel/Apply dans le popover settings
-// Pour aggregation, showBars, showMovingAverage : on utilise un draft local
-// qui ne se sync à la config qu'au moment de l'apply (pas en live)
-let configSnapshot: TimeSeriesConfig | null = null
-const draftAggregation = ref<AggregationMode>('week')
-const draftShowBars = ref(true)
-const draftShowMovingAverage = ref(true)
-
-const onSettingsOpen = () => {
-    configSnapshot = { ...config.value } as TimeSeriesConfig
-    // Initialise les drafts avec les valeurs actuelles
-    draftAggregation.value = (config.value.aggregation as AggregationMode) ?? 'week'
-    draftShowBars.value = config.value.showBars ?? true
-    draftShowMovingAverage.value = config.value.showMovingAverage ?? true
-}
-const onSettingsCancel = () => {
-    if (configSnapshot) updateConfig(configSnapshot)
-    configSnapshot = null
-}
-const onSettingsApply = () => {
-    // Applique les drafts à la config
-    updateConfig({
-        aggregation: draftAggregation.value as TimeSeriesAggregation,
-        showBars: draftShowBars.value,
-        showMovingAverage: draftShowMovingAverage.value,
-    })
-    configSnapshot = null
-}
-
-// --- Dropdown métrique dans le header ---
-// En area : pnl → "P&L cumulé" ; les autres restent inchangés
-const metricItems = computed(() => {
-    const isArea = config.value.seriesType === 'area'
-    return metricOptions.map((m) => {
-        if (isArea && m.value === 'pnl') return { value: m.value, label: t('components.dashboard.cumulated_pnl_chart.title') }
-        return { value: m.value, label: t(m.labelKey) }
-    })
-})
-
-const selectedMetric = computed<BreakdownMetric>({
-    get: () => config.value.metric,
-    set: (val: BreakdownMetric) => updateConfig({ metric: val }),
-})
-
-// --- Options pour les selects ---
-type AggregationMode = 'day' | 'week' | 'month'
-
-const aggregationOptions = computed(() => [
-    { label: t('components.dashboard.index.by_day'), value: 'day' },
-    { label: t('components.dashboard.index.by_week'), value: 'week' },
-    { label: t('components.dashboard.index.by_month'), value: 'month' },
-])
-
-const maxTradesOptions = [
-    { label: '20', value: 20 },
-    { label: '50', value: 50 },
-    { label: '100', value: 100 },
-    { label: '200', value: 200 },
-]
-
-// --- v-model wrappers ---
-const aggregation = computed<AggregationMode>({
-    get: () => (config.value.aggregation as AggregationMode) ?? 'week',
-    set: (val: AggregationMode) => updateConfig({ aggregation: val as TimeSeriesAggregation }),
-})
-
-const maxTrades = computed<number>({
-    get: () => config.value.maxTrades ?? 50,
-    set: (val: number) => updateConfig({ maxTrades: val }),
-})
-
-const showBars = computed<boolean>({
-    get: () => config.value.showBars ?? true,
-    set: (val: boolean) => updateConfig({ showBars: val }),
-})
-
-const showMovingAverage = computed<boolean>({
-    get: () => config.value.showMovingAverage ?? true,
-    set: (val: boolean) => updateConfig({ showMovingAverage: val }),
-})
-
-const showThreshold = computed<boolean>({
-    get: () => config.value.showThreshold ?? true,
-    set: (val: boolean) => updateConfig({ showThreshold: val }),
-})
-
-const crosshairType = computed<'cross' | 'line'>({
-    get: () => config.value.crosshairType ?? 'cross',
-    set: (val: 'cross' | 'line') => updateConfig({ crosshairType: val }),
-})
-
-const showScrollX = computed<boolean>({
-    get: () => config.value.showScrollX ?? false,
-    set: (val: boolean) => updateConfig({ showScrollX: val }),
-})
+const {
+    config, updateConfig,
+    draftAggregation, draftShowBars, draftShowMovingAverage,
+    onSettingsOpen, onSettingsCancel, onSettingsApply,
+    metricItems, selectedMetric,
+    aggregationOptions, maxTradesOptions,
+    aggregation, maxTrades, showBars, showMovingAverage,
+    showThreshold, crosshairType, showScrollX,
+    chartTitle, aggregationLabel,
+} = useTimeSeriesConfig(props.itemId)
 
 // --- Métriques supplémentaires dans le tooltip (barMA seulement) ---
 const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
-
-// --- Titre ---
-const chartTitle = computed(() => {
-    const st = config.value.seriesType
-    if (st === 'bar') return t('components.dashboard.pnl_bar_chart.title')
-    // area et barMA : titre basé sur la métrique
-    const m = config.value.metric
-    const opt = metricOptions.find((o) => o.value === m)
-    return opt ? t(opt.labelKey) : t('components.dashboard.appt_chart.title')
-})
-
-const modalHeightClass = computed(() => undefined)
-
-// --- Subtitle (label d'agrégation) ---
-const aggregationLabel = computed(() => {
-    if (config.value.seriesType === 'bar') return undefined
-    const opt = aggregationOptions.value.find((o) => o.value === aggregation.value)
-    return opt?.label ?? ''
-})
 
 // --- Formatage axe Y (utilise le même formatage que les breakdowns) ---
 const yAxisFormatter = computed<(v: number) => string>(() => {
@@ -275,83 +150,67 @@ const pnlData = computed(() => {
     }
 })
 
-// --- Données cumulées (seriesType: 'area') ---
-// --- Données area chart (seriesType: 'area') ---
+const getPeriodMetrics = () => {
+    const trades: TradeExtendedType[] = dataStore.lastTrades || []
+    if (!trades.length) return null
+    const grouped = getGroupedTrades(aggregation.value)
+    const metric = config.value.metric
+    const labels: string[] = []
+    const values: number[] = []
+    const allMetrics: BreakdownMetrics[] = []
+    for (const key of Object.keys(grouped).sort()) {
+        const groupTrades = grouped[key]
+        if (!groupTrades?.length) continue
+        labels.push(key)
+        const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], displayModeNet.value)[0]
+        values.push(metrics ? getMetricValueForMetric(metrics, metric) : 0)
+        allMetrics.push(metrics || ({} as BreakdownMetrics))
+    }
+    return { labels, values, allMetrics }
+}
+
 // Cumul uniquement pour pnl, valeur brute pour les autres métriques
 const shouldCumulate = computed(() => config.value.metric === 'pnl')
 const cumulatedData = computed(() => {
     if (config.value.seriesType !== 'area') return null
-    const trades = dataStore.lastTrades || []
-    if (!trades.length) return null
-    const mode = aggregation.value
-    const grouped = getGroupedTrades(mode)
-    const useNet = displayModeNet.value
-    const metric = config.value.metric
-    // Calcule la métrique pour chaque période
-    const sortedKeys = Object.keys(grouped).sort()
-    const labels: string[] = []
-    const periodValues: number[] = []
-    const allMetrics: BreakdownMetrics[] = []
-    for (const key of sortedKeys) {
-        const groupTrades = grouped[key]
-        if (!groupTrades || groupTrades.length === 0) continue
-        labels.push(key)
-        const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
-        periodValues.push(metrics ? getMetricValueForMetric(metrics, metric) : 0)
-        allMetrics.push(metrics || ({} as BreakdownMetrics))
-    }
-    // Cumul si pnl ou appt, sinon valeur brute
+    const periodMetrics = getPeriodMetrics()
+    if (!periodMetrics) return null
     const values = shouldCumulate.value
-        ? periodValues.reduce((acc: number[], v) => {
-              acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + v)
-              return acc
-          }, [])
-        : periodValues
-    return { labels, values, allMetrics }
+        ? periodMetrics.values.reduce<number[]>((acc, value) => [...acc, (acc[acc.length - 1] || 0) + value], [])
+        : periodMetrics.values
+    return { ...periodMetrics, values }
 })
 
-// --- Données agrégées par période (seriesType: 'barMA') ---
-// Utilise calculateMetricsByDimension avec un groupFn par période pour calculer n'importe quelle métrique
 const periodMetricsData = computed(() => {
     if (config.value.seriesType !== 'barMA') return null
-    const trades: TradeExtendedType[] = dataStore.lastTrades || []
-    if (!trades.length) return null
-    const mode = aggregation.value
-    const grouped = getGroupedTrades(mode)
-    const useNet = displayModeNet.value
-    // Calcule les métriques pour chaque groupe de période
-    const labels: string[] = []
-    const values: number[] = []
-    const allMetrics: BreakdownMetrics[] = []
-    const metric = config.value.metric
-    // Trie les clés de période par ordre chronologique
-    const sortedKeys = Object.keys(grouped).sort()
-    for (const key of sortedKeys) {
-        const groupTrades = grouped[key]
-        if (!groupTrades || groupTrades.length === 0) continue
-        labels.push(key)
-        // Calcule la métrique pour ce groupe via calculateMetricsByDimension
-        const metrics = calculateMetricsByDimension(groupTrades as TradeExtendedType[], () => ['all'], useNet)[0]
-        if (!metrics) {
-            values.push(0)
-            allMetrics.push({} as BreakdownMetrics)
-            continue
-        }
-        values.push(getMetricValueForMetric(metrics, metric))
-        allMetrics.push(metrics)
-    }
-    // Calcule la moyenne mobile
+    const periodMetrics = getPeriodMetrics()
+    if (!periodMetrics) return null
     const maWindow = config.value.movingAverageWindow ?? 5
-    const maValues: number[] = []
-    for (let i = 0; i < values.length; i++) {
-        const start = Math.max(0, i - maWindow + 1)
-        const window = values.slice(start, i + 1)
-        maValues.push(window.reduce((a, b) => a + b, 0) / window.length)
-    }
-    return { labels, values, maValues, allMetrics }
+    const maValues = periodMetrics.values.map((_, index, values) => {
+        const window = values.slice(Math.max(0, index - maWindow + 1), index + 1)
+        return window.reduce((sum, value) => sum + value, 0) / window.length
+    })
+    return { ...periodMetrics, maValues }
 })
 
 // --- Chart option ---
+const createCategoryAxis = (labels: string[], rotate: number, axisColor: string, textColor: string, interval: number | 'auto' = 0) => ({
+    type: 'category' as const,
+    data: labels,
+    axisLine: { lineStyle: { color: axisColor } },
+    axisTick: { show: false },
+    axisLabel: { color: textColor, fontSize: 11, interval, rotate },
+    splitLine: { show: false },
+})
+
+const createValueAxis = (yFmt: (value: number) => string, axisColor: string, textColor: string) => ({
+    type: 'value' as const,
+    axisLine: { lineStyle: { color: axisColor } },
+    axisTick: { show: false },
+    axisLabel: { color: textColor, fontSize: 11, formatter: yFmt },
+    splitLine: { lineStyle: { color: axisColor } },
+})
+
 const { getChartContext, getCrosshairConfig, buildTooltip } = useEchartsChartOption()
 const chartOption = computed<EChartsOption | undefined>(() => {
     const st = config.value.seriesType
@@ -362,6 +221,11 @@ const chartOption = computed<EChartsOption | undefined>(() => {
     const axisPointerConfig = getCrosshairConfig(crosshairType.value)
 
     const scrollXEnabled = showScrollX.value
+    const chartGrid = scrollXEnabled ? { ...grid, bottom: 40 } : grid
+    const dataZoom = [
+        { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
+        { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
+    ]
 
     // --- PnL par trade : bar chart (seriesType: 'bar') ---
     if (st === 'bar' && pnlData.value) {
@@ -386,26 +250,10 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return [date ? `Date: ${date}` : '', `P&L: ${formatCurrency(val)}`, trade.account_displayName || ''].filter(Boolean).join('<br/>')
                 },
             },
-            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
-            dataZoom: [
-                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
-            ],
-            xAxis: {
-                type: 'category',
-                data: labels,
-                axisLine: { lineStyle: { color: axisColor } },
-                axisTick: { show: false },
-                axisLabel: { color: textColor, fontSize: 11, interval: 0, rotate: labels.length > 30 ? 45 : 0 },
-                splitLine: { show: false },
-            },
-            yAxis: {
-                type: 'value',
-                axisLine: { lineStyle: { color: axisColor } },
-                axisTick: { show: false },
-                axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
-                splitLine: { lineStyle: { color: axisColor } },
-            },
+            grid: chartGrid,
+            dataZoom,
+            xAxis: createCategoryAxis(labels, labels.length > 30 ? 45 : 0, axisColor, textColor, labels.length > 30 ? 'auto' : 0),
+            yAxis: createValueAxis(yFmt, axisColor, textColor),
             series,
         }
     }
@@ -508,11 +356,8 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
-            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
-            dataZoom: [
-                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
-            ],
+            grid: chartGrid,
+            dataZoom,
             xAxis: {
                 type: 'value',
                 min: 0,
@@ -634,27 +479,14 @@ const chartOption = computed<EChartsOption | undefined>(() => {
                     return buildTooltipLines('', primaryLines, periodMetrics, new Set([metric]), selectedTooltipMetrics.value, t)
                 },
             },
-            grid: scrollXEnabled ? { ...grid, bottom: 40 } : grid,
-            dataZoom: [
-                { type: 'inside' as const, xAxisIndex: 0, filterMode: 'filter', start: 0, end: 100, moveOnMouseWheel: 'shift', zoomOnMouseWheel: false },
-                { type: 'slider' as const, xAxisIndex: 0, show: scrollXEnabled, start: 0, end: 100, height: 20, bottom: 5, filterMode: 'filter' },
-            ],
-            xAxis: {
-                type: 'category',
-                data: labels,
-                axisLine: { lineStyle: { color: axisColor } },
-                axisTick: { show: false },
-                axisLabel: { color: textColor, fontSize: 11, rotate: labels.length > 12 ? 30 : 0 },
-                splitLine: { show: false },
-            },
+            grid: chartGrid,
+            dataZoom,
+            xAxis: createCategoryAxis(labels, labels.length > 12 ? 30 : 0, axisColor, textColor, labels.length > 20 ? 'auto' : 0),
             yAxis: {
-                type: 'value',
+                ...createValueAxis(yFmt, axisColor, textColor),
                 min: yMin,
                 max: yMax,
                 axisLine: { show: false },
-                axisTick: { show: false },
-                axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => yFmt(v) },
-                splitLine: { lineStyle: { color: axisColor } },
             },
             series,
         }

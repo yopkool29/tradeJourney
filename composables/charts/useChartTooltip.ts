@@ -1,8 +1,8 @@
 import type { EChartsOption } from 'echarts'
 import type { BreakdownMetric, BreakdownDimension } from '~/type'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
-import { formatMetricValueForMetric } from '~/composables/useAnalytics'
-import { buildTooltipLines } from '~/composables/useTooltipMetrics'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import { formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
+import { buildTooltipLines } from '~/composables/charts/useTooltipMetrics'
 
 export interface TooltipConfig {
 	backgroundColor: string
@@ -107,8 +107,25 @@ export const useChartTooltip = () => {
 		})
 	}
 
+	// Build the full tooltip option object with standard styling.
+	// `formatter` is the chart-specific formatter; `trigger` defaults to 'item'.
+	const buildTooltipBlock = (formatter: EChartsOption['tooltip']['formatter'], trigger: 'axis' | 'item' = 'item'): EChartsOption['tooltip'] => {
+		const cfg = buildTooltipConfig({ trigger })
+		return {
+			backgroundColor: cfg.backgroundColor,
+			borderColor: cfg.borderColor,
+			textStyle: { color: cfg.textColor, fontSize: 13 },
+			appendTo: document.body,
+			className: 'echarts-custom-tooltip',
+			trigger,
+			...(trigger === 'axis' ? { axisPointer: { type: 'line', lineStyle: { type: 'dashed' } } } : {}),
+			formatter: formatter as EChartsOption['tooltip']['formatter'],
+		}
+	}
+
 	return {
 		buildTooltipConfig,
+		buildTooltipBlock,
 		formatDimensionLabel,
 		formatBreakdownTooltip,
 		formatScatter2DTooltip,

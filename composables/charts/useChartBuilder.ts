@@ -1,11 +1,12 @@
 import type { EChartsOption, SeriesOption } from 'echarts'
 import type { BreakdownMetric, BreakdownDimension, TradeProperty } from '~/type'
-import type { BreakdownMetrics, HeatmapCell2D } from '~/composables/useAnalytics'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import type { HeatmapCell2D } from '~/composables/analytics/useAnalytics'
 import type { TradeExtendedType } from '~/schema/trade'
-import { getMetricValueForMetric, getMetricColor, formatMetricValueForMetric } from '~/composables/useAnalytics'
+import { getMetricValueForMetric, getMetricColor, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams } from '~/utils/echarts-builders'
-import { buildTooltipLines } from '~/composables/useTooltipMetrics'
+import { buildTooltipLines } from '~/composables/charts/useTooltipMetrics'
 import { useChartAxis } from './useChartAxis'
 import { useChartTooltip } from './useChartTooltip'
 
@@ -49,7 +50,7 @@ const getRawMetricValue = (m: BreakdownMetrics, metric: BreakdownMetric): number
 export const useChartBuilder = () => {
 	const { getChartContext } = useEchartsChartOption()
 	const { buildAxisConfig, buildDataZoomConfig, scaleValue, buildScatter2DDataZoom, computeAxisBounds } = useChartAxis()
-	const { buildTooltipConfig, formatDimensionLabel, formatBreakdownTooltip, sortDimensionKeys, formatScatter2DTooltip } = useChartTooltip()
+	const { buildTooltipBlock, formatDimensionLabel, formatBreakdownTooltip, sortDimensionKeys, formatScatter2DTooltip } = useChartTooltip()
 	const { t } = useI18n()
 
 	// Calcule l'interval des splitLines pour qu'elles tombent sur 0%, 12.5%, ..., 100%
@@ -97,34 +98,23 @@ export const useChartBuilder = () => {
 			{ threshold: 20, visibleCount: 20 }
 		)
 
-		const tooltipConfig = buildTooltipConfig({ trigger: 'axis', axisPointerType: 'line' })
-
 		const chartOption: EChartsOption = {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'axis',
-				axisPointer: { type: 'line', lineStyle: { type: 'dashed' } },
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const m = metrics[p.dataIndex]
-					if (!m) return ''
-					const isEmpty = m.tradesCount === 0
-					const metricValue = getMetricValueForMetric(m, metric)
-					return formatBreakdownTooltip(
-						formatDimensionLabel(dimension, m.key),
-						metric,
-						metricValue,
-						m,
-						selectedTooltipMetrics,
-						isEmpty
-					)
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const m = metrics[p.dataIndex]
+				if (!m) return ''
+				const isEmpty = m.tradesCount === 0
+				const metricValue = getMetricValueForMetric(m, metric)
+				return formatBreakdownTooltip(
+					formatDimensionLabel(dimension, m.key),
+					metric,
+					metricValue,
+					m,
+					selectedTooltipMetrics,
+					isEmpty
+				)
+			}, 'axis'),
 			grid: orientation === 'horizontal' && zoomConfig.hasZoom
 				? { ...grid, right: 100 }
 				: grid,
@@ -204,35 +194,26 @@ export const useChartBuilder = () => {
 		const yAxisMax = metric === 'winrate' ? 100 : undefined
 
 		const zoomConfig = buildDataZoomConfig(categories.length, 'horizontal', { threshold: 25, visibleCount: 25 })
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'item',
-				formatter: (params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const v = p.value as number[]
-					const idx = v[0]
-					const metricValue = v[1]
-					const key = String(v[3])
-					const fullMetric = metrics[idx]
-					const isEmpty = fullMetric?.tradesCount === 0
-					return formatBreakdownTooltip(
-						formatDimensionLabel(dimension, key),
-						metric,
-						metricValue,
-						fullMetric,
-						selectedTooltipMetrics,
-						isEmpty
-					)
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const v = p.value as number[]
+				const idx = v[0]
+				const metricValue = v[1]
+				const key = String(v[3])
+				const fullMetric = metrics[idx]
+				const isEmpty = fullMetric?.tradesCount === 0
+				return formatBreakdownTooltip(
+					formatDimensionLabel(dimension, key),
+					metric,
+					metricValue,
+					fullMetric,
+					selectedTooltipMetrics,
+					isEmpty
+				)
+			}),
 			grid,
 			dataZoom: zoomConfig.hasZoom ? zoomConfig.sliders : undefined,
 			xAxis: {
@@ -325,40 +306,31 @@ export const useChartBuilder = () => {
 		const colorPalette = [scatter2DColors.min, scatter2DColors.mid, scatter2DColors.max]
 
 		const dataZoom = buildScatter2DDataZoom(showScrollX, showScrollY)
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		const xInterval = splitInterval(xAxisConfig.min, xAxisConfig.max)
 		const yInterval = splitInterval(yAxisConfig.min, yAxisConfig.max)
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'item',
-				formatter: (params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const v = p.value as number[]
-					const realVx = v[4] as number
-					const realVy = v[5] as number
-					const key = String(v[2])
-					const fullMetric = metrics.find(m => m.key === key)
-					return formatScatter2DTooltip(
-						formatDimensionLabel(dimension, key),
-						metricX,
-						metricY,
-						colorMetric,
-						realVx,
-						realVy,
-						v[3] as number,
-						fullMetric,
-						selectedTooltipMetrics
-					)
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams<number | number[]> | EChartsFormatterParams<number | number[]>[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const v = p.value as number[]
+				const realVx = v[4] as number
+				const realVy = v[5] as number
+				const key = String(v[2])
+				const fullMetric = metrics.find(m => m.key === key)
+				return formatScatter2DTooltip(
+					formatDimensionLabel(dimension, key),
+					metricX,
+					metricY,
+					colorMetric,
+					realVx,
+					realVy,
+					v[3] as number,
+					fullMetric,
+					selectedTooltipMetrics
+				)
+			}),
 			grid,
 			visualMap: {
 				min: colorMin,
@@ -464,7 +436,7 @@ export const useChartBuilder = () => {
 		}))
 
 		const ctx = getChartContext({ left: 70, right: 40, top: 50, bottom: 40 })
-		const { base, axisColor, textColor, grid, isDark } = ctx
+		const { base, axisColor, textColor, grid } = ctx
 
 		const xFinite = rawPoints.filter(p => Number.isFinite(p.vx)).map(p => p.vx)
 		const yFinite = rawPoints.filter(p => Number.isFinite(p.vy)).map(p => p.vy)
@@ -489,42 +461,32 @@ export const useChartBuilder = () => {
 
 		const { buildScatter2DDataZoom } = useChartAxis()
 		const dataZoom = buildScatter2DDataZoom(showScrollX, showScrollY)
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'item',
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const d = p.data as { value: number[] }
-					const tr = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])?.tr
-					if (!tr) return ''
-					const dateStr = tr.openDate.toLocaleDateString()
-					const timeStr = tr.openDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-					const durationMin = (tr.closeDate.getTime() - tr.openDate.getTime()) / 60000
-					const lines = [
-						`${dateStr} ${timeStr}`,
-						`Ticker: ${tr.symbol}`,
-						`P&L: ${formatTradePropertyValue(tr.profit, 'pnl')}`,
-						`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
-						`Side: ${tr.type}`,
-					]
-					// Affiche MFE/MAE si sélectionné sur X ou Y (pas dans les options de tooltip metrics)
-					if ((propX === 'mfe' || propY === 'mfe') && tr.mfe != null) {
-						lines.push(`MFE: ${formatTradePropertyValue(tr.mfe, 'mfe')}`)
-					}
-					if ((propX === 'mae' || propY === 'mae') && tr.mae != null) {
-						lines.push(`MAE: ${formatTradePropertyValue(tr.mae, 'mae')}`)
-					}
-					return lines.join('<br/>')
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const d = p.data as { value: number[] }
+				const tr = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])?.tr
+				if (!tr) return ''
+				const dateStr = tr.openDate.toLocaleDateString()
+				const timeStr = tr.openDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+				const durationMin = (tr.closeDate.getTime() - tr.openDate.getTime()) / 60000
+				const lines = [
+					`${dateStr} ${timeStr}`,
+					`Ticker: ${tr.symbol}`,
+					`P&L: ${formatTradePropertyValue(tr.profit, 'pnl')}`,
+					`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
+					`Side: ${tr.type}`,
+				]
+				if ((propX === 'mfe' || propY === 'mfe') && tr.mfe != null) {
+					lines.push(`MFE: ${formatTradePropertyValue(tr.mfe, 'mfe')}`)
+				}
+				if ((propX === 'mae' || propY === 'mae') && tr.mae != null) {
+					lines.push(`MAE: ${formatTradePropertyValue(tr.mae, 'mae')}`)
+				}
+				return lines.join('<br/>')
+			}),
 			grid,
 			dataZoom,
 			xAxis: {
@@ -598,26 +560,18 @@ export const useChartBuilder = () => {
 
 		const ctx = getChartContext()
 		const { base, axisColor, textColor } = ctx
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const [xi, yi, val] = p.value as unknown as [number, number, number]
-					const xLabel = xLabels[xi] ?? ''
-					const yLabel = yLabels[yi] ?? ''
-					const cell = cells.find(c => xLabelMap.get(c.keyX) === xi && yLabelMap.get(c.keyY) === yi)
-					const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`]
-					return buildTooltipLines(`${yLabel} × ${xLabel}`, primaryLines, cell?.metrics, new Set([metric]), selectedTooltipMetrics, t)
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const [xi, yi, val] = p.value as unknown as [number, number, number]
+				const xLabel = xLabels[xi] ?? ''
+				const yLabel = yLabels[yi] ?? ''
+				const cell = cells.find(c => xLabelMap.get(c.keyX) === xi && yLabelMap.get(c.keyY) === yi)
+				const primaryLines = [`${t(`components.dashboard.breakdown.metrics.${metric}`)}: ${formatMetricValueForMetric(val, metric)}`]
+				return buildTooltipLines(`${yLabel} × ${xLabel}`, primaryLines, cell?.metrics, new Set([metric]), selectedTooltipMetrics, t)
+			}),
 			grid: { left: 60, right: 16, top: 12, bottom: 28 },
 			xAxis: {
 				type: 'category',
@@ -682,36 +636,27 @@ export const useChartBuilder = () => {
 
 		const ctx = getChartContext({ left: 60, right: 16, top: 12, bottom: 60 })
 		const { base, axisColor, textColor, grid } = ctx
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'item',
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const idx = p.dataIndex
-					const cat = categories[idx] ?? ''
-					const d = data[idx]
-					if (!d) return ''
-					const raw = rawTrades[idx] || []
-					const lines = [
-						`<strong>${cat}</strong>`,
-						`${t('components.dashboard.breakdown.boxplot.min')}: ${formatMetricValueForMetric(d[0], 'pnl')}`,
-						`${t('components.dashboard.breakdown.boxplot.q1')}: ${formatMetricValueForMetric(d[1], 'pnl')}`,
-						`${t('components.dashboard.breakdown.boxplot.median')}: ${formatMetricValueForMetric(d[2], 'pnl')}`,
-						`${t('components.dashboard.breakdown.boxplot.q3')}: ${formatMetricValueForMetric(d[3], 'pnl')}`,
-						`${t('components.dashboard.breakdown.boxplot.max')}: ${formatMetricValueForMetric(d[4], 'pnl')}`,
-						`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${raw.length}`,
-					]
-					return lines.join('<br/>')
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const idx = p.dataIndex
+				const cat = categories[idx] ?? ''
+				const d = data[idx]
+				if (!d) return ''
+				const raw = rawTrades[idx] || []
+				const lines = [
+					`<strong>${cat}</strong>`,
+					`${t('components.dashboard.breakdown.boxplot.min')}: ${formatMetricValueForMetric(d[0], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.q1')}: ${formatMetricValueForMetric(d[1], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.median')}: ${formatMetricValueForMetric(d[2], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.q3')}: ${formatMetricValueForMetric(d[3], 'pnl')}`,
+					`${t('components.dashboard.breakdown.boxplot.max')}: ${formatMetricValueForMetric(d[4], 'pnl')}`,
+					`${t('components.dashboard.breakdown.metrics.tradesCount')}: ${raw.length}`,
+				]
+				return lines.join('<br/>')
+			}),
 			grid,
 			xAxis: {
 				type: 'category',
@@ -752,7 +697,6 @@ export const useChartBuilder = () => {
 
 		const ctx = getChartContext()
 		const { base, textColor } = ctx
-		const tooltipConfig = buildTooltipConfig({ trigger: 'item' })
 
 		if (!indicators.length) return { ...base }
 
@@ -760,27 +704,19 @@ export const useChartBuilder = () => {
 
 		return {
 			...base,
-			tooltip: {
-				backgroundColor: tooltipConfig.backgroundColor,
-				borderColor: tooltipConfig.borderColor,
-				textStyle: { color: tooltipConfig.textColor, fontSize: 13 },
-				appendTo: document.body,
-				className: 'echarts-custom-tooltip',
-				trigger: 'item',
-				formatter: (params: EChartsFormatterParams | EChartsFormatterParams[]) => {
-					const p = Array.isArray(params) ? params[0] : params
-					const idx = p.dataIndex
-					const name = names[idx] ?? ''
-					const vals = values[idx] || []
-					const lines = [`<strong>${name}</strong>`]
-					indicators.forEach((ind, i) => {
-						const val = vals[i] ?? 0
-						const metricKey = ['winrate', 'profitFactor', 'expectancy', 'pnl', 'tradesCount'][i]
-						lines.push(`${ind.name}: ${formatMetricValueForMetric(val, metricKey as BreakdownMetric)}`)
-					})
-					return lines.join('<br/>')
-				},
-			},
+			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
+				const p = Array.isArray(params) ? params[0] : params
+				const idx = p.dataIndex
+				const name = names[idx] ?? ''
+				const vals = values[idx] || []
+				const lines = [`<strong>${name}</strong>`]
+				indicators.forEach((ind, i) => {
+					const val = vals[i] ?? 0
+					const metricKey = ['winrate', 'profitFactor', 'expectancy', 'pnl', 'tradesCount'][i]
+					lines.push(`${ind.name}: ${formatMetricValueForMetric(val, metricKey as BreakdownMetric)}`)
+				})
+				return lines.join('<br/>')
+			}),
 			legend: {
 				data: names,
 				bottom: 0,

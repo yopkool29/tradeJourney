@@ -1,14 +1,12 @@
-import { getPrisma } from '../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
+import { getCustomFieldValue } from '../../utils/symbolResolver'
 import { UpdateSymbolSchema } from '~/schema/symbol'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
         
         const body = await readBody(event)
 
@@ -32,7 +30,7 @@ export default defineEventHandler(async (event) => {
         if (customFields) {
             const existing = await prisma.configSymbol.findUnique({ where: { id }, select: { metadata: true } })
             const currentMetadata = (existing?.metadata as Record<string, unknown>) ?? {}
-            updateData.aliases = customFields.find((f: { key: string }) => f.key === 'aliases')?.value ?? updateData.aliases ?? ''
+            updateData.aliases = getCustomFieldValue(customFields, 'aliases') ?? updateData.aliases ?? ''
             ;(updateData as any).metadata = { ...currentMetadata, customFields }
         }
 

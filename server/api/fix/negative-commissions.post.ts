@@ -1,10 +1,8 @@
-import { getPrisma } from '~/server/utils/db'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
 
         // Récupérer tous les trades avec commission négative
         const tradesWithNegativeCommission = await prisma.trade.findMany({

@@ -155,8 +155,8 @@
                         <div class="grid grid-cols-1 gap-8">
                             <UFormField name="storageUrl" :label="$t('components.settings.options.storage_url')">
                                 <UInput
-                                    class="w-lg"
                                     v-model="formState.storageUrl"
+                                    class="w-lg"
                                     placeholder="https://your-ngrok-url.ngrok.io"
                                 />
                                 <template #description>
@@ -429,7 +429,8 @@
 import type { SettingsContentType } from '~/schema/user'
 import { defaultSettings } from '~/schema/user'
 import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils'
-import { clearAllPolygonCache } from '~/composables/usePolygonCache'
+import { clearAllPolygonCache } from '~/composables/data/usePolygonCache'
+import { buildSettingsFormState, buildResetSettings } from '~/composables/settings/useSettingsForm'
 
 const { success: toastSuccess } = useAppToast()
 const { updateSettings } = useAuth()
@@ -439,12 +440,12 @@ const { t } = useI18n()
 const { goBack } = useQuickNav()
 const colorMode = useColorMode()
 
-const isDark = useIsDark()
-
 // Current theme for color pickers
 const currentTheme = computed(() => {
 	const validThemes = ['light', 'dark', 'light-blue', 'dark-gold'] as const
-	return validThemes.includes(colorMode.value as any) ? colorMode.value as typeof validThemes[number] : 'light'
+	type Theme = typeof validThemes[number]
+	const theme = colorMode.value as Theme
+	return validThemes.includes(theme) ? theme : 'light'
 })
 
 // Visibility toggles for sensitive data
@@ -517,96 +518,7 @@ onMounted(() => {
     const savedSettings = userStore.user!.settings_object
     if (savedSettings) {
         try {
-            formState.value = {
-                ...defaultSettings,
-                ...savedSettings,
-                chartColors: {
-                    ...defaultSettings.chartColors,
-                    tableRowHover: {
-                        ...defaultSettings.chartColors!.tableRowHover,
-                        ...(savedSettings.chartColors?.tableRowHover || {}),
-                    },
-                    pnlchart: {
-                        line: {
-                            ...defaultSettings.chartColors!.pnlchart.line,
-                            ...(savedSettings.chartColors?.pnlchart?.line || {}),
-                        },
-                        point: {
-                            ...defaultSettings.chartColors!.pnlchart.point,
-                            ...(savedSettings.chartColors?.pnlchart?.point || {}),
-                        },
-                    },
-                    datalabels: {
-                        display: savedSettings.chartColors?.datalabels?.display ?? defaultSettings.chartColors!.datalabels.display,
-                        light: savedSettings.chartColors?.datalabels?.light || defaultSettings.chartColors!.datalabels.light,
-                        dark: savedSettings.chartColors?.datalabels?.dark || defaultSettings.chartColors!.datalabels.dark,
-                        'light-blue': savedSettings.chartColors?.datalabels?.['light-blue'] || defaultSettings.chartColors!.datalabels['light-blue'],
-                        'dark-gold': savedSettings.chartColors?.datalabels?.['dark-gold'] || defaultSettings.chartColors!.datalabels['dark-gold'],
-                    },
-                    timeSeriesChart: {
-                        bar: {
-                            ...defaultSettings.chartColors!.timeSeriesChart.bar,
-                            ...(savedSettings.chartColors?.timeSeriesChart?.bar || {}),
-                        },
-                        movingAverage: {
-                            ...defaultSettings.chartColors!.timeSeriesChart.movingAverage,
-                            ...(savedSettings.chartColors?.timeSeriesChart?.movingAverage || {}),
-                        },
-                        rawMetric: {
-                            ...defaultSettings.chartColors!.timeSeriesChart.rawMetric,
-                            ...(savedSettings.chartColors?.timeSeriesChart?.rawMetric || {}),
-                        },
-                    },
-                    heatmap: {
-                        min: {
-                            ...defaultSettings.chartColors!.heatmap.min,
-                            ...(savedSettings.chartColors?.heatmap?.min || {}),
-                        },
-                        max: {
-                            ...defaultSettings.chartColors!.heatmap.max,
-                            ...(savedSettings.chartColors?.heatmap?.max || {}),
-                        },
-                    },
-                    scatter2D: {
-                        min: {
-                            ...defaultSettings.chartColors!.scatter2D.min,
-                            ...(savedSettings.chartColors?.scatter2D?.min || {}),
-                        },
-                        mid: {
-                            ...defaultSettings.chartColors!.scatter2D.mid,
-                            ...(savedSettings.chartColors?.scatter2D?.mid || {}),
-                        },
-                        max: {
-                            ...defaultSettings.chartColors!.scatter2D.max,
-                            ...(savedSettings.chartColors?.scatter2D?.max || {}),
-                        },
-                    },
-                    pnlBarChart: {
-                        profit: {
-                            ...defaultSettings.chartColors!.pnlBarChart.profit,
-                            ...(savedSettings.chartColors?.pnlBarChart?.profit || {}),
-                        },
-                        loss: {
-                            ...defaultSettings.chartColors!.pnlBarChart.loss,
-                            ...(savedSettings.chartColors?.pnlBarChart?.loss || {}),
-                        },
-                        breakeven: {
-                            ...defaultSettings.chartColors!.pnlBarChart.breakeven,
-                            ...(savedSettings.chartColors?.pnlBarChart?.breakeven || {}),
-                        },
-                    },
-                    tradeTypeBadges: {
-                        buy: {
-                            ...defaultSettings.chartColors!.tradeTypeBadges.buy,
-                            ...(savedSettings.chartColors?.tradeTypeBadges?.buy || {}),
-                        },
-                        sell: {
-                            ...defaultSettings.chartColors!.tradeTypeBadges.sell,
-                            ...(savedSettings.chartColors?.tradeTypeBadges?.sell || {}),
-                        },
-                    },
-                }
-            } as SettingsContentType
+            formState.value = buildSettingsFormState(savedSettings)
         } catch {
             log_error(t('components.settings.options.error_loading'))
         }
@@ -626,59 +538,7 @@ watch(formState, () => {
 
 // Réinitialiser les paramètres de cette page uniquement
 function resetSettings() {
-    // Réinitialiser seulement les paramètres affichés sur cette page
-    formState.value = {
-        ...formState.value,
-        deleteConfirmationTrade: defaultSettings.deleteConfirmationTrade,
-        deleteConfirmationNoteTags: defaultSettings.deleteConfirmationNoteTags,
-        showCalendarDaily: defaultSettings.showCalendarDaily,
-        showCalendarCalendar: defaultSettings.showCalendarCalendar,
-        autoDataSync: defaultSettings.autoDataSync,
-        showQuickNav: defaultSettings.showQuickNav,
-        reverseDaysOrder: defaultSettings.reverseDaysOrder,
-        syncAccountSelection: defaultSettings.syncAccountSelection,
-        showTradeChart: defaultSettings.showTradeChart,
-        showDetailedNote: defaultSettings.showDetailedNote,
-        polygonApiKey: defaultSettings.polygonApiKey,
-        pnlThreshold: defaultSettings.pnlThreshold,
-        ninjaTraderApiPort: defaultSettings.ninjaTraderApiPort,
-        ninjaTraderApiDays: defaultSettings.ninjaTraderApiDays,
-        timezoneDisplay: defaultSettings.timezoneDisplay,
-        timezoneLocal: defaultSettings.timezoneLocal,
-        timezoneUtcOffset: defaultSettings.timezoneUtcOffset,
-        chartColors: {
-            tableRowHover: { ...defaultSettings.chartColors!.tableRowHover },
-            pnlchart: {
-                line: { ...defaultSettings.chartColors!.pnlchart.line },
-                point: { ...defaultSettings.chartColors!.pnlchart.point },
-            },
-            datalabels: { ...defaultSettings.chartColors!.datalabels },
-            timeSeriesChart: {
-                bar: { ...defaultSettings.chartColors!.timeSeriesChart.bar },
-                movingAverage: { ...defaultSettings.chartColors!.timeSeriesChart.movingAverage },
-                rawMetric: { ...defaultSettings.chartColors!.timeSeriesChart.rawMetric },
-            },
-            heatmap: {
-                min: { ...defaultSettings.chartColors!.heatmap.min },
-                max: { ...defaultSettings.chartColors!.heatmap.max },
-            },
-            scatter2D: {
-                min: { ...defaultSettings.chartColors!.scatter2D.min },
-                mid: { ...defaultSettings.chartColors!.scatter2D.mid },
-                max: { ...defaultSettings.chartColors!.scatter2D.max },
-            },
-            pnlBarChart: {
-                profit: { ...defaultSettings.chartColors!.pnlBarChart.profit },
-                loss: { ...defaultSettings.chartColors!.pnlBarChart.loss },
-                breakeven: { ...defaultSettings.chartColors!.pnlBarChart.breakeven },
-            },
-            tradeTypeBadges: {
-                buy: { ...defaultSettings.chartColors!.tradeTypeBadges!.buy },
-                sell: { ...defaultSettings.chartColors!.tradeTypeBadges!.sell },
-            },
-        }
-    }
-
+    formState.value = buildResetSettings(formState.value)
     toastSuccess(t('components.settings.options.toast_reset_title'), t('components.settings.options.toast_reset_desc'))
 }
 </script>

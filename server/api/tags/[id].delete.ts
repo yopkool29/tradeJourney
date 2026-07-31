@@ -1,32 +1,18 @@
 import { Prisma } from '~/generated/prisma-data'
 import { z } from 'zod'
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
+        const { prisma } = await getApiContext(event)
 
-        const id = parseInt(event.context.params?.id || '')
+        const id = getValidatedId(event, 'id', 'api.tags.delete.invalid_id')
 
-        if (!id || isNaN(id)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid ID',
-                tag: 'api.tags.delete.invalid_id'
-            })
-        }
-
-        const body = await readBody(event)
         const schema = z.object({
             deleteAssoc: z.boolean().optional().default(false)
         })
-        const { deleteAssoc } = schema.parse(body)
+        const { deleteAssoc } = await parseBody(event, schema)
 
         // Si deleteAssoc est true, on supprime d'abord les associations
         if (deleteAssoc) {

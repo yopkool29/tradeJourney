@@ -1,7 +1,9 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
-import { calculateMetricsByDimension, getGroupFn, injectEmptyTagMetrics, sortMetricsByDimension } from '~/composables/useAnalytics'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import { calculateMetricsByDimension } from '~/composables/analytics/useAnalytics'
+import { getGroupFn } from '~/composables/analytics/useBreakdownGrouping'
+import { injectEmptyTagMetrics, sortMetricsByDimension } from '~/composables/analytics/breakdownMetrics'
 
 interface MetricsCacheKey {
 	tradesHash: string

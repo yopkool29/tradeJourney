@@ -60,18 +60,18 @@
                         {{ $t('components.import.profile_execute.refresh_files') }}
                     </UButton>
                     <div v-if="storageFiles.length > 0" class="space-y-2">
-                        <div v-for="file in storageFiles" :key="file.file_id"
+                        <div v-for="storageFile in storageFiles" :key="storageFile.file_id"
                             class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                            :class="{ 'border-primary bg-primary/10': selectedFileId === file.file_id }"
-                            @click="selectedFileId = file.file_id">
+                            :class="{ 'border-primary bg-primary/10': selectedFileId === storageFile.file_id }"
+                            @click="selectedFileId = storageFile.file_id">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="font-medium"><span>{{ file.source ? file.source + '-' : ''
-                                            }}</span><span>{{ file.filename }}</span></p>
-                                    <p class="text-xs text-secondary">{{ new Date(file.timestamp).toLocaleString() }} •
-                                        {{ (file.file_size / 1024).toFixed(2) }} KB</p>
+                                    <p class="font-medium"><span>{{ storageFile.source ? storageFile.source + '-' : ''
+                                            }}</span><span>{{ storageFile.filename }}</span></p>
+                                    <p class="text-xs text-secondary">{{ new Date(storageFile.timestamp).toLocaleString() }} •
+                                        {{ (storageFile.file_size / 1024).toFixed(2) }} KB</p>
                                 </div>
-                                <UBadge v-if="file.retrieved" color="neutral" variant="subtle">{{
+                                <UBadge v-if="storageFile.retrieved" color="neutral" variant="subtle">{{
                                     $t('components.import.profile_execute.already_retrieved') }}</UBadge>
                             </div>
                         </div>
@@ -102,10 +102,9 @@ import type { ImportProfileType } from '~/schema/importProfile'
 import { getProviderIconWithMetadata, getProviderLabel } from '~/utils/import_utils'
 
 const { t } = useI18n()
-const userStore = useUserStore()
-const { log_error, log_info } = useLogView()
+const { log_error } = useLogView()
 const { importTrades } = useTrades()
-const { listFiles, retrieveFile, deleteFile } = useStorageServer()
+const { listFiles, retrieveFile } = useStorageServer()
 const { errorStr, successStr, displayMessage } = useAlert()
 
 const props = defineProps<{
@@ -117,12 +116,21 @@ const emit = defineEmits<{
     imported: []
 }>()
 
+type StorageFile = {
+    file_id: string
+    filename: string
+    source?: string
+    timestamp: string
+    file_size: number
+    retrieved?: boolean
+}
+
 const file = ref<File | null>(null)
 const fileInputKey = ref(0)
 
 const isLoading = ref(false)
 const isLoadingFiles = ref(false)
-const storageFiles = ref<any[]>([])
+const storageFiles = ref<StorageFile[]>([])
 const selectedFileId = ref<string | null>(null)
 
 const useCloudStorage = computed(() => {
@@ -152,7 +160,7 @@ async function loadStorageFiles() {
     isLoadingFiles.value = true
     try {
         storageFiles.value = await listFiles()
-    } catch (err) {
+    } catch {
         log_error('Failed to load storage files')
     } finally {
         isLoadingFiles.value = false
@@ -213,49 +221,6 @@ async function onImport() {
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         displayMessage(null, message)
-    } finally {
-        isLoading.value = false
-        stopLoading()
-    }
-}
-
-async function importFromNinjaTraderApi() {
-    isLoading.value = true
-    const { startLoading, stopLoading } = useGlobalLoading()
-    startLoading()
-
-    try {
-        const { fetchTrades } = useNinjaTraderApi()
-        const daysToImport = userStore.user?.settings_object?.ninjaTraderApiDays || 1
-        const startDate = new Date()
-        startDate.setDate(startDate.getDate() - daysToImport)
-        const formattedStartDate = startDate.toISOString().split('T')[0]
-
-        const csvData = await fetchTrades({ startDate: formattedStartDate })
-
-        const blob = new Blob([csvData], { type: 'text/csv' })
-        const csvFile = new File([blob], 'ninjatrader-api-export.csv', { type: 'text/csv' })
-
-        const formData = new FormData()
-        formData.append('file', csvFile)
-        formData.append('reportType', 'nt8')
-        formData.append('importMode', props.profile.importMode)
-        formData.append('timezone', props.profile.timezone)
-        formData.append('keepExistingTrades', String(props.profile.keepExistingTrades))
-        formData.append('instrumentType', props.profile.instrumentType || 'any')
-        formData.append('dayTagIds', JSON.stringify(props.profile.dayTags))
-        formData.append('tradeTagIds', JSON.stringify(props.profile.tradeTags))
-
-        // log_info('importFromNinjaTraderApi importMode:', props.profile.importMode)
-        // log_info('importFromNinjaTraderApi timezone:', props.profile.timezone)
-
-        const result = await importTrades(formData)
-        const msg = t('components.import.index.import_success', { updated: result.countUpdated, ignored: result.countDiscard })
-        displayMessage(msg, null)
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        const errorMsg = message || t('components.import.index.api_import_error')
-        displayMessage(null, errorMsg)
     } finally {
         isLoading.value = false
         stopLoading()

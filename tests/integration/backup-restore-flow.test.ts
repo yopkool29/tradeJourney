@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import type { Database } from '~/composables/useDatabase'
+import type { Database } from '~/composables/data/useDatabase'
 import type { CreateAccountType } from '~/schema/account'
 import type { CreateTradeType } from '~/schema/trade'
 import type { CreateTagGroupType } from '~/schema/tagGroup'

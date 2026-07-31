@@ -4,16 +4,18 @@ import {
 	formatDateByMode,
 	getPeriodDates,
 	groupTradesByPeriod,
-	generateIntradayPnlChartData,
-	generateCumulatedPnlChartData,
-	generateApptChartData,
-	generatePlRatioChartData,
-	generateWinrateChartData,
 	periodTranslations,
 	periodOptions,
 	getSmartLabelAlign,
 	getSmartLabelAnchor
 } from '~/utils/dashboard'
+import {
+	generateIntradayPnlChartData,
+	generateCumulatedPnlChartData,
+	generateApptChartData,
+	generatePlRatioChartData,
+	generateWinrateChartData
+} from '~/utils/dashboardChartGenerators'
 
 const mockTrades = [
 	{ closeDate: '2024-01-15T11:00:00Z', profit: 100, netProfit: 95, lot: 1, openDate: '2024-01-15T10:00:00Z' },

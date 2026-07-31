@@ -2,7 +2,7 @@
 # Dependencies stage
 # -----------------------------------------------------------
 
-FROM node:20.19.0-alpine AS deps
+FROM node:22.13.0-alpine AS deps
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile
 # Builder stage
 # -----------------------------------------------------------
 
-FROM node:20.19.0-alpine AS builder
+FROM node:22.13.0-alpine AS builder
 
 WORKDIR /app
 
@@ -75,7 +75,7 @@ RUN npm run build
 # Production stage
 # -----------------------------------------------------------
 
-FROM node:20.19.0-alpine AS production
+FROM node:22.13.0-alpine AS production
 
 # Install netcat for PostgreSQL readiness check, postgresql-client for psql, and Python 3.13
 RUN apk add --no-cache netcat-openbsd postgresql-client python3 curl

@@ -77,10 +77,10 @@
 
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
-import { eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
+import { startOfMonth, endOfMonth } from 'date-fns'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
-import { formatDateToYYYYMMDD } from '~/utils/date-utils'
+import { computeDayStats, type TradeGroup } from '~/composables/data/useDailyStats'
 import type { TradeFilter } from '~/type'
 
 const userStore = useUserStore()
@@ -107,9 +107,6 @@ const isExpanded = computed({
     get: () => dbStateStore.dailyFilters.isExpanded,
     set: (val) => dbStateStore.dailyFilters.isExpanded = val
 })
-
-type TradeGroup = { key: string; count: number; day: Date; trades: TradeExtendedType[]; pnl: number; commission: number }
-type TradeGroups = { [key: string]: TradeGroup }
 
 const { accounts, dailyLastTrades, fetchAccounts, fetchData, clearLastTrades } = useDailyHistory()
 
@@ -220,58 +217,14 @@ function resetFilters() {
     loadMonthDataDebounced()
 }
 
-const getDaysStats = () => {
-    // Dépendre de refreshTrigger pour forcer le recalcul quand on l'incrémente
-    void refreshTrigger.value
-
-    const trades = displayResults.value as TradeExtendedType[]
-
-    if (!displayMonth.value)
-        return {}
-
-    const [year, month] = displayMonth.value.split('-').map(Number)
-    const start = new Date(year, month - 1, 1)
-    const end = endOfMonth(start)
-
-    // Extraire accountIds en Set pour O(1) lookup
-    const accountIds = dbStateStore.dailyFilters.accountIds
-    const accountIdSet = new Set(accountIds)
-    const allAccounts = accountIds.length === 0 || accountIdSet.has(-1)
-
-    // Filtrage + pre-indexation par jour en un seul passage O(n)
-    const tradesByDay: Record<string, TradeExtendedType[]> = {}
-    for (const trade of trades) {
-        const closeDate = trade.closeDate
-        if (closeDate < start || closeDate > end) continue
-        if (!allAccounts && !accountIdSet.has(trade.accountId)) continue
-        const key = formatDateToYYYYMMDD(closeDate)
-        if (!tradesByDay[key]) tradesByDay[key] = []
-        tradesByDay[key].push(trade)
-    }
-
-    // Grouper par jour
-    const stats: TradeGroups = {}
-    eachDayOfInterval({ start, end }).forEach((day) => {
-        const key = formatDateToYYYYMMDD(day)
-        const tradesOfDay = tradesByDay[key] || []
-        const activeTradesOfDay = tradesOfDay.filter((trade) => trade.active !== false)
-        const pnl = activeTradesOfDay.reduce((sum, t) => sum + (t.netProfit || 0), 0)
-        const commission = activeTradesOfDay.reduce((sum, t) => sum + (t.commission || 0), 0)
-        stats[key] = {
-            count: activeTradesOfDay.length,
-            day: day,
-            pnl,
-            commission,
-            key: key,
-            trades: tradesOfDay,
-        }
-    })
-    return stats
-}
-
 // Calcul des trades du mois sélectionné et stats par jour
 const dayStats = computed(() => {
-    return getDaysStats()
+    return computeDayStats(
+        displayResults.value as TradeExtendedType[],
+        displayMonth.value,
+        dbStateStore.dailyFilters.accountIds,
+        refreshTrigger.value,
+    )
 })
 
 // Extraction des groupes avec au moins un trade pour éviter la duplication de code

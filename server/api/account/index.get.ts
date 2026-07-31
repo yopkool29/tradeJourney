@@ -1,13 +1,9 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        const _userId = event.context.userId
+        const { prisma } = await getApiContext(event)
 
         const accounts = await prisma.account.findMany({
             orderBy: { createdAt: 'asc' }

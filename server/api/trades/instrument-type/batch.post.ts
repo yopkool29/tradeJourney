@@ -1,6 +1,5 @@
-import { getPrisma } from '../../../utils/db'
-import auth from '../../../utils/auth'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, parseBody } from '../../../utils/apiHelpers'
 import { InstrumentType } from '~/type'
 import { z } from 'zod'
 
@@ -10,13 +9,10 @@ const BatchUpdateSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-	await auth(event)
-
 	try {
-		const prisma = await getPrisma(event)
+		const { prisma } = await getApiContext(event)
 
-		const body = await readBody(event)
-		const parsed = BatchUpdateSchema.parse(body)
+		const parsed = await parseBody(event, BatchUpdateSchema)
 
 		const result = await prisma.trade.updateMany({
 			where: {

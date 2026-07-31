@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
 import type { ChartKey, SectionKey } from '~/type'
-import { breakdownTemplatesBySubcategory, advancedTemplatesBySubcategory, useBreakdownInstances } from '~/composables/metrics/useBreakdownConfig'
+import { breakdownTemplatesBySubcategory, advancedTemplatesBySubcategory, useBreakdownInstances } from '~/composables/dashboard/useBreakdownConfig'
 
 const props = defineProps<{
 	chartVisibility: Record<string, boolean>

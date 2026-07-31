@@ -1,9 +1,8 @@
-import { getPrisma } from '../../utils/db'
 import type { Prisma } from '~/generated/prisma-data'
-import auth from '../../utils/auth'
 import { getColumnType } from '~/schema/trade'
 import { isValid, addDays, startOfDay, endOfDay } from 'date-fns'
 import type { TradeFilter } from '~/type'
+import { getApiContext } from '../../utils/apiHelpers'
 
 import {
     OPERATOR_EQUAL,
@@ -16,12 +15,8 @@ import {
 } from '../../../utils/index'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-
-        const _userId = event.context.userId // Non utilisé directement car géré par le middleware d'authentification et l'isolation par schéma
+        const { prisma } = await getApiContext(event)
 
         let showInactive = false
         const query = getQuery(event)

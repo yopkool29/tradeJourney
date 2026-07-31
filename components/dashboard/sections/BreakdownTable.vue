@@ -10,7 +10,7 @@
 				table-class="table-fixed"
 			>
 				<template #key-cell="{ row }">
-					<span class="font-semibold">{{ formatDimensionLabel(asMetrics(row.original).key) }}</span>
+					<span class="font-semibold">{{ formatDimensionLabel(dimMigrated, asMetrics(row.original).key, t) }}</span>
 				</template>
 				<!-- Cellules génériques pour chaque métrique sélectionnée -->
 				<template v-for="col in metricColumns" :key="col" #[`${col}-cell`]="{ row }">
@@ -27,10 +27,13 @@
 import type { TradeExtendedType } from '~/schema/trade'
 import type { BreakdownDimension, BreakdownMetric } from '~/type'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
-import { getGroupFn, injectEmptyTagMetrics, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
-import type { BreakdownMetrics, TimezoneSettings } from '~/composables/useAnalytics'
-import { defaultTableColumns, migrateDimension } from '~/composables/metrics/useBreakdownConfig'
-import { isMonetaryMetric } from '~/composables/useChartColors'
+import { getGroupFn } from '~/composables/analytics/useBreakdownGrouping'
+import { injectEmptyTagMetrics, getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import type { TimezoneSettings } from '~/composables/analytics/useAnalytics'
+import { defaultTableColumns, migrateDimension } from '~/composables/dashboard/useBreakdownConfig'
+import { isMonetaryMetric } from '~/composables/charts/useChartColors'
+import { formatDimensionLabel } from '~/utils/formatDimensionLabel'
 
 const props = defineProps<{
 	dimension: BreakdownDimension
@@ -64,29 +67,6 @@ const groupFn = computed(() => {
 	const tagGroups = dbStateStore.tagGroups || []
 	return getGroupFn(dimMigrated.value, tagGroups, timezoneSettings.value)
 })
-
-// Traduit la clé d'une dimension en label lisible (mois, jour de semaine traduits)
-const formatDimensionLabel = (key: string): string => {
-	const dim = dimMigrated.value
-	if (dim === 'dayOfWeekOpen' || dim === 'dayOfWeekClose') {
-		const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-		const idx = parseInt(key, 10)
-		if (idx >= 0 && idx <= 6) return t(`common.weekdays.long.${dayKeys[idx]}`)
-		return key
-	}
-	if (dim === 'monthOpen' || dim === 'monthClose') {
-		const idx = parseInt(key, 10)
-		if (idx >= 0 && idx <= 11) return t(`common.months.long.${idx}`)
-		return key
-	}
-	if (dim === 'monthYearOpen' || dim === 'monthYearClose') {
-		const [year, monthNum] = key.split('-')
-		const monthIdx = parseInt(monthNum, 10) - 1
-		if (monthIdx >= 0 && monthIdx <= 11) return `${t(`common.months.long.${monthIdx}`)} ${year}`
-		return key
-	}
-	return key
-}
 
 // Cast helper pour les rows du tableau (typées Record<string, unknown> par le SortableTable)
 const asMetrics = (row: Record<string, unknown>): BreakdownMetrics => row as unknown as BreakdownMetrics

@@ -1,27 +1,13 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { deleteFiles } from '../../utils'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../utils/apiHelpers'
 import { UpdateTradeSchema } from '~/schema/trade'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const userId = Number(event.context.userId)
-        const dbName = event.context.dbName as string
-        
-        const id = parseInt(event.context.params?.id || '')
+        const { prisma, userId, dbName } = await getApiContext(event)
 
-        if (isNaN(id)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid trade ID',
-                tag: 'api.trades.patch.invalid_id'
-            })
-        }
+        const id = getValidatedId(event, 'id', 'api.trades.patch.invalid_id')
 
         // Vérifier que le trade appartient bien à l'utilisateur
         const existing = await prisma.trade.findUnique({ where: { id } })
@@ -33,9 +19,7 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        const body = await readBody(event)
-
-        const parsed = UpdateTradeSchema.parse(body)
+        const parsed = await parseBody(event, UpdateTradeSchema)
 
         // Extraire l'ID et isoler les données à mettre à jour
         const { id: _, screenshots, metadata: incomingMetadata, detailedNote, riskReward, accountId, ...restData } = parsed

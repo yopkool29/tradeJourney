@@ -1,12 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
+import { getCustomFieldValue } from '../../utils/symbolResolver'
 import { UpdateAccountSchema } from '~/schema/account'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    const prisma = await getPrisma(event)
     try {
+        const { prisma } = await getApiContext(event)
         const body = await readBody(event)
 
         // Validation des données
@@ -41,7 +40,7 @@ export default defineEventHandler(async (event) => {
             }
 
             if (body.customFields) {
-                const aliasFromFields = body.customFields.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
+                const aliasFromFields = getCustomFieldValue(body.customFields, 'aliases')
                 if (aliasFromFields !== null) {
                     ;(updateData as any).aliases = aliasFromFields
                 }

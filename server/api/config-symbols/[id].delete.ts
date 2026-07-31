@@ -1,25 +1,12 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
 
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
 
-        const _userId = event.context.userId
-
-        const id = Number(event.context.params?.id)
-
-        if (!id || isNaN(id)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid symbol ID',
-                tag: 'api.config_symbols.delete.invalid_id'
-            })
-        }
+        const id = getValidatedId(event, 'id', 'api.config_symbols.delete.invalid_id')
 
         // Vérifier si le symbole existe et appartient à l'utilisateur
         const symbol = await prisma.configSymbol.findFirst({

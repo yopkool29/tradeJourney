@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSharedScreenshots, type ScreenshotItem } from '~/composables/useSharedScreenshots'
+import { useSharedScreenshots, type ScreenshotItem } from '~/composables/notes/useSharedScreenshots'
 import { getImagePath } from '~/utils'
 import { useI18n } from '#imports'
 

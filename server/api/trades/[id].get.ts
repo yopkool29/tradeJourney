@@ -1,20 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-        
-        const id = parseInt(event.context.params?.id || '')
-        
-        if (isNaN(id)) {
-            throw createAppError({ statusCode: 400, message: 'Invalid trade ID' })
-        }
+        const { prisma } = await getApiContext(event)
+
+        const id = getValidatedId(event)
 
         // Récupérer le trade
         const trade = await prisma.trade.findUnique({

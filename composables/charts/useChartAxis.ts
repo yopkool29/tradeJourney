@@ -1,8 +1,8 @@
 import type { EChartsOption } from 'echarts'
 import type { BreakdownMetric } from '~/type'
-import { computeAxisBounds, scaleValue, makeAxisLabel } from '~/composables/useAxisScale'
-import type { AxisBounds } from '~/composables/useAxisScale'
-import { formatMetricValueForMetric } from '~/composables/useAnalytics'
+import { computeAxisBounds, scaleValue, makeAxisLabel } from '~/composables/charts/useAxisScale'
+import type { AxisBounds } from '~/composables/charts/useAxisScale'
+import { formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
 
 export interface AxisConfig {
 	bounds: AxisBounds

@@ -161,22 +161,22 @@
 
 <script setup lang="ts">
 import { getWinLossNb, getWinrate, getPNL } from '~/utils/tradeStats'
-import type { DayTagType } from '~/schema/dayTag'
 import type { TradeExtendedType } from '~/schema/trade'
 
-import { formatDateLongString, formatDateToYYYYMMDD, normalizeDateToUTCString } from '~/utils/date-utils'
-import { generateIntradayPnlChartData } from '~/utils/dashboard'
+import { formatDateLongString } from '~/utils/date-utils'
+import { generateIntradayPnlChartData } from '~/utils/dashboardChartGenerators'
 import { defaultSettings } from '~/schema/user'
+import { getTradeColumnHeaders } from '~/utils/tradeColumnHeaders'
 import { UIcon } from '#components'
 import DashboardChartsOldWinratePie from '~/components/dashboard/charts/old/WinratePie.vue'
+import { useTradeGroupActions } from '~/composables/trades/useTradeGroupActions'
 
 const { formatCurrency } = useUtils()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
+const { labelColumnsHeader } = getTradeColumnHeaders()
 
 const userStore = useUserStore()
 const dbStateStore = useDbStateStore()
-
-const { log_error } = useLogView()
 
 const props = defineProps({
     groupDate: {
@@ -200,7 +200,7 @@ const props = defineProps({
     displayTitle: {
         type: Boolean,
         required: false,
-        default: true        
+        default: true
     }
 })
 
@@ -210,49 +210,15 @@ const timezoneKey = computed(() => {
     return `${settings?.timezoneDisplay}-${settings?.timezoneLocal}-${settings?.timezoneUtcOffset}`
 })
 
-const showDayTagModal = ref(false)
-// État pour gérer l'affichage de la modal de captures d'écran
-const showScreenshots = ref(false)
-const currentScreenshots = ref<Array<{ id?: number; url: string }>>([])
-
-const showClearTagsModal = ref(false)
-const showClearDayTagsModal = ref(false)
-const showClearDetailedNoteModal = ref(false)
-const selectedTrade = ref<TradeExtendedType | null>(null)
-const selectedTradeForDetailedNote = ref<TradeExtendedType | null>(null)
-
-// Composable pour gérer les trades
-const { getTagStyle, getTagById } = useTags()
-const { fetchTrade, updateTrade, deleteTrade, unDeleteTrade } = useTrades()
-const { cleanupOrphanImages } = useNoteImages()
-const { deleteDayTag } = useDayTags()
-const { deleteTradeTags } = useTradeTags()
+const { getTagStyle } = useTags()
 const { displayModeNet } = useNetGrossDisplay()
 const colorMode = useColorMode()
-
-const currentDayTag = computed(() => {
-    if (!props.groupDate) return null
-    return dbStateStore.dayTags.find((dt: DayTagType) => {
-        const dtDateStr = normalizeDateToUTCString(new Date(dt.date))
-        const dateStr = formatDateToYYYYMMDD(props.groupDate)
-        return dtDateStr === dateStr
-    }) || null
-})
-
-const dayTagTags = computed(() => {
-    if (!currentDayTag.value?.tags) return []
-    return currentDayTag.value.tags.map(tag => getTagById(tag.id)).filter(tag => tag !== null)
-})
 
 const tableRowHoverColor = computed(() => {
     const colors = userStore.user?.settings_object?.chartColors?.tableRowHover || defaultSettings.chartColors!.tableRowHover
     const theme = colorMode.value as 'light' | 'dark' | 'light-blue' | 'dark-gold'
     return colors[theme] || colors.light
 })
-
-// Modal pour afficher les détails d'un trade
-const selectedTradeDetail = ref<TradeExtendedType | null>(null)
-const showTradeDetailModal = ref(false)
 
 // Trades actifs uniquement (pour les stats)
 const activeTrades = computed(() => props.groupTrades.filter(t => t.active !== false))
@@ -271,23 +237,6 @@ const pnl = computed(() => tradeStats.value.pnl)
 const totalCommission = computed(() => tradeStats.value.totalCommission)
 const intradayChartData = computed(() => tradeStats.value.intradayChartData)
 
-// Nombre total de screenshots pour tous les trades du groupe
-const totalScreenshots = computed(() => {
-    return props.groupTrades.reduce((total, trade) => {
-        const screenshots = trade.screenshots?.length || 0
-        const hasScreenshotUrl = trade.screenshotUrl ? 1 : 0
-        return total + screenshots + hasScreenshotUrl
-    }, 0)
-})
-
-// Indique si au moins un trade a une note détaillée
-const hasDetailedNote = computed(() => {
-    return props.groupTrades.some(trade => {
-        const detailedNote = (trade.metadata as Record<string, unknown>)?.detailedNote as string
-        return detailedNote && detailedNote.length > 0
-    })
-})
-
 // Données du tableau calculées uniquement lorsque le collapsible est ouvert
 const tableData = computed<TradeExtendedType[]>(() => {
     if (dbStateStore.dailyFilters.showInactive) {
@@ -296,17 +245,27 @@ const tableData = computed<TradeExtendedType[]>(() => {
     return activeTrades.value
 })
 
-// Fonction pour ouvrir la modal des captures d'écran
-const openScreenshotsModal = (trade: TradeExtendedType) => {
-    const screenshots = [
-        ...(trade.screenshots || []),
-        ...(trade.screenshotUrl && !(trade.screenshots || []).some(s => s.url === trade.screenshotUrl)
-            ? [{ url: trade.screenshotUrl }]
-            : []),
-    ]
-    currentScreenshots.value = screenshots
-    showScreenshots.value = true
-}
+const emit = defineEmits<{
+    tradeStatusChanged: [tradeId: number, active: boolean]
+}>()
+
+const groupTradesRef = computed(() => props.groupTrades)
+const groupDateRef = computed(() => props.groupDate)
+
+const {
+    showDayTagModal, showScreenshots, currentScreenshots,
+    showClearTagsModal, showClearDayTagsModal, showClearDetailedNoteModal,
+    selectedTradeDetail, showTradeDetailModal,
+    showDirectDetailedNote, directDetailedNote, selectedTradeForNote,
+    showEditTrade, editingTrade,
+    currentDayTag, dayTagTags, totalScreenshots, hasDetailedNote,
+    openScreenshotsModal, openDayTagModal, openTradeTagModal,
+    confirmClearTradeTags, confirmClearDayTradeTags,
+    onClearTradeNoteTags, onActivate, onDeactivate, onClearDayNoteTags,
+    openTradeDetailModal, onEditTrade, onTradeSaved,
+    openDirectDetailedNote, onDirectDetailedNoteClose,
+    onClearDetailedNote, executeClearDetailedNote,
+} = useTradeGroupActions(groupTradesRef, groupDateRef, emit)
 
 const addMeta = (defaultClass: string = 'w-[80px]') => {
     return {
@@ -315,33 +274,6 @@ const addMeta = (defaultClass: string = 'w-[80px]') => {
         },
     }
 }
-
-const labelColumnsHeader = computed(() => {
-    return {
-        actionToggle: t('components.common.columns.headers.actions'),
-        actions: t('components.common.columns.headers.actions'),
-        note: t('components.common.columns.headers.note'),
-        tags: t('components.common.columns.headers.tags'),
-        screenshots: t('components.common.columns.headers.screenshots'),
-        symbol: t('components.common.columns.headers.symbol'),
-        account: t('components.common.columns.headers.account'),
-        type: t('components.common.columns.headers.type'),
-        lot: t('components.common.columns.headers.lot'),
-        openDate: t('components.common.columns.headers.openHour'),
-        closeDate: t('components.common.columns.headers.closeHour'),
-        openHour: t('components.common.columns.headers.openHour'),
-        closeHour: t('components.common.columns.headers.closeHour'),
-        openPrice: t('components.common.columns.headers.openPrice'),
-        closePrice: t('components.common.columns.headers.closePrice'),
-        profit: t('components.common.columns.headers.profit'),
-        grossProfit: t('components.common.columns.headers.grossProfit'),
-        commission: t('components.common.columns.headers.commission'),
-        stopLoss: t('components.common.columns.headers.stopLoss'),
-        takeProfit: t('components.common.columns.headers.takeProfit'),
-        riskReward: t('components.common.columns.headers.riskReward'),
-        // Index signature is added via the type assertion below
-    }
-})
 
 const columns = computed(() => {
     return [
@@ -401,102 +333,6 @@ const columns = computed(() => {
     ]
 })
 
-// Ouvrir la modal pour ajouter/modifier un DayTag
-const openDayTagModal = () => {
-    showDayTagModal.value = true
-}
-
-const { open: openTagModal } = useTradeTagModal()
-
-// Ouvrir la modal pour modifier un trade et ses tags
-const openTradeTagModal = (trade: TradeExtendedType) => {
-    openTagModal(trade, async () => {
-        const result = await fetchTrade(trade.id)
-        if (!result) return
-        trade.note = result.note
-        trade.tags = result.tags
-        trade.screenshots = result.screenshots
-        trade.screenshotUrl = result.screenshotUrl
-        trade.metadata = result.metadata
-    })
-}
-
-// Ouvrir la modal de confirmation pour effacer les notes et tags
-const confirmClearTradeTags = (trade: TradeExtendedType) => {
-    selectedTrade.value = trade
-    if (userStore.user?.settings_object?.deleteConfirmationNoteTags === false) {
-        onClearTradeNoteTags()
-    } else {
-        showClearTagsModal.value = true
-    }
-}
-
-const confirmClearDayTradeTags = () => {
-    if (userStore.user?.settings_object?.deleteConfirmationNoteTags === false) {
-        onClearDayNoteTags()
-    } else {
-        showClearDayTagsModal.value = true
-    }
-}
-
-// Effacer les notes et tags d'un trade
-const onClearTradeNoteTags = async () => {
-    if (!selectedTrade.value || !selectedTrade.value.id) return
-
-    try {
-        await deleteTradeTags(selectedTrade.value.id)
-        await updateTrade({
-            id: selectedTrade.value.id,
-            note: '',
-            screenshots: [], // Supprime aussi les screenshots
-        })
-
-        // Recharger le trade pour avoir les données à jour
-        const result = await fetchTrade(selectedTrade.value.id)
-        if (result && selectedTrade.value) {
-            selectedTrade.value.note = result.note
-            selectedTrade.value.tags = result.tags
-            selectedTrade.value.screenshots = result.screenshots
-            selectedTrade.value.screenshotUrl = result.screenshotUrl
-        }
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
-
-const emit = defineEmits<{
-    tradeStatusChanged: [tradeId: number, active: boolean]
-}>()
-
-const onActivate = async (tradeId: number) => {
-    await unDeleteTrade(tradeId)
-    const trade = props.groupTrades.find(t => t.id === tradeId)
-    if (trade) {
-        trade.active = true
-    }
-    emit('tradeStatusChanged', tradeId, true)
-}
-
-const onDeactivate = async (tradeId: number) => {
-    await deleteTrade(tradeId)
-    const trade = props.groupTrades.find(t => t.id === tradeId)
-    if (trade) {
-        trade.active = false
-    }
-    emit('tradeStatusChanged', tradeId, false)
-}
-
-const onClearDayNoteTags = async () => {
-    try {
-        if (!currentDayTag.value?.id) return
-        await deleteDayTag(currentDayTag.value.id)
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
-
 const showTable = defineModel('showTable', { type: Boolean, default: false })
 
 // Instance pour la table (declenchee par showTable)
@@ -516,86 +352,10 @@ onMounted(() => {
 
 // Click handler - pas de delai quand on ouvre manuellement
 const handleManualOpen = () => {
-    // Force le rendu immediat sans delai pour la table
     setOverrideDelay(0)
     setTimeout(() => {
         setOverrideDelay(undefined)
     }, 0)
-}
-
-const openTradeDetailModal = (trade: TradeExtendedType) => {
-    selectedTradeDetail.value = trade
-    showTradeDetailModal.value = true
-}
-
-const showDirectDetailedNote = ref(false)
-const directDetailedNote = ref('')
-const selectedTradeForNote = ref<TradeExtendedType | null>(null)
-
-const showEditTrade = ref(false)
-const editingTrade = ref<TradeExtendedType | null>(null)
-
-const onEditTrade = (trade: TradeExtendedType) => {
-    editingTrade.value = { ...trade }
-    showEditTrade.value = true
-}
-
-const onTradeSaved = async () => {
-    const savedId = editingTrade.value?.id
-    showEditTrade.value = false
-    editingTrade.value = null
-    if (savedId) {
-        const result = await fetchTrade(savedId)
-        if (result) {
-            const trade = props.groupTrades.find(t => t.id === savedId)
-            if (trade) {
-                Object.assign(trade, result)
-            }
-        }
-    }
-    emit('tradeStatusChanged', 0, true)
-}
-
-const openDirectDetailedNote = async (trade: TradeExtendedType) => {
-    const { fetchTrade } = useTrades()
-    selectedTradeForNote.value = trade
-    const fetched = await fetchTrade(trade.id)
-    directDetailedNote.value = (fetched?.metadata as Record<string, unknown>)?.detailedNote as string || ''
-    showDirectDetailedNote.value = true
-}
-
-const onDirectDetailedNoteClose = async () => {
-    if (!selectedTradeForNote.value) return
-    const { updateTrade, fetchTrade } = useTrades()
-    await updateTrade({ id: selectedTradeForNote.value.id, detailedNote: directDetailedNote.value })
-    const result = await fetchTrade(selectedTradeForNote.value.id)
-    if (result) selectedTradeForNote.value.metadata = result.metadata
-}
-
-const onClearDetailedNote = async (trade: TradeExtendedType) => {
-    selectedTradeForDetailedNote.value = trade
-    if (userStore.user?.settings_object?.deleteConfirmationNoteTags === false) {
-        await executeClearDetailedNote()
-    } else {
-        showClearDetailedNoteModal.value = true
-    }
-}
-
-const executeClearDetailedNote = async () => {
-    if (!selectedTradeForDetailedNote.value) return
-    try {
-        const { updateTrade, fetchTrade } = useTrades()
-        const oldContent = (selectedTradeForDetailedNote.value.metadata as Record<string, unknown>)?.detailedNote as string || ''
-        await updateTrade({ id: selectedTradeForDetailedNote.value.id, detailedNote: '' })
-        await cleanupOrphanImages(oldContent, '')
-        const result = await fetchTrade(selectedTradeForDetailedNote.value.id)
-        if (result) {
-            selectedTradeForDetailedNote.value.metadata = result.metadata
-        }
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
 }
 </script>
 

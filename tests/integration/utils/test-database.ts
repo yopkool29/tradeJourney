@@ -1,4 +1,4 @@
-import type { Database } from '~/composables/useDatabase'
+import type { Database } from '~/composables/data/useDatabase'
 import {
 	checkServerRunning,
 	loginTestUser,

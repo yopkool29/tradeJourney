@@ -123,6 +123,7 @@
 
 <script setup lang="ts">
 import { formatDateWithUserTimezone } from '~/utils/date-utils'
+import { getAliasDisplay } from '~/utils/aliasResolver'
 import type { SymbolType, UpdateSymbolType } from '~/schema/symbol'
 import type { SettingsContentType } from '~/schema/user'
 import type { TradeFilter, FilterColumn } from '~/type'
@@ -177,10 +178,7 @@ const fetchSymbols = async () => {
     }
 }
 
-const getAliasDisplay = (symbol: SymbolType) => {
-    const fromMeta = symbol.metadata?.customFields?.find(f => f.key === 'aliases')?.value
-    return fromMeta ?? symbol.aliases ?? ''
-}
+// getAliasDisplay est importé depuis ~/utils/aliasResolver
 
 const getCustomKeysDisplay = (symbol: SymbolType) => {
     const fields = symbol.metadata?.customFields

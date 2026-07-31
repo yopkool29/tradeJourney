@@ -22,7 +22,7 @@ export const useFix = () => {
     const fixImageUrls = async (dryRun: boolean = true) => {
         try {
             const mode = dryRun ? 'Dry Run' : 'Full'
-            log_info(`Migration des URLs d\'images - ${mode}...`)
+            log_info(`Migration des URLs d'images - ${mode}...`)
 
             const result = await $fetch('/api/fix/image-urls', {
                 method: 'POST',

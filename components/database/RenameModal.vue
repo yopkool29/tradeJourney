@@ -5,8 +5,8 @@
                 <div class="space-y-4">
                     <UFormField :label="$t('pages.select_database.display_name')" name="displayName" required>
                         <UInput 
-                            autofocus 
                             v-model="state.displayName" 
+                            autofocus 
                             :placeholder="$t('pages.select_database.enter_display_name')"
                             icon="i-heroicons-pencil"
                         />

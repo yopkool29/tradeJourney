@@ -1,40 +1,17 @@
-import { getPrisma } from '../../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
-import auth from '../../../utils/auth'
 import { UpdateTagSchema } from '~/schema/tag'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
+        const { prisma } = await getApiContext(event)
 
-        const groupId = Number(event.context.params?.groupId)
+        const groupId = getValidatedId(event, 'groupId', 'api.tags.tag.update.invalid_group_id')
 
-        if (!groupId || isNaN(groupId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid group ID',
-                tag: 'api.tags.tag.update.invalid_group_id'
-            })
-        }
+        const tagId = getValidatedId(event, 'tagId', 'api.tags.tag.update.invalid_tag_id')
 
-        const tagId = Number(event.context.params?.tagId)
-
-        if (!tagId || isNaN(tagId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid tag ID',
-                tag: 'api.tags.tag.update.invalid_tag_id'
-            })
-        }
-
-        const body = await readBody(event)
-
-        const parsed = UpdateTagSchema.parse(body)
+        const parsed = await parseBody(event, UpdateTagSchema)
 
         const { id: _, ...updateData } = parsed
 

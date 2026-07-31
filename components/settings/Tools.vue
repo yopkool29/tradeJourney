@@ -12,7 +12,7 @@
                 <h3 class="section-subtitle-lg">{{ $t('components.settings.tools.csv_converter.title') }}</h3>
 
                 <UForm id="converterForm" :state="converterParams" :schema="converterParamsSchema"
-                    @submit="onSubmitConvert" class="space-y-4">
+                    class="space-y-4" @submit="onSubmitConvert">
                     <!-- Conversion Type Selection -->
                     <UFormField :label="$t('components.settings.tools.csv_converter.conversion_type')"
                         name="conversionType">
@@ -182,7 +182,7 @@ const saveConverterParams = async () => {
         converterParamsSchema.parse(converterParams)
 
         // Get existing saved params
-        const existing = (getUserSetting('converterParams') as Record<string, any>) || {}
+        const existing = (getUserSetting('converterParams') as Record<string, { accountName: string; accountFullname: string; importName: string }>) || {}
 
         // Update params for current conversion type
         const updated = {
@@ -196,7 +196,7 @@ const saveConverterParams = async () => {
 
         await updateUserSettings({
             converterParams: updated,
-        } as any)
+        })
     } catch {
         // Validation error - don't save
     }

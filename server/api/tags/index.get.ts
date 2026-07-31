@@ -1,15 +1,10 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-        
+        const { prisma } = await getApiContext(event)
+
         // Récupération de tous les groupes de tags (et leurs tags)
         const groups = await prisma.tagGroup.findMany({
             include: {

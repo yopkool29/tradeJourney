@@ -23,7 +23,7 @@
                     <!-- Slot spécifique pour les symboles -->
                     <CommonSymbolFilterInput
                         v-if="filter.column === 'symbol'"
-                        :model-value="filter.value as string | string[]"
+                        :model-value="getSymbolFilterValue(filter.value)"
                         :multiple="filter.operator === OPERATOR_IN"
                         @update:model-value="(val) => { onValueChange(idx, val); debouncedApply() }"
                     />
@@ -47,7 +47,7 @@
                     />
 
                     <!-- Slot pour champ personnalisé (autres colonnes) -->
-                    <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: any) => { onValueChange(idx, val); debouncedApply() }">
+                    <slot v-else :name="`field-${filter.column}`" :filter="filter" :index="idx" :on-value-change="(val: TradeFilterValue) => { onValueChange(idx, val); debouncedApply() }">
                         <!-- Champ par défaut -->
                         <CommonFilterClear
                             :model-value="filter.value as string"
@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn, TradeFilterValue } from '~/type'
+import type { TagGroupType } from '~/schema/tagGroup'
 import {
     OPERATOR_EQUAL,
     OPERATOR_NOT_EQUAL,
@@ -87,14 +88,11 @@ import {
     getDatePlaceholderFormat,
 } from '~/utils'
 
-const { log_debug } = useLogView()
-
-
 const props = defineProps<{
     modelValue: TradeFilter[]
     columns: FilterColumn[]
     loading?: boolean
-    tagGroups?: any[]
+    tagGroups?: TagGroupType[]
     isAutoApplyMode?: boolean
 }>()
 
@@ -173,6 +171,10 @@ const onOperatorChange = (index: number, value: string) => {
     newFilters[index] = filter
     emit('update:modelValue', newFilters)
     debouncedApply()
+}
+
+const getSymbolFilterValue = (value: TradeFilterValue): string | string[] => {
+    return Array.isArray(value) ? value.map(String) : String(value ?? '')
 }
 
 const onValueChange = (index: number, value: TradeFilterValue) => {

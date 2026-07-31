@@ -1,15 +1,10 @@
-import { getPrisma } from '../../utils/db'
 import { generateUniqueId } from '~/schema/trade'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId
+        const { prisma } = await getApiContext(event)
 
         const body = await readBody(event)
 

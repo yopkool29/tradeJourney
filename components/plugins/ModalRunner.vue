@@ -20,7 +20,7 @@ type PluginModal = Omit<TJPluginModalRegistered, 'component'> & { component?: Co
 
 const isOpen = ref(false)
 const activeModal = ref<PluginModal | null>(null)
-const sdk = typeof window !== 'undefined' ? (window as any).__TJ_SDK__ : undefined
+const sdk = typeof window !== 'undefined' ? window.__TJ_SDK__ : undefined
 
 const onClose = (val: boolean | undefined) => {
 	if (!val && activeModal.value?.onClose) {

@@ -81,6 +81,7 @@
 
 <script setup lang="ts">
 import type { TradeFilter, FilterColumn } from '~/type'
+import type { TagGroupType } from '~/schema/tagGroup'
 import {
 	OPERATOR_EQUAL,
 	OPERATOR_NOT_EQUAL,
@@ -88,7 +89,6 @@ import {
 	OPERATOR_IN,
 } from '~/utils'
 
-const { log_debug } = useLogView()
 const { t } = useI18n()
 
 const props = defineProps<{
@@ -98,20 +98,20 @@ const props = defineProps<{
     showInactive: boolean
     filters: TradeFilter[]
     filterLoading?: boolean
-    accountOptions: any[]
+    accountOptions: { value: number; label: string }[]
     placeholder: string
     allLabel: string
     selectedLabel: string
     filterableColumnsConfig?: FilterColumn[]
     showColumnVisibility?: boolean
     showPluginSlot?: boolean
-    table?: any
-    labelColumnsHeader?: any
+    table?: { tableApi?: unknown }
+    labelColumnsHeader?: Record<string, string>
     excludeColumns?: string[]
     columnVisibilityButtonClass?: string
     showAdvancedFilters: boolean
     showInactiveCheckbox?: boolean
-    tagGroups?: any[]
+    tagGroups?: TagGroupType[]
     lastFilterColumn?: string
     maxFilters?: number
     dirty?: boolean

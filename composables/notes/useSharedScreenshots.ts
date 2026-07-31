@@ -1,4 +1,4 @@
-import { useTrades } from './useTrades'
+import { useTrades } from '~/composables/trades/useTrades'
 
 // Interface pour représenter un screenshot (nouveau ou existant)
 export interface ScreenshotItem {

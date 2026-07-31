@@ -2,6 +2,26 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0",
+    "pnpm": ">=10.12.4"
+  },
+  "knip": {
+    "ignore": [
+      "node_modules/**",
+      ".nuxt/**",
+      ".output/**",
+      "generated/**",
+      "temp/**",
+      "pnltracker-private-tools/**",
+      "pnltracker-tools/**",
+      "plugins-dev/**",
+      "pages/tests/**",
+      "components/**/old/**",
+      "old/**",
+      "prisma/**"
+    ]
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -38,17 +58,13 @@
     "@nuxt/ui": "^3.2.0",
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/i18n": "^9.5.6",
-    "@nuxtjs/tailwindcss": "^6.14.0",
     "@pinia/nuxt": "^0.11.1",
     "@prisma/client": "^6.10.1",
-    "@tailwindcss/typography": "^0.5.16",
     "@types/archiver": "^6.0.3",
     "@unhead/vue": "^2.0.11",
-    "@vueuse/integrations": "^14.3.0",
     "adm-zip": "^0.5.17",
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.2",
-    "chardet": "^2.1.0",
     "chart.js": "^4.5.1",
     "chartjs-plugin-crosshair": "^2.0.0",
     "chartjs-plugin-datalabels": "^2.2.0",
@@ -82,7 +98,6 @@
     "@iconify-json/heroicons": "^1.2.3",
     "@nuxt/test-utils": "^3.19.1",
     "@types/adm-zip": "^0.5.8",
-    "@types/dotenv": "^8.2.3",
     "@types/formidable": "^3.4.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.1",

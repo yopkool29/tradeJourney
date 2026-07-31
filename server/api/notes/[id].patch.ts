@@ -1,21 +1,10 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-	await auth(event)
-
 	try {
-		const prisma = await getPrisma(event)
-		const id = Number(getRouterParam(event, 'id'))
-
-		if (!id || isNaN(id)) {
-			throw createAppError({
-				statusCode: 400,
-				message: 'Invalid note ID',
-				tag: 'api.notes.patch.invalid_id',
-			})
-		}
+		const { prisma } = await getApiContext(event)
+		const id = getValidatedId(event, 'id', 'api.notes.patch.invalid_id')
 
 		const body = await readBody(event)
 

@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
 	calculateMetricsByDimension,
 	calculateMetricsBy2Dimensions,
+} from '~/composables/analytics/useAnalytics'
+import {
 	groupByTicker,
 	groupByTag,
 	groupBySide,
@@ -11,13 +13,15 @@ import {
 	groupByDayOfWeekClose,
 	groupByHourStart,
 	groupByHourEnd,
+} from '~/composables/analytics/useBreakdownGrouping'
+import {
+	createEmptyMetrics,
 	getMetricValueForMetric,
 	formatMetricValueForMetric,
 	getMetricColor,
 	sortMetricsByDimension,
 	injectEmptyTagMetrics,
-	createEmptyMetrics,
-} from '~/composables/useAnalytics'
+} from '~/composables/analytics/breakdownMetrics'
 import type { TradeExtendedType } from '~/schema/trade'
 
 // Trades de test avec symboles, tags et types variés

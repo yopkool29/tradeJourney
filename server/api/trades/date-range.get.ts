@@ -1,11 +1,8 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
         const query = getQuery(event)
         const accountIds = query.accountIds ? JSON.parse(query.accountIds as string) : null
 

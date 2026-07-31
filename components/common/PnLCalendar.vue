@@ -16,15 +16,15 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-    modelValue: any
-    month: any
+    modelValue: unknown
+    month: unknown
     dayStats: Record<string, { pnl: number }>
     show: boolean
 }>()
 
 const emit = defineEmits<{
-    'update:modelValue': [value: any]
-    'update:month': [value: any]
+    'update:modelValue': [value: unknown]
+    'update:month': [value: unknown]
 }>()
 
 const modelValue = computed({
@@ -37,7 +37,7 @@ const month = computed({
     set: (val) => emit('update:month', val)
 })
 
-const onMonthChange = (val: any) => {
+const onMonthChange = (val: unknown) => {
     emit('update:month', val)
 }
 </script>

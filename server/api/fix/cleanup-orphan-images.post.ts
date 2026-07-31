@@ -1,19 +1,12 @@
 import { readdir, unlink } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
 import { getScreenshotUploadPath } from '../../utils/index'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-
-        const userId = event.context.userId
-        
-        const dbName = event.context.dbName
+        const { prisma, userId, dbName } = await getApiContext(event)
 
         if (!userId || !dbName) {
             throw createAppError({

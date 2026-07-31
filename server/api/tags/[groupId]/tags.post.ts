@@ -1,29 +1,15 @@
-import { getPrisma } from '../../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
-import auth from '../../../utils/auth'
 import { CreateTagSchema } from '~/schema/tag'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-        
-        const groupId = Number(event.context.params?.groupId)
+        const { prisma } = await getApiContext(event)
 
-        if (!groupId || isNaN(groupId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid group ID',
-                tag: 'api.tags.tag.create.invalid_group_id'
-            })
-        }
+        const groupId = getValidatedId(event, 'groupId', 'api.tags.tag.create.invalid_group_id')
 
-        const body = await readBody(event)
-        const input = CreateTagSchema.parse(body)
+        const input = await parseBody(event, CreateTagSchema)
         const tag = await prisma.tag.create({
             data: {
                 groupId: groupId,

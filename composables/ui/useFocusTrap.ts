@@ -16,7 +16,11 @@ export const useFocusTrap = () => {
             },
             set(value) {
                 el = value
-                value ? initFocusTrap() : clearFocusTrap()
+                if (value) {
+                    initFocusTrap()
+                } else {
+                    clearFocusTrap()
+                }
                 trigger()
             },
         }

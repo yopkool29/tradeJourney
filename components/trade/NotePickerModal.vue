@@ -162,7 +162,8 @@ onMounted(() => { document.addEventListener('keydown', onKeyDown, true) })
 onUnmounted(() => { document.removeEventListener('keydown', onKeyDown, true) })
 
 watch(open, async (val) => {
-    val ? push() : pop()
+    if (val) push()
+    else pop()
     if (!val) return
     loading.value = true
     selectedNote.value = null

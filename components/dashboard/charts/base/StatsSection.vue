@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMetricsBaseSectionPattern } from '~/composables/metrics/useBaseSectionPattern'
+import { useMetricsBaseSectionPattern } from '~/composables/dashboard/useBaseSectionPattern'
 
 export interface StatsRow {
 	label: string

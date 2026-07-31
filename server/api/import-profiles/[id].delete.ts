@@ -1,21 +1,10 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        const profileId = Number(event.context.params?.id)
-
-        if (!profileId || isNaN(profileId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid import profile ID',
-                tag: 'api.import_profiles.delete.invalid_id'
-            })
-        }
+        const { prisma } = await getApiContext(event)
+        const profileId = getValidatedId(event, 'id', 'api.import_profiles.delete.invalid_id')
 
         await prisma.importProfile.delete({
             where: { id: profileId }

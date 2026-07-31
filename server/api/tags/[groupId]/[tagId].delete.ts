@@ -1,43 +1,21 @@
-import { getPrisma } from '../../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
-import auth from '../../../utils/auth'
 import { z } from 'zod'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
 
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-        
-        const groupId = Number(event.context.params?.groupId)
+        const groupId = getValidatedId(event, 'groupId', 'api.tags.tag.delete.invalid_group_id')
 
-        if (!groupId || isNaN(groupId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid group ID',
-                tag: 'api.tags.tag.delete.invalid_group_id'
-            })
-        }
-
-        const tagId = Number(event.context.params?.tagId)
+        const tagId = getValidatedId(event, 'tagId', 'api.tags.tag.delete.invalid_tag_id')
 
         // Récupération du flag deleteAssoc du body
-        const body = await readBody(event)
         const schema = z.object({
             deleteAssoc: z.boolean().optional().default(false)
         })
-        const { deleteAssoc } = schema.parse(body)
-
-        if (!tagId || isNaN(tagId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid tag ID',
-                tag: 'api.tags.tag.delete.invalid_tag_id'
-            })
-        }
+        const { deleteAssoc } = await parseBody(event, schema)
 
         // Check if tag is used in import profiles
         const importProfileDayTags = await prisma.importProfileDayTag.findMany({

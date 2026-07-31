@@ -201,36 +201,13 @@
 </template>
 
 <script setup lang="ts">
-import { CreateTradeSchema } from '~/schema/trade'
-import type { CreateTradeType, UpdateTradeType, TradeType } from '~/schema/trade'
-import type { SymbolType } from '~/schema/symbol'
 import { INSTRUMENT_TYPES } from '~/schema/importProfile'
-import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
-import { calculateRiskReward } from '~/utils/rMultiple'
+import type { TradeType } from '~/schema/trade'
+import { useTradeForm } from '~/composables/trades/useTradeForm'
 
-const { symbols: availableSymbols, fetchActiveSymbols } = useSymbols()
-const { createTrade, updateTrade } = useTrades()
-const { accounts, fetchAccounts } = useAccount()
-const { errorStr, successStr, displayMessage } = useAlert()
-const isLoading = ref(false)
-
-const { t } = useI18n()
-
-// Gérer la création d'un nouveau symbole
-const onSymbolCreated = async (symbol: SymbolType) => {
-    displayMessage(t('components.settings.tradingSymbols.symbol_created'), null)
-    // Rafraîchir la liste des symboles
-    await fetchActiveSymbols()
-    // Sélectionner automatiquement le symbole créé
-    newState.value.symbol = symbol.symbol
-}
-
-// Gérer les erreurs de création de symbole
-const onSymbolError = (error: string | null) => {
-    if (error) {
-        displayMessage(null, error)
-    }
-}
+const emit = defineEmits<{
+    saved: []
+}>()
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -241,179 +218,24 @@ const props = defineProps({
     },
 })
 
-const selectedSymbol = ref<{ id: number; symbol: string; digit: number }>()
-
-const getDefaultForm = () =>
-    ({
-        accountId: -1,
-        openDate: new Date(),
-        closeDate: new Date(),
-        symbol: '',
-        type: 'buy',
-        lot: 0,
-        openPrice: 0,
-        closePrice: 0,
-        stopLoss: 0,
-        takeProfit: 0,
-        profit: 0, // Pour les trades manuels, profit = netProfit (commission = 0)
-        netProfit: 0,
-        instrumentType: 'any',
-        commission: 0,
-        exchange: 0,
-        screenshotUrl: null,
-        metadata: {},
-        riskReward: undefined,
-    }) as CreateTradeType
-
-const newState = ref<CreateTradeType>(getDefaultForm())
-
-const { screenshots, initializeScreenshots, prepareForUpdate, uploadNewScreenshots, cleanup } = useSharedScreenshots(3)
-
-const onError = (event: FormErrorEvent) => {
-    const errorMessage = t('components.trade.formModal.errors.form')
-    displayMessage(null, errorMessage)
-    const val = event?.errors?.[0]
-    if (val) {
-        if (val.id) {
-            const element = document.getElementById(val.id)
-            element?.focus()
-        } else {
-            const specificError = t('components.trade.formModal.errors.specific', { message: val.message, name: val.name })
-            displayMessage(null, specificError)
-        }
-    }
-}
-
-const openDateStr = computed({
-    get: () => getDatetimeLocalNow(newState.value.openDate),
-    set: (value) => {
-        newState.value.openDate = value
-    },
-})
-
-const closeDateStr = computed({
-    get: () => getDatetimeLocalNow(newState.value.closeDate),
-    set: (value) => {
-        newState.value.closeDate = value
-    },
-})
-
-function initializeScreenshotsFrom(trade: TradeType) {
-    if (trade.screenshots && trade.screenshots.length > 0) {
-        const existingScreenshotsData = trade.screenshots
-            .filter((s) => s.id !== undefined)
-            .map((s) => ({
-                id: s.id as number,
-                url: s.url,
-            }))
-
-        initializeScreenshots(existingScreenshotsData)
-    } else if (trade.screenshotUrl) {
-        const existingScreenshotsData = [
-            {
-                id: 0, // ID fictif pour l'ancien format
-                url: trade.screenshotUrl,
-            },
-        ]
-
-        initializeScreenshots(existingScreenshotsData)
-    } else {
-        // Aucun screenshot existant
-        initializeScreenshots([])
-    }
-}
-
-function newForm() {
-    errorStr.value = null
-    newState.value = getDefaultForm()
-    initializeScreenshots([])
-}
-
-const isRiskRewardNegative = computed(() => {
-    const value = Number(newState.value.riskReward)
-    return !isNaN(value) && value < 0
-})
-
-const canCalculateRR = computed(() => {
-    return (
-        calculateRiskReward(
-            newState.value.type as 'buy' | 'sell',
-            Number(newState.value.openPrice) || 0,
-            Number(newState.value.stopLoss) || 0,
-            Number(newState.value.takeProfit) || 0
-        ) !== null
-    )
-})
-
-function calculateRR() {
-    const calculated = calculateRiskReward(
-        newState.value.type as 'buy' | 'sell',
-        Number(newState.value.openPrice) || 0,
-        Number(newState.value.stopLoss) || 0,
-        Number(newState.value.takeProfit) || 0
-    )
-    if (calculated !== null) {
-        const value = Number(calculated.toFixed(2))
-        const capped = Math.min(value, 50)
-        newState.value.riskReward = capped < 0 ? 0 : capped
-    }
-}
-
-function clearRR() {
-    newState.value.riskReward = 0
-}
-
-function editForm(trade: TradeType) {
-    errorStr.value = null
-    const metadata = trade.metadata as Record<string, unknown> | null | undefined
-    newState.value = { ...trade, metadata: trade.metadata ?? {}, riskReward: metadata?.riskReward as number | undefined }
-    initializeScreenshotsFrom(trade)
-}
-
-async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType>) {
-    isLoading.value = true
-
-    try {
-        let saved: TradeType
-
-        if ('id' in event.data && event.data.id) {
-            const existingScreenshotsToKeep = prepareForUpdate()
-            const updateData = {
-                ...event.data,
-                screenshots: existingScreenshotsToKeep,
-            }
-            saved = await updateTrade(updateData as UpdateTradeType)
-            const msg = t('components.trade.formModal.success.updated_title')
-            displayMessage(msg, null)
-        } else {
-            const createData = {
-                ...event.data,
-            }
-            saved = await createTrade(createData as CreateTradeType)
-            const msg = t('components.trade.formModal.success.created_title')
-            displayMessage(msg, null)
-        }
-
-        // Upload des nouveaux fichiers si présents
-        if (saved && saved.id) {
-            // Utiliser la fonction du composable pour uploader les nouveaux screenshots
-            await uploadNewScreenshots(saved.id)
-        }
-    } catch (err) {
-        const { tag, message } = catchTagMessage(err, t)
-        displayMessage(null, message)
-    } finally {
-        // Nettoyer les ressources
-        cleanup()
-        emit('saved')
-        isLoading.value = false
-    }
-}
+const {
+    CreateTradeSchema,
+    availableSymbols, fetchActiveSymbols,
+    accounts, fetchAccounts,
+    errorStr, successStr,
+    isLoading,
+    selectedSymbol,
+    newState, screenshots,
+    openDateStr, closeDateStr,
+    isRiskRewardNegative, canCalculateRR, step,
+    onError, newForm, editForm, onSubmit,
+    calculateRR, clearRR,
+    onSymbolCreated, onSymbolError,
+} = useTradeForm(emit)
 
 watch(open, async (isOpen: boolean) => {
     isLoading.value = true
     if (isOpen) {
-        // console.log('open')
         await fetchActiveSymbols()
         await fetchAccounts()
         if (props.trade) {
@@ -432,7 +254,7 @@ watch(
             try {
                 selectedSymbol.value = availableSymbols.value.find((s) => s.symbol === symbol)
             } catch (error) {
-                console.error(t('components.trade.formModal.loading_error'), error)
+                console.error('Loading error:', error)
             }
         } else {
             selectedSymbol.value = undefined
@@ -450,15 +272,4 @@ watch(
         }
     }
 )
-
-const step = computed(() => {
-    if (selectedSymbol.value?.digit !== undefined) {
-        return 1 / Math.pow(10, selectedSymbol.value.digit)
-    }
-    return 0.00001
-})
-
-const emit = defineEmits<{
-    saved: []
-}>()
 </script>

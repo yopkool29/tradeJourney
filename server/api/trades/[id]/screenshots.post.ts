@@ -1,6 +1,5 @@
-import { getPrisma } from '../../../utils/db'
-import auth from '../../../utils/auth'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 import { z } from 'zod'
 
 // Schéma de validation pour les URLs des screenshots
@@ -9,22 +8,10 @@ const ScreenshotsUrlsSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-        
-        const id = parseInt(event.context.params?.id || '')
-        
-        if (isNaN(id)) {
-            throw createAppError({ 
-                statusCode: 400, 
-                message: 'Invalid ID',
-                tag: 'api.trades.screenshots.post.invalid_id'
-            })
-        }
+        const { prisma } = await getApiContext(event)
+
+        const id = getValidatedId(event, 'id', 'api.trades.screenshots.post.invalid_id')
 
         // Vérifier que le trade existe
         await prisma.trade.findUniqueOrThrow({ 
@@ -33,8 +20,7 @@ export default defineEventHandler(async (event) => {
         })
 
         // Valider le corps de la requête
-        const body = await readBody(event)
-        const { urls } = ScreenshotsUrlsSchema.parse(body)
+        const { urls } = await parseBody(event, ScreenshotsUrlsSchema)
 
         // Limiter à 3 screenshots maximum
         const limitedUrls = urls.slice(0, 3)

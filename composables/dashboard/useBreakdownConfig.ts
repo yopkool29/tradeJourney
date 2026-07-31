@@ -302,13 +302,12 @@ export const useBreakdownInstances = () => {
 	const deleteInstance = (key: string) => {
 		// 1. Retire la config
 		const currentConfigs = { ...(activeWorkspace.value?.breakdownConfigs || {}) }
-		delete currentConfigs[key]
+		const { [key]: _omit, ...restConfigs } = currentConfigs
 
 		// 2. Retire des visibilités
 		const removeKey = (obj: Record<string, boolean>) => {
-			const copy = { ...obj }
-			delete copy[key]
-			return copy
+			const { [key]: _o, ...rest } = obj
+			return rest
 		}
 		const visLg = removeKey(activeWorkspace.value?.dashboardChartVisibilityLg || {})
 		const visMd = removeKey(activeWorkspace.value?.dashboardChartVisibilityMd || {})
@@ -321,7 +320,7 @@ export const useBreakdownInstances = () => {
 		const layoutSm = filterLayout(activeWorkspace.value?.dashboardGridLayoutSm || [])
 
 		updateActiveWorkspace({
-			breakdownConfigs: currentConfigs,
+			breakdownConfigs: restConfigs,
 			dashboardChartVisibilityLg: visLg,
 			dashboardChartVisibilityMd: visMd,
 			dashboardChartVisibilitySm: visSm,

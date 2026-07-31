@@ -280,20 +280,20 @@ export const metadataHelpers = {
      * @param updates Les nouvelles données à fusionner
      * @returns Les metadata fusionnées, ou null si vides
      */
-    merge: (existing: Record<string, any> | null | undefined, updates: Record<string, any>): Record<string, any> | null => {
+    merge: (existing: Record<string, unknown> | null | undefined, updates: Record<string, unknown>): Record<string, unknown> | null => {
         // Reconstruire le JSON en ne prenant que les clés non-undefined
-        const merged: Record<string, any> = {}
+        const merged: Record<string, unknown> = {}
 
         // Ajouter les clés existantes (sauf undefined/null)
         if (existing && typeof existing === 'object') {
             try {
                 const entries = Array.isArray(existing) ? [] : Object.entries(existing)
-                entries.forEach(([key, value]: [string, any]) => {
+                entries.forEach(([key, value]: [string, unknown]) => {
                     if (value !== undefined && value !== null) {
                         merged[key] = value
                     }
                 })
-            } catch (e) {
+            } catch {
                 // Ignorer les erreurs de conversion
             }
         }
@@ -303,7 +303,8 @@ export const metadataHelpers = {
             Object.entries(updates).forEach(([key, value]) => {
                 if (value === undefined || value === null) {
                     // Supprimer la clé si elle existe
-                    delete merged[key]
+                    const { [key]: _omit, ...rest } = merged
+                    Object.assign(merged, rest)
                 } else {
                     // Ajouter/mettre à jour la clé
                     merged[key] = value
@@ -321,7 +322,7 @@ export const metadataHelpers = {
      * @param defaultValue La valeur par défaut si la clé n'existe pas
      * @returns La valeur extraite ou la valeur par défaut
      */
-    get: <T = any>(metadata: Record<string, any> | null | undefined, key: string, defaultValue?: T): T | undefined => {
+    get: <T = unknown>(metadata: Record<string, unknown> | null | undefined, key: string, defaultValue?: T): T | undefined => {
         if (!metadata) return defaultValue
         return (metadata[key] ?? defaultValue) as T
     },
@@ -333,9 +334,9 @@ export const metadataHelpers = {
      * @param value La valeur à définir
      * @returns Les metadata mises à jour (objet avec la clé définie, ou null si vide)
      */
-    set: (metadata: Record<string, any> | null | undefined, key: string, value: any): Record<string, any> | null => {
+    set: (metadata: Record<string, unknown> | null | undefined, key: string, value: unknown): Record<string, unknown> | null => {
         // Reconstruire l'objet en ne prenant que les clés valides
-        const result: Record<string, any> = {}
+        const result: Record<string, unknown> = {}
 
         // Copier les clés existantes (sauf undefined/null)
         if (metadata && typeof metadata === 'object') {
@@ -361,9 +362,9 @@ export const metadataHelpers = {
      * @param key La clé à supprimer
      * @returns Les metadata mises à jour
      */
-    remove: (metadata: Record<string, any> | null | undefined, key: string): Record<string, any> | null => {
+    remove: (metadata: Record<string, unknown> | null | undefined, key: string): Record<string, unknown> | null => {
         if (!metadata) return null
-        const { [key]: _, ...rest } = metadata
+        const { [key]: _omit, ...rest } = metadata
         return Object.keys(rest).length > 0 ? rest : null
     },
 
@@ -373,7 +374,7 @@ export const metadataHelpers = {
      * @param key La clé à vérifier
      * @returns true si la clé existe, false sinon
      */
-    has: (metadata: Record<string, any> | null | undefined, key: string): boolean => {
+    has: (metadata: Record<string, unknown> | null | undefined, key: string): boolean => {
         return metadata ? key in metadata : false
     }
 }

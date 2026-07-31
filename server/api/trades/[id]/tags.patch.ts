@@ -1,25 +1,12 @@
-import { getPrisma } from '../../../utils/db'
-import auth from '../../../utils/auth'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 import { UpdateTradeTagsSchema } from '~/schema/trade'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        
-        const _userId = event.context.userId
-        
-        const tradeId = parseInt(event.context.params?.id || '0')
+        const { prisma } = await getApiContext(event)
 
-        if (!tradeId) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Missing trade ID',
-                tag: 'api.trades.tags.patch.missing_id'
-            })
-        }
+        const tradeId = getValidatedId(event, 'id', 'api.trades.tags.patch.missing_id')
 
         // Vérifier que le trade appartient à l'utilisateur
         const trade = await prisma.trade.findUnique({
@@ -36,10 +23,8 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        const body = await readBody(event)
-
         // Valider les données entrantes
-        const { tagIds } = UpdateTradeTagsSchema.parse(body)
+        const { tagIds } = await parseBody(event, UpdateTradeTagsSchema)
 
         // Supprimer les associations existantes
         await prisma.tradeTagAssociation.deleteMany({

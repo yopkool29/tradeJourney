@@ -112,7 +112,7 @@
                 <!-- Pied de page -->
                 <div v-if="selectedNote" class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                     <div class="flex gap-2">
-                        <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" :disabled="loading" @click="saveNote" />
+                        <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" :disabled="loading" @click="doSaveNote" />
                         <UButton
                             :label="$t('common.actions.save_and_close')"
                             color="primary"
@@ -131,7 +131,7 @@
     <!-- Modal modifications non sauvegardées -->
     <CommonModalDefault v-model:open="showUnsavedModal" :title="$t('components.notes_panel.unsaved_modal.title')">
         <template #content>
-            <UForm id="unsavedModalForm" :state="{}" @submit="onUnsavedSaveAndContinue">
+            <UForm id="unsavedModalForm" :state="{}" @submit="doOnUnsavedSaveAndContinue">
                 <p>{{ $t('components.notes_panel.unsaved_modal.content') }}</p>
             </UForm>
         </template>
@@ -142,14 +142,8 @@
                     :label="$t('common.actions.cancel')"
                     color="neutral"
                     variant="ghost"
-                    @click="
-                        () => {
-                            showUnsavedModal = false
-                            pendingAction = null
-                        }
-                    "
+                    @click="onUnsavedDiscard"
                 />
-                <UButton :label="$t('components.notes_panel.unsaved_modal.discard')" color="error" variant="ghost" @click="onUnsavedDiscard" />
             </div>
         </template>
     </CommonModalDefault>
@@ -216,9 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatDateLongString, formatDateToYYYYMMDD } from '~/utils/date-utils'
-
-import type { NoteType } from '~/schema/note'
+import { formatDateLongString } from '~/utils/date-utils'
 
 const props = defineProps({
     isOpen: {
@@ -231,306 +223,41 @@ const props = defineProps({
     },
 })
 const emit = defineEmits(['close', 'save', 'update:selectedDate'])
-const { fetchNoteDates, saveNote: saveNoteToApi, updateNote, deleteNote } = useNotes()
-const { log_error } = useLogView()
-const { success: toastSuccess } = useAppToast()
-const userStore = useUserStore()
-const dbStateStore = useDbStateStore()
-const { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, deleteNoteImages } = useNoteImages()
+const { locale } = useI18n()
 
-const loading = ref(false)
-const noteDates = ref<NoteType[]>([])
-const selectedNote = ref<NoteType | null>(null)
-const showDeleteModal = ref(false)
-const noteToDelete = ref<NoteType | null>(null)
-const showUnsavedModal = ref(false)
-const savedContent = ref('')
-const pendingAction = ref<(() => void) | null>(null)
+const {
+    loading, selectedNote, showDeleteModal, noteToDelete,
+    showUnsavedModal, pendingAction,
+    showCreateModal, createNoteDate, createNoteTime, createNoteSubtitle,
+    showChangeDateTimeModal, changeNoteDate, changeNoteTime,
+    editorContent, noteSubtitle,
+    uploadContext,
+    isDirty, showDirtyIndicator, selectedNoteId, noteDatesGrouped,
+    selectNote, openCreateModal, openChangeDateTimeModal,
+    confirmChangeDateTime, confirmCreateNote, createNewNote,
+    loadNotes, saveNote, onUnsavedDiscard, onUnsavedSaveAndContinue,
+    confirmDeleteNote, deleteNoteConfirmed, cleanupTmpImages,
+} = useNotesPanel()
 
-const showCreateModal = ref(false)
-const createNoteDate = ref('')
-const createNoteTime = ref('')
-const createNoteSubtitle = ref('')
-
-const showChangeDateTimeModal = ref(false)
-const changeNoteDate = ref('')
-const changeNoteTime = ref('')
-
-const editorContent = ref('')
 const noteEditor = ref<{ getContent: () => string; setContent: (v: string) => Promise<void> } | null>(null)
-const getContent = () => editorContent.value
-const setContent = async (v: string) => {
-    editorContent.value = v
-}
-
-const noteSubtitle = ref('')
-const savedSubtitle = ref('')
-const isDirty = computed(() => editorContent.value.trim() !== savedContent.value.trim() || noteSubtitle.value !== savedSubtitle.value)
-const isNewNote = computed(() => !!selectedNote.value && !selectedNote.value.id)
-const showDirtyIndicator = computed(() => isDirty.value || isNewNote.value)
-
-const { t, locale } = useI18n()
-
-// Grouper les notes par date
-const noteDatesGrouped = computed(() => {
-    const grouped = new Map<string, NoteType[]>()
-
-    noteDates.value.forEach((note: NoteType) => {
-        const dateKey = formatDateToYYYYMMDD(note.date)
-        if (!grouped.has(dateKey)) {
-            grouped.set(dateKey, [])
-        }
-        grouped.get(dateKey)!.push(note)
-    })
-
-    // Trier les notes par heure (plus récent en premier)
-    grouped.forEach((notes) => {
-        notes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    })
-
-    // Convertir en tableau et trier par date
-    return Array.from(grouped.entries())
-        .map(([date, notes]) => ({ date, notes }))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-})
-
-const selectedNoteId = computed(() => selectedNote.value?.id || null)
 
 const formattedDate = computed(() => {
     const date = selectedNote.value ? new Date(selectedNote.value.date) : props.selectedDate
     return formatDateLongString(date, locale.value)
 })
 
-// Formater l'heure d'une note
 const formatNoteTime = (date: string | Date) => {
     const d = new Date(date)
-    return d.toLocaleTimeString(locale.value, {
-        hour: '2-digit',
-        minute: '2-digit',
-    })
+    return d.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
 }
 
-const doSelectNote = (note: NoteType) => {
-    selectedNote.value = note
-    dbStateStore.setLastViewedNoteId(note.id ?? null)
-    const subtitle = note.metadata?.subtitle || ''
-    noteSubtitle.value = subtitle
-    savedSubtitle.value = subtitle
-    const c = note.content || ''
-    savedContent.value = c
-    setContent(c)
-}
-
-// Sélectionner une note spécifique
-const selectNote = (note: NoteType) => {
-    if (isDirty.value && selectedNote.value) {
-        pendingAction.value = () => doSelectNote(note)
-        showUnsavedModal.value = true
-        return
-    }
-    doSelectNote(note)
-}
-
-const openCreateModal = () => {
-    if (isDirty.value && selectedNote.value) {
-        pendingAction.value = () => doOpenCreateModal()
-        showUnsavedModal.value = true
-        return
-    }
-    doOpenCreateModal()
-}
-
-const doOpenCreateModal = () => {
-    const now = new Date()
-    createNoteDate.value = formatDateToYYYYMMDD(now)
-    createNoteTime.value = now.toTimeString().slice(0, 5)
-    createNoteSubtitle.value = ''
-    showCreateModal.value = true
-}
-
-const openChangeDateTimeModal = () => {
-    if (!selectedNote.value) return
-    const noteDate = new Date(selectedNote.value.date)
-    changeNoteDate.value = formatDateToYYYYMMDD(noteDate)
-    changeNoteTime.value = noteDate.toTimeString().slice(0, 5)
-    showChangeDateTimeModal.value = true
-}
-
-const confirmChangeDateTime = async () => {
-    if (!selectedNote.value) return
-
-    const [hours, minutes] = changeNoteTime.value.split(':').map(Number)
-    const parsed = new Date(changeNoteDate.value)
-    parsed.setHours(hours, minutes, 0, 0)
-
-    try {
-        loading.value = true
-        await updateNote(selectedNote.value.id, {
-            date: parsed.toISOString(),
-        })
-
-        showChangeDateTimeModal.value = false
-        selectedNote.value.date = parsed.toISOString()
-        await loadNotes()
-        toastSuccess(t('components.notes_panel.change_datetime_modal.success'))
-    } catch (error) {
-        log_error('Failed to update note date/time:', error)
-    } finally {
-        loading.value = false
-    }
-}
-
-const confirmCreateNote = async () => {
-    const [hours, minutes] = createNoteTime.value.split(':').map(Number)
-    const parsed = new Date(createNoteDate.value)
-    parsed.setHours(hours, minutes, 0, 0)
-    const newNote: Partial<NoteType> = {
-        date: parsed.toISOString(),
-        content: '',
-        metadata: { subtitle: createNoteSubtitle.value },
-    }
-    noteSubtitle.value = createNoteSubtitle.value
-    savedSubtitle.value = ''
-    savedContent.value = ''
-    selectedNote.value = newNote as NoteType
-    setContent('')
-    showCreateModal.value = false
-}
-
-// Créer une nouvelle note pour une date donnée
-const createNewNote = (date: string) => {
-    if (isDirty.value && selectedNote.value) {
-        pendingAction.value = () => doCreateNewNote(date)
-        showUnsavedModal.value = true
-        return
-    }
-    doCreateNewNote(date)
-}
-
-const doCreateNewNote = (date: string) => {
-    const parsed = new Date(date)
-    const now = new Date()
-    parsed.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
-    const newNote: Partial<NoteType> = {
-        date: parsed.toISOString(),
-        content: '',
-        metadata: {},
-    }
-
-    noteSubtitle.value = ''
-    savedSubtitle.value = ''
-    savedContent.value = ''
-    selectedNote.value = newNote as NoteType
-    setContent('')
-}
-
-// Charger les notes existantes
-const loadNotes = async () => {
-    try {
-        const dates = await fetchNoteDates()
-        noteDates.value = dates as NoteType[]
-
-        // Restaurer la dernière note vue, sinon sélectionner la plus récente
-        if (!selectedNote.value && noteDates.value.length > 0) {
-            const lastId = dbStateStore.lastViewedNoteId
-            const lastNote = lastId ? noteDates.value.find((n: NoteType) => n.id === lastId) : null
-            const noteToSelect =
-                lastNote ?? [...noteDates.value].sort((a: NoteType, b: NoteType) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-            selectNote(noteToSelect)
-        }
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
-
-
-// Sauvegarder la note
-const saveNote = async () => {
-    if (!selectedNote.value) return
-
-    try {
-        const noteContent = getContent().trim()
-        const noteData = {
-            date: selectedNote.value.date,
-            content: noteContent,
-            subtitle: noteSubtitle.value,
-        }
-
-        if (noteContent) {
-            // Save or update the note
-            const savedNote = selectedNote.value.id ? await updateNote(selectedNote.value.id, noteData) : await saveNoteToApi(noteData)
-
-            if (savedNote) {
-                // Finaliser les images tmp_nt_* et nettoyer les orphelins
-                const finalContent = await finalizeImages(savedNote.id!, noteContent)
-                await cleanupOrphanImages(savedContent.value, finalContent)
-
-                if (finalContent !== noteContent) {
-                    await updateNote(savedNote.id!, { content: finalContent })
-                    savedNote.content = finalContent
-                }
-
-                selectedNote.value = savedNote
-                savedContent.value = finalContent
-                savedSubtitle.value = noteSubtitle.value
-                await setContent(finalContent)
-                await loadNotes() // Recharger la liste
-
-                toastSuccess(t('components.notes_panel.toast.save_success_title'), t('components.notes_panel.toast.save_success_desc'))
-
-                emit('save', { date: savedNote.date, note: noteContent })
-            }
-        } else if (selectedNote.value.id) {
-            // If note is empty and has no metadata, delete it
-            // First cleanup orphan images (all images since content is empty)
-            await cleanupOrphanImages(savedContent.value, '')
-            const success = await deleteNote(selectedNote.value.id)
-            if (success) {
-                selectedNote.value = null
-                setContent('')
-                await loadNotes() // Recharger la liste
-
-                toastSuccess(t('components.notes_panel.toast.delete_success_title'), t('components.notes_panel.toast.delete_success_desc'))
-
-                emit('save', { date: noteData.date, note: '' })
-            }
-        }
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    }
-}
-
+const doSaveNote = () => saveNote(emit as (event: string, data: unknown) => void)
+const doOnUnsavedSaveAndContinue = () => onUnsavedSaveAndContinue(emit as (event: string, data: unknown) => void)
 const saveAndClose = async () => {
-    await saveNote()
+    await doSaveNote()
     emit('close')
 }
 
-const onUnsavedDiscard = () => {
-    showUnsavedModal.value = false
-    const currentContent = getContent()
-    if (currentContent.includes('tmp_nt_')) {
-        cleanupTmpImages()
-    }
-    savedContent.value = currentContent
-    if (pendingAction.value) {
-        pendingAction.value()
-        pendingAction.value = null
-    }
-}
-
-const onUnsavedSaveAndContinue = async () => {
-    await saveNote()
-    showUnsavedModal.value = false
-    const action = pendingAction.value
-    pendingAction.value = null
-    if (action) {
-        action()
-    }
-}
-
-// Fermer le panneau
 const closePanel = () => {
     if (isDirty.value) {
         pendingAction.value = () => emit('close')
@@ -540,63 +267,19 @@ const closePanel = () => {
     emit('close')
 }
 
-// Confirmer la suppression d'une note
-const confirmDeleteNote = (note: NoteType) => {
-    noteToDelete.value = note
-    showDeleteModal.value = true
-}
-
-// Supprimer une note après confirmation
-const deleteNoteConfirmed = async () => {
-    if (!noteToDelete.value || !noteToDelete.value.id) return
-
-    try {
-        loading.value = true
-
-        // Delete associated images first
-        if (noteToDelete.value.content) {
-            await deleteNoteImages(noteToDelete.value.content)
-        }
-
-        const success = await deleteNote(noteToDelete.value.id)
-
-        if (success) {
-            if (selectedNote.value?.id === noteToDelete.value.id) {
-                selectedNote.value = null
-                dbStateStore.setLastViewedNoteId(null)
-                setContent('')
-            }
-
-            await loadNotes()
-
-            toastSuccess(t('components.notes_panel.toast.delete_success_title'), t('components.notes_panel.toast.delete_success_desc'))
-        }
-    } catch (err) {
-        const { message } = catchTagMessage(err, t)
-        log_error(message)
-    } finally {
-        loading.value = false
-        showDeleteModal.value = false
-        noteToDelete.value = null
-    }
-}
-
 watch(selectedNote, (note) => {
     if (!note) {
         editorContent.value = ''
         noteSubtitle.value = ''
-        savedContent.value = ''
-        savedSubtitle.value = ''
     }
 })
 
-// Surveiller l'ouverture/fermeture du panneau
 watch(
     () => props.isOpen,
     async (isOpen: boolean) => {
         if (isOpen) {
             selectedNote.value = null
-            await loadNotes() // Charger les notes à l'ouverture
+            await loadNotes()
         } else {
             cleanupTmpImages()
         }
@@ -604,13 +287,12 @@ watch(
     { immediate: true }
 )
 
-// Gérer Ctrl+S pour sauvegarder et fermer, Echap pour fermer
 const handleKeyDown = async (e: KeyboardEvent) => {
     if (!e.key) return
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         if (props.isOpen) {
             e.preventDefault()
-            await saveNote()
+            await doSaveNote()
         }
     } else if (e.key.toLowerCase() === 'escape') {
         if (props.isOpen) {
@@ -620,16 +302,11 @@ const handleKeyDown = async (e: KeyboardEvent) => {
     }
 }
 
-onMounted(() => {
-    window.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-    window.removeEventListener('keydown', handleKeyDown)
-})
+onMounted(() => window.addEventListener('keydown', handleKeyDown))
+onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown))
 
 defineExpose({
-    saveNote,
+    saveNote: doSaveNote,
     createNewNote,
     selectNote,
 })

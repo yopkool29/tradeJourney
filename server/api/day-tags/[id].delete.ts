@@ -1,22 +1,10 @@
-import { getPrisma } from '../../utils/db'
+import { getApiContext, getValidatedId } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
 
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
-
-        const id = parseInt(event.context.params?.id || '')
-        
-        if (!id || isNaN(id)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid day tag ID',
-                tag: 'api.day_tags.delete.invalid_id'
-            })
-        }
+        const id = getValidatedId(event, 'id', 'api.day_tags.delete.invalid_id')
 
         // Vérifier que le DayTag existe
         const existingDayTag = await prisma.dayTag.findUnique({

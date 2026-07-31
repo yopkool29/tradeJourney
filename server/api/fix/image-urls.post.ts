@@ -1,14 +1,13 @@
-import { getPrisma } from '~/server/utils/db'
 import { migrateImageUrlsInContent, migrateScreenshotUrl } from '~/server/utils/export-utils'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-	await auth(event)
+	const { prisma } = await getApiContext(event)
 
 	const body = await readBody(event)
 	const dryRun = body?.dryRun ?? false
 
 	try {
-		const prisma = await getPrisma(event)
 
 		// Migrer les trades (metadata.detailedNote + screenshot.url)
 		const trades = await prisma.trade.findMany({

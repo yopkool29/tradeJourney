@@ -1,15 +1,11 @@
-import { getPrisma } from '../../utils/db'
 import { Prisma } from '~/generated/prisma-data'
 import { CreateDayTagSchema } from '~/schema/dayTag'
 import { toUTCMidnight } from '~/utils/date-utils'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
+        const { prisma } = await getApiContext(event)
 
         const body = await readBody(event)
 

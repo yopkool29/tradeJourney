@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
 import type { BreakdownMetric } from '~/type'
-import type { BreakdownMetrics } from '~/composables/useAnalytics'
-import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/useAnalytics'
-import { metricOptions } from '~/composables/metrics/useBreakdownConfig'
+import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
+import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
+import { metricOptions } from '~/composables/dashboard/useBreakdownConfig'
 
 // Construit les lignes d'un tooltip ECharts : titre (en gras) + lignes principales + extras.
 // - title : affiché en gras en 1re ligne (peut être vide)

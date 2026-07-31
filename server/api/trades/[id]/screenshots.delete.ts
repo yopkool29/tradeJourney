@@ -1,6 +1,5 @@
-import { getPrisma } from '../../../utils/db'
-import auth from '../../../utils/auth'
 import { createAppError } from '../../../utils/errors'
+import { getApiContext, getValidatedId, parseBody } from '../../../utils/apiHelpers'
 import { z } from 'zod'
 
 // Schéma de validation pour les IDs des screenshots à supprimer
@@ -9,22 +8,11 @@ const DeleteScreenshotsSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
+        const { prisma } = await getApiContext(event)
 
-        const _userId = event.context.userId
-        
         // Récupérer l'ID du trade depuis les paramètres de l'URL
-        const tradeId = parseInt(event.context.params?.id || '')
-        if (isNaN(tradeId)) {
-            throw createAppError({
-                statusCode: 400,
-                message: 'Invalid trade ID',
-                tag: 'api.trades.screenshots.delete.invalid_id'
-            })
-        }
+        const tradeId = getValidatedId(event, 'id', 'api.trades.screenshots.delete.invalid_id')
 
         // Vérifier que le trade appartient à l'utilisateur
         const trade = await prisma.trade.findUnique({
@@ -41,8 +29,7 @@ export default defineEventHandler(async (event) => {
         }
 
         // Récupérer les IDs des screenshots à supprimer
-        const body = await readBody(event)
-        const { screenshotIds } = DeleteScreenshotsSchema.parse(body)
+        const { screenshotIds } = await parseBody(event, DeleteScreenshotsSchema)
 
         if (screenshotIds.length <= 0) {
             return trade

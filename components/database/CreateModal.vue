@@ -1,10 +1,10 @@
 <template>
     <CommonModalDefault v-model:open="isOpen" :title="$t('database.create.title')">
         <template #content>
-            <UForm id="createDatabaseForm" :state="state" :schema="schema" @submit="onSubmit" :validate-on="['submit']">
+            <UForm id="createDatabaseForm" :state="state" :schema="schema" :validate-on="['submit']" @submit="onSubmit">
                 <div class="space-y-4">
                     <UFormField :label="$t('database.create.display_name')" name="displayName" required>
-                        <UInput autofocus v-model="state.displayName" :placeholder="$t('database.create.display_name_placeholder')" />
+                        <UInput v-model="state.displayName" autofocus :placeholder="$t('database.create.display_name_placeholder')" />
                     </UFormField>
 
                     <UFormField :label="$t('database.create.technical_name')" name="name" required>
@@ -46,7 +46,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     'update:modelValue': [value: boolean]
-    created: [database: any]
+    created: [database: unknown]
 }>()
 
 const { createDatabase } = useDatabase()

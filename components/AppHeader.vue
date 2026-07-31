@@ -208,7 +208,7 @@
             <div v-if="userStore.user && currentDatabase"
                 class="w-full flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                 <div class="container mx-auto py-4 px-4 flex items-center gap-4">
-                    <QuickNav class="hidden lg:block" v-if="userStore.user.settings_object?.showQuickNav" />
+                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" class="hidden lg:block" />
                     <NetGrossToggle v-model="userStore.displayModeNet" />
                     <DetailedNoteToggle />
                 </div>

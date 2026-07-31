@@ -1,15 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
+import { getCustomFieldValue } from '../../utils/symbolResolver'
 import { CreateSymbolSchema } from '~/schema/symbol'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-
-        const _userId = event.context.userId
+        const { prisma } = await getApiContext(event)
 
         const body = await readBody(event)
 
@@ -39,8 +35,7 @@ export default defineEventHandler(async (event) => {
         }
 
         const customFields = body.customFields ?? null
-        const aliasFromFields = customFields?.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
-        const aliases = aliasFromFields ?? parsed.data.aliases ?? ''
+        const aliases = getCustomFieldValue(customFields, 'aliases') ?? parsed.data.aliases ?? ''
         const metadata = customFields ? { customFields } : null
 
         // Créer le nouveau symbole

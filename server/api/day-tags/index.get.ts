@@ -1,12 +1,8 @@
-import { getPrisma } from '../../utils/db'
+import { getApiContext } from '../../utils/apiHelpers'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-
-        const _userId = event.context.userId // Non utilisé car géré par le middleware d'authentification
+        const { prisma } = await getApiContext(event)
 
         // Préparer la condition where
         const whereCondition: Record<string, unknown> = {}

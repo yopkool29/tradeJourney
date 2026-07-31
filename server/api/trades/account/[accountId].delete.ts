@@ -4,6 +4,7 @@ import auth from '../../../utils/auth'
 import { getPrisma } from '../../../utils/db'
 import { deleteFiles } from '../../../utils'
 import { cleanupDayTagData } from '../../../utils/dayTagCleanup'
+import { getValidatedId } from '../../../utils/apiHelpers'
 import type { Prisma } from '~/generated/prisma-data'
 
 // ------------------------------------------------
@@ -95,15 +96,9 @@ export default defineEventHandler(async (event) => {
 
     try {
 
-        const _userId = event.context.userId // Non utilisé directement car géré par le middleware d'authentification
-
         const body = await readBody(event)
 
-        const accountId = parseInt(event.context.params?.accountId || '')
-
-        if (isNaN(accountId)) {
-            throw createAppError({ statusCode: 400, message: 'Invalid account' })
-        }
+        const accountId = getValidatedId(event, 'accountId')
 
         const deleteInactive = body.deleteInactive === undefined ? undefined : Boolean(body.deleteInactive)
 

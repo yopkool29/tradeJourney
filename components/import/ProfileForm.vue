@@ -128,8 +128,7 @@
 <script setup lang="ts">
 import type { ImportProfileType, CreateImportProfileType } from '~/schema/importProfile'
 import { CreateImportProfileSchema, INSTRUMENT_TYPES, DEFAULT_INSTRUMENT_TYPE_BY_PROVIDER } from '~/schema/importProfile'
-import type { ReportType } from '~/type'
-import { InstrumentType } from '~/type'
+import type { ReportType, InstrumentType } from '~/type'
 import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 
 const config = useRuntimeConfig()

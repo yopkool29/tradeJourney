@@ -16,9 +16,9 @@ export const useSessionCheck = () => {
         try {
             // Tenter de récupérer les infos utilisateur (vérifie le token)
             await fetchUser()
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Si erreur 401, le token est expiré ou invalide
-            if (error?.statusCode === 401) {
+            if ((error as { statusCode?: number })?.statusCode === 401) {
                 stopSessionCheck()
                 await logout()
                 await router.push('/login')

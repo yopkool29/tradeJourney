@@ -1,14 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext } from '../../utils/apiHelpers'
+import { getCustomFieldValue } from '../../utils/symbolResolver'
 import { CreateAccountSchema } from '~/schema/account'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-    
     try {
-        const prisma = await getPrisma(event)
-        const _userId = event.context.userId
+        const { prisma } = await getApiContext(event)
 
         const body = await readBody(event)
         const parsed = CreateAccountSchema.parse({ ...body })
@@ -30,8 +27,7 @@ export default defineEventHandler(async (event) => {
 
         // Merger startingCapital et customFields dans metadata
         const customFields = body.customFields ?? null
-        const aliasFromFields = customFields?.find((f: { key: string }) => f.key === 'aliases')?.value ?? null
-        const aliases = aliasFromFields ?? parsed.aliases ?? ''
+        const aliases = getCustomFieldValue(customFields, 'aliases') ?? parsed.aliases ?? ''
 
         let metadata: Record<string, unknown> | undefined
         if (body.startingCapital !== undefined && body.startingCapital !== null) {

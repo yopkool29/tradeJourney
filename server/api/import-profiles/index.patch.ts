@@ -1,15 +1,11 @@
-import { getPrisma } from '../../utils/db'
-import auth from '../../utils/auth'
 import { createAppError } from '../../utils/errors'
+import { getApiContext, parseBody } from '../../utils/apiHelpers'
 import { UpdateImportProfileSchema } from '~/schema/importProfile'
 
 export default defineEventHandler(async (event) => {
-    await auth(event)
-
     try {
-        const prisma = await getPrisma(event)
-        const body = await readBody(event)
-        const parsed = UpdateImportProfileSchema.parse(body)
+        const { prisma } = await getApiContext(event)
+        const parsed = await parseBody(event, UpdateImportProfileSchema)
 
         const id = parsed.id
 
