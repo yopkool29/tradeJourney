@@ -42,6 +42,8 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
+const { renameDatabase } = useDatabase()
+
 interface Database {
     id: number
     name: string
@@ -95,13 +97,7 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
     error.value = ''
 
     try {
-        // Call API to rename database
-        await $fetch(`/api/database/${props.database.id}/rename`, {
-            method: 'PATCH',
-            body: {
-                displayName: event.data.displayName,
-            },
-        })
+        await renameDatabase(props.database.id, event.data.displayName)
 
         emit('renamed', {
             ...props.database,

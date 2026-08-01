@@ -229,7 +229,10 @@ Les extractions GUI actuelles seront donc suivies d'un lot de consolidation avan
 - [ ] Harmoniser les noms `Schema`, `Type`, `Dashboard` et `Trade`.
 - [ ] Convertir les fichiers de traduction JS en TypeScript.
 - [ ] Décomposer les traductions par domaine.
-- [ ] Détecter les clés de traduction inutilisées ou absentes.
+- [x] Détecter les clés de traduction inutilisées ou absentes.
+  - [x] 6 clés frontend manquantes ajoutées (calendar, trade.journal, common.modal).
+  - [x] 66 tags serveur manquants identifiés (non traités — message brut affiché en fallback).
+  - [x] 370 clés potentiellement inutilisées identifiées (à vérifier manuellement avant suppression).
 
 ### Phase 9 — Validation finale
 
@@ -343,9 +346,18 @@ Mesure effectuée après la phase de consolidation GUI + nettoyage lint + extrac
 - Tests unitaires et parseurs de référence : réussis.
 - ESLint ciblé sur les fichiers refactorisés : réussi avec Node 22.
 - ESLint global : erreurs préexistantes à traiter progressivement.
-- Typecheck global : erreurs préexistantes à traiter progressivement.
+- Typecheck global : erreurs pré-existantes à traiter progressivement.
 - Tests d'intégration : nécessitent le serveur Nuxt et l'environnement de base de données.
+
+## Corrections de bugs (hors refactor)
+
+- Collage de screenshots sur Firefox : `navigator.clipboard.read()` échouait sur Firefox (restriction de permission). Remplacé par l'événement `paste` natif qui fonctionne sur tous les navigateurs.
+- Chart Polygon : ligne pointillée entry→exit ajoutée pour le trade principal (était seulement dessinée pour les trades adjacents).
+- Chart Polygon : trades inactifs (`active: false`) exclus du chargement des trades adjacents.
+- `ScreenshotManager.vue` : default `maxScreenshots: 9` ajouté, `cleanup` unused retiré.
 
 ## Prochain lot
 
-Réduire davantage le domaine analytique en isolant les fonctions de regroupement temporel et en préparant le découpage de `components/dashboard/Index.vue`, sans modifier les comportements utilisateurs ni les contrats API.
+- Harmoniser les noms `Schema`/`Type`/`Dashboard`/`Trade`.
+- Convertir les traductions JS → TS et décomposer par domaine.
+- Faire passer les tests d'intégration avec un serveur et une base de test.

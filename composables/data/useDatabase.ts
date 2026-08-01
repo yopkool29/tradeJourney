@@ -101,6 +101,23 @@ export const useDatabase = () => {
         }
     }
 
+    const renameDatabase = async (databaseId: number, displayName: string) => {
+        try {
+            await $fetch(`/api/database/${databaseId}/rename`, {
+                method: 'PATCH',
+                body: { displayName },
+            })
+            const db = databases.value.find(d => d.id === databaseId)
+            if (db) db.displayName = displayName
+            if (currentDatabase.value?.id === databaseId) {
+                currentDatabase.value = { ...currentDatabase.value, displayName }
+            }
+        } catch (error) {
+            console.error('Failed to rename database:', error)
+            throw error
+        }
+    }
+
     const getCurrentDatabase = () => currentDatabase.value
 
     const hasDatabases = computed(() => databases.value.length > 0)
@@ -123,6 +140,7 @@ export const useDatabase = () => {
         createDatabase,
         selectDatabase,
         deleteDatabase,
+        renameDatabase,
         getCurrentDatabase,
         clearCurrentDatabase,
         hasDatabases,

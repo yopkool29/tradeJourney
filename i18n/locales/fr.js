@@ -1134,6 +1134,8 @@ export default {
                 toast_error_title: 'Erreur',
                 toast_error_desc:
                     'Impossible de coller depuis le presse-papiers. Vérifiez les permissions du navigateur.',
+                toast_warning_title: 'Limite atteinte',
+                toast_warning_desc: 'Vous ne pouvez pas ajouter plus de {max} images',
             },
         },
         settings: {

@@ -87,6 +87,7 @@ const {
 	fetchPlugins,
 	togglePluginWithCleanup,
 	deletePlugin,
+	importPlugin,
 	runPlugin,
 	reloadPlugin,
 } = usePlugins()
@@ -111,16 +112,9 @@ const handleFileUpload = async (event: Event) => {
 
 	importing.value = true
 	try {
-		const formData = new FormData()
-		formData.append('file', file)
-
-		await $fetch('/api/plugins/import', {
-			method: 'POST',
-			body: formData,
-		})
+		await importPlugin(file)
 
 		toastSuccess(t('pages.settings.plugins.import_success'))
-		await fetchPlugins()
 	} catch {
 		toastError(t('pages.settings.plugins.import_error'))
 	} finally {

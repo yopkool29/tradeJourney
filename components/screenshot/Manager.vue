@@ -145,7 +145,7 @@ const pasteFromClipboard = async () => {
     try {
         // Vérifier si on peut ajouter plus d'images
         if (sharedScreenshots.value.length >= effectiveMaxScreenshots.value) {
-            toastWarning('Limite atteinte', `Vous ne pouvez pas ajouter plus de ${effectiveMaxScreenshots.value} images`)
+            toastWarning(t('components.screenshot.manager.toast_warning_title'), t('components.screenshot.manager.toast_warning_desc', { max: effectiveMaxScreenshots.value }))
             return
         }
 
@@ -191,7 +191,7 @@ const handlePaste = (e: ClipboardEvent) => {
             if (!blob) continue
 
             if (sharedScreenshots.value.length >= effectiveMaxScreenshots.value) {
-                toastWarning('Limite atteinte', `Vous ne pouvez pas ajouter plus de ${effectiveMaxScreenshots.value} images`)
+                toastWarning(t('components.screenshot.manager.toast_warning_title'), t('components.screenshot.manager.toast_warning_desc', { max: effectiveMaxScreenshots.value }))
                 e.preventDefault()
                 return
             }

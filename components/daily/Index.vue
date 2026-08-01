@@ -91,6 +91,7 @@ const dialogGroup = ref<TradeGroup | null>(null)
 const { fetchSymbols } = useSymbols()
 const { fetchDayTags } = useDayTags()
 const { tagGroups, fetchGroups } = useTags()
+const { fetchTradesDateRange } = useTrades()
 const isInitialLoad = ref(true)
 const refreshTrigger = ref(0)
 const groupsReady = ref(false)
@@ -129,11 +130,7 @@ const fetchingDateRange = ref(false)
 const setHistoryDateRange = async () => {
     fetchingDateRange.value = true
     try {
-        const result = await $fetch('/api/trades/date-range', {
-            query: {
-                accountIds: JSON.stringify(dbStateStore.dailyFilters.accountIds)
-            }
-        })
+        const result = await fetchTradesDateRange(dbStateStore.dailyFilters.accountIds)
 
         if (result.maxDate) {
             const date = new Date(result.maxDate)

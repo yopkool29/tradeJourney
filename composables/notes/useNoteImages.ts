@@ -133,5 +133,30 @@ export const useNoteImages = () => {
 		}
 	}
 
-	return { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, duplicateImages, deleteNoteImages }
+	// Upload une image et retourne l'URL normalisée
+	const uploadImage = async (file: File): Promise<string> => {
+		if (!uploadContext.value) {
+			// Fallback: convert to base64
+			return new Promise<string>((resolve, reject) => {
+				const reader = new FileReader()
+				reader.onload = () => resolve(reader.result as string)
+				reader.onerror = reject
+				reader.readAsDataURL(file)
+			})
+		}
+		const formData = new FormData()
+		formData.append('image', file)
+		const result = await $fetch<{ url: string }>('/api/notes/images/upload', {
+			method: 'POST',
+			body: formData,
+		})
+		// Normaliser l'URL au format screenshots/filename pour la portabilité
+		const match = result.url.match(/\/screenshots\/([^&\s]+)/)
+		if (match) {
+			return `/api/image?path=screenshots/${match[1]}`
+		}
+		return result.url
+	}
+
+	return { uploadContext, cleanupOrphanImages, cleanupTmpImages, finalizeImages, duplicateImages, deleteNoteImages, uploadImage }
 }

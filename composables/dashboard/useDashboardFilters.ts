@@ -6,11 +6,6 @@ import { getPeriodDates } from '~/utils/dashboard'
 type ApplyFilters = () => Promise<unknown>
 type FilterChangeHandler = () => unknown
 
-type DateRangeResult = {
-	minDate: string | null
-	maxDate: string | null
-}
-
 type DashboardFiltersOptions = {
 	filters: ComputedRef<TradeFilter[]>
 	filterLoading: Ref<boolean>
@@ -48,12 +43,11 @@ export const useDashboardFilters = ({
 		},
 	})
 	const fetchingDateRange = ref(false)
+	const { fetchTradesDateRange } = useTrades()
 	const setHistoryDateRange = async () => {
 		fetchingDateRange.value = true
 		try {
-			const result = await $fetch('/api/trades/date-range', {
-				query: { accountIds: JSON.stringify(dbStateStore.dashBoardFilters.accountIds) },
-			}) as DateRangeResult
+			const result = await fetchTradesDateRange(dbStateStore.dashBoardFilters.accountIds)
 			if (!result.minDate || !result.maxDate) return
 			const startDate = new Date(result.minDate)
 			const endDate = new Date(result.maxDate)

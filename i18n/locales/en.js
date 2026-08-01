@@ -1122,6 +1122,8 @@ export default {
                 toast_error_title: 'Error',
                 toast_error_desc:
                     'Unable to paste from clipboard. Check browser permissions.',
+                toast_warning_title: 'Limit reached',
+                toast_warning_desc: 'You cannot add more than {max} images',
             },
         },
         settings: {

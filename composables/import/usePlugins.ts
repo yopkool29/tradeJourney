@@ -86,6 +86,16 @@ export const usePlugins = () => {
 		return result
 	}
 
+	const importPlugin = async (file: File) => {
+		const formData = new FormData()
+		formData.append('file', file)
+		await $fetch('/api/plugins/import', {
+			method: 'POST',
+			body: formData,
+		})
+		await fetchPlugins()
+	}
+
 	const runPlugin = (id: string) => {
 		const actions = findPluginActionsByPluginId(id)
 		const action = actions?.[0]
@@ -106,6 +116,7 @@ export const usePlugins = () => {
 		togglePlugin,
 		togglePluginWithCleanup,
 		deletePlugin,
+		importPlugin,
 		runPlugin,
 		reloadPlugin,
 		reloadActivePlugins,

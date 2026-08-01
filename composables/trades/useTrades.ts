@@ -128,6 +128,13 @@ export const useTrades = () => {
         return result.count
     }
 
+    const fetchTradesDateRange = async (accountIds: number[] | null): Promise<{ minDate: string | null, maxDate: string | null }> => {
+        const result = await $fetch<{ minDate: string | null, maxDate: string | null }>('/api/trades/date-range', {
+            query: { accountIds: JSON.stringify(accountIds) },
+        })
+        return result
+    }
+
     const isAutoApplyMode = computed(() => tradeCount.value < tradeCountThreshold)
 
     return {
@@ -144,6 +151,7 @@ export const useTrades = () => {
         deleteScreenshots,
         importTrades,
         fetchFilteredTradeCount,
+        fetchTradesDateRange,
         tradeCount,
         isAutoApplyMode
     }

@@ -109,6 +109,8 @@ import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/frame.css'
 import { Crepe } from '@milkdown/crepe'
 
+const { uploadImage: uploadImageFn } = useNoteImages()
+
 type UploadContext = {
     userId: number
     dbName: string
@@ -158,29 +160,7 @@ const editorStyle = computed(() => ({
 }))
 
 const uploadImage = async (file: File): Promise<string> => {
-    if (!props.uploadContext) {
-        // Fallback: convert to base64
-        return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result as string)
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-        })
-    }
-    const formData = new FormData()
-    formData.append('image', file)
-    const result = await $fetch('/api/notes/images/upload', {
-        method: 'POST',
-        body: formData,
-    })
-    
-    // Normaliser l'URL au format screenshots/filename pour la portabilité
-    const url = result.url
-    const match = url.match(/\/screenshots\/([^&\s]+)/)
-    if (match) {
-        return `/api/image?path=screenshots/${match[1]}`
-    }
-    return url
+    return uploadImageFn(file)
 }
 
 const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {
