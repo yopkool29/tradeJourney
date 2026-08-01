@@ -48,7 +48,9 @@ export default defineNuxtConfig({
     },
 
     experimental: {
-        appManifest: process.env.VITEST !== 'true'
+        appManifest: process.env.VITEST !== 'true',
+        asyncContext: true,
+        viewTransition: true,
     },
 
     vite: {
@@ -194,10 +196,10 @@ export default defineNuxtConfig({
         experimental: {
             wasm: false
         },
-        // compressPublicAssets: {
-        //     gzip: true,
-        //     brotli: true
-        // },
+        compressPublicAssets: {
+            gzip: true,
+            brotli: true
+        },
         publicAssets: [
             {
                 dir: 'upload',
