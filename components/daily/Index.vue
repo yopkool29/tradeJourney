@@ -154,7 +154,8 @@ const calendarMonth = computed(() => {
     return { year, month }
 })
 
-const calendarValue = ref<unknown>(null)
+const [initYear, initMonth] = dbStateStore.dailyFilters.selectedMonth.split('-').map(Number)
+const calendarValue = ref<unknown>(new CalendarDate(initYear, initMonth, 1))
 
 const { filterLoading, load: loadMonthData, loadDebounced: loadMonthDataDebounced } = usePageDataManager({
     fetchFn: async () => {

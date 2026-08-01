@@ -284,7 +284,8 @@ function resetFilters() {
     loadCalendarDataDebounced()
 }
 
-const calendarValue = ref<CalendarDate | null>(null)
+const [initYear, initMonth] = dbStateStore.calendarFilters.selectedMonth.split('-').map(Number)
+const calendarValue = ref<CalendarDate | null>(new CalendarDate(initYear, initMonth, 1))
 
 const { filterLoading, loadDebounced: loadCalendarDataDebounced } = usePageDataManager({
     fetchFn: () => applyCalendar(selectedMonth.value),
