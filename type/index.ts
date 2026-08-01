@@ -115,6 +115,9 @@ export type BreakdownChartType = 'bar' | 'barVertical' | 'scatter' | 'scatter2D'
 // mfe/mae : Maximum Favorable/Adverse Excursion (champs déjà présents dans TradeExtendedType, nullable)
 export type TradeProperty = 'duration' | 'pnl' | 'mfe' | 'mae'
 
+// Propriétés de trade affichables dans le tooltip du scatterTrades
+export type TradeTooltipField = BreakdownMetric | 'lot' | 'openPrice' | 'closePrice' | 'commission' | 'mfe' | 'mae' | 'side' | 'duration'
+
 // Format de l'axe Y pour les séries temporelles
 export type TimeSeriesYAxisFormat = 'currency' | 'percent' | 'number'
 
@@ -222,8 +225,9 @@ export interface BreakdownConfig {
 	// Si non défini, utilise les colonnes par défaut.
 	columns?: BreakdownMetric[]
 	// Métriques supplémentaires affichées dans le tooltip (bar/scatter).
+	// Pour scatterTrades : propriétés du trade (lot, commission, mfe, mae, etc.).
 	// Vide par défaut — l'utilisateur les active via le menu settings.
-	tooltipMetrics?: BreakdownMetric[]
+	tooltipMetrics?: TradeTooltipField[]
 }
 
 // Type de chart pour les séries temporelles (fixé par le template, ne change pas avec la métrique)

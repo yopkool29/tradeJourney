@@ -236,10 +236,10 @@
 		<template #settings>
 			<div v-if="chartType !== 'table'" class="space-y-1">
 				<span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
-				<div v-for="m in metricItems" :key="m.value" class="flex items-center gap-2">
+				<div v-for="m in tooltipMetricItems" :key="m.value" class="flex items-center gap-2">
 					<UCheckbox
-						:model-value="selectedTooltipMetrics.includes(m.value as BreakdownMetric)"
-						@update:model-value="toggleTooltipMetric(m.value as BreakdownMetric)"
+						:model-value="selectedTooltipMetrics.includes(m.value)"
+						@update:model-value="toggleTooltipMetric(m.value)"
 					/>
 					<span class="text-sm">{{ m.label }}</span>
 				</div>
@@ -262,9 +262,9 @@
 </template>
 
 <script setup lang="ts">
-import type { BreakdownConfig } from '~/type'
+import type { BreakdownConfig, TradeTooltipField } from '~/type'
 import type { TimezoneSettings } from '~/composables/analytics/useAnalytics'
-import { migrateDimension } from '~/composables/dashboard/useBreakdownConfig'
+import { migrateDimension, tradeTooltipOptions } from '~/composables/dashboard/useBreakdownConfig'
 import { useBreakdownWidgetControls } from '~/composables/dashboard/useBreakdownWidgetControls'
 import { useTooltipMetrics } from '~/composables/charts/useTooltipMetrics'
 import { isTagGroupDimension, getTagGroupName } from '~/type'
@@ -347,7 +347,15 @@ const {
 })
 
 // Métriques supplémentaires affichées dans le tooltip (bar/scatter)
-const { selectedTooltipMetrics, toggleTooltipMetric } = useTooltipMetrics(config, updateConfig)
+const { selectedTooltipMetrics, toggleTooltipMetric, buildTradeTooltipLines } = useTooltipMetrics(config, updateConfig)
+
+// Items du menu tooltip : propriétés de trade pour scatterTrades, métriques agrégées sinon
+const tooltipMetricItems = computed(() => {
+	if (chartType.value === 'scatterTrades') {
+		return tradeTooltipOptions.map(o => ({ value: o.value, label: t(o.labelKey) }))
+	}
+	return metricItems.value.map(m => ({ value: m.value as TradeTooltipField, label: m.label }))
+})
 
 // Titre du chart
 const chartTitle = computed(() => {

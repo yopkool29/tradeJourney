@@ -1,12 +1,12 @@
 import type { EChartsOption, SeriesOption } from 'echarts'
-import type { BreakdownMetric, BreakdownDimension, TradeProperty } from '~/type'
+import type { BreakdownMetric, BreakdownDimension, TradeProperty, TradeTooltipField } from '~/type'
 import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
 import type { HeatmapCell2D } from '~/composables/analytics/useAnalytics'
 import type { TradeExtendedType } from '~/schema/trade'
 import { getMetricValueForMetric, getMetricColor, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
 import { buildBarData, buildBarSeries, buildScatterSeries } from '~/utils/echarts-builders'
 import type { EChartsFormatterParams } from '~/utils/echarts-builders'
-import { buildTooltipLines } from '~/composables/charts/useTooltipMetrics'
+import { formatTradeTooltipField, buildTooltipLines } from '~/composables/charts/useTooltipMetrics'
 import { useChartAxis } from './useChartAxis'
 import { useChartTooltip } from './useChartTooltip'
 
@@ -404,8 +404,9 @@ export const useChartBuilder = () => {
 		profitColor: string
 		lossColor: string
 		displayModeNet: boolean
+		selectedTooltipMetrics: TradeTooltipField[]
 	}): EChartsOption => {
-		const { trades, propX, propY, logScale, showScrollX, showScrollY, profitColor, lossColor, displayModeNet } = config
+		const { trades, propX, propY, logScale, showScrollX, showScrollY, profitColor, lossColor, displayModeNet, selectedTooltipMetrics } = config
 
 		const getTradePropertyValue = (tr: TradeExtendedType, prop: TradeProperty): number => {
 			switch (prop) {
@@ -429,11 +430,16 @@ export const useChartBuilder = () => {
 			return formatMetricValueForMetric(val, 'pnl')
 		}
 
-		const rawPoints = trades.map(tr => ({
-			vx: getTradePropertyValue(tr, propX),
-			vy: getTradePropertyValue(tr, propY),
-			tr,
-		}))
+		const rawPoints = trades.map(tr => {
+			const ms = tr.closeDate.getTime() - tr.openDate.getTime()
+			const durationMin = ms > 0 ? ms / 60000 : 0
+			return {
+				vx: getTradePropertyValue(tr, propX),
+				vy: getTradePropertyValue(tr, propY),
+				duration: durationMin,
+				tr,
+			}
+		})
 
 		const ctx = getChartContext({ left: 70, right: 40, top: 50, bottom: 40 })
 		const { base, axisColor, textColor, grid } = ctx
@@ -467,23 +473,24 @@ export const useChartBuilder = () => {
 			tooltip: buildTooltipBlock((params: EChartsFormatterParams | EChartsFormatterParams[]) => {
 				const p = Array.isArray(params) ? params[0] : params
 				const d = p.data as { value: number[] }
-				const tr = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])?.tr
+				const rp = rawPoints.find(rp => rp.tr.symbol === d.value[2] && rp.vx === d.value[4] && rp.vy === d.value[5])
+				const tr = rp?.tr
 				if (!tr) return ''
 				const dateStr = tr.openDate.toLocaleDateString()
 				const timeStr = tr.openDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-				const durationMin = (tr.closeDate.getTime() - tr.openDate.getTime()) / 60000
+				const pnl = displayModeNet ? tr.netProfit : tr.profit
+				// Lignes de base : date, ticker, P&L (P&L toujours affiché)
+				const alreadyShown = new Set<TradeTooltipField>(['pnl'])
 				const lines = [
 					`${dateStr} ${timeStr}`,
-					`Ticker: ${tr.symbol}`,
-					`P&L: ${formatTradePropertyValue(tr.profit, 'pnl')}`,
-					`Duration: ${formatTradePropertyValue(durationMin, 'duration')}`,
-					`Side: ${tr.type}`,
+					`${t('components.dashboard.breakdown.dimensions.ticker')}: ${tr.symbol}`,
+					`${t('components.dashboard.breakdown.trade_property.pnl')}: ${formatCurrency(pnl)}`,
 				]
-				if ((propX === 'mfe' || propY === 'mfe') && tr.mfe != null) {
-					lines.push(`MFE: ${formatTradePropertyValue(tr.mfe, 'mfe')}`)
-				}
-				if ((propX === 'mae' || propY === 'mae') && tr.mae != null) {
-					lines.push(`MAE: ${formatTradePropertyValue(tr.mae, 'mae')}`)
+				// Ajoute les propriétés sélectionnées dans le menu tooltip
+				for (const field of selectedTooltipMetrics) {
+					if (alreadyShown.has(field)) continue
+					const line = formatTradeTooltipField(tr, field, t, rp?.duration)
+					if (line) lines.push(line)
 				}
 				return lines.join('<br/>')
 			}),

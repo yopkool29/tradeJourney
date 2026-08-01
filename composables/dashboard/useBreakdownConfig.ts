@@ -1,4 +1,4 @@
-import type { BreakdownBaseKey, BreakdownConfig, BreakdownDimension, BreakdownMetric, ChartTemplate, TimeSeriesConfig, WorkspaceConfig, DashboardGridItem } from '~/type'
+import type { BreakdownBaseKey, BreakdownConfig, BreakdownDimension, BreakdownMetric, ChartTemplate, TimeSeriesConfig, WorkspaceConfig, DashboardGridItem, TradeTooltipField } from '~/type'
 import { generateBreakdownKey, getBreakdownChartType, getBreakdownBaseKey } from '~/type'
 
 // Config par défaut selon le type de breakdown
@@ -72,6 +72,18 @@ export const metricOptions: { value: BreakdownMetric; labelKey: string }[] = [
 	{ value: 'drawdown', labelKey: 'components.dashboard.breakdown.metrics.drawdown' },
 	{ value: 'currentDrawdown', labelKey: 'components.dashboard.breakdown.metrics.currentDrawdown' },
 	{ value: 'tradesCount', labelKey: 'components.dashboard.breakdown.metrics.tradesCount' },
+]
+
+// Propriétés de trade affichables dans le tooltip du scatterTrades
+export const tradeTooltipOptions: { value: TradeTooltipField; labelKey: string }[] = [
+	{ value: 'side', labelKey: 'components.dashboard.breakdown.trade_property.side' },
+	{ value: 'lot', labelKey: 'components.dashboard.breakdown.trade_property.lot' },
+	{ value: 'openPrice', labelKey: 'components.dashboard.breakdown.trade_property.openPrice' },
+	{ value: 'closePrice', labelKey: 'components.dashboard.breakdown.trade_property.closePrice' },
+	{ value: 'commission', labelKey: 'components.dashboard.breakdown.trade_property.commission' },
+	{ value: 'duration', labelKey: 'components.dashboard.breakdown.trade_property.duration' },
+	{ value: 'mfe', labelKey: 'components.dashboard.breakdown.trade_property.mfe' },
+	{ value: 'mae', labelKey: 'components.dashboard.breakdown.trade_property.mae' },
 ]
 
 // Types de breakdown disponibles dans le menu visibilité (avec bouton "créer")

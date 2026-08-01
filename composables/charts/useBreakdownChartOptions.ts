@@ -86,6 +86,7 @@ export const useBreakdownChartOptions = (
 			profitColor: profitColor.value,
 			lossColor: lossColor.value,
 			displayModeNet: displayModeNet.value,
+			selectedTooltipMetrics: selectedTooltipMetrics.value,
 		})
 	})
 
