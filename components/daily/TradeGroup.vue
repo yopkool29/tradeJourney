@@ -48,7 +48,7 @@
                     <div v-if="chartsVisible" class="form-row-lg ml-auto">
                         <!-- Graphique en anneau Winrate -->
                         <div class="w-16 h-16 flex items-center justify-center">
-                            <DashboardChartsOldWinratePie :value="winrate / 100" />
+                            <DashboardChartsWinratePie :value="winrate / 100" />
                         </div>
 
                         <!-- Graphique d'évolution intraday -->
@@ -168,7 +168,7 @@ import { generateIntradayPnlChartData } from '~/utils/dashboardChartGenerators'
 import { defaultSettings } from '~/schema/user'
 import { getTradeColumnHeaders } from '~/utils/tradeColumnHeaders'
 import { UIcon } from '#components'
-import DashboardChartsOldWinratePie from '~/components/dashboard/charts/old/WinratePie.vue'
+import DashboardChartsWinratePie from '~/components/dashboard/charts/WinratePie.vue'
 import { useTradeGroupActions } from '~/composables/trades/useTradeGroupActions'
 
 const { formatCurrency } = useUtils()
