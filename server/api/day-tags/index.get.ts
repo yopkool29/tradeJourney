@@ -14,12 +14,12 @@ export default defineEventHandler(async (event) => {
         // Si un mois est spécifié, ajouter une condition sur la date
         if (month) {
             const [year, monthNum] = month.split('-').map(Number)
-            
+
             // Vérifier que le format est valide
             if (!isNaN(year) && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
-            // Créer les dates de début et de fin du mois
-                const startDate = new Date(year, monthNum - 1, 1) // Mois commence à 0 en JS
-                const endDate = new Date(year, monthNum, 0) // Dernier jour du mois
+            // Créer les dates de début et de fin du mois en UTC (les day tags sont stockés à minuit UTC)
+                const startDate = new Date(Date.UTC(year, monthNum - 1, 1))
+                const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
 
             // Ajouter la condition de date
             whereCondition.date = {
