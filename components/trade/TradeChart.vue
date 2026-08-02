@@ -43,7 +43,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const isDark = useIsDark()
 const colorMode = useColorMode()
-const { symbols } = useSymbols()
+const { symbols, getDigitFromSymbol } = useSymbols()
 const { fetchTrades } = useTrades()
 
 const { tickMarkFormatter, crosshairTimeFormatter } = useTradeChartFormatters()
@@ -149,6 +149,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
     if (!candlestickSeries || data.length === 0) return
     const colors = getChartColors()
     const entryColor = props.trade.type === 'buy' ? colors.buyColor : colors.sellColor
+    const exitColor = props.trade.type === 'buy' ? colors.sellColor : colors.buyColor
     const entryTs = Math.floor(new Date(props.trade.openDate).getTime() / 1000)
     const exitTs = Math.floor(new Date(props.trade.closeDate).getTime() / 1000)
     const entryInBounds = isInRange(data, entryTs)
@@ -171,7 +172,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
         markers.push({ time: entryTime, position: 'belowBar', color: entryColor, shape: 'arrowUp', text: `${props.trade.type === 'buy' ? 'BUY' : 'SELL'} ${props.trade.lot}` })
     }
     if (exitInBounds) {
-        markers.push({ time: exitTime, position: 'aboveBar', color: colors.exitColor, shape: 'arrowDown', text: `EXIT ${props.trade.lot}` })
+        markers.push({ time: exitTime, position: 'aboveBar', color: exitColor, shape: 'arrowDown', text: `EXIT ${props.trade.lot}` })
     }
 
     const sortedAdjacent = [...chartAdjacentTrades.value].sort((a, b) => new Date(a.openDate).getTime() - new Date(b.openDate).getTime())
@@ -206,7 +207,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
 
     priceSegments = clearPriceSegments(chart, priceSegments)
     if (entryInBounds && chart) priceSegments = addPriceSegment(chart, data, entryIdx, props.trade.openPrice, entryColor, priceSegments)
-    if (exitInBounds && chart) priceSegments = addPriceSegment(chart, data, exitIdx, props.trade.closePrice, colors.exitColor, priceSegments)
+    if (exitInBounds && chart) priceSegments = addPriceSegment(chart, data, exitIdx, props.trade.closePrice, exitColor, priceSegments)
 
     // Ligne reliant l'entry à l'exit du trade principal (uniquement si trade actif)
     if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
@@ -319,6 +320,12 @@ const initChart = async () => {
     candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: colors.upColor, downColor: colors.downColor,
         borderVisible: false, wickUpColor: colors.upColor, wickDownColor: colors.downColor,
+    })
+
+    // Précision de l'axe des prix basée sur la config du symbol
+    const pricePrecision = getDigitFromSymbol(props.trade.symbol, true)
+    candlestickSeries.applyOptions({
+        priceFormat: { type: 'price', precision: pricePrecision, minMove: 1 / Math.pow(10, pricePrecision) },
     })
 
     await loadChartData()
