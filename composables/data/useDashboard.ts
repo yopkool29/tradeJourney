@@ -58,7 +58,7 @@ import {
     getDailyMaxDrawdownWithPercent,
     getAverageDrawdown,
     getAverageDrawdownPercent
-} from '~/utils/dayStats'
+} from '~/utils/dashboard'
 
 export const buildFiltersForApi = (
     startDate: Date | null,

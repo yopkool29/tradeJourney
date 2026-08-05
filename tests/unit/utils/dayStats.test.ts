@@ -5,7 +5,7 @@ import {
 	getBusinessDaysFromTrades,
 	getWinningWeeksPercent,
 	getWinningMonthsPercent,
-} from '~/utils/dayStats'
+} from '~/utils/dashboard'
 import type { TradeExtendedType } from '~/schema/trade'
 
 // Mock trades répartis sur plusieurs jours/semaines/mois

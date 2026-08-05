@@ -6,15 +6,13 @@ import {
 	getPeriodDates,
 	groupTradesByPeriod,
 	periodTranslations,
-	periodOptions
-} from '~/utils/dashboard'
-import {
+	periodOptions,
 	generateIntradayPnlChartData,
 	generateCumulatedPnlChartData,
 	generateApptChartData,
 	generatePlRatioChartData,
 	generateWinrateChartData
-} from '~/utils/dashboardChartGenerators'
+} from '~/utils/dashboard'
 
 const mockTrades = [
 	{ closeDate: '2024-01-15T11:00:00Z', profit: 100, netProfit: 95, lot: 1, openDate: '2024-01-15T10:00:00Z' },

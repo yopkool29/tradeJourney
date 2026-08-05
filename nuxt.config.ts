@@ -50,7 +50,6 @@ export default defineNuxtConfig({
     experimental: {
         appManifest: process.env.VITEST !== 'true',
         asyncContext: true,
-        viewTransition: true,
     },
 
     vite: {

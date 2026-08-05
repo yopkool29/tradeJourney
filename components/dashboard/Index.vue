@@ -284,10 +284,8 @@
 import {
     periodOptions,
     resizableGridItems,
+    formatNumberValue,
 } from '~/utils/dashboard'
-import type { SettingsContentType } from '~/schema/user'
-import { OPERATOR_EQUAL } from '~/utils'
-import { formatNumberValue } from '~/utils/formatNumberValue'
 import type { ChartKey, SectionKey, WorkspaceConfig, WorkspaceId } from '~/type'
 import { getDashboardGridComponents, getDashboardComponentProps, useDashboardBreakpoint, useDashboardGridLayout } from '~/composables/dashboard/useDashboardGridLayout'
 import { useDashboardFilters } from '~/composables/dashboard/useDashboardFilters'

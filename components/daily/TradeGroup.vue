@@ -164,7 +164,7 @@ import { getWinLossNb, getWinrate, getPNL } from '~/utils/tradeStats'
 import type { TradeExtendedType } from '~/schema/trade'
 
 import { formatDateLongString } from '~/utils/date-utils'
-import { generateIntradayPnlChartData } from '~/utils/dashboardChartGenerators'
+import { generateIntradayPnlChartData } from '~/utils/dashboard'
 import { defaultSettings } from '~/schema/user'
 import { getTradeColumnHeaders } from '~/utils/tradeColumnHeaders'
 import { UIcon } from '#components'

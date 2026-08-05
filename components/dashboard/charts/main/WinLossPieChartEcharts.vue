@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { EChartsFormatterParams } from '~/utils/echarts-builders'
+import type { EChartsFormatterParams } from '~/utils/dashboard'
 
 type PieFormatterParams = EChartsFormatterParams & { color: string }
 

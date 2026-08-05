@@ -32,8 +32,7 @@ import { injectEmptyTagMetrics, getMetricValueForMetric, formatMetricValueForMet
 import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
 import type { TimezoneSettings } from '~/composables/analytics/useAnalytics'
 import { defaultTableColumns, migrateDimension } from '~/composables/dashboard/useBreakdownConfig'
-import { isMonetaryMetric } from '~/composables/charts/useChartColors'
-import { formatDimensionLabel } from '~/utils/formatDimensionLabel'
+import { isMonetaryMetric, formatDimensionLabel } from '~/utils/dashboard'
 
 const props = defineProps<{
 	dimension: BreakdownDimension

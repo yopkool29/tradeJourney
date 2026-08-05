@@ -1,63 +1,25 @@
 <template>
-    <UCard class="h-full">
-        <template #header>
-            <h3 class="section-title-semibold">{{ $t('components.dashboard.risk_ratios.title') }}</h3>
-        </template>
-
-        <div class="space-y-2 text-sm">
-            <!-- Profit Factor -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.profit_factor') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.profitFactor) }}</span>
-            </div>
-
-            <!-- P/L Ratio -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.pl_ratio') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.plRatio) }}</span>
-            </div>
-
-            <!-- Recovery Factor -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.recovery_factor') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.recoveryFactor) }}</span>
-            </div>
-
-            <!-- Sharpe Ratio -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.sharpe_ratio') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.sharpeRatio) }}</span>
-            </div>
-
-            <!-- Sortino Ratio -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.sortino_ratio') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.sortinoRatio) }}</span>
-            </div>
-
-            <!-- Calmar Ratio -->
-            <div class="flex justify-between">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.calmar_ratio') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.calmarRatio) }}</span>
-            </div>
-
-            <!-- SQN (Van Tharp) — nécessite R-multiples -->
-            <div v-if="result.tradesWithRMultiple > 0" class="flex justify-between border-t pt-2">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.sqn') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.sqn) }}</span>
-            </div>
-
-            <!-- Ulcer Index -->
-            <div class="flex justify-between" :class="{ 'border-t pt-2': result.tradesWithRMultiple === 0 }">
-                <span class="text-secondary">{{ $t('components.dashboard.risk_ratios.ulcer_index') }}</span>
-                <span class="font-semibold">{{ formatNumberValue(result.ulcerIndex) }}</span>
-            </div>
-        </div>
-    </UCard>
+	<DashboardChartsBaseStatsSection
+		:title="$t('components.dashboard.risk_ratios.title')"
+		:rows="rows"
+	/>
 </template>
 
 <script setup lang="ts">
-import { formatNumberValue } from '~/utils/formatNumberValue'
+import type { StatsRow } from '~/components/dashboard/charts/base/StatsSection.vue'
+import { useMetricsBaseSectionPattern } from '~/composables/dashboard/useBaseSectionPattern'
+import { formatNumberValue } from '~/utils/dashboard'
 
-const { dashBoardResult: result } = useDashboard()
+const { result } = useMetricsBaseSectionPattern()
+
+const rows = computed<StatsRow[]>(() => [
+	{ label: 'components.dashboard.risk_ratios.profit_factor', displayValue: formatNumberValue(result.value.profitFactor) },
+	{ label: 'components.dashboard.risk_ratios.pl_ratio', displayValue: formatNumberValue(result.value.plRatio) },
+	{ label: 'components.dashboard.risk_ratios.recovery_factor', displayValue: formatNumberValue(result.value.recoveryFactor) },
+	{ label: 'components.dashboard.risk_ratios.sharpe_ratio', displayValue: formatNumberValue(result.value.sharpeRatio) },
+	{ label: 'components.dashboard.risk_ratios.sortino_ratio', displayValue: formatNumberValue(result.value.sortinoRatio) },
+	{ label: 'components.dashboard.risk_ratios.calmar_ratio', displayValue: formatNumberValue(result.value.calmarRatio) },
+	{ label: 'components.dashboard.risk_ratios.sqn', displayValue: formatNumberValue(result.value.sqn), borderTop: true, condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.risk_ratios.ulcer_index', displayValue: formatNumberValue(result.value.ulcerIndex), borderTop: result.value.tradesWithRMultiple === 0 },
+])
 </script>

@@ -52,15 +52,14 @@
 
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import type { EChartsFormatterParams } from '~/utils/echarts-builders'
-import type { BreakdownConfig, BreakdownMetric } from '~/type'
+import type { EChartsFormatterParams } from '~/utils/dashboard'
 import type { TradeExtendedType } from '~/schema/trade'
 import type { SettingsContentType } from '~/schema/user'
 import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
 import { metricOptions, useBreakdownConfig } from '~/composables/dashboard/useBreakdownConfig'
 import { calculateMetricsByDimension } from '~/composables/analytics/useAnalytics'
 import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
-import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
+import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/dashboard'
 import { useTooltipMetrics, buildTooltipLines } from '~/composables/charts/useTooltipMetrics'
 import { formatDateKeyForGrouping } from '~/utils/date-utils'
 

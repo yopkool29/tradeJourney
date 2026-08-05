@@ -1,5 +1,5 @@
-import type { EChartsGridOption } from '~/utils/echarts-builders'
-import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/chart-utils'
+import type { EChartsGridOption } from '~/utils/dashboard'
+import { getEchartsBaseOption, getEchartsAxisColors, getEchartsTooltipColors } from '~/utils/dashboard'
 
 type CrosshairType = 'cross' | 'line'
 

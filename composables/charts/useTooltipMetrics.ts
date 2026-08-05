@@ -4,7 +4,9 @@ import type { BreakdownMetrics } from '~/composables/analytics/breakdownMetrics'
 import type { TradeExtendedType } from '~/schema/trade'
 import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composables/analytics/breakdownMetrics'
 import { metricOptions, tradeTooltipOptions } from '~/composables/dashboard/useBreakdownConfig'
-import { formatCurrency } from '~/utils'
+import { formatTradeTooltipField } from '~/utils/dashboard'
+
+export { formatTradeTooltipField } from '~/utils/dashboard'
 
 // Construit les lignes d'un tooltip ECharts : titre (en gras) + lignes principales + extras.
 // - title : affiché en gras en 1re ligne (peut être vide)
@@ -35,35 +37,6 @@ export const buildTooltipLines = (
 		}
 	}
 	return lines.join('<br/>')
-}
-
-// Formate une propriété de trade pour le tooltip du scatterTrades
-export const formatTradeTooltipField = (
-	tr: TradeExtendedType,
-	field: TradeTooltipField,
-	t: (key: string) => string,
-	durationMin?: number,
-): string => {
-	const tradeFields: TradeTooltipField[] = ['lot', 'openPrice', 'closePrice', 'commission', 'mfe', 'mae', 'side', 'duration', 'pnl']
-	if (!tradeFields.includes(field)) return '' // Métriques agrégées — pas applicables à un trade unique
-	const label = t(`components.dashboard.breakdown.trade_property.${field}`)
-	switch (field) {
-		case 'lot': return `${label}: ${tr.lot}`
-		case 'openPrice': return `${label}: ${tr.openPrice}`
-		case 'closePrice': return `${label}: ${tr.closePrice}`
-		case 'commission': return tr.commission ? `${label}: ${formatCurrency(tr.commission)}` : ''
-		case 'mfe': return `${label}: ${tr.mfe != null ? tr.mfe : '-'}`
-		case 'mae': return `${label}: ${tr.mae != null ? tr.mae : '-'}`
-		case 'side': return `${label}: ${tr.type}`
-		case 'duration': {
-			const min = durationMin ?? 0
-			if (min < 60) return `${label}: ${min.toFixed(0)}m`
-			if (min < 1440) return `${label}: ${(min / 60).toFixed(1)}h`
-			return `${label}: ${(min / 1440).toFixed(1)}d`
-		}
-		case 'pnl': return `${label}: ${formatCurrency(tr.profit)}`
-		default: return ''
-	}
 }
 
 // Gestion des métriques supplémentaires dans le tooltip (partagé entre BreakdownWidget et TimeSeriesWidget)

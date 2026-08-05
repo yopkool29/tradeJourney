@@ -17,6 +17,14 @@
     --ui-text: #334155;
 }
 
+html {
+    background-color: #f1f1f1;
+}
+
+html.dark {
+    background-color: #1f1f1f;
+}
+
 body {
     background: linear-gradient(to bottom, #f1f1f1, #e0e0e0);
     background-attachment: fixed;
