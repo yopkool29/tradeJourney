@@ -51,6 +51,7 @@ const user = useUserStore()
 const { t } = useI18n()
 const { logout } = useAuth()
 const { log_error } = useLogView()
+const config = useRuntimeConfig()
 const hideHeader = useState<boolean>('hideHeader', () => false)
 
 hideHeader.value = true
@@ -84,7 +85,11 @@ const onLogout = async () => {
     hideHeader.value = false
     try {
         await logout()
-        router.push('/login')
+        if (config.public.logoutHardReload) {
+            window.location.href = '/login'
+        } else {
+            router.push('/login')
+        }
     } catch (err) {
         const { message } = catchTagMessage(err, t)
         log_error(message)

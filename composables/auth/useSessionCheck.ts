@@ -2,7 +2,7 @@ export const useSessionCheck = () => {
     const CHECK_INTERVAL = 1 * 60 * 1000 // 1 minute
     const userStore = useUserStore()
     const { fetchUser, logout } = useAuth()
-    const router = useRouter()
+    const config = useRuntimeConfig()
 
     let intervalId: NodeJS.Timeout | null = null
 
@@ -21,7 +21,11 @@ export const useSessionCheck = () => {
             if ((error as { statusCode?: number })?.statusCode === 401) {
                 stopSessionCheck()
                 await logout()
-                await router.push('/login')
+                if (config.public.logoutHardReload) {
+                    window.location.href = '/login'
+                } else {
+                    navigateTo('/login')
+                }
             }
         }
     }

@@ -159,6 +159,7 @@ export default defineNuxtConfig({
             pluginsEnabled: process.env.PLUGINS_ENABLED === 'true',
             showLogView: process.env.SHOW_LOG_VIEW === 'true',
             tradeCountThreshold: 1000,
+            logoutHardReload: process.env.LOGOUT_HARD_RELOAD !== 'false',
         }
     },
 

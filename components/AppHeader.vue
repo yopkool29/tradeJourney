@@ -230,7 +230,6 @@ const userStore = useUserStore()
 const { logout } = useAuth()
 const { locale, t } = useI18n()
 const { currentDatabase, clearCurrentDatabase } = useDatabase()
-const router = useRouter()
 const config = useRuntimeConfig()
 const { themeLoading, setTheme } = useThemeSwitcher()
 const { languageLoading, toggleLanguage } = useLanguageSwitcher()
@@ -302,8 +301,12 @@ const themeItems = computed(() => [
 const onLogout = async () => {
     mobileMenuOpen.value = false
     await logout()
-    await router.push('/login')
     clearCurrentDatabase()
+    if (config.public.logoutHardReload) {
+        window.location.href = '/login'
+    } else {
+        navigateTo('/login')
+    }
 }
 
 const menuItems = computed(() => [
