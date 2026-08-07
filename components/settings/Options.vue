@@ -149,6 +149,39 @@
                         </div>
                     </div>
 
+                    <!-- Section Data sync -->
+                    <div class="section-separator">
+                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.data_sync_section') }}</h3>
+                        <div class="space-y-6">
+                            <UFormField :label="$t('components.settings.options.save_ui_state')" class="w-lg">
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.save_ui_state_desc') }}</span>
+                                </template>
+                                <UButton
+                                    color="neutral"
+                                    variant="soft"
+                                    :loading="savingUiState"
+                                    @click="onSaveUiState"
+                                >
+                                    {{ $t('components.settings.options.save_ui_state_button') }}
+                                </UButton>
+                            </UFormField>
+                            <UFormField :label="$t('components.settings.options.reset_ui_state')" class="w-lg">
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.reset_ui_state_desc') }}</span>
+                                </template>
+                                <UButton
+                                    color="error"
+                                    variant="soft"
+                                    :loading="resettingUiState"
+                                    @click="onResetUiState"
+                                >
+                                    {{ $t('components.settings.options.reset_ui_state_button') }}
+                                </UButton>
+                            </UFormField>
+                        </div>
+                    </div>
+
                     <!-- Section Storage -->
                     <div class="section-separator">
                         <h3 class="section-subtitle-lg">{{ $t('components.settings.options.storage_section') }}</h3>
@@ -453,6 +486,39 @@ const showToken = ref(false)
 const showPassword = ref(false)
 const showPolygonKey = ref(false)
 const clearingCache = ref(false)
+const savingUiState = ref(false)
+const resettingUiState = ref(false)
+
+const onResetUiState = async () => {
+    resettingUiState.value = true
+    try {
+        const dbStateStore = useDbStateStore()
+        dbStateStore.resetAllLocalState()
+        if (import.meta.client) {
+            localStorage.removeItem('dbStateStore')
+        }
+        toastSuccess(t('components.settings.options.reset_ui_state_success'))
+    } catch {
+        log_error(t('components.settings.options.reset_ui_state_error'))
+    } finally {
+        resettingUiState.value = false
+    }
+}
+
+const onSaveUiState = async () => {
+    savingUiState.value = true
+    try {
+        const { saveUiState } = useUiStateSync()
+        const success = await saveUiState()
+        if (success) {
+            toastSuccess(t('components.settings.options.save_ui_state_success'))
+        } else {
+            log_error(t('components.settings.options.save_ui_state_error'))
+        }
+    } finally {
+        savingUiState.value = false
+    }
+}
 
 const onClearPolygonCache = async () => {
 	clearingCache.value = true

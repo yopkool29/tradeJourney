@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
             email: user.email,
             token: user.token,
             settings: user.settings,
+            metadata: user.metadata,
             databases: user.databases.map(db => ({
                 id: db.id,
                 name: db.name,

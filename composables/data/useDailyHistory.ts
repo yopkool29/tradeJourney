@@ -9,11 +9,13 @@ export const useDailyHistory = (storeKey: 'dailyFilters' | 'calendarFilters' = '
     const { fetchTrades } = useTrades()
     const dataStore = useDataStore()
     const dbStateStore = useDbStateStore()
+    const userStore = useUserStore()
 
     const dailyLastTrades = computed(() => dataStore.dailyLastTrades)
     const calendarLastTrades = computed(() => dataStore.calendarLastTrades)
 
     const fetchAccounts = async () => {
+        if (!userStore.user) return
         accounts.value = await $fetch('/api/account') as AccountType[]
     }
 

@@ -20,7 +20,10 @@ export const useGlobalLoading = () => {
     
     return {
         isLoading,
-        startLoading: () => { isLoading.value = true },
+        startLoading: async (delay = 300) => {
+            isLoading.value = true
+            await new Promise(resolve => setTimeout(resolve, delay))
+        },
         stopLoading: () => { isLoading.value = false }
     }
 }

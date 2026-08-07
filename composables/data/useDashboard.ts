@@ -108,6 +108,7 @@ export const useDashboard = () => {
     const dataStore = useDataStore()
 
     const fetchAccounts = async () => {
+        if (!userStore.user) return
         accounts.value = await $fetch('/api/account') as AccountType[]
     }
 

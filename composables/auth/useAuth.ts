@@ -18,10 +18,19 @@ export const useAuth = () => {
         })
         const userSettings = JSON.parse(res.settings || '{}')
         userStore.setUser({ ...res, settings_object: { ...defaultSettings, ...userSettings } })
+
+        if (res.metadata) {
+            const { restoreUiState } = useUiStateSync()
+            restoreUiState(res.metadata)
+        }
+
         return res
     }
 
     const logout = async () => {
+        const { saveUiState } = useUiStateSync()
+        await saveUiState()
+        userStore.clearUser()
         try {
             await $fetch('/api/auth/logout', {
                 method: 'POST'
@@ -31,9 +40,6 @@ export const useAuth = () => {
             const message = getDetailedError(err as ErrorMessage)
             log_error(message)
         }
-        finally {
-            userStore.clearUser()
-        }
     }
 
     const fetchUser = async (headers?: {
@@ -41,7 +47,14 @@ export const useAuth = () => {
     }): Promise<UserType> => {
         const res = await $fetch('/api/auth', { headers })
         const userSettings = JSON.parse(res.settings || '{}')
-        return { ...res, settings_object: { ...defaultSettings, ...userSettings } }
+        const userData = { ...res, settings_object: { ...defaultSettings, ...userSettings } }
+
+        if (import.meta.client && res.metadata) {
+            const { restoreUiState } = useUiStateSync()
+            restoreUiState(res.metadata)
+        }
+
+        return userData
     }
 
     const updateSettings = async (settings: string) => {

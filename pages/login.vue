@@ -1,11 +1,21 @@
 <template>
     <div class="min-h-full flex items-center justify-center px-4 py-30 select-none">
         <div class="w-full max-w-md">
-            <UCard v-if="!userStore.user" class="bg-gray-100 dark:bg-gray-800">
+            <UCard v-if="!userStore.user">
                 <template #header>
-                    <div class="flex flex-col">
-                        <h1 class="text-3xl font-bold mb-2 text-primary">{{ $t('pages.login.title') }}</h1>
-                        <p class="text-secondary">{{ $t('pages.login.subtitle') }}</p>
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <h1 class="text-3xl font-bold mb-2 text-primary">{{ $t('pages.login.title') }}</h1>
+                            <p class="text-secondary">{{ $t('pages.login.subtitle') }}</p>
+                        </div>
+                        <UButton
+                            :color="resetOnLogin ? 'error' : 'neutral'"
+                            :variant="resetOnLogin ? 'soft' : 'ghost'"
+                            size="sm"
+                            icon="i-heroicons-adjustments-horizontal"
+                            :title="$t('pages.login.reset_local_data')"
+                            @click="resetOnLogin = !resetOnLogin"
+                        />
                     </div>
                 </template>
 
@@ -41,6 +51,7 @@
                 <div class="mt-6">
                     <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
                 </div>
+
             </UCard>
             <AlreadyLoggedIn v-if="mounted && userStore.user && auth_display" />
         </div>
@@ -62,6 +73,7 @@ const mounted = ref(false)
 
 const isLoading = ref(false)
 const auth_display = ref(true)
+const resetOnLogin = ref(false)
 
 // Utilisation des tokens de traduction pour les messages de validation
 const UserSchema = z.object({
@@ -90,7 +102,17 @@ async function onSubmit(event: FormSubmitEvent<UserType>) {
         auth_display.value = false
 
         await login({ email: event.data.email, password: event.data.password })
-        
+
+        if (resetOnLogin.value) {
+            const dbStateStore = useDbStateStore()
+            dbStateStore.resetAllLocalState()
+            if (import.meta.client) {
+                localStorage.removeItem('dbStateStore')
+            }
+            const { saveUiState } = useUiStateSync()
+            await saveUiState()
+        }
+
         // Redirect to intended page or database selection
         // const redirectTo = route.query.redirect as string
         // router.push(redirectTo || '/select-database')

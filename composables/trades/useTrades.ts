@@ -3,10 +3,12 @@ import type { TradeExtendedType, TradeType, CreateTradeType, UpdateTradeType, Im
 import { TradeExtendedShema, TradeSchema } from '~/schema/trade'
 
 export const useTrades = () => {
+    const userStore = useUserStore()
     const trades = ref<TradeExtendedType[]>([])
     const loading = ref(false)
 
     const fetchTrades = async (params = {}, limit = 1000, showInactive = false): Promise<TradeExtendedType[]> => {
+        if (!userStore.user) return []
         loading.value = true
         try {
             const query: Record<string, string> = {
@@ -118,6 +120,7 @@ export const useTrades = () => {
     const tradeCountThreshold = config.public.tradeCountThreshold
 
     const fetchFilteredTradeCount = async (params = {}, showInactive = false): Promise<number> => {
+        if (!userStore.user) return 0
         const query: Record<string, string> = {
             count: 'true',
             filters: JSON.stringify(params),

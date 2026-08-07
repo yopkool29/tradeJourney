@@ -444,6 +444,20 @@ export const useDbStateStore = defineStore(
 			Reflect.deleteProperty(dataStore.tagGroupsPerDb, dbName)
 		}
 
+		function resetAllLocalState() {
+			const perDbRefs = [
+				customInputsPerDb, recentColorsPerDb, recentColors2PerDb,
+				tradeOptionsPerDb, dashBoardFiltersPerDb, dailyFiltersPerDb,
+				calendarFiltersPerDb, dashBoardResultPerDb, columnVisibilityPerDb,
+				showDetailedNotePerDb, lastViewedNoteIdPerDb, tradeChartTfPerDb,
+				tradeChartShowAdjacentPerDb, tradeChartShowAdjacentLinesPerDb,
+				chartSettingsPerDb,
+			]
+			for (const ref of perDbRefs) {
+				ref.value = {}
+			}
+		}
+
 		const dashBoardLastTrades = computed(() => {
 			const result = dashBoardResult.value as DashBoardResult & { lastTrades?: unknown[] }
 			return result.lastTrades || []
@@ -493,6 +507,7 @@ export const useDbStateStore = defineStore(
 			removeCustomItem,
 			setLastViewedNoteId,
 			clearDatabaseData,
+			resetAllLocalState,
 			syncAccountIds,
 		}
 	},

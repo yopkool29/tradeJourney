@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
                 id: true,
                 email: true,
                 token: true,
-                settings: true
+                settings: true,
+                metadata: true
             }
         })
 
@@ -31,7 +32,8 @@ export default defineEventHandler(async (event) => {
             id: user.id,
             email: user.email,
             token: user.token,
-            settings: user.settings
+            settings: user.settings,
+            metadata: user.metadata
         }
     } catch (error) {
         const err = error as { statusCode?: number; data?: { tag?: string } }

@@ -5,9 +5,11 @@ import { formatDateToYYYYMMDD, normalizeDateToUTCString } from '~/utils/date-uti
 import type { CreateDayTagType, UpdateDayTagType, DayTagType } from '~/schema/dayTag'
 export const useDayTags = () => {
     const dbStateStore = useDbStateStore()
+    const userStore = useUserStore()
 
     // Charger les DayTags depuis l'API, avec option pour filtrer par mois
     const fetchDayTags = async (month?: string) => {
+        if (!userStore.user) return []
         // Préparer les paramètres de requête
         const query: Record<string, string> = {}
 

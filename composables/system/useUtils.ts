@@ -34,6 +34,10 @@ export const useThemeSwitcher = () => {
         themeLoading.value = true
         pendingTheme.value = theme
 
+        // Remove old theme classes to prevent accumulation (dark-gold, light-blue, etc.)
+        const html = document.documentElement
+        ;['dark-gold', 'light-blue'].forEach(cls => html.classList.remove(cls))
+
         // Failsafe: stop spinner after 3s max
         themeLoadingTimeout = setTimeout(() => {
             themeLoading.value = false

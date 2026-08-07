@@ -300,12 +300,18 @@ const themeItems = computed(() => [
 
 const onLogout = async () => {
     mobileMenuOpen.value = false
-    await logout()
-    clearCurrentDatabase()
-    if (config.public.logoutHardReload) {
-        window.location.href = '/login'
-    } else {
-        navigateTo('/login')
+    const { startLoading, stopLoading } = useGlobalLoading()
+    await startLoading()
+    try {
+        await logout()
+        clearCurrentDatabase()
+        if (config.public.logoutHardReload) {
+            window.location.href = '/login'
+        } else {
+            navigateTo('/login')
+        }
+    } finally {
+        stopLoading()
     }
 }
 
