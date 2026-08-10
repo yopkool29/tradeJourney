@@ -5,6 +5,7 @@
             <USelect v-model="selectedTf" :items="tfOptions" size="xs" class="w-24" @update:model-value="onTfChange" />
             <UCheckbox v-model="showAdjacent" :label="$t('components.trade.chart.show_adjacent')" size="xs" @update:model-value="onAdjacentToggle" />
             <UCheckbox v-if="showAdjacent" v-model="showAdjacentLines" :label="$t('components.trade.chart.show_adjacent_lines')" size="xs" @update:model-value="onAdjacentLinesToggle" />
+            <UCheckbox v-model="showRth" :label="$t('components.trade.chart.show_rth')" size="xs" @update:model-value="onRthToggle" />
             <UButton icon="i-heroicons-arrow-path" size="xs" color="neutral" variant="ghost" :loading="loading" @click="onReload" />
             <span v-if="loading" class="text-secondary-sm text-gray-500">
                 <UIcon name="i-heroicons-arrow-path" class="animate-spin inline" />
@@ -30,7 +31,7 @@ import {
 import { InstrumentType } from '~/type'
 import type { TradeFilter } from '~/type'
 import type { TradeExtendedType } from '~/schema/trade'
-import { tradeToPolygonSymbol } from '~/utils/polygonSymbol'
+import { tradeToPolygonSymbol, isFuturesSymbol } from '~/utils/polygonSymbol'
 import type { PolygonBar } from '~/utils/polygonSymbol'
 import { useTradeChartFormatters } from '~/composables/trades/useTradeChartFormatters'
 import { useTradeChartHelpers } from '~/composables/trades/useTradeChartHelpers'
@@ -48,6 +49,17 @@ const { fetchTrades } = useTrades()
 
 const { tickMarkFormatter, crosshairTimeFormatter } = useTradeChartFormatters()
 const { getChartColors, findBarIndex, isInRange, addPriceSegment, clearPriceSegments, getVisibleBarsForTf } = useTradeChartHelpers()
+
+// Safety net: deduplicate and sort bars by time before passing to the chart.
+// The Polygon futures API can return multiple bars with the same window_start,
+// and lightweight-charts requires strictly ascending unique timestamps.
+const deduplicateAndSort = (bars: PolygonBar[]): PolygonBar[] => {
+    const seen = new Map<number, PolygonBar>()
+    for (const bar of bars) {
+        seen.set(bar.time, bar)
+    }
+    return Array.from(seen.values()).sort((a, b) => a.time - b.time)
+}
 
 const chartAdjacentTrades = ref<TradeExtendedType[]>([])
 
@@ -112,7 +124,24 @@ const polygonSymbolResult = computed(() => {
 const polygonSymbol = computed(() => polygonSymbolResult.value?.ticker ?? null)
 const forcedInstrumentType = computed(() => polygonSymbolResult.value?.forcedInstrumentType ?? null)
 const shouldRender = computed(() => polygonSymbol.value !== null)
-const { fetchBars, refetchBars } = usePolygonBars(polygonSymbol, props.trade, forcedInstrumentType)
+
+// Resolve the effective instrument type for RTH preference lookup.
+// Mirrors the logic in usePolygonBars.getRthSession.
+const effectiveInstrumentType = computed(() => {
+    if (forcedInstrumentType.value !== null) return forcedInstrumentType.value
+    if (props.trade.instrumentType && props.trade.instrumentType !== InstrumentType.Any) return props.trade.instrumentType
+    if (polygonSymbol.value !== null && isFuturesSymbol(polygonSymbol.value)) return InstrumentType.Future
+    return InstrumentType.Any
+})
+
+// RTH toggle is persisted per instrument type, so the user can have RTH on for stocks
+// but off for futures (or vice versa) without toggling every time.
+const showRth = computed({
+    get: () => dbStateStore.getTradeChartRth(effectiveInstrumentType.value),
+    set: (val: boolean) => dbStateStore.setTradeChartRth(effectiveInstrumentType.value, val),
+})
+
+const { fetchBars, refetchBars } = usePolygonBars(polygonSymbol, props.trade, forcedInstrumentType, showRth)
 
 const updateChartColors = () => {
     if (!chart || !candlestickSeries) return
@@ -371,10 +400,11 @@ const loadChartData = async () => {
             error.value = t('components.trade.chart.no_data')
             return
         }
-        candlestickSeries.setData(data.map(bar => ({ ...bar, time: bar.time as UTCTimestamp })))
-        lastBars = data
-        addTradeMarkers(data)
-        centerOnTrade(data)
+        const uniqueData = deduplicateAndSort(data)
+        candlestickSeries.setData(uniqueData.map(bar => ({ ...bar, time: bar.time as UTCTimestamp })))
+        lastBars = uniqueData
+        addTradeMarkers(uniqueData)
+        centerOnTrade(uniqueData)
     } catch (err) {
         const msg = (err as Error).message
         if (msg === 'RANGE_TOO_LARGE') error.value = t('components.trade.chart.range_too_large')
@@ -413,10 +443,11 @@ const onReload = async () => {
             error.value = t('components.trade.chart.no_data')
             return
         }
-        candlestickSeries.setData(data.map(bar => ({ ...bar, time: bar.time as UTCTimestamp })))
-        lastBars = data
-        addTradeMarkers(data)
-        centerOnTrade(data)
+        const uniqueData = deduplicateAndSort(data)
+        candlestickSeries.setData(uniqueData.map(bar => ({ ...bar, time: bar.time as UTCTimestamp })))
+        lastBars = uniqueData
+        addTradeMarkers(uniqueData)
+        centerOnTrade(uniqueData)
     } catch (err) {
         const msg = (err as Error).message
         if (msg === 'RANGE_TOO_LARGE') error.value = t('components.trade.chart.range_too_large')
@@ -461,6 +492,13 @@ onUnmounted(() => {
 
 const onAdjacentLinesToggle = () => {
     if (lastBars.length > 0) addTradeMarkers(lastBars)
+}
+
+const onRthToggle = async () => {
+    if (candlestickSeries) candlestickSeries.setData([])
+    priceSegments = clearPriceSegments(chart, priceSegments)
+    if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
+    await loadChartData()
 }
 
 const onAdjacentToggle = (val: boolean | 'indeterminate') => {

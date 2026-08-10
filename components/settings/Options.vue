@@ -127,6 +127,30 @@
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_cache_desc') }}</span>
                                 </template>
                             </UFormField>
+                            <UFormField :label="$t('components.settings.options.rth_sessions')" class="w-full">
+                                <template #description>
+                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.rth_sessions_desc') }}</span>
+                                </template>
+                                <div class="space-y-4 mt-2">
+                                    <div v-for="type in (['stock', 'future', 'option', 'any'] as const)" :key="type" class="flex flex-wrap items-end gap-3">
+                                        <span class="text-sm font-medium w-32">{{ $t(`components.settings.options.rth_type_${type}`) }}</span>
+                                        <UFormField :label="$t('components.settings.options.rth_open')" class="w-28">
+                                            <UInput v-model="formState.rthSessions[type].open" placeholder="09:30" />
+                                        </UFormField>
+                                        <UFormField :label="$t('components.settings.options.rth_close')" class="w-28">
+                                            <UInput v-model="formState.rthSessions[type].close" placeholder="16:00" />
+                                        </UFormField>
+                                        <UFormField :label="$t('components.settings.options.rth_timezone')" class="w-52">
+                                            <USelect
+                                                v-model="formState.rthSessions[type].timezone"
+                                                :items="ianaTimezones"
+                                                searchable
+                                                size="sm"
+                                            />
+                                        </UFormField>
+                                    </div>
+                                </div>
+                            </UFormField>
                         </div>
                     </div>
 

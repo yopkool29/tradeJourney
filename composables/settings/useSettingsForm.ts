@@ -43,11 +43,23 @@ const mergeChartColors = (saved: SettingsContentType['chartColors']): SettingsCo
 	}
 }
 
+// Deep-merge saved RTH sessions with defaults, ensuring all instrument types exist.
+const mergeRthSessions = (saved: SettingsContentType['rthSessions']): SettingsContentType['rthSessions'] => {
+	const d = defaultSettings.rthSessions!
+	return {
+		stock: { ...d.stock, ...(saved?.stock || {}) },
+		future: { ...d.future, ...(saved?.future || {}) },
+		option: { ...d.option, ...(saved?.option || {}) },
+		any: { ...d.any, ...(saved?.any || {}) },
+	}
+}
+
 // Build the initial form state by deep-merging saved settings over defaults.
 export const buildSettingsFormState = (saved: SettingsContentType): SettingsContentType => ({
 	...defaultSettings,
 	...saved,
 	chartColors: mergeChartColors(saved.chartColors),
+	rthSessions: mergeRthSessions(saved.rthSessions),
 })
 
 // Build a reset state that keeps non-display settings but resets display-related ones to defaults.
@@ -64,6 +76,7 @@ export const buildResetSettings = (current: SettingsContentType): SettingsConten
 	showTradeChart: defaultSettings.showTradeChart,
 	showDetailedNote: defaultSettings.showDetailedNote,
 	polygonApiKey: defaultSettings.polygonApiKey,
+	rthSessions: { ...defaultSettings.rthSessions! },
 	pnlThreshold: defaultSettings.pnlThreshold,
 	ninjaTraderApiPort: defaultSettings.ninjaTraderApiPort,
 	ninjaTraderApiDays: defaultSettings.ninjaTraderApiDays,

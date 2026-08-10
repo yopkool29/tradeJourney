@@ -43,6 +43,7 @@ export const useDbStateStore = defineStore(
 		const tradeChartTfPerDb = ref<Record<string, string>>({})
 		const tradeChartShowAdjacentPerDb = ref<Record<string, boolean>>({})
 		const tradeChartShowAdjacentLinesPerDb = ref<Record<string, boolean>>({})
+		const tradeChartRthPerDb = ref<Record<string, Record<string, boolean>>>({})
 		const chartSettingsPerDb = ref<Record<string, Record<string, Record<string, unknown>>>>({})
 
 		const lastViewedNoteId = computed({
@@ -376,6 +377,31 @@ export const useDbStateStore = defineStore(
 			},
 		})
 
+		const tradeChartRth = computed({
+			get: () => {
+				const dbName = getCurrentDbName()
+				return tradeChartRthPerDb.value[dbName] ?? {}
+			},
+			set: (val) => {
+				const dbName = getCurrentDbName()
+				tradeChartRthPerDb.value[dbName] = val
+			},
+		})
+
+		// Get/set RTH preference per instrument type within the current DB.
+		const getTradeChartRth = (instrumentType: string): boolean => {
+			const dbName = getCurrentDbName()
+			return tradeChartRthPerDb.value[dbName]?.[instrumentType] ?? false
+		}
+
+		const setTradeChartRth = (instrumentType: string, val: boolean) => {
+			const dbName = getCurrentDbName()
+			if (!tradeChartRthPerDb.value[dbName]) {
+				tradeChartRthPerDb.value[dbName] = {}
+			}
+			tradeChartRthPerDb.value[dbName][instrumentType] = val
+		}
+
 		const chartSettings = computed({
 			get: () => {
 				const dbName = getCurrentDbName()
@@ -499,6 +525,9 @@ export const useDbStateStore = defineStore(
 			tradeChartTf,
 			tradeChartShowAdjacent,
 			tradeChartShowAdjacentLines,
+			tradeChartRth,
+			getTradeChartRth,
+			setTradeChartRth,
 			chartSettings,
 			// Methods
 			getCustomInput,
@@ -529,6 +558,7 @@ export const useDbStateStore = defineStore(
 				'tradeChartTfPerDb',
 				'tradeChartShowAdjacentPerDb',
 				'tradeChartShowAdjacentLinesPerDb',
+				'tradeChartRthPerDb',
 				'chartSettingsPerDb',
 			],
 		},

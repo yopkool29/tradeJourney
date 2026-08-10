@@ -4,6 +4,8 @@ import type { PolygonBar } from '~/utils/polygonSymbol'
 import { isFuturesSymbol } from '~/utils/polygonSymbol'
 import { listPeriodsInRange, periodKeyToRange, timestampToPeriodKey } from '~/utils/barCache'
 
+type RthSession = { open: string, close: string, timezone: string }
+
 // Use the futures API when instrument type is Future, or when it's Any/undefined
 // and the symbol looks like a futures ticker.
 
@@ -104,11 +106,51 @@ const fetchWithRateLimit = async (url: string): Promise<Response> => {
     throw new Error('Polygon API: unexpected state')
 }
 
+// Parse a "HH:MM" time string into minutes since midnight.
+const parseTimeToMinutes = (time: string): number => {
+    const [h, m] = time.split(':').map(Number)
+    return h * 60 + m
+}
+
+// Convert a Unix timestamp (in seconds) to minutes since midnight in the given timezone.
+const toMinutesInTz = (timestampSec: number, timezone: string): number => {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        hour: '2-digit', minute: '2-digit', hour12: false,
+    })
+    const parts = fmt.formatToParts(new Date(timestampSec * 1000))
+    const hour = parseInt(parts.find(p => p.type === 'hour')!.value, 10)
+    const minute = parseInt(parts.find(p => p.type === 'minute')!.value, 10)
+    return hour * 60 + minute
+}
+
+// Check if a bar overlaps with the given RTH session.
+// A bar is included if any part of it falls within [open, close).
+const barOverlapsRth = (barStartMin: number, barEndMin: number, session: RthSession): boolean => {
+    const openMin = parseTimeToMinutes(session.open)
+    const closeMin = parseTimeToMinutes(session.close)
+    return barStartMin < closeMin && barEndMin > openMin
+}
+
+// Filter bars to RTH session using overlap logic.
+// A bar is kept if any portion of it falls within the RTH window.
+// Returns bars unfiltered if no session applies (e.g. forex/crypto have no RTH).
+const filterBarsToRth = (bars: PolygonBar[], session: RthSession | null, tfMinutes: number): PolygonBar[] => {
+    if (!session) return bars
+    return bars.filter(b => {
+        const barStartMin = toMinutesInTz(b.time, session.timezone)
+        const barEndMin = barStartMin + tfMinutes
+        return barOverlapsRth(barStartMin, barEndMin, session)
+    })
+}
+
 // Fetch bars from the standard Polygon aggregates API (stocks, forex, crypto, options).
 const fetchStandardBars = async (
-    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
+    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string, rth: boolean, rthSession: RthSession | null,
 ): Promise<{ bars: PolygonBar[] }> => {
     const { multiplier, timespan } = timeframeToRange(tf)
+    // The Polygon aggregates API does not support a session filter, so RTH filtering
+    // is done client-side after fetching (see filterBarsToRth).
     const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/${multiplier}/${timespan}/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=50000&apiKey=${apiKey}`
 
     const response = await fetchWithRateLimit(url)
@@ -129,13 +171,18 @@ const fetchStandardBars = async (
         close: bar.c,
     }))
 
-    return { bars: deduplicateBars(bars) }
+    // Filter to RTH when requested. Only applies to intraday bars;
+    // daily bars always represent the full session so they are kept as-is.
+    const tfMinutes = Number(tf)
+    const filtered = rth && tfMinutes < 1440 ? filterBarsToRth(bars, rthSession, tfMinutes) : bars
+
+    return { bars: deduplicateBars(filtered) }
 }
 
 // Fetch bars from the Polygon futures API (/futures/v1/aggs/{ticker}).
 // The futures API uses a different URL structure, resolution format, and nanosecond timestamps.
 const fetchFuturesBars = async (
-    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
+    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string, rth: boolean, rthSession: RthSession | null,
 ): Promise<{ bars: PolygonBar[] }> => {
     const resolution = timeframeToFuturesResolution(tf)
     const url = `https://api.polygon.io/futures/v1/aggs/${ticker}?resolution=${resolution}&window_start.gte=${fromStr}&window_start.lte=${toStr}&sort=window_start.asc&limit=50000&apiKey=${apiKey}`
@@ -159,7 +206,12 @@ const fetchFuturesBars = async (
         close: bar.close,
     }))
 
-    return { bars: deduplicateBars(bars) }
+    // Filter to RTH when requested. Only applies to intraday bars;
+    // daily/session bars always represent the full session so they are kept as-is.
+    const tfMinutes = Number(tf)
+    const filtered = rth && tfMinutes < 1440 ? filterBarsToRth(bars, rthSession, tfMinutes) : bars
+
+    return { bars: deduplicateBars(filtered) }
 }
 
 // In-memory cache for futures ticker resolution: {baseSymbol}_{date} -> fullTicker
@@ -194,6 +246,15 @@ const isInExpirationMonth = (ticker: string, tradeDate: Date): boolean => {
 	const exp = getExpirationFromTicker(ticker)
 	if (!exp) return false
 	return tradeDate.getMonth() === exp.month && tradeDate.getFullYear() === exp.year
+}
+
+// Check if the contract has already expired before the trade date.
+// The expiration is the last day of the expiration month.
+const isExpired = (ticker: string, tradeDate: Date): boolean => {
+	const exp = getExpirationFromTicker(ticker)
+	if (!exp) return false
+	const expirationDate = new Date(Date.UTC(exp.year, exp.month + 1, 0)) // last day of expiration month
+	return tradeDate > expirationDate
 }
 
 // Resolve a base futures symbol (e.g. MGC) to a full contract ticker (e.g. MGCG6)
@@ -259,6 +320,7 @@ export const usePolygonBars = (
     polygonSymbol: Ref<string | null>,
     trade: TradeDateRange,
     forcedInstrumentType: Ref<InstrumentType | null>,
+    rth: Ref<boolean>,
 ) => {
     const { getCachedRange, setCachedPeriod, clearCachedPeriod } = usePolygonCache()
 
@@ -281,17 +343,40 @@ export const usePolygonBars = (
         throw new Error('MISSING_POLYGON_API_KEY')
     }
 
+    // Resolve the RTH session for the current trade's instrument type.
+    // Returns null for forex/crypto (no RTH) or if settings are missing.
+    const getRthSession = (): RthSession | null => {
+        const userStore = useUserStore()
+        const sessions = userStore.user?.settings_object?.rthSessions as Record<string, RthSession> | undefined
+        if (!sessions) return null
+
+        // Determine the effective instrument type.
+        let effectiveType: string
+        if (forcedInstrumentType.value !== null) {
+            effectiveType = forcedInstrumentType.value
+        } else if (trade.instrumentType && trade.instrumentType !== InstrumentType.Any) {
+            effectiveType = trade.instrumentType
+        } else if (isFutures.value) {
+            effectiveType = InstrumentType.Future
+        } else {
+            effectiveType = InstrumentType.Any
+        }
+
+        return sessions[effectiveType] ?? sessions[InstrumentType.Any] ?? null
+    }
+
     // Resolve the effective ticker to use for fetching bars.
     // For futures, resolve the ticker to avoid degraded data in the expiration month.
     // If the symbol has no expiration code (e.g. MGC), query the contracts API for the front month.
     // If the symbol already has an expiration code (e.g. MGCM6) but the trade falls in that
-    // contract's expiration month, roll to the next viable contract via the contracts API.
+    // contract's expiration month, or the contract has already expired, roll to the next
+    // viable contract via the contracts API.
     const resolveTicker = async (apiKey: string): Promise<string | null> => {
         if (!polygonSymbol.value) return null
 
         if (isFutures.value) {
             const tradeDate = new Date(trade.closeDate)
-            if (hasExpirationCode(polygonSymbol.value) && !isInExpirationMonth(polygonSymbol.value, tradeDate)) {
+            if (hasExpirationCode(polygonSymbol.value) && !isInExpirationMonth(polygonSymbol.value, tradeDate) && !isExpired(polygonSymbol.value, tradeDate)) {
                 return polygonSymbol.value
             }
             const baseSymbol = hasExpirationCode(polygonSymbol.value)
@@ -313,11 +398,15 @@ export const usePolygonBars = (
 
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
+        // RTH and ETH bars differ, so cache them under separate keys
+        // by suffixing the ticker with the session mode.
+        const cacheTicker = `${ticker}:${rth.value ? 'rth' : 'eth'}`
+
         // List all periods covering the range.
         const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
 
         // Check which periods are missing from cache.
-        const { bars: cachedBars, missingPeriods } = await getCachedRange(ticker, tf, fromStr, toStr)
+        const { bars: cachedBars, missingPeriods } = await getCachedRange(cacheTicker, tf, fromStr, toStr)
 
         // If everything is cached, return directly.
         if (missingPeriods.length === 0) {
@@ -329,9 +418,10 @@ export const usePolygonBars = (
         const { fromStr: fetchFrom } = periodKeyToRange(tf, allPeriods[0])
         const { toStr: fetchTo } = periodKeyToRange(tf, allPeriods[allPeriods.length - 1])
 
+        const rthSession = getRthSession()
         const { bars: fetchedBars } = isFutures.value
-            ? await fetchFuturesBars(ticker, tf, fetchFrom, fetchTo, apiKey)
-            : await fetchStandardBars(ticker, tf, fetchFrom, fetchTo, apiKey)
+            ? await fetchFuturesBars(ticker, tf, fetchFrom, fetchTo, apiKey, rth.value, rthSession)
+            : await fetchStandardBars(ticker, tf, fetchFrom, fetchTo, apiKey, rth.value, rthSession)
 
         // Split the fetched bars by period and overwrite all periods in cache.
         // Since the fetch range is clamped to period boundaries, we consider all
@@ -347,7 +437,7 @@ export const usePolygonBars = (
             }
         }
 
-        await Promise.all(allPeriods.map(pk => setCachedPeriod(ticker, tf, pk, barsByPeriod.get(pk) || [])))
+        await Promise.all(allPeriods.map(pk => setCachedPeriod(cacheTicker, tf, pk, barsByPeriod.get(pk) || [])))
 
         return filterBarsToDateRange(deduplicateBars(fetchedBars), fromStr, toStr)
     }
@@ -363,9 +453,11 @@ export const usePolygonBars = (
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
         // Clear all periods covering the full range (including buffer) to force a complete re-fetch.
+        // Use the same session-suffixed key as fetchBars so the right cache entries are cleared.
+        const cacheTicker = `${ticker}:${rth.value ? 'rth' : 'eth'}`
         const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
         for (const pk of allPeriods) {
-            await clearCachedPeriod(ticker, tf, pk)
+            await clearCachedPeriod(cacheTicker, tf, pk)
         }
 
         return fetchBars(tf)

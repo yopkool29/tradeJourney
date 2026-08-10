@@ -4,6 +4,24 @@ export const useUiStateSync = () => {
     const { log_error, log_info } = useLogView()
 
     const UI_STATE_VERSION = 100
+    const LOCAL_SAVED_AT_KEY = 'uiStateLocalSavedAt'
+
+    const updateLocalSavedAt = () => {
+        try {
+            localStorage.setItem(LOCAL_SAVED_AT_KEY, new Date().toISOString())
+        } catch {
+            // localStorage might be unavailable (SSR, private mode)
+        }
+    }
+
+    const getLocalSavedAt = (): Date | null => {
+        try {
+            const ts = localStorage.getItem(LOCAL_SAVED_AT_KEY)
+            return ts ? new Date(ts) : null
+        } catch {
+            return null
+        }
+    }
 
     const UI_STATE_KEYS = [
         'customInputsPerDb',
@@ -18,6 +36,7 @@ export const useUiStateSync = () => {
         'tradeChartTfPerDb',
         'tradeChartShowAdjacentPerDb',
         'tradeChartShowAdjacentLinesPerDb',
+        'tradeChartRthPerDb',
         'chartSettingsPerDb',
     ] as const
 
@@ -55,6 +74,7 @@ export const useUiStateSync = () => {
                 body: JSON.stringify({ compressed, version: UI_STATE_VERSION }),
             })
             if (!response.ok) throw new Error(`HTTP ${response.status}`)
+            updateLocalSavedAt()
             log_info('UI state saved to server')
             return true
         } catch (err) {
@@ -82,6 +102,8 @@ export const useUiStateSync = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ compressed: base64, version: UI_STATE_VERSION }),
                     keepalive: true,
+                }).then(() => {
+                    updateLocalSavedAt()
                 }).catch(() => {})
             }).catch(() => {})
             return true
@@ -102,6 +124,15 @@ export const useUiStateSync = () => {
             const savedVersion = pnltracker.uiStateVersion
             if (savedVersion !== undefined && savedVersion !== UI_STATE_VERSION) {
                 log_info(`UI state version mismatch (saved: ${savedVersion}, current: ${UI_STATE_VERSION}), skipping restore`)
+                return false
+            }
+
+            const serverSavedAt = pnltracker.uiStateSavedAt
+                ? new Date(pnltracker.uiStateSavedAt as string)
+                : null
+            const localSavedAt = getLocalSavedAt()
+            if (serverSavedAt && localSavedAt && localSavedAt > serverSavedAt) {
+                log_info(`Local UI state is newer than server (local: ${localSavedAt.toISOString()}, server: ${serverSavedAt.toISOString()}), skipping restore`)
                 return false
             }
 

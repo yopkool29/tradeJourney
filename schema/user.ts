@@ -36,6 +36,15 @@ export const SettingsContentSchema = z.object({
     showTradeChart: z.boolean().default(true),
     showDetailedNote: z.boolean().default(true),
     polygonApiKey: z.string().default(''),
+    // Regular Trading Hours (RTH) per instrument type.
+    // open/close are "HH:MM" in the given IANA timezone.
+    // Forex and crypto trade near 24/7 so they have no RTH session.
+    rthSessions: z.object({
+        stock: z.object({ open: z.string(), close: z.string(), timezone: z.string() }).default({ open: '09:30', close: '16:00', timezone: 'America/New_York' }),
+        future: z.object({ open: z.string(), close: z.string(), timezone: z.string() }).default({ open: '08:30', close: '15:00', timezone: 'America/Chicago' }),
+        option: z.object({ open: z.string(), close: z.string(), timezone: z.string() }).default({ open: '09:30', close: '16:00', timezone: 'America/New_York' }),
+        any: z.object({ open: z.string(), close: z.string(), timezone: z.string() }).default({ open: '09:30', close: '16:00', timezone: 'America/New_York' }),
+    }).default({}),
     ninjaTraderApiPort: z.number().default(8080),
     ninjaTraderApiDays: z.number().default(1),
     timezoneDisplay: z.enum(['CURRENT', 'LOCAL', 'UTC']).default('CURRENT'),
