@@ -48,7 +48,28 @@ const computeDateRange = (tf: string, trade: TradeDateRange): { fromStr: string,
     else if (tfMinutes <= 240) bufferBars = 400 // 4h:    ~1600h of bars
     else bufferBars = 250                        // daily: ~250 days
 
-    const bufferMs = bufferBars * barMs
+    // Convert buffer bars to calendar time.
+    // Intraday bars only exist during trading hours, so we can't simply multiply
+    // by barMs for instruments with limited sessions — that would underestimate
+    // the calendar range needed.
+    // Futures and Any use the old simple formula (bars × barMs) since futures
+    // trade nearly 24/5 and the bar count maps closely to calendar time.
+    // Stocks/options have ~6.5h sessions, forex/crypto ~24h.
+    const useLegacyBuffer = trade.instrumentType === InstrumentType.Future
+        || trade.instrumentType === InstrumentType.Any
+        || !trade.instrumentType
+    let bufferMs: number
+    if (tfMinutes >= 1440 || useLegacyBuffer) {
+        bufferMs = bufferBars * barMs
+    } else {
+        const tradingHoursPerDay = trade.instrumentType === InstrumentType.Stock
+            || trade.instrumentType === InstrumentType.Option
+            ? 6.5
+            : 24 // forex, crypto
+        const barsPerDay = (tradingHoursPerDay * 60) / tfMinutes
+        const bufferDays = bufferBars / barsPerDay
+        bufferMs = bufferDays * 24 * 60 * 60 * 1000
+    }
 
     const openDate = new Date(trade.openDate)
     const closeDate = new Date(trade.closeDate)
@@ -145,12 +166,11 @@ const filterBarsToRth = (bars: PolygonBar[], session: RthSession | null, tfMinut
 }
 
 // Fetch bars from the standard Polygon aggregates API (stocks, forex, crypto, options).
+// Returns raw (unfiltered) bars — RTH filtering is applied after cache retrieval.
 const fetchStandardBars = async (
-    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string, rth: boolean, rthSession: RthSession | null,
+    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
 ): Promise<{ bars: PolygonBar[] }> => {
     const { multiplier, timespan } = timeframeToRange(tf)
-    // The Polygon aggregates API does not support a session filter, so RTH filtering
-    // is done client-side after fetching (see filterBarsToRth).
     const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/${multiplier}/${timespan}/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=50000&apiKey=${apiKey}`
 
     const response = await fetchWithRateLimit(url)
@@ -171,18 +191,14 @@ const fetchStandardBars = async (
         close: bar.c,
     }))
 
-    // Filter to RTH when requested. Only applies to intraday bars;
-    // daily bars always represent the full session so they are kept as-is.
-    const tfMinutes = Number(tf)
-    const filtered = rth && tfMinutes < 1440 ? filterBarsToRth(bars, rthSession, tfMinutes) : bars
-
-    return { bars: deduplicateBars(filtered) }
+    return { bars: deduplicateBars(bars) }
 }
 
 // Fetch bars from the Polygon futures API (/futures/v1/aggs/{ticker}).
 // The futures API uses a different URL structure, resolution format, and nanosecond timestamps.
+// Returns raw (unfiltered) bars — RTH filtering is applied after cache retrieval.
 const fetchFuturesBars = async (
-    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string, rth: boolean, rthSession: RthSession | null,
+    ticker: string, tf: string, fromStr: string, toStr: string, apiKey: string,
 ): Promise<{ bars: PolygonBar[] }> => {
     const resolution = timeframeToFuturesResolution(tf)
     const url = `https://api.polygon.io/futures/v1/aggs/${ticker}?resolution=${resolution}&window_start.gte=${fromStr}&window_start.lte=${toStr}&sort=window_start.asc&limit=50000&apiKey=${apiKey}`
@@ -206,12 +222,7 @@ const fetchFuturesBars = async (
         close: bar.close,
     }))
 
-    // Filter to RTH when requested. Only applies to intraday bars;
-    // daily/session bars always represent the full session so they are kept as-is.
-    const tfMinutes = Number(tf)
-    const filtered = rth && tfMinutes < 1440 ? filterBarsToRth(bars, rthSession, tfMinutes) : bars
-
-    return { bars: deduplicateBars(filtered) }
+    return { bars: deduplicateBars(bars) }
 }
 
 // In-memory cache for futures ticker resolution: {baseSymbol}_{date} -> fullTicker
@@ -365,6 +376,14 @@ export const usePolygonBars = (
         return sessions[effectiveType] ?? sessions[InstrumentType.Any] ?? null
     }
 
+    // Apply RTH filtering to bars retrieved from cache or freshly fetched.
+    // Only intraday bars are affected; daily/session bars are kept as-is.
+    const applyRthFilter = (bars: PolygonBar[], tf: string): PolygonBar[] => {
+        const tfMinutes = Number(tf)
+        if (!rth.value || tfMinutes >= 1440) return bars
+        return filterBarsToRth(bars, getRthSession(), tfMinutes)
+    }
+
     // Resolve the effective ticker to use for fetching bars.
     // For futures, resolve the ticker to avoid degraded data in the expiration month.
     // If the symbol has no expiration code (e.g. MGC), query the contracts API for the front month.
@@ -398,9 +417,10 @@ export const usePolygonBars = (
 
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
-        // RTH and ETH bars differ, so cache them under separate keys
-        // by suffixing the ticker with the session mode.
-        const cacheTicker = `${ticker}:${rth.value ? 'rth' : 'eth'}`
+        // Cache raw (unfiltered) bars under the ticker key only.
+        // RTH filtering is applied after cache retrieval so the same cached data
+        // serves both RTH and ETH modes without duplicate API calls or storage.
+        const cacheTicker = ticker
 
         // List all periods covering the range.
         const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
@@ -408,9 +428,9 @@ export const usePolygonBars = (
         // Check which periods are missing from cache.
         const { bars: cachedBars, missingPeriods } = await getCachedRange(cacheTicker, tf, fromStr, toStr)
 
-        // If everything is cached, return directly.
+        // If everything is cached, return (with RTH filter applied) directly.
         if (missingPeriods.length === 0) {
-            return filterBarsToDateRange(deduplicateBars(cachedBars), fromStr, toStr)
+            return applyRthFilter(filterBarsToDateRange(deduplicateBars(cachedBars), fromStr, toStr), tf)
         }
 
         // Clamp the fetch range to the exact period boundaries (first period start → last period end).
@@ -418,10 +438,9 @@ export const usePolygonBars = (
         const { fromStr: fetchFrom } = periodKeyToRange(tf, allPeriods[0])
         const { toStr: fetchTo } = periodKeyToRange(tf, allPeriods[allPeriods.length - 1])
 
-        const rthSession = getRthSession()
         const { bars: fetchedBars } = isFutures.value
-            ? await fetchFuturesBars(ticker, tf, fetchFrom, fetchTo, apiKey, rth.value, rthSession)
-            : await fetchStandardBars(ticker, tf, fetchFrom, fetchTo, apiKey, rth.value, rthSession)
+            ? await fetchFuturesBars(ticker, tf, fetchFrom, fetchTo, apiKey)
+            : await fetchStandardBars(ticker, tf, fetchFrom, fetchTo, apiKey)
 
         // Split the fetched bars by period and overwrite all periods in cache.
         // Since the fetch range is clamped to period boundaries, we consider all
@@ -439,7 +458,7 @@ export const usePolygonBars = (
 
         await Promise.all(allPeriods.map(pk => setCachedPeriod(cacheTicker, tf, pk, barsByPeriod.get(pk) || [])))
 
-        return filterBarsToDateRange(deduplicateBars(fetchedBars), fromStr, toStr)
+        return applyRthFilter(filterBarsToDateRange(deduplicateBars(fetchedBars), fromStr, toStr), tf)
     }
 
     const refetchBars = async (tf: string): Promise<PolygonBar[]> => {
@@ -453,8 +472,8 @@ export const usePolygonBars = (
         const { fromStr, toStr } = computeDateRange(tf, trade)
 
         // Clear all periods covering the full range (including buffer) to force a complete re-fetch.
-        // Use the same session-suffixed key as fetchBars so the right cache entries are cleared.
-        const cacheTicker = `${ticker}:${rth.value ? 'rth' : 'eth'}`
+        // Use the same unsuffixed key as fetchBars so the right cache entries are cleared.
+        const cacheTicker = ticker
         const allPeriods = listPeriodsInRange(tf, fromStr, toStr)
         for (const pk of allPeriods) {
             await clearCachedPeriod(cacheTicker, tf, pk)

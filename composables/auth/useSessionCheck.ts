@@ -1,7 +1,7 @@
 export const useSessionCheck = () => {
     const CHECK_INTERVAL = 1 * 60 * 1000 // 1 minute
     const userStore = useUserStore()
-    const { fetchUser, logout } = useAuth()
+    const { logout } = useAuth()
     const config = useRuntimeConfig()
 
     let intervalId: NodeJS.Timeout | null = null
@@ -14,8 +14,9 @@ export const useSessionCheck = () => {
         }
 
         try {
-            // Tenter de récupérer les infos utilisateur (vérifie le token)
-            await fetchUser()
+            // Lightweight check — just verifies the token is still valid.
+            // No settings/metadata returned, no UI state overwrite.
+            await $fetch('/api/auth/check')
         } catch (error: unknown) {
             // Si erreur 401, le token est expiré ou invalide
             if ((error as { statusCode?: number })?.statusCode === 401) {

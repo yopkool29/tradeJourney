@@ -44,12 +44,12 @@ export const useAuth = () => {
 
     const fetchUser = async (headers?: {
         cookie?: string | undefined;
-    }): Promise<UserType> => {
+    }, options?: { skipUiStateRestore?: boolean }): Promise<UserType> => {
         const res = await $fetch('/api/auth', { headers })
         const userSettings = JSON.parse(res.settings || '{}')
         const userData = { ...res, settings_object: { ...defaultSettings, ...userSettings } }
 
-        if (import.meta.client && res.metadata) {
+        if (import.meta.client && res.metadata && !options?.skipUiStateRestore) {
             const { restoreUiState } = useUiStateSync()
             restoreUiState(res.metadata)
         }

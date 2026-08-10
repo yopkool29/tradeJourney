@@ -197,11 +197,20 @@ const addTradeMarkers = (data: PolygonBar[]) => {
         text: string
     }> = []
 
-    if (entryInBounds) {
+    if (entryInBounds && exitInBounds && entryTime === exitTime) {
+        // Entry and exit in the same bar: show entry on this bar, exit on the next bar (if any)
         markers.push({ time: entryTime, position: 'belowBar', color: entryColor, shape: 'arrowUp', text: `${props.trade.type === 'buy' ? 'BUY' : 'SELL'} ${props.trade.lot}` })
-    }
-    if (exitInBounds) {
-        markers.push({ time: exitTime, position: 'aboveBar', color: exitColor, shape: 'arrowDown', text: `EXIT ${props.trade.lot}` })
+        const exitIdxInData = data.findIndex(b => b.time === entryTime)
+        if (exitIdxInData >= 0 && exitIdxInData < data.length - 1) {
+            markers.push({ time: data[exitIdxInData + 1].time as UTCTimestamp, position: 'aboveBar', color: exitColor, shape: 'arrowDown', text: `EXIT ${props.trade.lot}` })
+        }
+    } else {
+        if (entryInBounds) {
+            markers.push({ time: entryTime, position: 'belowBar', color: entryColor, shape: 'arrowUp', text: `${props.trade.type === 'buy' ? 'BUY' : 'SELL'} ${props.trade.lot}` })
+        }
+        if (exitInBounds) {
+            markers.push({ time: exitTime, position: 'aboveBar', color: exitColor, shape: 'arrowDown', text: `EXIT ${props.trade.lot}` })
+        }
     }
 
     const sortedAdjacent = [...chartAdjacentTrades.value].sort((a, b) => new Date(a.openDate).getTime() - new Date(b.openDate).getTime())
@@ -221,7 +230,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
         if (adjEntryInBounds) {
             markers.push({ time: adjEntryTime, position: 'belowBar', color: monoColor, shape: 'arrowUp', text: `[${adjNumber}] ${adj.type === 'buy' ? 'BUY' : 'SELL'} ${adj.lot}` })
         }
-        if (adjExitInBounds) {
+        if (adjExitInBounds && adjExitTime !== adjEntryTime) {
             markers.push({ time: adjExitTime, position: 'aboveBar', color: monoColor, shape: 'arrowDown', text: `[${adjNumber}] EXIT ${adj.lot}` })
         }
     }
@@ -240,7 +249,7 @@ const addTradeMarkers = (data: PolygonBar[]) => {
 
     // Ligne reliant l'entry à l'exit du trade principal (uniquement si trade actif)
     if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
-    if (entryInBounds && exitInBounds && chart && props.trade.active !== false) {
+    if (entryInBounds && exitInBounds && chart && props.trade.active !== false && entryTime !== exitTime) {
         tradeLine = chart.addSeries(LineSeries, {
             color: colors.lineColor,
             lineWidth: 1,
@@ -280,6 +289,9 @@ const addTradeMarkers = (data: PolygonBar[]) => {
             if (!adjEntryInBounds || !adjExitInBounds) continue
             const adjEntryIdx = findBarIndex(data, adjEntryTs)
             const adjExitIdx = findBarIndex(data, adjExitTs)
+            const adjEntryTime = data[adjEntryIdx].time as UTCTimestamp
+            const adjExitTime = data[adjExitIdx].time as UTCTimestamp
+            if (adjEntryTime === adjExitTime) continue
             const line = chart.addSeries(LineSeries, {
                 color: monoColor,
                 lineWidth: 1,
@@ -290,8 +302,8 @@ const addTradeMarkers = (data: PolygonBar[]) => {
                 pointMarkersVisible: false,
             })
             line.setData([
-                { time: data[adjEntryIdx].time as UTCTimestamp, value: adj.openPrice },
-                { time: data[adjExitIdx].time as UTCTimestamp, value: adj.closePrice },
+                { time: adjEntryTime, value: adj.openPrice },
+                { time: adjExitTime, value: adj.closePrice },
             ])
             adjacentLines.push(line)
         }

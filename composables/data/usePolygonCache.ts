@@ -1,4 +1,4 @@
-import { get, set, del, keys, delMany } from 'idb-keyval'
+import { get, set, del, keys, delMany, createStore } from 'idb-keyval'
 import type { PolygonBar } from '~/utils/polygonSymbol'
 import { createBarCache, type StorageAdapter, type CachedEntry } from '~/utils/barCache'
 
@@ -6,19 +6,23 @@ import { createBarCache, type StorageAdapter, type CachedEntry } from '~/utils/b
 // For data touching today, we refresh at most once per minute.
 const todayRefreshMs = 60_000
 
+// Use a dedicated IDB database to avoid conflicts with other libraries
+// (e.g. Nuxt/unstorage) that use the default 'keyval-store' database.
+const polygonStore = createStore('polygon-cache', 'bars')
+
 // Create an idb-keyval storage adapter for the generic bar cache.
 const idbAdapter: StorageAdapter<PolygonBar> = {
-	get: (key: string) => get<CachedEntry<PolygonBar>>(key),
-	set: (key: string, entry: CachedEntry<PolygonBar>) => set(key, entry),
-	del: (key: string) => del(key),
+	get: (key: string) => get<CachedEntry<PolygonBar>>(key, polygonStore),
+	set: (key: string, entry: CachedEntry<PolygonBar>) => set(key, entry, polygonStore),
+	del: (key: string) => del(key, polygonStore),
 }
 
 // Delete all entries with the 'polygon:' prefix from idb-keyval.
 export const clearAllPolygonCache = async (): Promise<void> => {
-	const allKeys = await keys<string>()
+	const allKeys = await keys<string>(polygonStore)
 	const polygonKeys = allKeys.filter(k => k.startsWith('polygon:'))
 	if (polygonKeys.length > 0) {
-		await delMany(polygonKeys)
+		await delMany(polygonKeys, polygonStore)
 	}
 }
 
