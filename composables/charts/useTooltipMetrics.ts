@@ -6,8 +6,6 @@ import { getMetricValueForMetric, formatMetricValueForMetric } from '~/composabl
 import { metricOptions, tradeTooltipOptions } from '~/composables/dashboard/useBreakdownConfig'
 import { formatTradeTooltipField } from '~/utils/dashboard'
 
-export { formatTradeTooltipField } from '~/utils/dashboard'
-
 // Construit les lignes d'un tooltip ECharts : titre (en gras) + lignes principales + extras.
 // - title : affiché en gras en 1re ligne (peut être vide)
 // - primaryLines : lignes déjà formatées (ex: "Winrate: 65%")
