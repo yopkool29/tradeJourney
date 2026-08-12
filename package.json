@@ -43,12 +43,17 @@
     "@internationalized/date": "^3.11.0",
     "@milkdown/core": "^7.20.0",
     "@milkdown/crepe": "^7.20.0",
+    "@milkdown/ctx": "^7.20.0",
+    "@milkdown/kit": "^7.20.0",
     "@milkdown/plugin-prism": "^7.20.0",
     "@milkdown/plugin-slash": "^7.20.0",
     "@milkdown/plugin-upload": "^7.20.0",
     "@milkdown/preset-commonmark": "^7.20.0",
     "@milkdown/preset-gfm": "^7.20.0",
+    "@milkdown/prose": "^7.20.0",
     "@milkdown/theme-nord": "^7.20.0",
+    "@milkdown/transformer": "^7.20.0",
+    "@milkdown/utils": "^7.20.0",
     "@milkdown/vue": "^7.20.0",
     "@nuxt/eslint": "^1.15.2",
     "@nuxt/fonts": "0.11.4",
@@ -94,6 +99,16 @@
     "zod": "^3.25.67"
   },
   "packageManager": "pnpm@10.12.4",
+  "pnpm": {
+    "overrides": {
+      "@milkdown/kit": "7.21.2",
+      "@milkdown/core": "7.21.2",
+      "@milkdown/ctx": "7.21.2",
+      "@milkdown/utils": "7.21.2",
+      "@milkdown/transformer": "7.21.2",
+      "@milkdown/prose": "7.21.2"
+    }
+  },
   "devDependencies": {
     "@iconify-json/heroicons": "^1.2.3",
     "@nuxt/test-utils": "^3.19.1",

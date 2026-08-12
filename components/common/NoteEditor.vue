@@ -79,6 +79,29 @@
         @closed="showImageCarousel = false"
     />
 
+    <!-- Text color picker modal -->
+    <CommonModalDefault
+        v-model:open="showColorPicker"
+        :title="$t('components.trade.noteEditor.text_color')"
+    >
+        <template #content>
+            <div class="p-4">
+                <CommonRecentColorPicker :key="colorPickerKey" v-model="tempColor" />
+                <div class="flex gap-2 mt-4 items-center">
+                    <span class="text-md">{{ $t('components.trade.noteEditor.color_preview') }}:</span>
+                    <UBadge :label="tempColor || '—'" :style="{ backgroundColor: tempColor, color: '#fff' }" />
+                </div>
+            </div>
+        </template>
+        <template #footer>
+            <div class="action-buttons-end">
+                <UButton @click="applyColor">{{ $t('common.actions.save') }}</UButton>
+                <UButton variant="soft" @click="cancelColor">{{ $t('common.actions.cancel') }}</UButton>
+                <UButton variant="outline" @click="clearColor">{{ $t('components.trade.noteEditor.remove_color') }}</UButton>
+            </div>
+        </template>
+    </CommonModalDefault>
+
     <!-- Editor fullscreen overlay -->
     <!-- <Teleport to="body">
         <div
@@ -108,8 +131,12 @@
 import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/frame.css'
 import { Crepe } from '@milkdown/crepe'
+import { normalizeColorToHex } from '~/utils/dashboard'
+import { textColorPlugin } from '~/utils/milkdown/textColorMark'
+import { textColorIcon } from '~/utils/milkdown/icons'
 
 const { uploadImage: uploadImageFn } = useNoteImages()
+const dbStateStore = useDbStateStore()
 
 type UploadContext = {
     userId: number
@@ -137,10 +164,13 @@ const isFullscreen = ref(false)
 const editorContainer = ref<HTMLElement | null>(null)
 const fullscreenContainer = ref<HTMLElement | null>(null)
 const editorLoading = ref(true)
-const editor = ref<Crepe | null>(null)
+const editor = shallowRef<Crepe | null>(null)
 const showImageCarousel = ref(false)
 const carouselImages = ref<{ url: string }[]>([])
 const carouselInitialIndex = ref(0)
+const showColorPicker = ref(false)
+const tempColor = ref<string>('')
+const colorPickerKey = ref(0)
 let imageObserver: MutationObserver | null = null
 
 // Extract all images from editor content
@@ -161,6 +191,67 @@ const editorStyle = computed(() => ({
 
 const uploadImage = async (file: File): Promise<string> => {
     return uploadImageFn(file)
+}
+
+const openColorPicker = () => {
+    // Read the current text color from the DOM selection
+    const selection = window.getSelection()
+    let detectedColor = '#000000'
+    if (selection && selection.rangeCount > 0) {
+        let el: Node | null = selection.anchorNode
+        while (el && el !== editorContainer.value) {
+            if (el instanceof HTMLElement) {
+                const style = el.getAttribute('style')
+                if (style) {
+                    const m = style.match(/color:\s*([^;]+)/i)
+                    if (m) {
+                        detectedColor = normalizeColorToHex(m[1].trim())
+                        break
+                    }
+                }
+            }
+            el = el.parentNode
+        }
+    }
+    tempColor.value = detectedColor
+    colorPickerKey.value++
+    showColorPicker.value = true
+}
+
+const applyColor = () => {
+    const hexColor = normalizeColorToHex(tempColor.value)
+    editor.value?.editor.action((ctx) => {
+        const view = ctx.get('editorView')
+        const schema = ctx.get('schema')
+        const markType = schema.marks['textColor']
+        if (!markType || !view) return
+        const { from, to } = view.state.selection
+        if (from === to) return
+        const tr = view.state.tr.removeMark(from, to, markType).addMark(from, to, markType.create({ color: hexColor }))
+        view.dispatch(tr)
+    })
+    if (hexColor && !dbStateStore.recentColors.includes(hexColor)) {
+        dbStateStore.recentColors = [hexColor, ...dbStateStore.recentColors.filter((c) => c !== hexColor)].slice(0, 10)
+    }
+    showColorPicker.value = false
+}
+
+const clearColor = () => {
+    editor.value?.editor.action((ctx) => {
+        const view = ctx.get('editorView')
+        const schema = ctx.get('schema')
+        const markType = schema.marks['textColor']
+        if (!markType || !view) return
+        const { from, to } = view.state.selection
+        if (from === to) return
+        const tr = view.state.tr.removeMark(from, to, markType)
+        view.dispatch(tr)
+    })
+    showColorPicker.value = false
+}
+
+const cancelColor = () => {
+    showColorPicker.value = false
 }
 
 const injectFullscreenButton = (container: HTMLElement, readonly: boolean) => {
@@ -202,11 +293,36 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
                 inlineOnUpload: uploadImage,
                 blockOnUpload: uploadImage,
             },
+            ...(editable ? {
+                [Crepe.Feature.TopBar]: {
+                    buildTopBar: (builder) => {
+                        builder.getGroup('formatting').addItem('text-color', {
+                            icon: textColorIcon,
+                            active: () => false,
+                            onRun: () => {
+                                container.dispatchEvent(new CustomEvent('open-color-picker'))
+                            },
+                        })
+                    },
+                },
+                [Crepe.Feature.Toolbar]: {
+                    buildToolbar: (builder) => {
+                        builder.getGroup('formatting').addItem('text-color', {
+                            icon: textColorIcon,
+                            active: () => false,
+                            onRun: () => {
+                                container.dispatchEvent(new CustomEvent('open-color-picker'))
+                            },
+                        })
+                    },
+                },
+            } : {}),
         },
     })
     if (!editable) {
         instance.setReadonly(true)
     }
+    instance.editor.use(textColorPlugin)
     await instance.create()
     if (editable) {
         instance.on((api) => {
@@ -224,6 +340,7 @@ const createEditor = async (container: HTMLElement, content: string, editable: b
 const initEditor = async () => {
     if (!editorContainer.value) return
     editorLoading.value = true
+    editorContainer.value.addEventListener('open-color-picker', openColorPicker)
     try {
         editor.value = await createEditor(editorContainer.value, props.modelValue, !props.readonly)
     } finally {
@@ -260,6 +377,7 @@ watch(() => props.modelValue, async (newVal) => {
 
 onBeforeUnmount(() => {
     imageObserver?.disconnect()
+    editorContainer.value?.removeEventListener('open-color-picker', openColorPicker)
     editor.value?.destroy()
 })
 

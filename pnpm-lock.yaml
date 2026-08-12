@@ -4,6 +4,14 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@milkdown/kit': 7.21.2
+  '@milkdown/core': 7.21.2
+  '@milkdown/ctx': 7.21.2
+  '@milkdown/utils': 7.21.2
+  '@milkdown/transformer': 7.21.2
+  '@milkdown/prose': 7.21.2
+
 importers:
 
   .:
@@ -15,11 +23,17 @@ importers:
         specifier: ^3.11.0
         version: 3.12.2
       '@milkdown/core':
-        specifier: ^7.20.0
+        specifier: 7.21.2
         version: 7.21.2
       '@milkdown/crepe':
         specifier: ^7.20.0
         version: 7.21.2(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-view@1.41.8)(typescript@5.9.3)
+      '@milkdown/ctx':
+        specifier: 7.21.2
+        version: 7.21.2
+      '@milkdown/kit':
+        specifier: 7.21.2
+        version: 7.21.2(@codemirror/language@6.12.3)(@codemirror/state@6.6.0)(@codemirror/view@6.43.1)(typescript@5.9.3)
       '@milkdown/plugin-prism':
         specifier: ^7.20.0
         version: 7.21.2
@@ -35,8 +49,17 @@ importers:
       '@milkdown/preset-gfm':
         specifier: ^7.20.0
         version: 7.21.2
+      '@milkdown/prose':
+        specifier: 7.21.2
+        version: 7.21.2
       '@milkdown/theme-nord':
         specifier: ^7.20.0
+        version: 7.21.2
+      '@milkdown/transformer':
+        specifier: 7.21.2
+        version: 7.21.2
+      '@milkdown/utils':
+        specifier: 7.21.2
         version: 7.21.2
       '@milkdown/vue':
         specifier: ^7.20.0

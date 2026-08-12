@@ -58,8 +58,20 @@ export default defineNuxtConfig({
     vite: {
         resolve: {
             alias: {
-                'element-resize-detector': '~/shims/element-resize-detector.js'
-            }
+                'element-resize-detector': '~/shims/element-resize-detector.js',
+                '@milkdown/kit/utils': '@milkdown/utils',
+                '@milkdown/kit/ctx': '@milkdown/ctx',
+                '@milkdown/kit/transformer': '@milkdown/transformer',
+                '@milkdown/kit/core': '@milkdown/core',
+                '@milkdown/kit/prose': '@milkdown/prose',
+            },
+            dedupe: [
+                '@milkdown/core',
+                '@milkdown/ctx',
+                '@milkdown/utils',
+                '@milkdown/transformer',
+                '@milkdown/prose',
+            ]
         },
         server: {
             allowedHosts: [

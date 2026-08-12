@@ -1535,6 +1535,9 @@ export default {
                 fullscreen: 'Plein écran',
                 exit_fullscreen: 'Quitter le plein écran',
                 image_viewer_title: 'Visionneuse d\'images',
+                text_color: 'Couleur du texte',
+                color_preview: 'Aperçu',
+                remove_color: 'Retirer la couleur',
             },
             notePicker: {
                 title: 'Sélectionner une note à associer',

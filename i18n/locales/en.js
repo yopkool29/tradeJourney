@@ -1515,6 +1515,9 @@ export default {
                 fullscreen: 'Fullscreen',
                 exit_fullscreen: 'Exit fullscreen',
                 image_viewer_title: 'Image viewer',
+                text_color: 'Text color',
+                color_preview: 'Preview',
+                remove_color: 'Remove color',
             },
             notePicker: {
                 title: 'Select a note to associate',
