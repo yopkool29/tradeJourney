@@ -136,12 +136,31 @@ export const useUiStateSync = () => {
                 return false
             }
 
+            const deepMerge = (target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> => {
+                const result = { ...target }
+                for (const key of Object.keys(source)) {
+                    const srcVal = source[key]
+                    const tgtVal = result[key]
+                    if (Array.isArray(srcVal)) {
+                        result[key] = srcVal
+                    } else if (srcVal && typeof srcVal === 'object' && tgtVal && typeof tgtVal === 'object' && !Array.isArray(tgtVal)) {
+                        result[key] = deepMerge(tgtVal as Record<string, unknown>, srcVal as Record<string, unknown>)
+                    } else {
+                        result[key] = srcVal
+                    }
+                }
+                return result
+            }
+
             for (const key of UI_STATE_KEYS) {
                 const savedValue = uiState[key]
                 if (savedValue && typeof savedValue === 'object') {
                     const storeRef = (dbStateStore as unknown as Record<string, unknown>)[key]
                     if (storeRef && typeof storeRef === 'object') {
-                        Object.assign(storeRef, JSON.parse(JSON.stringify(savedValue)))
+                        const cloned = JSON.parse(JSON.stringify(savedValue)) as Record<string, unknown>
+                        const current = storeRef as Record<string, unknown>
+                        const merged = deepMerge(current, cloned)
+                        Object.keys(merged).forEach(k => { current[k] = merged[k] })
                     }
                 }
             }

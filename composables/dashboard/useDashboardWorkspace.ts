@@ -88,15 +88,23 @@ export const useDashboardWorkspace = () => {
 			dashboardGridLayoutSm: [],
 		})
 	}
-	const getDatabases = async () => databases.value.length > 0 ? databases.value : fetchDatabases()
+	const getDatabases = async () => {
+		if (databases.value.length === 0) await fetchDatabases()
+		return databases.value
+	}
 	const syncDashboardToOtherDatabases = async () => {
 		const currentDbName = currentDatabase.value?.name || 'default'
 		const sourceFilters = dbStateStore.dashBoardFiltersPerDb[currentDbName]
 		if (!sourceFilters?.workspaces) return
 		const newPerDb = { ...dbStateStore.dashBoardFiltersPerDb }
-		const clonedWorkspaces = JSON.parse(JSON.stringify(sourceFilters.workspaces)) as WorkspaceConfig[]
 		for (const db of await getDatabases()) {
-			if (db.name !== currentDbName && newPerDb[db.name]) newPerDb[db.name] = { ...newPerDb[db.name], workspaces: clonedWorkspaces }
+			if (db.name === currentDbName) continue
+			const clonedWorkspaces = JSON.parse(JSON.stringify(sourceFilters.workspaces)) as WorkspaceConfig[]
+			if (newPerDb[db.name]) {
+				newPerDb[db.name] = { ...newPerDb[db.name], workspaces: clonedWorkspaces }
+			} else {
+				newPerDb[db.name] = { ...JSON.parse(JSON.stringify(sourceFilters)) as DashBoardFilters }
+			}
 		}
 		dbStateStore.dashBoardFiltersPerDb = newPerDb
 		toastSuccess(t('components.dashboard.index.sync_dashboard_success'))
