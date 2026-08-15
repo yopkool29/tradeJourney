@@ -238,8 +238,10 @@ const addTradeMarkers = (data: PolygonBar[]) => {
     markers.sort((a, b) => (a.time as number) - (b.time as number))
 
     if (seriesMarkers) {
-        seriesMarkers.setMarkers(markers)
-    } else {
+        seriesMarkers.detach()
+        seriesMarkers = null
+    }
+    if (candlestickSeries) {
         seriesMarkers = createSeriesMarkers(candlestickSeries, markers)
     }
 
@@ -428,6 +430,9 @@ const loadChartData = async () => {
 }
 
 const onTfChange = async () => {
+    if (seriesMarkers) { seriesMarkers.detach(); seriesMarkers = null }
+    for (const series of adjacentLines) { if (chart) chart.removeSeries(series) }
+    adjacentLines = []
     if (candlestickSeries) candlestickSeries.setData([])
     priceSegments = clearPriceSegments(chart, priceSegments)
     if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
@@ -507,6 +512,9 @@ const onAdjacentLinesToggle = () => {
 }
 
 const onRthToggle = async () => {
+    if (seriesMarkers) { seriesMarkers.detach(); seriesMarkers = null }
+    for (const series of adjacentLines) { if (chart) chart.removeSeries(series) }
+    adjacentLines = []
     if (candlestickSeries) candlestickSeries.setData([])
     priceSegments = clearPriceSegments(chart, priceSegments)
     if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
