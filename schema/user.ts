@@ -36,6 +36,8 @@ export const SettingsContentSchema = z.object({
     showTradeChart: z.boolean().default(true),
     showDetailedNote: z.boolean().default(true),
     polygonApiKey: z.string().default(''),
+    polygonRequestDelayMs: z.number().default(12000),
+    polygonCacheRefreshMinutes: z.number().default(1440),
     // Regular Trading Hours (RTH) per instrument type.
     // open/close are "HH:MM" in the given IANA timezone.
     // Forex and crypto trade near 24/7 so they have no RTH session.

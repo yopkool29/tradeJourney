@@ -11,8 +11,8 @@
             <UForm :state="formState" autocomplete="off">
                 <div class="space-y-6">
                     <!-- Section Interface -->
-                    <div class="section-separator">
-                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.interface_section') }}</h3>
+                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.interface_section') }}</legend>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <UFormField name="noteNewline" class="w-full">
                                 <UCheckbox
@@ -73,7 +73,7 @@
                             </UFormField>
 
                         </div>
-                    </div>
+                    </fieldset>
 
                     <!-- Section Détail du trade -->
                     <div class="section-separator">
@@ -93,40 +93,73 @@
                                     :description="$t('components.settings.options.show_detailed_note_desc')"
                                 />
                             </UFormField>
-                            <UFormField name="polygonApiKey" :label="$t('components.settings.options.polygon_api_key')" class="w-lg">
-                                <div class="flex gap-2">
+                            <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mt-4 space-y-4">
+                                <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.polygon_section') }}</legend>
+                                <UFormField name="polygonApiKey" :label="$t('components.settings.options.polygon_api_key')" class="w-lg">
+                                    <div class="flex gap-2">
+                                        <UInput
+                                            v-model="formState.polygonApiKey"
+                                            class="flex-1"
+                                            :type="showPolygonKey ? 'text' : 'password'"
+                                            placeholder="polygon_api_key"
+                                            autocomplete="off"
+                                        />
+                                        <UButton
+                                            color="neutral"
+                                            variant="soft"
+                                            @click="showPolygonKey = !showPolygonKey"
+                                        >
+                                            {{ showPolygonKey ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
+                                        </UButton>
+                                    </div>
+                                    <template #description>
+                                        <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_api_key_desc') }}</span>
+                                    </template>
+                                </UFormField>
+                                <UFormField name="polygonRequestDelayMs" :label="$t('components.settings.options.polygon_request_delay')" class="w-lg">
                                     <UInput
-                                        v-model="formState.polygonApiKey"
-                                        class="flex-1"
-                                        :type="showPolygonKey ? 'text' : 'password'"
-                                        placeholder="polygon_api_key"
-                                        autocomplete="off"
+                                        v-model="formState.polygonRequestDelayMs"
+                                        type="number"
+                                        class="w-32"
                                     />
+                                    <template #description>
+                                        <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_request_delay_desc') }}</span>
+                                    </template>
+                                </UFormField>
+                                <UFormField name="polygonMaxRetries" :label="$t('components.settings.options.polygon_max_retries')" class="w-lg">
+                                    <UInput
+                                        v-model="formState.polygonMaxRetries"
+                                        type="number"
+                                        class="w-32"
+                                    />
+                                    <template #description>
+                                        <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_max_retries_desc') }}</span>
+                                    </template>
+                                </UFormField>
+                                <UFormField name="polygonCacheRefreshMinutes" :label="$t('components.settings.options.polygon_cache_refresh')" class="w-lg">
+                                    <UInput
+                                        v-model="formState.polygonCacheRefreshMinutes"
+                                        type="number"
+                                        class="w-32"
+                                    />
+                                    <template #description>
+                                        <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_cache_refresh_desc') }}</span>
+                                    </template>
+                                </UFormField>
+                                <UFormField :label="$t('components.settings.options.polygon_cache')" class="w-lg">
                                     <UButton
                                         color="neutral"
                                         variant="soft"
-                                        @click="showPolygonKey = !showPolygonKey"
+                                        :loading="clearingCache"
+                                        @click="onClearPolygonCache"
                                     >
-                                        {{ showPolygonKey ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
+                                        {{ $t('components.settings.options.polygon_cache_clear') }}
                                     </UButton>
-                                </div>
-                                <template #description>
-                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_api_key_desc') }}</span>
-                                </template>
-                            </UFormField>
-                            <UFormField :label="$t('components.settings.options.polygon_cache')" class="w-lg">
-                                <UButton
-                                    color="neutral"
-                                    variant="soft"
-                                    :loading="clearingCache"
-                                    @click="onClearPolygonCache"
-                                >
-                                    {{ $t('components.settings.options.polygon_cache_clear') }}
-                                </UButton>
-                                <template #description>
-                                    <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_cache_desc') }}</span>
-                                </template>
-                            </UFormField>
+                                    <template #description>
+                                        <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_cache_desc') }}</span>
+                                    </template>
+                                </UFormField>
+                            </fieldset>
                             <UFormField :label="$t('components.settings.options.rth_sessions')" class="w-full">
                                 <template #description>
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.rth_sessions_desc') }}</span>
@@ -174,8 +207,8 @@
                     </div>
 
                     <!-- Section Data sync -->
-                    <div class="section-separator">
-                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.data_sync_section') }}</h3>
+                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.data_sync_section') }}</legend>
                         <div class="space-y-6">
                             <UFormField :label="$t('components.settings.options.save_ui_state')" class="w-lg">
                                 <template #description>
@@ -204,11 +237,11 @@
                                 </UButton>
                             </UFormField>
                         </div>
-                    </div>
+                    </fieldset>
 
                     <!-- Section Storage -->
-                    <div class="section-separator">
-                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.storage_section') }}</h3>
+                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.storage_section') }}</legend>
                         <div class="grid grid-cols-1 gap-8">
                             <UFormField name="storageUrl" :label="$t('components.settings.options.storage_url')">
                                 <UInput
@@ -276,7 +309,7 @@
                                 </template>
                             </UFormField>
                         </div>
-                    </div>
+                    </fieldset>
 
                     <!-- Section API NinjaTrader -->
                     <!-- <div class="section-separator">
@@ -310,8 +343,8 @@
                     </div> -->
 
                     <!-- Section Fuseau horaire pour l'affichage -->
-                    <div class="section-separator">
-                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.timezone_display_section') }}</h3>
+                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.timezone_display_section') }}</legend>
                         <div class="flex flex-col gap-8">
                             <UFormField name="timezoneDisplay" :label="$t('components.settings.options.timezone_display_mode')" class="w-64">
                                 <USelect
@@ -358,11 +391,11 @@
                                 <p class="text-sm font-medium mt-2">{{ $t('components.settings.options.timezone_current_detected') }}: {{ detectedTimezone }}</p>
                             </div>
                         </div>
-                    </div>
+                    </fieldset>
 
                     <!-- Section Couleurs des graphiques -->
-                    <div class="section-separator">
-                        <h3 class="section-subtitle-lg">{{ $t('components.settings.options.chart_colors_section') }}</h3>
+                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.chart_colors_section') }}</legend>
                         <div class="grid grid-cols-4 gap-4 max-w-[400px] mb-2">
                             <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'light' }">Light</div>
                             <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'light-blue' }">Light Blue</div>
@@ -471,7 +504,7 @@
                                 />
                             </div>
                         </div>
-                    </div>
+                    </fieldset>
                 </div>
                 <div class="flex action-buttons mt-8">
                     <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="primary" variant="link" @click="goBack" />

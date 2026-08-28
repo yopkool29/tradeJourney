@@ -15,6 +15,7 @@ export const useUserStore = defineStore(
         const logFix = ref(0)
 
         const isLoading = ref(false)
+        const polygonRequestCount = ref(0)
         const quickNavHistory = ref<{ path: string; lastVisit: number }[]>([])
         const displayModeNet = ref<boolean>(true)
         const auth = useAuth()
@@ -113,6 +114,7 @@ export const useUserStore = defineStore(
             logDebug2,
             logFix,
             isLoading,
+            polygonRequestCount,
             quickNavHistory,
             displayModeNet,
             user,

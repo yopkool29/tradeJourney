@@ -3,8 +3,13 @@ import type { PolygonBar } from '~/utils/polygonSymbol'
 import { createBarCache, type StorageAdapter, type CachedEntry } from '~/utils/barCache'
 
 // Polygon free plan rate limit: 5 requests per minute.
-// For data touching today, we refresh at most once per minute.
-const todayRefreshMs = 60_000
+// For data touching today, refresh interval is configurable via settings.
+const getDefaultRefreshMs = (): number => {
+    const userStore = useUserStore()
+    const settings = userStore.settingsObject
+    const minutes = settings?.polygonCacheRefreshMinutes ?? 1440
+    return minutes * 60_000
+}
 
 // Use a dedicated IDB database to avoid conflicts with other libraries
 // (e.g. Nuxt/unstorage) that use the default 'keyval-store' database.
@@ -27,7 +32,7 @@ export const clearAllPolygonCache = async (): Promise<void> => {
 }
 
 export const usePolygonCache = () => {
-	const cache = createBarCache<PolygonBar>(idbAdapter, 'polygon', todayRefreshMs)
+	const cache = createBarCache<PolygonBar>(idbAdapter, 'polygon', getDefaultRefreshMs())
 
 	return {
 		getCachedPeriod: cache.getCachedPeriod,

@@ -2,14 +2,23 @@
     <div class="trade-chart-container">
         <div class="flex items-center gap-2 mb-2">
             <span class="text-secondary-sm font-semibold">{{ polygonSymbol }}</span>
-            <USelect v-model="selectedTf" :items="tfOptions" size="xs" class="w-24" @update:model-value="onTfChange" />
+            <UButtonGroup size="xs">
+                <UButton
+                    v-for="tf in tfOptions"
+                    :key="tf.value"
+                    :label="tf.label"
+                    :variant="selectedTf === tf.value ? 'solid' : 'outline'"
+                    color="neutral"
+                    @click="onTfButtonClick(tf.value)"
+                />
+            </UButtonGroup>
             <UCheckbox v-model="showAdjacent" :label="$t('components.trade.chart.show_adjacent')" size="xs" @update:model-value="onAdjacentToggle" />
             <UCheckbox v-if="showAdjacent" v-model="showAdjacentLines" :label="$t('components.trade.chart.show_adjacent_lines')" size="xs" @update:model-value="onAdjacentLinesToggle" />
             <UCheckbox v-model="showRth" :label="$t('components.trade.chart.show_rth')" size="xs" @update:model-value="onRthToggle" />
             <UButton icon="i-heroicons-arrow-path" size="xs" color="neutral" variant="ghost" :loading="loading" @click="onReload" />
             <span v-if="loading" class="text-secondary-sm text-gray-500">
                 <UIcon name="i-heroicons-arrow-path" class="animate-spin inline" />
-                {{ $t('common.loading') }}
+                {{ $t('common.loading') }}{{ userStore.polygonRequestCount > 0 ? ` (${userStore.polygonRequestCount})` : '' }}
             </span>
             <span v-if="error" class="text-secondary-sm text-red-500">{{ error }}</span>
         </div>
@@ -46,6 +55,7 @@ const isDark = useIsDark()
 const colorMode = useColorMode()
 const { symbols, getDigitFromSymbol } = useSymbols()
 const { fetchTrades } = useTrades()
+const userStore = useUserStore()
 
 const { tickMarkFormatter, crosshairTimeFormatter } = useTradeChartFormatters()
 const { getChartColors, findBarIndex, isInRange, addPriceSegment, clearPriceSegments, getVisibleBarsForTf } = useTradeChartHelpers()
@@ -167,10 +177,20 @@ const centerOnTrade = (data: PolygonBar[]) => {
     const exitTs = Math.floor(new Date(props.trade.closeDate).getTime() / 1000)
     const entryIdx = findBarIndex(data, entryTs)
     const exitIdx = findBarIndex(data, exitTs)
-    const tradeMid = (entryIdx + exitIdx) / 2
+    const tradeSpan = exitIdx - entryIdx
     const visibleBars = getVisibleBarsForTf(Number(selectedTf.value))
-    const from = Math.max(0, tradeMid - visibleBars)
-    const to = tradeMid + visibleBars
+    let from: number
+    let to: number
+    if (tradeSpan > visibleBars) {
+        // Trade is longer than the visible window: show from entry to exit with small padding
+        const padding = Math.max(10, Math.floor(visibleBars * 0.1))
+        from = Math.max(0, entryIdx - padding)
+        to = exitIdx + padding
+    } else {
+        const tradeMid = (entryIdx + exitIdx) / 2
+        from = Math.max(0, tradeMid - visibleBars)
+        to = tradeMid + visibleBars
+    }
     chart.timeScale().setVisibleLogicalRange({ from, to })
 }
 
@@ -407,6 +427,7 @@ const initChart = async () => {
 const loadChartData = async () => {
     if (!candlestickSeries) return
     loading.value = true
+    userStore.polygonRequestCount = 0
     error.value = ''
     try {
         const data = await fetchBars(selectedTf.value)
@@ -429,7 +450,9 @@ const loadChartData = async () => {
     }
 }
 
-const onTfChange = async () => {
+const onTfButtonClick = async (tf: string) => {
+    if (selectedTf.value === tf) return
+    selectedTf.value = tf
     if (seriesMarkers) { seriesMarkers.detach(); seriesMarkers = null }
     for (const series of adjacentLines) { if (chart) chart.removeSeries(series) }
     adjacentLines = []
@@ -453,6 +476,7 @@ const onReload = async () => {
     priceSegments = clearPriceSegments(chart, priceSegments)
     if (tradeLine && chart) { chart.removeSeries(tradeLine); tradeLine = null }
     loading.value = true
+    userStore.polygonRequestCount = 0
     error.value = ''
     try {
         const data = await refetchBars(selectedTf.value)

@@ -153,6 +153,8 @@ export const createBarCache = <T extends Bar>(
 		const key = buildKey(prefix, ticker, tf, periodKey)
 		const entry = await adapter.get(key)
 		if (!entry) return null
+		// Treat empty cached data as a cache miss so it gets re-fetched
+		if (entry.data.length === 0) return null
 
 		if (!isPeriodCurrentOrFuture(tf, periodKey)) {
 			return entry.data
