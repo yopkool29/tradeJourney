@@ -46,6 +46,12 @@ describe('Database Integration - Notes CRUD', () => {
 		expect(found?.content).toBe(createdNote?.content)
 	})
 
+	it('should fetch notes with a bounded date range and pagination', async () => {
+		const result = await $fetch(`/api/notes?date_from=${encodeURIComponent('2024-01-15T00:00:00.000Z')}&date_to=${encodeURIComponent('2024-01-15T23:59:59.999Z')}&limit=1&offset=0`) as NoteType[]
+		expect(result).toHaveLength(1)
+		expect(result[0].id).toBe(createdNote?.id)
+	})
+
 	it('should fetch note dates and find our date', async () => {
 		const { fetchNoteDates } = useNotes()
 		const result = await fetchNoteDates() as Array<{ date: string }>

@@ -1,6 +1,10 @@
 import { startOfDay, endOfDay } from 'date-fns';
 import { round as _round } from "~/utils";
 
+export const sortTradesByCloseDate = <T extends { closeDate: Date | string }>(trades: T[]): T[] => {
+    return [...trades].sort((left, right) => new Date(left.closeDate).getTime() - new Date(right.closeDate).getTime())
+}
+
 export const getPNL = (trades: { profit: number; netProfit: number }[], round = -1, useNet = true) => {
     const result = trades.reduce((acc, trade) => acc + (useNet ? trade.netProfit : trade.profit), 0)
     if (round < 0)

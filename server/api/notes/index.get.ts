@@ -1,6 +1,27 @@
 import { createAppError } from '../../utils/errors'
 import { getApiContext } from '../../utils/apiHelpers'
 
+type NoteDateFilter = {
+	gte?: Date
+	lte?: Date
+}
+
+const parseDateQuery = (value: unknown): Date | undefined => {
+	if (value === undefined) return undefined
+	if (typeof value !== 'string') throw createAppError({ statusCode: 400, message: 'Invalid note date', tag: 'api.notes.get.invalid_date' })
+	const date = new Date(value)
+	if (isNaN(date.getTime())) throw createAppError({ statusCode: 400, message: 'Invalid note date', tag: 'api.notes.get.invalid_date' })
+	return date
+}
+
+const parseIntegerQuery = (value: unknown, defaultValue: number, maximum: number): number => {
+	if (value === undefined) return defaultValue
+	if (typeof value !== 'string' || !/^\d+$/.test(value)) throw createAppError({ statusCode: 400, message: 'Invalid pagination', tag: 'api.notes.get.invalid_pagination' })
+	const parsed = Number(value)
+	if (!Number.isSafeInteger(parsed) || parsed < 0 || parsed > maximum) throw createAppError({ statusCode: 400, message: 'Invalid pagination', tag: 'api.notes.get.invalid_pagination' })
+	return parsed
+}
+
 export default defineEventHandler(async (event) => {
     try {
         const { prisma } = await getApiContext(event)
@@ -32,7 +53,18 @@ export default defineEventHandler(async (event) => {
         }
 
         // Otherwise, get all notes with their dates
+        const dateFrom = parseDateQuery(query.date_from)
+        const dateTo = parseDateQuery(query.date_to)
+        if (dateFrom && dateTo && dateFrom > dateTo) {
+            throw createAppError({ statusCode: 400, message: 'Invalid note date range', tag: 'api.notes.get.invalid_date_range' })
+        }
+        const dateFilter: NoteDateFilter = {}
+        if (dateFrom) dateFilter.gte = dateFrom
+        if (dateTo) dateFilter.lte = dateTo
+        const limit = parseIntegerQuery(query.limit, -1, 100)
+        const offset = parseIntegerQuery(query.offset, 0, 1000000)
         const notes = await prisma.dailyNote.findMany({
+            where: Object.keys(dateFilter).length > 0 ? { date: dateFilter } : undefined,
             select: {
                 id: true,
                 date: true,
@@ -40,7 +72,9 @@ export default defineEventHandler(async (event) => {
                 metadata: true,
                 updatedAt: true
             },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }],
+            take: limit >= 0 ? limit : undefined,
+            skip: offset
         })
 
         return notes

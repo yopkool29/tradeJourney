@@ -3,6 +3,9 @@
 // - TradeType -> schema/trade.ts
 // - ConfigSymbol -> schema/symbol.ts
 import { IANA_TIMEZONES, UTC_OFFSETS } from '~/utils/date-utils';
+import type { TradeFilter } from '~/schema/tradeFilter'
+
+export type { TradeFilter, TradeFilterValue } from '~/schema/tradeFilter'
 
 interface ILogView {
     onClose: () => void
@@ -24,10 +27,6 @@ export type {
     ILogView,
     ErrorMessage
 }
-
-export type TradeFilterValue = number | string | [number, number, number] | number[] | string[] | undefined
-
-export type TradeFilter = { column: string, operator: string, value: TradeFilterValue }
 
 export enum InstrumentType {
     Stock = 'stock',

@@ -23,7 +23,8 @@ import {
 	getSortinoRatio,
 	getCalmarRatio,
 	getSQN,
-	getUlcerIndex
+	getUlcerIndex,
+	sortTradesByCloseDate
 } from '~/utils/tradeStats'
 
 // 12 trades avec des cas couvrant : streaks multiples, drawdown profond, breakeven
@@ -49,6 +50,14 @@ const mockTrades = [
 ]
 
 describe('tradeStats', () => {
+	it('sorts trades chronologically without mutating the input', () => {
+		const reversedTrades = [...mockTrades].reverse()
+		const sortedTrades = sortTradesByCloseDate(reversedTrades)
+		expect(sortedTrades.map(trade => trade.closeDate)).toEqual(mockTrades.map(trade => trade.closeDate))
+		expect(reversedTrades[0].closeDate).toBe(mockTrades[mockTrades.length - 1].closeDate)
+		expect(getRecoveryFactor(sortedTrades, 2, true)).toBe(getRecoveryFactor(sortTradesByCloseDate(mockTrades), 2, true))
+	})
+
 	describe('getPNL', () => {
 		it('should calculate total net PnL', () => {
 			// 95+45-85+190-35+120+80+60-150-40+200-25 = 455

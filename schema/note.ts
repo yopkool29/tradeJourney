@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { idField, dateOrStringField } from './primitives'
 
+export const KnownNoteMetadataSchema = z.object({
+    subtitle: z.string().optional(),
+}).strip()
+
 export const NoteSchema = z.object({
     id: idField,
     date: dateOrStringField,

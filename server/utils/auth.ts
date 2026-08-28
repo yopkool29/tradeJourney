@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { apiTokenAuth } from './apiTokenAuth'
 import { createAppError } from './errors'
 
 interface JWTPayload {
@@ -10,7 +11,7 @@ interface JWTPayload {
 export default defineEventHandler(async (event) => {
     const token = getCookie(event, 'token')
     if (!token)
-        throw createAppError({ statusCode: 401, tag: 'api.auth.verify.unauthorized', message: 'Unauthorized' })
+        return apiTokenAuth(event)
     
     const secret = process.env.JWT_SECRET
     if (!secret)

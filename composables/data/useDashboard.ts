@@ -23,7 +23,8 @@ import {
     getSortinoRatio,
     getCalmarRatio,
     getSQN,
-    getUlcerIndex
+    getUlcerIndex,
+    sortTradesByCloseDate
 } from '~/utils/tradeStats'
 import {
     getTotalRMultiple,
@@ -132,11 +133,12 @@ export const useDashboard = () => {
         dataStore.dashboardResult.plRatio = getPLRatio(trades, 2, useNet)
         dataStore.dashboardResult.winrate = getWinrate(trades, 2, useNet)
         dataStore.dashboardResult.profitFactor = getProfitFactor(trades, 2, useNet)
-        dataStore.dashboardResult.recoveryFactor = getRecoveryFactor(trades, 2, useNet)
+        const sortedByClose = sortTradesByCloseDate(trades)
+        dataStore.dashboardResult.recoveryFactor = getRecoveryFactor(sortedByClose, 2, useNet)
         dataStore.dashboardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
         dataStore.dashboardResult.sortinoRatio = getSortinoRatio(trades, 0, 2, useNet)
-        dataStore.dashboardResult.calmarRatio = getCalmarRatio(trades, 2, useNet)
-        dataStore.dashboardResult.ulcerIndex = getUlcerIndex(trades, 2, useNet)
+        dataStore.dashboardResult.calmarRatio = getCalmarRatio(sortedByClose, 2, useNet)
+        dataStore.dashboardResult.ulcerIndex = getUlcerIndex(sortedByClose, 2, useNet)
         dataStore.dashboardResult.tradesCount = trades.length
 
         // ALL TRADES - Nouvelles métriques
@@ -160,7 +162,7 @@ export const useDashboard = () => {
         dataStore.dashboardResult.winningTradesCommission = winMetrics.totalCommission
 
         // Max Run-up avec dates
-        const runUpData = getMaxRunUpWithDates(trades, useNet)
+        const runUpData = getMaxRunUpWithDates(sortedByClose, useNet)
         dataStore.dashboardResult.maxRunUp = runUpData.maxRunUp
         dataStore.dashboardResult.maxRunUpDateFrom = runUpData.dateFrom
         dataStore.dashboardResult.maxRunUpDateTo = runUpData.dateTo
@@ -178,7 +180,7 @@ export const useDashboard = () => {
         dataStore.dashboardResult.losingTradesCommission = lossMetrics.totalCommission
 
         // Max Drawdown avec dates
-        const drawdownData = getMaxDrawdownWithDates(trades)
+        const drawdownData = getMaxDrawdownWithDates(sortedByClose, useNet)
         dataStore.dashboardResult.maxDrawdown = drawdownData.maxDrawdown
         dataStore.dashboardResult.maxDrawdownDateFrom = drawdownData.dateFrom
         dataStore.dashboardResult.maxDrawdownDateTo = drawdownData.dateTo
@@ -189,9 +191,8 @@ export const useDashboard = () => {
         dataStore.dashboardResult.breakevenContractsCount = breakevenMetrics.totalContracts
 
         // STREAKS (trades triés par closeDate pour un calcul correct)
-        const sortedByClose = [...trades].sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())
-        dataStore.dashboardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose)
-        dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose)
+        dataStore.dashboardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose, useNet)
+        dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose, useNet)
 
         // DAILY METRICS
         const dailyPnls = getDailyPnlArray(trades, useNet, userStore.settingsObject)

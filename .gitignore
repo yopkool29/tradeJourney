@@ -25,6 +25,7 @@ logs
 # Local env files
 .env
 .env.production
+.devin/mcp_config.local.json
 !.env.example
 !.env.production.example
 /upload

@@ -1,18 +1,7 @@
 import type { Prisma } from '~/generated/prisma-data'
-import { getColumnType } from '~/schema/trade'
-import { isValid, addDays, startOfDay, endOfDay } from 'date-fns'
 import type { TradeFilter } from '~/type'
+import { buildTradeWhere } from '../../services/tradeFilters'
 import { getApiContext } from '../../utils/apiHelpers'
-
-import {
-    OPERATOR_EQUAL,
-    OPERATOR_NOT_EQUAL,
-    OPERATOR_GREATER_THAN,
-    OPERATOR_GREATER_THAN_OR_EQUAL,
-    OPERATOR_LESS_THAN,
-    OPERATOR_LESS_THAN_OR_EQUAL,
-    OPERATOR_IN,
-} from '../../../utils/index'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -22,6 +11,7 @@ export default defineEventHandler(async (event) => {
         const query = getQuery(event)
         let filters: TradeFilter[] = []
         let limit = 1000 // Valeur par défaut
+        let offset = 0
         const isCount = query.count === 'true'
 
         try {
@@ -38,132 +28,17 @@ export default defineEventHandler(async (event) => {
                     limit = parsedLimit
                 }
             }
+            if (query.offset !== undefined) {
+                const parsedOffset = parseInt(query.offset as string, 10)
+                if (!isNaN(parsedOffset) && parsedOffset >= 0) {
+                    offset = parsedOffset
+                }
+            }
         } catch {
             filters = []
         }
 
-        // Prisma where clause with AND for multiple filters
-        // Note: userId is no longer needed in filters as we're using PostgreSQL schema isolation
-        const where: Record<string, unknown> = {}
-        if (Array.isArray(filters) && filters.length > 0) {
-            where.AND = [
-                ...filters
-                    .filter(f => typeof f === 'object' && f !== null && 'column' in f && 'operator' in f && 'value' in f)
-                    .filter(f => f.column === 'accountId' && f.operator === '=' && f.value === -1 ? false : true)
-                    .map(f => {
-                        const filter = f as { column: string; operator: string; value: unknown }
-                        let prismaOperator: string
-                        switch (filter.operator) {
-                            case OPERATOR_EQUAL: prismaOperator = 'equals'; break
-                            case OPERATOR_NOT_EQUAL: prismaOperator = 'not'; break
-                            case OPERATOR_GREATER_THAN: prismaOperator = 'gt'; break
-                            case OPERATOR_LESS_THAN: prismaOperator = 'lt'; break
-                            case OPERATOR_GREATER_THAN_OR_EQUAL: prismaOperator = 'gte'; break
-                            case OPERATOR_LESS_THAN_OR_EQUAL: prismaOperator = 'lte'; break
-                            case OPERATOR_IN: prismaOperator = 'in'; break
-                            default: prismaOperator = 'equals'
-                        }
-                        // Gestion spéciale pour les tags (OR logic entre plusieurs tags)
-                        if (filter.column === 'tags' && (filter.operator === OPERATOR_EQUAL || filter.operator === OPERATOR_IN)) {
-                            let tagIds: number[] = []
-                            if (typeof filter.value === 'string') {
-                                tagIds = filter.value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id) && id > 0)
-                            } else if (typeof filter.value === 'number' && filter.value > 0) {
-                                tagIds = [filter.value]
-                            }
-
-                            if (tagIds.length > 0) {
-                                return {
-                                    tags: {
-                                        some: {
-                                            tagId: {
-                                                in: tagIds
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            return undefined
-                        }
-
-                        const type = getColumnType(filter.column)
-                        let value: unknown = filter.value
-                        if (type === 'number' && !Array.isArray(filter.value)) value = Number(filter.value)
-                        if (type === 'date') {
-                            if (typeof filter.value === 'number') {
-                                value = new Date(filter.value)
-                            } else if (typeof filter.value === 'string') {
-                                value = new Date(filter.value)
-                            } else {
-                                value = filter.value
-                            }
-                            if (!isValid(value))
-                                return undefined
-                            // Si égalité, on veut tous les trades du jour (peu importe l'heure)
-                            if (prismaOperator === 'equals') {
-                                const start = startOfDay(value as Date)
-                                const nextDay = addDays(start, 1)
-                                return {
-                                    [filter.column]: {
-                                        gte: start,
-                                        lt: nextDay
-                                    }
-                                }
-                            } else if (prismaOperator === 'lt') {
-                                const start = startOfDay(value as Date)
-                                return {
-                                    [filter.column]: {
-                                        lt: start,
-                                    }
-                                }
-                            } else if (prismaOperator === 'gt') {
-                                const start = endOfDay(value as Date)
-                                return {
-                                    [filter.column]: {
-                                        gt: start,
-                                    }
-                                }
-                            } else if (prismaOperator === 'lte') {
-                                const start = endOfDay(value as Date)
-                                return {
-                                    [filter.column]: {
-                                        lte: start,
-                                    }
-                                }
-                            } else if (prismaOperator === 'gte') {
-                                const start = startOfDay(value as Date)
-
-                                return {
-                                    [filter.column]: {
-                                        gte: start,
-                                    }
-                                }
-                            }
-                        }
-
-                        // Gestion spéciale pour l'opérateur 'in' avec les tableaux
-                        if (prismaOperator === 'in' && Array.isArray(filter.value)) {
-                            const arr = type === 'number'
-                                ? filter.value.map((v: unknown) => Number(v))
-                                : filter.value
-                            return {
-                                [filter.column]: {
-                                    in: arr
-                                }
-                            }
-                        }
-
-                        return {
-                            [filter.column]: { [prismaOperator]: value }
-                        }
-                    })
-                    .filter(Boolean) // enlève les undefined (dates invalides)
-
-            ]
-        }
-
-        if (!showInactive)
-            where.active = true
+        const where = buildTradeWhere(filters, showInactive)
 
         if (isCount) {
             const result = await prisma.trade.count({ where })
@@ -173,7 +48,7 @@ export default defineEventHandler(async (event) => {
         // Récupérer les trades avec leurs associations de tags
         const queryOptions: Prisma.TradeFindManyArgs = {
             where,
-            orderBy: { openDate: 'desc' },
+            orderBy: [{ openDate: 'desc' }, { id: 'desc' }],
             include: {
                 tags: {
                     include: {
@@ -188,6 +63,9 @@ export default defineEventHandler(async (event) => {
         // N'appliquer take que si limit >= 0
         if (limit >= 0) {
             queryOptions.take = limit
+        }
+        if (offset > 0) {
+            queryOptions.skip = offset
         }
 
         const trades = await prisma.trade.findMany(queryOptions)

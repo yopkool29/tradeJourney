@@ -1,6 +1,7 @@
+import auth from './auth'
 import { createAppError } from './errors'
 import { getPrisma } from './db'
-import type { DataPrismaClient } from '~/generated/prisma-data'
+import type { PrismaClient as DataPrismaClient } from '~/generated/prisma-data'
 import type { ZodType } from 'zod'
 import type { H3Event } from 'h3'
 

@@ -94,6 +94,27 @@ npm run dev
 - Advanced trade filtering by tags
 - Daily / Trade tags for market context and journaling
 
+### Local MCP server
+
+The read-only MCP server lets compatible assistants query PnlTracker through its HTTP API. PnlTracker and PostgreSQL must already be running.
+
+Set these values in `.env`:
+
+```bash
+PNLTRACKER_API_URL=http://127.0.0.1:3003
+PNLTRACKER_MCP_TOKEN=your-user-api-token
+```
+
+The token must match the PnlTracker user's API token. For the initial administrator, it matches `ADMIN_API_TOKEN`. Start the server manually with `pnpm mcp`, or use the project configuration in `.devin/mcp_config.json` from a compatible MCP client.
+
+The MCP exposes databases, accounts, tags, global daily notes, active closed trades and aggregated performance. Trade details include allowlisted risk/reward, option metadata and detailed notes. It cannot modify data and does not expose screenshots, arbitrary metadata or open positions.
+
+Example questions:
+
+- What is my net P&L this month?
+- Which symbols have the lowest profit factor?
+- Break down my performance by weekday.
+
 ## 🤝 Contributing
 
 1. Fork the project
