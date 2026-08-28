@@ -78,5 +78,9 @@ export const TimeseriesInputSchema = AnalyticsInputSchema.extend({
 	interval: TimeseriesIntervalSchema,
 }).strict()
 
+export const GetNoteImageInputSchema = DatabaseInputSchema.extend({
+	image_path: z.string().min(1).max(500).regex(/^screenshots\/[a-zA-Z0-9_\-]+\.(png|jpg|jpeg|gif|webp|svg)$/i),
+}).strict()
+
 export type PnlMode = z.output<typeof PnlModeSchema>
 export type TradeFilters = z.output<typeof TradeFiltersSchema>

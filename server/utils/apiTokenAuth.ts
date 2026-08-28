@@ -29,6 +29,7 @@ const apiTokenReadPaths = new Set([
 	'/api/analytics/summary',
 	'/api/analytics/breakdown',
 	'/api/analytics/pnl_timeseries',
+	'/api/image',
 ])
 
 export const isApiTokenReadPath = (pathname: string): boolean => {

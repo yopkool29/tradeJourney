@@ -8,6 +8,7 @@ import {
 	AnalyticsSummaryResponseSchema,
 	BreakdownInputSchema,
 	DatabaseInputSchema,
+	GetNoteImageInputSchema,
 	GetTradeInputSchema,
 	ListDailyNotesInputSchema,
 	NoteMetadataSchema,
@@ -304,4 +305,26 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 		})
 		return PnlTimeseriesResponseSchema.parse(response)
 	}))
+
+	server.registerTool('get_note_image', {
+		description: 'Fetch a screenshot image attached to a PnlTracker note. Returns the image as base64 with its MIME type. The image_path must match the path found in note content (e.g. screenshots/nt_12_xxx.png).',
+		inputSchema: GetNoteImageInputSchema,
+		annotations: toolAnnotations,
+	}, async ({ database_id, image_path }) => {
+		try {
+			const { buffer, mimeType } = await api.getBinary('/api/image', {
+				databaseId: database_id,
+				query: { path: image_path },
+			})
+			return {
+				content: [{
+					type: 'image' as const,
+					data: buffer.toString('base64'),
+					mimeType,
+				}],
+			}
+		} catch (error) {
+			return createToolError(error)
+		}
+	})
 }
