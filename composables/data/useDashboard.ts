@@ -1,45 +1,7 @@
 import type { AccountType } from '~/schema/account'
 import type { TradeFilter } from '~/type'
 import { transformAdvancedFilters } from '~/utils/filter-utils'
-import {
-    getPNL,
-    getAPPT,
-    getWinrate,
-    getProfitFactor,
-    getRecoveryFactor,
-    getSharpeRatio,
-    getAvgTradeDuration,
-    getWinningTradesMetrics,
-    getLosingTradesMetrics,
-    getBreakevenTradesMetrics,
-    getMaxRunUpWithDates,
-    getMaxDrawdownWithDates,
-    getPLRatio,
-    getMaxWinningStreak,
-    getMaxLosingStreak,
-    getTotalContracts,
-    getMaxTradeDuration,
-    getExpectancy,
-    getSortinoRatio,
-    getCalmarRatio,
-    getSQN,
-    getUlcerIndex,
-    sortTradesByCloseDate
-} from '~/utils/tradeStats'
-import {
-    getTotalRMultiple,
-    getAPPTInR,
-    getProfitFactorInR,
-    getPLRatioInR,
-    getAvgWinLossInR,
-    getLargestWinLossInR,
-    getTotalProfitLossInR,
-    getRMultiples,
-    getRMultipleCoverage,
-    getRMultipleReliability,
-    countTradesWithStopLoss
-} from '~/utils/rMultiple'
-import type { RMultipleTrade } from '~/utils/rMultiple'
+import { calculateTradePerformance } from '~/utils/tradePerformance'
 import {
     getDailyPnlArray,
     getTotalTradingDays,
@@ -127,72 +89,68 @@ export const useDashboard = () => {
         // Stocker dans le store non-persistant (memoire uniquement)
         dataStore.lastTrades = trades
 
+        const performance = calculateTradePerformance(trades, { useNet, round: 2, pnlRound: 0 })
+
         // Métriques existantes - utiliser useNet pour basculer entre net et brut
-        dataStore.dashboardResult.pnl = getPNL(trades, 0, useNet)
-        dataStore.dashboardResult.appt = getAPPT(trades, true, 2, useNet)
-        dataStore.dashboardResult.plRatio = getPLRatio(trades, 2, useNet)
-        dataStore.dashboardResult.winrate = getWinrate(trades, 2, useNet)
-        dataStore.dashboardResult.profitFactor = getProfitFactor(trades, 2, useNet)
-        const sortedByClose = sortTradesByCloseDate(trades)
-        dataStore.dashboardResult.recoveryFactor = getRecoveryFactor(sortedByClose, 2, useNet)
-        dataStore.dashboardResult.sharpeRatio = getSharpeRatio(trades, 0, 2, useNet)
-        dataStore.dashboardResult.sortinoRatio = getSortinoRatio(trades, 0, 2, useNet)
-        dataStore.dashboardResult.calmarRatio = getCalmarRatio(sortedByClose, 2, useNet)
-        dataStore.dashboardResult.ulcerIndex = getUlcerIndex(sortedByClose, 2, useNet)
-        dataStore.dashboardResult.tradesCount = trades.length
+        dataStore.dashboardResult.pnl = performance.pnl
+        dataStore.dashboardResult.appt = performance.appt
+        dataStore.dashboardResult.plRatio = performance.plRatio
+        dataStore.dashboardResult.winrate = performance.winrate
+        dataStore.dashboardResult.profitFactor = performance.profitFactor
+        dataStore.dashboardResult.recoveryFactor = performance.recoveryFactor
+        dataStore.dashboardResult.sharpeRatio = performance.sharpeRatio
+        dataStore.dashboardResult.sortinoRatio = performance.sortinoRatio
+        dataStore.dashboardResult.calmarRatio = performance.calmarRatio
+        dataStore.dashboardResult.ulcerIndex = performance.ulcerIndex
+        dataStore.dashboardResult.tradesCount = performance.tradesCount
 
         // ALL TRADES - Nouvelles métriques
-        dataStore.dashboardResult.grossPnl = getPNL(trades, 2, useNet)
-        dataStore.dashboardResult.totalContracts = getTotalContracts(trades)
-        dataStore.dashboardResult.avgTradeDuration = getAvgTradeDuration(trades, 2)
-        dataStore.dashboardResult.maxTradeDuration = getMaxTradeDuration(trades, 2)
-        dataStore.dashboardResult.expectancy = getExpectancy(trades, 2, useNet)
-        dataStore.dashboardResult.totalCommission = trades.reduce((sum, t) => sum + (t.commission || 0), 0)
+        dataStore.dashboardResult.grossPnl = performance.grossPnl
+        dataStore.dashboardResult.totalContracts = performance.totalContracts
+        dataStore.dashboardResult.avgTradeDuration = performance.avgTradeDuration
+        dataStore.dashboardResult.maxTradeDuration = performance.maxTradeDuration
+        dataStore.dashboardResult.expectancy = performance.expectancy
+        dataStore.dashboardResult.totalCommission = performance.totalCommission
 
         // PROFIT TRADES
-        const winMetrics = getWinningTradesMetrics(trades, useNet)
-        dataStore.dashboardResult.totalProfit = winMetrics.totalProfit
-        dataStore.dashboardResult.winningTradesCount = winMetrics.count
-        dataStore.dashboardResult.winningContractsCount = winMetrics.totalContracts
-        dataStore.dashboardResult.largestWin = winMetrics.largest
-        dataStore.dashboardResult.avgWin = winMetrics.average
-        dataStore.dashboardResult.stdDevWin = winMetrics.stdDev
-        dataStore.dashboardResult.avgWinDuration = winMetrics.avgDuration
-        dataStore.dashboardResult.maxWinDuration = winMetrics.maxDuration
-        dataStore.dashboardResult.winningTradesCommission = winMetrics.totalCommission
+        dataStore.dashboardResult.totalProfit = performance.winning.totalProfit
+        dataStore.dashboardResult.winningTradesCount = performance.winning.count
+        dataStore.dashboardResult.winningContractsCount = performance.winning.totalContracts
+        dataStore.dashboardResult.largestWin = performance.winning.largest
+        dataStore.dashboardResult.avgWin = performance.winning.average
+        dataStore.dashboardResult.stdDevWin = performance.winning.stdDev
+        dataStore.dashboardResult.avgWinDuration = performance.winning.avgDuration
+        dataStore.dashboardResult.maxWinDuration = performance.winning.maxDuration
+        dataStore.dashboardResult.winningTradesCommission = performance.winning.totalCommission
 
         // Max Run-up avec dates
-        const runUpData = getMaxRunUpWithDates(sortedByClose, useNet)
-        dataStore.dashboardResult.maxRunUp = runUpData.maxRunUp
-        dataStore.dashboardResult.maxRunUpDateFrom = runUpData.dateFrom
-        dataStore.dashboardResult.maxRunUpDateTo = runUpData.dateTo
+        dataStore.dashboardResult.maxRunUp = performance.runUp.maxRunUp
+        dataStore.dashboardResult.maxRunUpDateFrom = performance.runUp.dateFrom
+        dataStore.dashboardResult.maxRunUpDateTo = performance.runUp.dateTo
 
         // LOSING TRADES
-        const lossMetrics = getLosingTradesMetrics(trades, useNet)
-        dataStore.dashboardResult.totalLoss = lossMetrics.totalLoss
-        dataStore.dashboardResult.losingTradesCount = lossMetrics.count
-        dataStore.dashboardResult.losingContractsCount = lossMetrics.totalContracts
-        dataStore.dashboardResult.largestLoss = lossMetrics.largest
-        dataStore.dashboardResult.avgLoss = lossMetrics.average
-        dataStore.dashboardResult.stdDevLoss = lossMetrics.stdDev
-        dataStore.dashboardResult.avgLossDuration = lossMetrics.avgDuration
-        dataStore.dashboardResult.maxLossDuration = lossMetrics.maxDuration
-        dataStore.dashboardResult.losingTradesCommission = lossMetrics.totalCommission
+        dataStore.dashboardResult.totalLoss = performance.losing.totalLoss
+        dataStore.dashboardResult.losingTradesCount = performance.losing.count
+        dataStore.dashboardResult.losingContractsCount = performance.losing.totalContracts
+        dataStore.dashboardResult.largestLoss = performance.losing.largest
+        dataStore.dashboardResult.avgLoss = performance.losing.average
+        dataStore.dashboardResult.stdDevLoss = performance.losing.stdDev
+        dataStore.dashboardResult.avgLossDuration = performance.losing.avgDuration
+        dataStore.dashboardResult.maxLossDuration = performance.losing.maxDuration
+        dataStore.dashboardResult.losingTradesCommission = performance.losing.totalCommission
 
         // Max Drawdown avec dates
-        const drawdownData = getMaxDrawdownWithDates(sortedByClose, useNet)
-        dataStore.dashboardResult.maxDrawdown = drawdownData.maxDrawdown
-        dataStore.dashboardResult.maxDrawdownDateFrom = drawdownData.dateFrom
-        dataStore.dashboardResult.maxDrawdownDateTo = drawdownData.dateTo
+        dataStore.dashboardResult.maxDrawdown = performance.drawdown.maxDrawdown
+        dataStore.dashboardResult.maxDrawdownDateFrom = performance.drawdown.dateFrom
+        dataStore.dashboardResult.maxDrawdownDateTo = performance.drawdown.dateTo
 
         // BREAKEVEN TRADES
-        const breakevenMetrics = getBreakevenTradesMetrics(trades)
-        dataStore.dashboardResult.breakevenTradesCount = breakevenMetrics.count
-        dataStore.dashboardResult.breakevenContractsCount = breakevenMetrics.totalContracts
+        dataStore.dashboardResult.breakevenTradesCount = performance.breakeven.count
+        dataStore.dashboardResult.breakevenContractsCount = performance.breakeven.totalContracts
 
         // STREAKS (trades triés par closeDate pour un calcul correct)
-        dataStore.dashboardResult.maxWinningStreak = getMaxWinningStreak(sortedByClose, useNet)
-        dataStore.dashboardResult.maxLosingStreak = getMaxLosingStreak(sortedByClose, useNet)
+        dataStore.dashboardResult.maxWinningStreak = performance.maxWinningStreak
+        dataStore.dashboardResult.maxLosingStreak = performance.maxLosingStreak
 
         // DAILY METRICS
         const dailyPnls = getDailyPnlArray(trades, useNet, userStore.settingsObject)
@@ -227,46 +185,22 @@ export const useDashboard = () => {
         // R-MULTIPLE METRICS
         // Le R-multiple est calculé depuis le stopLoss (ratio de prix) ou par hypothèse (perte = SL touché)
         // Pas besoin de plannedRisk manuel — voir docs/dev/rr-design.md
-        const rTrades = trades as unknown as RMultipleTrade[]
-        const reliability = getRMultipleReliability(rTrades)
-        const coverage = getRMultipleCoverage(rTrades)
-        const withSlCount = countTradesWithStopLoss(rTrades)
-        dataStore.dashboardResult.rMultipleCoverage = Math.round(coverage * 100)
-        dataStore.dashboardResult.rMultipleReliability = reliability
-        dataStore.dashboardResult.tradesWithStopLoss = withSlCount
-
-        const rMultiples = getRMultiples(rTrades, useNet)
-        if (rMultiples.length === 0 || reliability === 'none') {
-            dataStore.dashboardResult.totalR = null
-            dataStore.dashboardResult.apptR = null
-            dataStore.dashboardResult.profitFactorR = null
-            dataStore.dashboardResult.plRatioR = null
-            dataStore.dashboardResult.avgWinR = null
-            dataStore.dashboardResult.avgLossR = null
-            dataStore.dashboardResult.largestWinR = null
-            dataStore.dashboardResult.largestLossR = null
-            dataStore.dashboardResult.totalProfitR = null
-            dataStore.dashboardResult.totalLossR = null
-            dataStore.dashboardResult.tradesWithRMultiple = 0
-            dataStore.dashboardResult.sqn = 0
-        } else {
-            dataStore.dashboardResult.totalR = getTotalRMultiple(rTrades, 2, useNet)
-            dataStore.dashboardResult.apptR = getAPPTInR(rTrades, 2, useNet)
-            dataStore.dashboardResult.profitFactorR = getProfitFactorInR(rTrades, 2, useNet)
-            dataStore.dashboardResult.plRatioR = getPLRatioInR(rTrades, 2, useNet)
-            const avgWinLossR = getAvgWinLossInR(rTrades, 2, useNet)
-            dataStore.dashboardResult.avgWinR = avgWinLossR.avgWin
-            dataStore.dashboardResult.avgLossR = avgWinLossR.avgLoss
-            const largestWinLossR = getLargestWinLossInR(rTrades, 2, useNet)
-            dataStore.dashboardResult.largestWinR = largestWinLossR.largestWin
-            dataStore.dashboardResult.largestLossR = largestWinLossR.largestLoss
-            const totalProfitLossR = getTotalProfitLossInR(rTrades, 2, useNet)
-            dataStore.dashboardResult.totalProfitR = totalProfitLossR.totalProfit
-            dataStore.dashboardResult.totalLossR = totalProfitLossR.totalLoss
-            dataStore.dashboardResult.tradesWithRMultiple = rMultiples.length
-            // SQN nécessite les R-multiples (Van Tharp)
-            dataStore.dashboardResult.sqn = getSQN(rMultiples, 2)
-        }
+        dataStore.dashboardResult.rMultipleCoverage = Math.round(performance.r.coverage * 100)
+        dataStore.dashboardResult.rMultipleReliability = performance.r.reliability
+        dataStore.dashboardResult.tradesWithStopLoss = performance.r.tradesWithStopLoss
+        dataStore.dashboardResult.totalR = performance.r.totalR
+        dataStore.dashboardResult.apptR = performance.r.apptR
+        dataStore.dashboardResult.profitFactorR = performance.r.profitFactorR
+        dataStore.dashboardResult.plRatioR = performance.r.plRatioR
+        dataStore.dashboardResult.avgWinR = performance.r.avgWinR
+        dataStore.dashboardResult.avgLossR = performance.r.avgLossR
+        dataStore.dashboardResult.largestWinR = performance.r.largestWinR
+        dataStore.dashboardResult.largestLossR = performance.r.largestLossR
+        dataStore.dashboardResult.totalProfitR = performance.r.totalProfitR
+        dataStore.dashboardResult.totalLossR = performance.r.totalLossR
+        dataStore.dashboardResult.tradesWithRMultiple = performance.r.tradesWithRMultiple
+        // SQN nécessite les R-multiples (Van Tharp)
+        dataStore.dashboardResult.sqn = performance.r.sqn
 
         return trades
     }

@@ -8,41 +8,7 @@ import {
 } from '~/composables/analytics/useBreakdownGrouping'
 import type { GroupFn } from '~/composables/analytics/useBreakdownGrouping'
 import type { TimezoneSettings } from '~/composables/analytics/useAnalytics'
-import { KnownTradeMetadataSchema } from '~/schema/tradeMetadata'
-import {
-	getAPPT,
-	getAvgTradeDuration,
-	getCalmarRatio,
-	getExpectancy,
-	getLosingTradesMetrics,
-	getMaxDrawdownWithDates,
-	getMaxLosingStreak,
-	getMaxRunUpWithDates,
-	getMaxTradeDuration,
-	getMaxWinningStreak,
-	getPLRatio,
-	getPNL,
-	getProfitFactor,
-	getRecoveryFactor,
-	getSharpeRatio,
-	getSortinoRatio,
-	getSQN,
-	getTotalContracts,
-	getUlcerIndex,
-	getWinningTradesMetrics,
-	getWinrate,
-	sortTradesByCloseDate,
-} from '~/utils/tradeStats'
-import {
-	getAPPTInR,
-	getPLRatioInR,
-	getProfitFactorInR,
-	getRMultipleCoverage,
-	getRMultipleReliability,
-	getRMultiples,
-	getTotalRMultiple,
-	type RMultipleTrade,
-} from '~/utils/rMultiple'
+import { calculateTradePerformance, type TradePerformance } from '~/utils/tradePerformance'
 import type {
 	AnalyticsBreakdown,
 	AnalyticsBreakdownGroup,
@@ -64,89 +30,65 @@ const utcTimezoneSettings: TimezoneSettings = {
 	timezoneUtcOffset: 0,
 }
 
-const getRMultipleMetadata = (metadata: unknown): Record<string, unknown> | null => {
-	let parsedMetadata = metadata
-	if (typeof metadata === 'string') {
-		try {
-			parsedMetadata = JSON.parse(metadata) as unknown
-		} catch {
-			return null
-		}
-	}
-	const parsed = KnownTradeMetadataSchema.safeParse(parsedMetadata)
-	return parsed.success ? parsed.data : null
-}
+const toAnalyticsMetrics = (performance: TradePerformance): AnalyticsMetrics => ({
+	pnl: safeNumber(performance.pnl),
+	trades_count: performance.tradesCount,
+	winning_trades_count: performance.winning.count,
+	losing_trades_count: performance.losing.count,
+	breakeven_trades_count: performance.breakeven.count,
+	win_rate: safeNumber(performance.winrate),
+	average_trade: safeNumber(performance.appt),
+	average_win: safeNumber(performance.winning.average),
+	average_loss: safeNumber(performance.losing.average),
+	profit_factor: safeRatio(performance.profitFactor),
+	profit_loss_ratio: safeRatio(performance.plRatio),
+	recovery_factor: safeRatio(performance.recoveryFactor),
+	sharpe_ratio: safeRatio(performance.sharpeRatio),
+	sortino_ratio: safeRatio(performance.sortinoRatio),
+	calmar_ratio: safeRatio(performance.calmarRatio),
+	ulcer_index: safeNumber(performance.ulcerIndex),
+	expectancy: safeNumber(performance.expectancy),
+	max_drawdown: safeNumber(performance.drawdown.maxDrawdown),
+	max_run_up: safeNumber(performance.runUp.maxRunUp),
+	average_duration_minutes: safeNumber(performance.avgTradeDuration),
+	max_duration_minutes: safeNumber(performance.maxTradeDuration),
+	total_contracts: safeNumber(performance.totalContracts),
+	total_commission: safeNumber(performance.totalCommission),
+	max_winning_streak: performance.maxWinningStreak,
+	max_losing_streak: performance.maxLosingStreak,
+})
 
-const toRMultipleTrades = (trades: AnalyticsTrade[]): RMultipleTrade[] => trades.map(trade => ({
-	profit: trade.profit,
-	netProfit: trade.netProfit,
-	openPrice: trade.openPrice,
-	closePrice: trade.closePrice,
-	stopLoss: trade.stopLoss || 0,
-	type: trade.type,
-	metadata: getRMultipleMetadata(trade.metadata),
-}))
+const getPerformance = (trades: AnalyticsTrade[], mode: AnalyticsMode) => calculateTradePerformance(trades, {
+	useNet: useNetForMode(mode),
+	round: -1,
+	pnlRound: -1,
+})
 
 export const calculateAnalyticsMetrics = (trades: AnalyticsTrade[], mode: AnalyticsMode): AnalyticsMetrics => {
-	const useNet = useNetForMode(mode)
-	const sortedTrades = sortTradesByCloseDate(trades)
-	const winning = getWinningTradesMetrics(sortedTrades, useNet)
-	const losing = getLosingTradesMetrics(sortedTrades, useNet)
-	return {
-		pnl: safeNumber(getPNL(sortedTrades, -1, useNet)),
-		trades_count: sortedTrades.length,
-		winning_trades_count: winning.count,
-		losing_trades_count: losing.count,
-		breakeven_trades_count: sortedTrades.length - winning.count - losing.count,
-		win_rate: safeNumber(getWinrate(sortedTrades, -1, useNet)),
-		average_trade: safeNumber(getAPPT(sortedTrades, true, -1, useNet)),
-		average_win: safeNumber(winning.average),
-		average_loss: safeNumber(losing.average),
-		profit_factor: safeRatio(getProfitFactor(sortedTrades, -1, useNet)),
-		profit_loss_ratio: safeRatio(getPLRatio(sortedTrades, -1, useNet)),
-		recovery_factor: safeRatio(getRecoveryFactor(sortedTrades, -1, useNet)),
-		sharpe_ratio: safeRatio(getSharpeRatio(sortedTrades, 0, -1, useNet)),
-		sortino_ratio: safeRatio(getSortinoRatio(sortedTrades, 0, -1, useNet)),
-		calmar_ratio: safeRatio(getCalmarRatio(sortedTrades, -1, useNet)),
-		ulcer_index: safeNumber(getUlcerIndex(sortedTrades, -1, useNet)),
-		expectancy: safeNumber(getExpectancy(sortedTrades, -1, useNet)),
-		max_drawdown: safeNumber(getMaxDrawdownWithDates(sortedTrades, useNet).maxDrawdown),
-		max_run_up: safeNumber(getMaxRunUpWithDates(sortedTrades, useNet).maxRunUp),
-		average_duration_minutes: safeNumber(getAvgTradeDuration(sortedTrades, -1)),
-		max_duration_minutes: safeNumber(getMaxTradeDuration(sortedTrades, -1)),
-		total_contracts: safeNumber(getTotalContracts(sortedTrades)),
-		total_commission: safeNumber(sortedTrades.reduce((sum, trade) => sum + (trade.commission || 0), 0)),
-		max_winning_streak: getMaxWinningStreak(sortedTrades, useNet),
-		max_losing_streak: getMaxLosingStreak(sortedTrades, useNet),
-	}
+	return toAnalyticsMetrics(getPerformance(trades, mode))
 }
 
 export const calculateAnalyticsSummary = (trades: AnalyticsTrade[], mode: AnalyticsMode): AnalyticsSummary => {
-	const sortedTrades = sortTradesByCloseDate(trades)
-	const useNet = useNetForMode(mode)
-	const drawdown = getMaxDrawdownWithDates(sortedTrades, useNet)
-	const runUp = getMaxRunUpWithDates(sortedTrades, useNet)
-	const rTrades = toRMultipleTrades(sortedTrades)
-	const rMultipleReliability = getRMultipleReliability(rTrades)
-	const rMultiples = rMultipleReliability === 'none' ? [] : getRMultiples(rTrades, useNet)
-	const hasRMultiples = rMultiples.length > 0
+	const performance = getPerformance(trades, mode)
+	const firstTrade = performance.sortedTrades[0]
+	const lastTrade = performance.sortedTrades[performance.sortedTrades.length - 1]
 	return {
 		mode,
-		...calculateAnalyticsMetrics(sortedTrades, mode),
-		first_trade_at: sortedTrades.length > 0 ? new Date(sortedTrades[0].closeDate).toISOString() : null,
-		last_trade_at: sortedTrades.length > 0 ? new Date(sortedTrades[sortedTrades.length - 1].closeDate).toISOString() : null,
-		max_drawdown_from: drawdown.dateFrom?.toISOString() || null,
-		max_drawdown_to: drawdown.dateTo?.toISOString() || null,
-		max_run_up_from: runUp.dateFrom?.toISOString() || null,
-		max_run_up_to: runUp.dateTo?.toISOString() || null,
-		r_multiple_coverage_percent: safeNumber(getRMultipleCoverage(rTrades) * 100),
-		r_multiple_reliability: rMultipleReliability,
-		trades_with_r_multiple: rMultiples.length,
-		total_r: hasRMultiples ? safeNumber(getTotalRMultiple(rTrades, -1, useNet)) : null,
-		average_r: hasRMultiples ? safeNumber(getAPPTInR(rTrades, -1, useNet)) : null,
-		profit_factor_r: hasRMultiples ? safeRatio(getProfitFactorInR(rTrades, -1, useNet)) : null,
-		profit_loss_ratio_r: hasRMultiples ? safeRatio(getPLRatioInR(rTrades, -1, useNet)) : null,
-		sqn: hasRMultiples ? safeNumber(getSQN(rMultiples, -1)) : 0,
+		...toAnalyticsMetrics(performance),
+		first_trade_at: firstTrade ? new Date(firstTrade.closeDate).toISOString() : null,
+		last_trade_at: lastTrade ? new Date(lastTrade.closeDate).toISOString() : null,
+		max_drawdown_from: performance.drawdown.dateFrom?.toISOString() || null,
+		max_drawdown_to: performance.drawdown.dateTo?.toISOString() || null,
+		max_run_up_from: performance.runUp.dateFrom?.toISOString() || null,
+		max_run_up_to: performance.runUp.dateTo?.toISOString() || null,
+		r_multiple_coverage_percent: safeNumber(performance.r.coverage * 100),
+		r_multiple_reliability: performance.r.reliability,
+		trades_with_r_multiple: performance.r.tradesWithRMultiple,
+		total_r: performance.r.totalR === null ? null : safeNumber(performance.r.totalR),
+		average_r: performance.r.apptR === null ? null : safeNumber(performance.r.apptR),
+		profit_factor_r: performance.r.profitFactorR === null ? null : safeRatio(performance.r.profitFactorR),
+		profit_loss_ratio_r: performance.r.plRatioR === null ? null : safeRatio(performance.r.plRatioR),
+		sqn: safeNumber(performance.r.sqn),
 	}
 }
 
