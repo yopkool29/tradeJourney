@@ -4,13 +4,13 @@
             <div>
                 <label class="block text-sm font-medium mb-2">Upload File</label>
                 <UIInput id="file-input" type="file" @change="handleFileUpload" />
-                <p v-if="file" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Selected: {{ file.name }}</p>
+                <p v-if="file" class="mt-2 text-sm text-muted">Selected: {{ file.name }}</p>
             </div>
 
             <div v-if="file" class="space-y-4">
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Original Content</p>
-                    <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ fileContent }}</pre>
+                    <p class="text-xs text-muted uppercase tracking-wide mb-2">Original Content</p>
+                    <pre class="bg-elevated p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ fileContent }}</pre>
                 </div>
 
                 <div class="flex gap-2">
@@ -20,8 +20,8 @@
                 </div>
 
                 <div v-if="processedContent">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Processed Content</p>
-                    <pre class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ processedContent }}</pre>
+                    <p class="text-xs text-muted uppercase tracking-wide mb-2">Processed Content</p>
+                    <pre class="bg-elevated p-3 rounded text-sm overflow-x-auto max-h-60 overflow-y-auto">{{ processedContent }}</pre>
                 </div>
             </div>
         </div>

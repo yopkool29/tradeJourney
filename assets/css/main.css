@@ -11,6 +11,10 @@
     
     /* Fond légèrement grisé en mode light */
     --ui-bg: #f2f2f2;
+    /* Fond élevé (cards, panels) = blanc comme bg-white hardcodé */
+    --ui-bg-elevated: #ffffff;
+    /* Bordure = border-gray-200 hardcodé */
+    --ui-border: #e5e7eb;
 
     /* Texte principal moins chargé en mode light */
     --ui-text-highlighted: #334155;
@@ -45,7 +49,15 @@ body {
     --ui-error: var(--ui-color-error-300);
     
     /* Fond pour le mode dark */
-    --ui-bg: #1f1f2f;
+    --ui-bg: #1f1c28;
+    /* Fond élevé (cards, panels) = bg-gray-800 hardcodé */
+    --ui-bg-elevated: #1f2937;
+    /* Fond muted (sous-barre, sidebar) = bg-gray-50/900 hardcodé */
+    --ui-bg-muted: #1a1825;
+    /* Fond accentué (hover, sélection) = bg-gray-700 hardcodé */
+    --ui-bg-accented: #2a2a3a;
+    /* Bordure = border-gray-700 hardcodé */
+    --ui-border: #2a2a3a;
 
     /* Restaurer la couleur de texte par défaut en mode dark */
     --ui-text-highlighted: var(--ui-color-neutral-100);
@@ -99,7 +111,7 @@ select {
 }
 
 .log-normal-text {
-    @apply text-gray-900 dark:text-gray-100;
+    @apply text-highlighted;
 }
 
 .log-info-text {
@@ -107,7 +119,7 @@ select {
 }
 
 .log-debug-text {
-    @apply text-gray-900 dark:text-gray-100;
+    @apply text-highlighted;
 }
 
 .log-warn-text {
@@ -122,7 +134,7 @@ select {
     appearance: textfield-multiline;
     -moz-appearance: textfield-multiline;
     -webkit-appearance: textarea;
-    @apply border-[1px] border-solid border-gray-400 dark:border-gray-600 shadow-none overflow-auto p-1 w-full h-[300px] font-normal text-sm bg-gray-100 dark:bg-gray-800;
+    @apply border-[1px] border-solid border-accented shadow-none overflow-auto p-1 w-full h-[300px] font-normal text-sm bg-elevated;
 }
 
 /* Fix pour les tooltips qui ne fonctionnent pas avec les modales */
@@ -175,36 +187,36 @@ select {
 }
 
 .header-desktop-link {
-    @apply flex flex-col items-center px-3 py-2 rounded-lg text-gray-600 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-primary-500 dark:hover:text-primary-300;
+    @apply flex flex-col items-center px-3 py-2 rounded-lg text-default transition-colors hover:bg-accented hover:text-primary-500 dark:hover:text-primary-300;
 }
 
 .header-desktop-link-active {
-    @apply bg-gray-200 text-gray-900 font-medium dark:bg-primary/10 dark:text-primary;
+    @apply bg-accented text-highlighted font-medium dark:bg-primary/10 dark:text-primary;
 }
 
 .header-desktop-link-active:hover {
-    @apply bg-gray-300 text-gray-900 dark:bg-primary/20 dark:text-primary;
+    @apply bg-accented text-highlighted dark:bg-primary/20 dark:text-primary;
 }
 
 .header-mobile-link {
-    @apply px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer;
+    @apply px-4 py-2 rounded-md hover:bg-elevated flex items-center cursor-pointer;
 }
 
 .header-mobile-link-active {
-    @apply bg-gray-200 text-gray-900 dark:bg-primary/10 dark:text-primary;
+    @apply bg-accented text-highlighted dark:bg-primary/10 dark:text-primary;
 }
 
 .header-mobile-link-active:hover {
-    @apply bg-gray-300 text-gray-900 dark:bg-primary/20;
+    @apply bg-accented text-highlighted dark:bg-primary/20;
 }
 
 /* Dashboard card styles */
 .dashboard-card {
-    @apply bg-white dark:bg-gray-800 rounded shadow flex items-center justify-center gap-2 py-2;
+    @apply bg-elevated rounded shadow flex items-center justify-center gap-2 py-2;
 }
 
 .dashboard-card-label {
-    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+    @apply text-xs font-medium text-muted;
 }
 
 .dashboard-card-value {
@@ -302,7 +314,7 @@ select {
 }
 
 .stat-label-alt {
-    @apply text-xs text-gray-400;
+    @apply text-xs text-muted;
 }
 
 .stat-value {
@@ -363,17 +375,17 @@ select {
 
 /* Form field help text */
 .field-help-text {
-    @apply mt-1 text-xs font-medium text-gray-500 dark:text-gray-400;
+    @apply mt-1 text-xs font-medium text-muted;
 }
 
 /* Screenshot container */
 .screenshot-container {
-    @apply mt-6 p-4 border rounded-md border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
+    @apply mt-6 p-4 border rounded-md border-default bg-elevated;
 }
 
 /* Section separators */
 .section-separator {
-    @apply border-b border-gray-200 dark:border-gray-700 pb-4;
+    @apply border-b border-default pb-4;
 }
 
 /* Centering utilities */
@@ -388,19 +400,19 @@ select {
 
 /* Secondary text */
 .text-secondary {
-    @apply text-gray-500 dark:text-gray-400;
+    @apply text-muted;
 }
 
 .text-secondary-sm {
-    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply text-sm text-muted;
 }
 
 .text-secondary-xs {
-    @apply text-xs text-gray-500 dark:text-gray-400;
+    @apply text-xs text-muted;
 }
 
 .description-text {
-    @apply text-sm text-gray-500 dark:text-gray-400 mt-1;
+    @apply text-sm text-muted mt-1;
 }
 
 /* Date input standard */
@@ -467,7 +479,7 @@ select {
 }
 
 .calendar-cell-neutral {
-    @apply border-gray-400 dark:border-gray-600 shadow-sm hover:shadow-md transition-all;
+    @apply border-accented shadow-sm hover:shadow-md transition-all;
     background: linear-gradient(to bottom right, rgb(249, 250, 251), rgb(229, 231, 235));
 }
 
@@ -519,7 +531,7 @@ select {
 }
 
 .calendar-day-neutral {
-    @apply border-gray-300 dark:border-gray-700 shadow-sm hover:shadow transition-all;
+    @apply border-default shadow-sm hover:shadow transition-all;
     background: linear-gradient(to bottom right, rgb(255, 255, 255), rgb(243, 244, 246));
 }
 

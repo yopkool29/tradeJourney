@@ -4,8 +4,8 @@
         <template #body>
             <div class="p-4 space-y-4">
                 <!-- Mode copier/déplacer (affiché quand une note est sélectionnée) -->
-                <div v-if="selectedNote" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{
+                <div v-if="selectedNote" class="border border-default rounded-lg p-4 bg-elevated/50">
+                    <p class="text-sm text-muted mb-3">{{
                         $t('components.trade.notePicker.assoc_mode_label') }}</p>
                     <div class="flex gap-3">
                         <UButton :label="$t('components.trade.notePicker.copy')"
@@ -17,7 +17,7 @@
                             :variant="assocMode === 'move' ? 'solid' : 'outline'" icon="i-heroicons-arrow-right-circle"
                             @click="assocMode = 'move'" />
                     </div>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                    <p class="text-xs text-dimmed mt-2">
                         {{ assocMode === 'copy' ? $t('components.trade.notePicker.copy_hint') :
                             $t('components.trade.notePicker.move_hint') }}
                     </p>
@@ -33,11 +33,11 @@
 
                 <!-- Loading -->
                 <div v-if="loading" class="flex justify-center py-8">
-                    <UIcon name="i-heroicons-arrow-path" class="animate-spin text-gray-400 text-2xl" />
+                    <UIcon name="i-heroicons-arrow-path" class="animate-spin text-muted text-2xl" />
                 </div>
 
                 <!-- Empty -->
-                <div v-else-if="filteredNotes.length === 0" class="py-8 text-center text-gray-400 text-sm">
+                <div v-else-if="filteredNotes.length === 0" class="py-8 text-center text-muted text-sm">
                     {{ $t('components.trade.notePicker.empty') }}
                 </div>
 
@@ -46,19 +46,19 @@
                     <div v-for="note in filteredNotes" :key="note.id"
                         class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors" :class="selectedNote?.id === note.id
                             ? 'border-primary bg-primary/10'
-                            : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                            : 'border-default hover:bg-elevated'"
                         @click="selectedNote = note">
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-row gap-x-4 items-baseline">
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 shrink-0">
+                                <span class="text-xs font-semibold text-muted shrink-0">
                                     {{ formatDateString(note.date, true, locale as 'fr' | 'en' | 'us') }}
                                 </span>
                                 <div v-if="getNoteSubtitle(note)"
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                                    class="text-sm font-medium text-default truncate">
                                     {{ getNoteSubtitle(note) }}
                                 </div>
                             </div>
-                            <div class="text-xs text-gray-400 line-clamp-2 mt-0.5">
+                            <div class="text-xs text-muted line-clamp-2 mt-0.5">
                                 {{ getPreview(note) }}
                             </div>
                         </div>
@@ -68,7 +68,7 @@
                 </div>
 
                 <!-- Aperçu Milkdown de la note sélectionnée -->
-                <div v-if="selectedNote" class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div v-if="selectedNote" class="border-t border-default pt-4">
                     <CommonNoteEditor :model-value="selectedNote.content || ''" :readonly="true"
                         :hide-fullscreen="true" />
                 </div>

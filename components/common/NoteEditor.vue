@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col rounded-lg overflow-hidden relative" :class="{ 'border border-gray-200 dark:border-gray-700': !readonly, 'opacity-50': isFullscreen, 'h-full': fillHeight }">
+    <div class="flex flex-col rounded-lg overflow-hidden relative" :class="{ 'border border-default': !readonly, 'opacity-50': isFullscreen, 'h-full': fillHeight }">
         <!-- Delete icon in top-right corner for readonly mode -->
         <div v-if="readonly && props.showDeleteIcon" class="absolute top-2 right-2 z-10">
             <CommonModalDelete
@@ -33,8 +33,8 @@
                 @click.stop />
         </div>
         
-        <div v-if="!readonly" class="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <div v-if="!readonly" class="flex items-center justify-between px-3 py-1.5 border-b border-default bg-default">
+            <span class="text-sm font-medium text-muted">
                 {{ $t('components.trade.noteEditor.label') }}
             </span>
             <div class="flex gap-1">
@@ -65,7 +65,7 @@
             :class="[readonly ? 'overflow-hidden' : 'overflow-auto', { 'is-readonly': readonly }]"
             :style="editorStyle"
         >
-            <div v-if="editorLoading" class="flex items-center justify-center h-full text-gray-400 text-sm">
+            <div v-if="editorLoading" class="flex items-center justify-center h-full text-muted text-sm">
                 {{ $t('common.loading') }}
             </div>
         </div>
@@ -106,10 +106,10 @@
     <!-- <Teleport to="body">
         <div
             v-if="isFullscreen"
-            class="fixed inset-0 z-[200] bg-white dark:bg-gray-900 flex flex-col"
+            class="fixed inset-0 z-[200] bg-elevated flex flex-col"
         >
-            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span class="font-semibold text-gray-700 dark:text-gray-200">{{ $t('components.trade.noteEditor.label') }}</span>
+            <div class="flex items-center justify-between px-4 py-2 border-b border-default">
+                <span class="font-semibold text-default">{{ $t('components.trade.noteEditor.label') }}</span>
                 <UButton
                     icon="i-heroicons-arrows-pointing-in"
                     color="neutral"

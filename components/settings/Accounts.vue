@@ -81,7 +81,7 @@
                         <span v-if="getStartingCapital(row.original)">
                             {{ formatCurrency(getStartingCapital(row.original)) }}
                         </span>
-                        <span v-else class="text-gray-400">-</span>
+                        <span v-else class="text-muted">-</span>
                     </template>
                     <template #actions-cell="{ row }">
                         <div class="flex gap-2 items-center">

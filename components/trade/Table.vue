@@ -40,7 +40,7 @@
             <div v-if="paginatedTrades.length" class="form-row">
                 <USelect v-model="dbStateStore.tradeOptions.nbLines"
                     :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
-                <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
+                <span class="text-sm text-muted whitespace-nowrap">lignes</span>
             </div>
         </div>
         <div class="w-full">
@@ -160,7 +160,7 @@
             <div v-if="paginatedTrades.length" class="form-row">
                 <USelect v-model="dbStateStore.tradeOptions.nbLines"
                     :items="[10, 15, 20, 30, 40, 50].map((n) => ({ value: n, label: n.toString() }))" class="w-20" />
-                <span class="text-sm text-gray-500 whitespace-nowrap">lignes</span>
+                <span class="text-sm text-muted whitespace-nowrap">lignes</span>
             </div>
         </div>
     </div>
@@ -280,7 +280,7 @@ const columns = [
                                 ? t('components.common.columns.screenshots.multiple', { count: allScreenshots.length })
                                 : t('components.common.columns.screenshots.single'),
                         class: [
-                            'text-gray-500 dark:text-gray-400',
+                            'text-muted',
                             'hover:text-primary',
                             'transition-colors duration-200',
                             'p-0',

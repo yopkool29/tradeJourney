@@ -10,31 +10,31 @@
 
 		<template v-else>
 			<div class="grid grid-cols-2 gap-3">
-				<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+				<div class="rounded-lg border border-default bg-elevated p-3">
 					<div class="text-center">
-						<p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trades</p>
+						<p class="text-xs text-muted uppercase tracking-wide">Trades</p>
 						<p class="text-2xl font-bold mt-1">{{ stats.total }}</p>
 					</div>
 				</div>
-				<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+				<div class="rounded-lg border border-default bg-elevated p-3">
 					<div class="text-center">
-						<p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Win Rate</p>
+						<p class="text-xs text-muted uppercase tracking-wide">Win Rate</p>
 						<p class="text-2xl font-bold mt-1" :class="stats.winRate >= 50 ? 'text-green-500' : 'text-red-500'">
 							{{ stats.winRate }}%
 						</p>
 					</div>
 				</div>
-				<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+				<div class="rounded-lg border border-default bg-elevated p-3">
 					<div class="text-center">
-						<p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Profit net</p>
+						<p class="text-xs text-muted uppercase tracking-wide">Profit net</p>
 						<p class="text-2xl font-bold mt-1" :class="stats.netProfit >= 0 ? 'text-green-500' : 'text-red-500'">
 							{{ stats.netProfit >= 0 ? '+' : '' }}{{ stats.netProfit.toFixed(2) }}
 						</p>
 					</div>
 				</div>
-				<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+				<div class="rounded-lg border border-default bg-elevated p-3">
 					<div class="text-center">
-						<p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Profit Factor</p>
+						<p class="text-xs text-muted uppercase tracking-wide">Profit Factor</p>
 						<p class="text-2xl font-bold mt-1" :class="stats.profitFactor >= 1 ? 'text-green-500' : 'text-red-500'">
 							{{ stats.profitFactor.toFixed(2) }}
 						</p>
@@ -42,10 +42,10 @@
 				</div>
 			</div>
 
-			<hr class="border-gray-200 dark:border-gray-700" />
+			<hr class="border-default" />
 
 			<div>
-				<p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Derniers trades</p>
+				<p class="text-xs text-muted uppercase tracking-wide mb-2">Derniers trades</p>
 				<div class="space-y-1">
 					<div v-for="trade in recentTrades" :key="trade.id"
 						class="flex items-center justify-between text-sm py-1 px-2 rounded"

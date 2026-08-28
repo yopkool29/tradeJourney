@@ -18,7 +18,7 @@
 		<div>
 			<label class="block text-sm font-medium mb-2">Symbol</label>
 			<UIInput v-model="settings.symbol" size="sm" />
-			<p class="text-xs text-gray-500 mt-1">Futures symbol (e.g. MYM, YM, ES, NQ)</p>
+			<p class="text-xs text-muted mt-1">Futures symbol (e.g. MYM, YM, ES, NQ)</p>
 		</div>
 
 		<div>
@@ -27,7 +27,7 @@
 					id="enable-stop-loss"
 					v-model="settings.enableStopLoss"
 					type="checkbox"
-					class="rounded border-gray-300"
+					class="rounded border-accented"
 				/>
 				<label for="enable-stop-loss" class="text-sm font-medium">Enable Stop Loss</label>
 			</div>
@@ -56,12 +56,12 @@
 						id="auto-estimate"
 						v-model="settings.autoEstimate"
 						type="checkbox"
-						class="rounded border-gray-300"
+						class="rounded border-accented"
 					/>
 					<label for="auto-estimate" class="text-xs font-medium">Auto-estimate at conversion</label>
-					<p class="text-xs text-gray-500">(ignores the field above, uses losing trades average)</p>
+					<p class="text-xs text-muted">(ignores the field above, uses losing trades average)</p>
 				</div>
-				<p class="text-xs text-gray-500 mt-1">
+				<p class="text-xs text-muted mt-1">
 					Number of points for stop loss from entry price (e.g. 100 for MYM).
 					Click "Auto-estimate" to calculate from losing trades in the selected file.
 				</p>
@@ -71,13 +71,13 @@
 		<div>
 			<label class="block text-sm font-medium mb-2">Commission %</label>
 			<UIInput v-model="settings.commissionPercent" type="number" size="sm" />
-			<p class="text-xs text-gray-500 mt-1">Percentage applied on net profit to approximate commissions</p>
+			<p class="text-xs text-muted mt-1">Percentage applied on net profit to approximate commissions</p>
 		</div>
 
 		<div>
 			<label class="block text-sm font-medium mb-2">Select File</label>
 			<UIInput type="file" @change="handleFileSelect" />
-			<p v-if="selectedFile" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+			<p v-if="selectedFile" class="mt-2 text-sm text-muted">
 				Selected: {{ selectedFile.name }} ({{ formatFileSize(selectedFile.size) }})
 			</p>
 		</div>

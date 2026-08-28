@@ -7,7 +7,7 @@
             </UButton>
         </div>
 
-        <div v-if="profiles.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div v-if="profiles.length === 0" class="text-center py-12 text-muted">
             <UIcon name="i-lucide-inbox" class="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p class="text-lg font-medium mb-2">{{ $t('components.import.profiles.empty_title') }}</p>
             <p class="text-sm">{{ $t('components.import.profiles.empty_desc') }}</p>
@@ -33,7 +33,7 @@
                 <div class="space-y-2 text-sm text-secondary cursor-pointer" @click="emit('use', profile)">
                     <div class="flex justify-between">
                         <span>{{ $t('components.import.profiles.timezone') }}:</span>
-                        <span class="font-medium text-gray-900 dark:text-white">
+                        <span class="font-medium text-highlighted">
                             {{ profile.importMode === 'utc' ? `UTC${Number(profile.timezone) >= 0 ? '+' : ''}${profile.timezone}` : profile.timezone }}
                         </span>
                     </div>

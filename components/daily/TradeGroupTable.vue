@@ -182,10 +182,10 @@
                 </div>
             </template>
             <template #expanded="{ row }">
-                <div class="flex gap-4 p-4 dark:border-gray-700">
+                <div class="flex gap-4 p-4 border-default">
                     <!-- Actions - aligné avec Symbole -->
                     <div class="flex gap-2 items-center" style="margin-left: 80px;">
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white mr-2" :class="{ 'opacity-50': !row.original.active }">→</span>
+                        <span class="text-sm font-semibold text-highlighted mr-2" :class="{ 'opacity-50': !row.original.active }">→</span>
                         <UButton v-if="row.original.note || row.original.tags?.length > 0 || row.original.screenshots?.length > 0"
                             icon="i-heroicons-trash" color="error" variant="ghost" size="xs"
                             :disabled="row.original.active === false"
@@ -209,7 +209,7 @@
 
                     <!-- Screenshots -->
                     <div v-if="row.original.screenshots?.length > 0 || row.original.screenshotUrl" class="flex items-center">
-                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Screenshots:</span>
+                        <span class="text-xs font-semibold text-muted">Screenshots:</span>
                         <UButton icon="i-heroicons-photo" size="xs" color="neutral" variant="ghost"
                             @click="emit('open-screenshots', row.original)">
                             {{ row.original.screenshots?.length || 1 }}
@@ -218,7 +218,7 @@
 
                     <!-- Tags -->
                     <div v-if="getTradeTagsById(row.original).length > 0" class="flex gap-2 items-center flex-wrap">
-                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2" :class="{ 'opacity-50': !row.original.active }">Tags:</span>
+                        <span class="text-sm font-semibold text-muted mr-2" :class="{ 'opacity-50': !row.original.active }">Tags:</span>
                         <UBadge v-for="tag in getTradeTagsById(row.original)" :key="tag.id" :label="tag.name" :style="getTagStyle(tag)"
                             :class="row.original.active === false ? 'opacity-50' : 'badge-clickable'"
                             :title="tag.description || tag.name"
@@ -229,7 +229,7 @@
 
                     <!-- Note -->
                     <div v-if="row.original.note" class="flex gap-2 items-center flex-1">
-                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-300 mr-2" :class="{ 'opacity-50': !row.original.active }">Note:</span>
+                        <span class="text-sm font-semibold text-default mr-2" :class="{ 'opacity-50': !row.original.active }">Note:</span>
                         <UBadge
                             :class="row.original.active === false ? 'whitespace-normal opacity-50' : 'badge-clickable whitespace-normal'"
                             color="neutral"
@@ -243,7 +243,7 @@
 
                 <!-- Detailed Note — full width row -->
                 <div v-if="dbStateStore.showDetailedNote && (row.original.metadata as Record<string, unknown>)?.detailedNote" class="mt-3 select-none" :class="{ 'opacity-50': !row.original.active }">
-                    <hr class="border-dashed border-gray-300 dark:border-gray-700 mb-2">
+                    <hr class="border-dashed border-default mb-2">
                     <div 
                         class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors"
                         @click="row.original.active !== false && (emit('open-detailed-note', row.original), ($event.currentTarget as HTMLElement)?.blur())">

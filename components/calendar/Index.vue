@@ -84,7 +84,7 @@
                             <div
                                 v-for="day in weekDays"
                                 :key="day"
-                                class="text-center font-semibold text-sm p-2 bg-gray-100 dark:bg-gray-800 rounded"
+                                class="text-center font-semibold text-sm p-2 bg-elevated rounded"
                             >
                                 {{ day }}
                             </div>
@@ -149,7 +149,7 @@
                     :group-date="selectedDayDate"
                     :group-trades="selectedDay.trades"
                 />
-                <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
+                <div v-else class="py-8 text-center text-muted">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_day') }}</div>
                 </div>
             </template>
@@ -168,7 +168,7 @@
                         :group-trades="day.trades"
                     />
                 </template>
-                <div v-if="!selectedWeekDays.some((d) => d.count > 0)" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                <div v-if="!selectedWeekDays.some((d) => d.count > 0)" class="py-8 text-center text-muted">
                     <div class="text-lg mb-2">{{ $t('components.calendar.index.no_trades_for_week') }}</div>
                 </div>
             </template>

@@ -1,6 +1,6 @@
 <template>
     <header v-show="!hideHeader"
-        class="w-full shadow bg-default dark:bg-gray-900 text-gray-900 dark:text-white select-none">
+        class="w-full shadow bg-default text-default select-none">
         <div>
             <div class="container mx-auto flex justify-between items-center py-4 px-4">
                 <div class="flex items-center gap-6">
@@ -63,7 +63,7 @@
                 <div class="flex items-center">
                     <!-- GitHub Button -->
                     <a href="https://github.com/yopkool29/pnltracker" target="_blank" rel="noopener noreferrer"
-                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-default hover:bg-accented transition-colors"
                         title="GitHub">
                         <span class="w-5 h-5 shrink-0">
                             <img src="/img/social/github.svg" alt="GitHub"
@@ -72,7 +72,7 @@
                     </a>
                     <!-- Documentation Button -->
                     <a :href="`https://doc.pnltracker.app/${locale}`" target="_blank" rel="noopener noreferrer"
-                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        class="hidden md:flex items-center px-2 py-2 rounded-lg text-default hover:bg-accented transition-colors"
                         :title="$t('components.app_header.documentation')">
                         <UIcon name="i-heroicons-book-open" class="w-5 h-5" />
                     </a>
@@ -109,10 +109,10 @@
                             class="header-icon" />
                     </UButton>
                     <!-- Overlay menu mobile -->
-                    <div v-if="mobileMenuOpen" class="fixed inset-0 z-50 bg-gray-900/50 lg:hidden"
+                    <div v-if="mobileMenuOpen" class="fixed inset-0 z-50 bg-inverted/50 lg:hidden"
                         @click="mobileMenuOpen = false" />
                     <div v-if="mobileMenuOpen"
-                        class="fixed right-0 top-0 z-50 h-full w-64 bg-white dark:bg-gray-800 shadow-lg p-4 transform lg:hidden">
+                        class="fixed right-0 top-0 z-50 h-full w-64 bg-elevated shadow-lg p-4 transform lg:hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-medium">{{ $t('components.app_header.menu') }}</h3>
                             <UButton color="neutral" variant="ghost" class="p-1 rounded-full"
@@ -206,7 +206,7 @@
                 </div>
             </div>
             <div v-if="userStore.user && currentDatabase"
-                class="w-full flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                class="w-full flex items-center justify-between border-t border-default bg-elevated">
                 <div class="container mx-auto py-4 px-4 flex items-center gap-4">
                     <QuickNav v-if="userStore.user.settings_object?.showQuickNav" class="hidden lg:block" />
                     <NetGrossToggle v-model="userStore.displayModeNet" />

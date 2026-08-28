@@ -11,7 +11,7 @@
             <UForm :state="formState" autocomplete="off">
                 <div class="space-y-6">
                     <!-- Section Interface -->
-                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
                         <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.interface_section') }}</legend>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <UFormField name="noteNewline" class="w-full">
@@ -93,7 +93,7 @@
                                     :description="$t('components.settings.options.show_detailed_note_desc')"
                                 />
                             </UFormField>
-                            <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mt-4 space-y-4">
+                            <fieldset class="border border-default rounded-lg p-4 mt-4 space-y-4">
                                 <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.polygon_section') }}</legend>
                                 <UFormField name="polygonApiKey" :label="$t('components.settings.options.polygon_api_key')" class="w-lg">
                                     <div class="flex gap-2">
@@ -207,7 +207,7 @@
                     </div>
 
                     <!-- Section Data sync -->
-                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
                         <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.data_sync_section') }}</legend>
                         <div class="space-y-6">
                             <UFormField :label="$t('components.settings.options.save_ui_state')" class="w-lg">
@@ -240,7 +240,7 @@
                     </fieldset>
 
                     <!-- Section Storage -->
-                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
                         <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.storage_section') }}</legend>
                         <div class="grid grid-cols-1 gap-8">
                             <UFormField name="storageUrl" :label="$t('components.settings.options.storage_url')">
@@ -258,7 +258,7 @@
                                     <UInput
                                         :model-value="userStore.user?.token || ''"
                                         readonly
-                                        class="bg-gray-100 dark:bg-gray-800 flex-1"
+                                        class="bg-elevated flex-1"
                                         :type="showToken ? 'text' : 'password'"
                                     />
                                     <UButton
@@ -343,7 +343,7 @@
                     </div> -->
 
                     <!-- Section Fuseau horaire pour l'affichage -->
-                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
                         <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.timezone_display_section') }}</legend>
                         <div class="flex flex-col gap-8">
                             <UFormField name="timezoneDisplay" :label="$t('components.settings.options.timezone_display_mode')" class="w-64">
@@ -394,7 +394,7 @@
                     </fieldset>
 
                     <!-- Section Couleurs des graphiques -->
-                    <fieldset class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
                         <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.chart_colors_section') }}</legend>
                         <div class="grid grid-cols-4 gap-4 max-w-[400px] mb-2">
                             <div class="text-md text-secondary text-left" :class="{ 'font-bold underline': currentTheme === 'light' }">Light</div>
@@ -461,7 +461,7 @@
                                     :label="$t('components.settings.options.color_raw_metric')"
                                     :default-colors="defaultSettings.chartColors!.timeSeriesChart.rawMetric"
                                 />
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                <p class="text-xs text-muted">
                                     {{ $t('components.dashboard.common.bar_color_info') }}
                                 </p>
                             </div>

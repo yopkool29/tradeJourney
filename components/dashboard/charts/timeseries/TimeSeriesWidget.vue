@@ -51,7 +51,7 @@
                     <span class="text-sm">{{ $t('components.dashboard.common.show_threshold') }}</span>
                 </div>
                 <!-- Métriques supplémentaires dans le tooltip (barMA et area) -->
-                <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="space-y-1 border-t border-gray-200 dark:border-gray-700 pt-2">
+                <div v-if="config.seriesType === 'barMA' || config.seriesType === 'area'" class="space-y-1 border-t border-default pt-2">
                     <span class="text-sm font-medium">{{ $t('components.dashboard.breakdown.tooltip_metrics') }}</span>
                     <div v-for="m in metricItems" :key="m.value" class="flex items-center gap-2">
                         <UCheckbox
@@ -66,7 +66,7 @@
         <!-- Réticule : 1 bouton toggle (cross ↔ line) -->
         <template #header-actions>
             <button
-                class="px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors text-primary"
+                class="px-1.5 py-1 rounded cursor-pointer hover:bg-accented focus:outline-none transition-colors text-primary"
                 :title="crosshairType === 'cross' ? $t('components.dashboard.common.crosshair_cross') : $t('components.dashboard.common.crosshair_line')"
                 @click="crosshairType = crosshairType === 'cross' ? 'line' : 'cross'"
             >

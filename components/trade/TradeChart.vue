@@ -16,7 +16,7 @@
             <UCheckbox v-if="showAdjacent" v-model="showAdjacentLines" :label="$t('components.trade.chart.show_adjacent_lines')" size="xs" @update:model-value="onAdjacentLinesToggle" />
             <UCheckbox v-model="showRth" :label="$t('components.trade.chart.show_rth')" size="xs" @update:model-value="onRthToggle" />
             <UButton icon="i-heroicons-arrow-path" size="xs" color="neutral" variant="ghost" :loading="loading" @click="onReload" />
-            <span v-if="loading" class="text-secondary-sm text-gray-500">
+            <span v-if="loading" class="text-secondary-sm text-muted">
                 <UIcon name="i-heroicons-arrow-path" class="animate-spin inline" />
                 {{ $t('common.loading') }}{{ userStore.polygonRequestCount > 0 ? ` (${userStore.polygonRequestCount})` : '' }}
             </span>

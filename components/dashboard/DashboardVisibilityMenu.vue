@@ -25,7 +25,7 @@
 					<UAccordion :items="presetAccordionItems" :ui="{ trigger: 'text-sm' }">
 						<template v-for="group in presetTemplateGroups" :key="group.id" #[group.id]>
 							<div class="space-y-1">
-								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-accented" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>
@@ -40,7 +40,7 @@
 					<UAccordion :items="advancedAccordionItems" :ui="{ trigger: 'text-sm' }">
 						<template v-for="group in advancedTemplateGroups" :key="group.id" #[group.id]>
 							<div class="space-y-1">
-								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700" @click="onCreateFromTemplate(tmpl.id)">
+								<div v-for="tmpl in group.templates" :key="tmpl.id" class="flex items-center justify-between gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-colors hover:bg-accented" @click="onCreateFromTemplate(tmpl.id)">
 									<span class="text-sm">{{ $t(tmpl.labelKey) }}</span>
 									<UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-primary shrink-0" />
 								</div>

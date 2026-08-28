@@ -7,7 +7,7 @@
             <span class="sr-only">{{ screenshots.length }} {{ screenshots.length > 1 ? 'images' : 'image' }}</span>
         </template>
         <template #body>
-            <div class="mb-4 text-left ml-10 text-sm text-gray-600 dark:text-gray-400">
+            <div class="mb-4 text-left ml-10 text-sm text-muted">
                 {{ screenshots.length }} {{ screenshots.length > 1 ? 'images' : 'image' }}
             </div>
             <UCarousel

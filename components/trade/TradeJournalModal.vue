@@ -4,11 +4,11 @@
             <div class="p-4 h-full overflow-y-auto">
                 <!-- Loading -->
                 <div v-if="loading" class="flex justify-center items-center h-64">
-                    <UIcon name="i-heroicons-arrow-path" class="animate-spin text-gray-400 text-3xl" />
+                    <UIcon name="i-heroicons-arrow-path" class="animate-spin text-muted text-3xl" />
                 </div>
 
                 <!-- Empty -->
-                <div v-else-if="groupedTrades.length === 0" class="flex flex-col items-center justify-center h-64 text-gray-400">
+                <div v-else-if="groupedTrades.length === 0" class="flex flex-col items-center justify-center h-64 text-muted">
                     <UIcon name="i-heroicons-document-text" class="text-5xl mb-3" />
                     <p>{{ $t('components.trade.journal.empty') }}</p>
                 </div>
@@ -21,18 +21,18 @@
                         class="mb-10"
                     >
                         <!-- Date separator -->
-                        <div class="flex items-center gap-3 mb-4 sticky top-0 bg-white dark:bg-gray-900 py-2 z-10">
-                            <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-                            <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                        <div class="flex items-center gap-3 mb-4 sticky top-0 bg-elevated py-2 z-10">
+                            <div class="h-px flex-1 bg-default" />
+                            <span class="text-sm font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
                                 {{ formatDateLongString(group.date, locale as 'fr' | 'en' | 'us', true) }}
                             </span>
-                            <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                            <div class="h-px flex-1 bg-default" />
                         </div>
 
                         <!-- Trades of the day -->
                         <div class="relative pl-6">
                             <!-- Vertical line -->
-                            <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
+                            <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-default" />
 
                             <div
                                 v-for="trade in group.trades"
@@ -41,17 +41,17 @@
                             >
                                 <!-- Timeline dot -->
                                 <div
-                                    class="absolute -left-4 top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900"
+                                    class="absolute -left-4 top-1.5 w-3 h-3 rounded-full border-2 border-elevated"
                                     :class="trade.profit >= 0 ? 'bg-green-500' : 'bg-red-500'"
                                 />
 
-                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                                <div class="bg-muted rounded-lg p-4 border border-default">
                                     <!-- Trade header -->
                                     <div class="flex items-center gap-3 flex-wrap mb-2">
-                                        <span class="text-xs text-gray-400 font-mono">
+                                        <span class="text-xs text-muted font-mono">
                                             {{ formatHourString(trade.openDate, false, locale as 'fr' | 'en' | 'us') }}
                                         </span>
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">{{ trade.symbol }}</span>
+                                        <span class="font-semibold text-highlighted">{{ trade.symbol }}</span>
                                         <UBadge :style="{ backgroundColor: tradeTypeColors[trade.type], color: 'white' }" size="xs">
                                             {{ trade.type === 'buy' ? $t('common.trade_types.buy') : $t('common.trade_types.sell') }}
                                         </UBadge>
@@ -76,7 +76,7 @@
                                     </div>
 
                                     <!-- Short note -->
-                                    <p v-if="trade.note" class="text-sm text-gray-600 dark:text-gray-300 mb-2 italic">
+                                    <p v-if="trade.note" class="text-sm text-muted mb-2 italic">
                                         {{ trade.note }}
                                     </p>
 

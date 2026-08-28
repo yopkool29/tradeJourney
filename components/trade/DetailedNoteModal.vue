@@ -8,7 +8,7 @@
     >
         <template #content>
             <div class="flex flex-col h-full">
-                <div class="flex justify-start p-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-start p-3 border-b border-default">
                     <UButton
                         :label="$t('components.trade.formModal.detailedNote.from_notes')"
                         icon="i-heroicons-link"

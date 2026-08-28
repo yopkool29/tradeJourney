@@ -29,7 +29,7 @@
 			</div>
 
 			<!-- Trade count info -->
-			<div v-if="selectedAccountId !== null" class="text-sm text-gray-500 dark:text-gray-400">
+			<div v-if="selectedAccountId !== null" class="text-sm text-muted">
 				<span v-if="countLoading">Comptage des trades...</span>
 				<span v-else>{{ tradeCount }} trade(s) seront mis à jour</span>
 			</div>

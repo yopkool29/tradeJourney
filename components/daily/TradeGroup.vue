@@ -37,7 +37,7 @@
                                 <span class="stat-label">{{ $t('components.daily.trade_group.pnl') }}:</span>
                                 <span class="stat-value text-lg leading-none" :class="pnl >= 0 ? 'profit-text' : 'loss-text'">
                                     {{ formatCurrency(pnl) }}
-                                    <span v-if="totalCommission" class="text-xs text-gray-500 ml-1">[{{
+                                    <span v-if="totalCommission" class="text-xs text-muted ml-1">[{{
                                         formatCurrency(totalCommission) }}]</span>
                                 </span>
                             </div>
@@ -136,7 +136,7 @@
                             @open-tag-modal="openTradeTagModal" @open-detail-modal="openTradeDetailModal"
                             @open-screenshots="openScreenshotsModal" @open-detailed-note="openDirectDetailedNote"
                             @clear-tags="confirmClearTradeTags" @clear-detailed-note="onClearDetailedNote" />
-                        <div v-else class="py-8 text-center text-gray-500">
+                        <div v-else class="py-8 text-center text-muted">
                             <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
                         </div>
                     </div>

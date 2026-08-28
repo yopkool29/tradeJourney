@@ -7,12 +7,12 @@
         leave-from-class="opacity-100 translate-x-0"
         leave-to-class="opacity-0 -translate-x-full"
     >
-        <div v-if="isOpen" class="fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg z-50 flex" style="width: 900px; max-width: 90vw">
+        <div v-if="isOpen" class="fixed left-0 top-0 h-full bg-default shadow-lg z-50 flex" style="width: 900px; max-width: 90vw">
             <!-- Liste des dates avec des notes -->
-            <div class="w-48 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-                <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+            <div class="w-48 border-r border-default bg-default overflow-y-auto">
+                <div class="p-3 border-b border-default">
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-300">{{ $t('components.notes_panel.sidebar.title') }}</h3>
+                        <h3 class="text-sm font-semibold text-muted">{{ $t('components.notes_panel.sidebar.title') }}</h3>
                         <UButton
                             icon="i-heroicons-plus"
                             :label="$t('components.notes_panel.sidebar.add_note')"
@@ -25,7 +25,7 @@
                     <div class="space-y-1">
                         <div v-for="dateGroup in noteDatesGrouped" :key="dateGroup.date" class="mb-2">
                             <!-- Date du jour -->
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <div class="px-2 py-1 text-xs font-semibold text-muted uppercase tracking-wider">
                                 {{ formatDateLongString(dateGroup.date, locale) }}
                             </div>
                             <!-- Notes pour cette date -->
@@ -35,7 +35,7 @@
                                 class="px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors flex justify-between items-center select-none ml-2"
                                 :class="{
                                     'bg-primary/10 text-primary': selectedNoteId === note.id,
-                                    'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800': selectedNoteId !== note.id,
+                                    'text-default hover:bg-elevated': selectedNoteId !== note.id,
                                 }"
                                 @click="selectNote(note)"
                             >
@@ -60,7 +60,7 @@
             <!-- Éditeur principal -->
             <div class="flex-1 flex flex-col h-full">
                 <!-- En-tête -->
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div class="p-4 border-b border-default flex justify-between items-center">
                     <div class="flex-1">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-semibold whitespace-nowrap">
@@ -80,11 +80,11 @@
                                 v-model="noteSubtitle"
                                 type="text"
                                 :placeholder="$t('components.notes_panel.header.subtitle_placeholder')"
-                                class="flex-1 text-sm bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary focus:outline-none text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-600 transition-colors"
+                                class="flex-1 text-sm bg-transparent border-b border-transparent hover:border-muted focus:border-primary focus:outline-none text-muted placeholder-muted transition-colors"
                                 spellcheck="false"
                             />
                         </div>
-                        <div v-if="selectedNote" class="text-sm text-gray-500 dark:text-gray-400">
+                        <div v-if="selectedNote" class="text-sm text-muted">
                             {{ formatNoteTime(selectedNote.date) }}
                         </div>
                     </div>
@@ -93,7 +93,7 @@
 
                 <!-- Éditeur Markdown -->
                 <div class="flex-1 overflow-hidden flex flex-col w-full">
-                    <div v-if="!selectedNote" class="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                    <div v-if="!selectedNote" class="flex-1 flex items-center justify-center text-muted text-sm">
                         {{ $t('components.notes_panel.editor.no_note_selected') }}
                     </div>
                     <CommonNoteEditor
@@ -110,7 +110,7 @@
                 </div>
 
                 <!-- Pied de page -->
-                <div v-if="selectedNote" class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
+                <div v-if="selectedNote" class="p-3 border-t border-default flex justify-center">
                     <div class="flex gap-2">
                         <UButton :label="$t('common.actions.save')" color="primary" :loading="loading" :disabled="loading" @click="doSaveNote" />
                         <UButton

@@ -18,7 +18,7 @@
 		<div>
 			<label class="block text-sm font-medium mb-2">Select File</label>
 			<UIInput type="file" @change="handleFileSelect" />
-			<p v-if="selectedFile" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+			<p v-if="selectedFile" class="mt-2 text-sm text-muted">
 				Selected: {{ selectedFile.name }} ({{ formatFileSize(selectedFile.size) }})
 			</p>
 		</div>

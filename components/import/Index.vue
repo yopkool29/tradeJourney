@@ -4,7 +4,7 @@
             <h1 class="page-title">{{ $t('components.import.index.title') }}</h1>
         </div>
         <div class="mb-6">
-            <div class="text-gray-700 dark:text-gray-300">
+            <div class="text-default">
                 <p>{{ $t('components.import.index.intro') }}</p>
                 <div class="p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-300 rounded mb-4 mt-4">
                     <p class="font-semibold">{{ $t('components.import.index.warning_title') }}</p>

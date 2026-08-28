@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen flex justify-center px-4 py-8 select-none">
         <div class="w-full max-w-2xl">
-            <UCard class="bg-gray-100 dark:bg-gray-800">
+            <UCard class="bg-elevated">
                 <template #header>
                     <div class="flex flex-col">
                         <h1 class="text-3xl font-bold mb-2 text-primary">

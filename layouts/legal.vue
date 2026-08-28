@@ -1,6 +1,6 @@
 <template>
     <div class="h-screen flex flex-col overflow-y-auto">
-        <header class="w-full py-4 border-b border-gray-200 dark:border-gray-700">
+        <header class="w-full py-4 border-b border-default">
             <div class="container mx-auto px-4">
                 <NuxtLink to="/">
                    <AppLogo :width="150" />

@@ -2,7 +2,7 @@
     <div class="flex items-start gap-4">
         <UColorPicker v-model="modelValue" />
         <div class="flex flex-col gap-1">
-            <span class="text-xs text-gray-400 mb-1">Récents</span>
+            <span class="text-xs text-muted mb-1">Récents</span>
             <div class="flex flex-wrap gap-1">
                 <button
                     v-for="color in recentColors"

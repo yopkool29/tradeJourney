@@ -4,13 +4,13 @@
 			<template #header>
 				<div class="flex items-center gap-2 w-full px-2 py-1">
 					<span class="font-semibold" :class="titleClass">{{ title }}</span>
-					<span v-if="subtitle" class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">{{ subtitle }}</span>
+					<span v-if="subtitle" class="text-xs text-muted font-normal ml-1">{{ subtitle }}</span>
 					<div class="ml-auto flex items-center gap-1 mr-6">
 						<!-- Slot pour actions personnalisées dans le header (ex: crosshair) -->
 						<slot name="header-actions" />
 						<UPopover v-if="$slots.settings" v-model:open="isSettingsOpen">
 							<button
-								class="px-2 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
+								class="px-2 py-1 rounded cursor-pointer hover:bg-accented focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
 								:title="'Settings'"
 							>
 								<UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4" />
@@ -31,7 +31,7 @@
 						</UPopover>
 						<button
 							v-if="!hideEnlarge"
-							class="px-2 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+							class="px-2 py-1 rounded cursor-pointer hover:bg-accented focus:outline-none"
 							:title="enlargedTitle"
 							@click="isModalOpen = true"
 						>
@@ -73,9 +73,9 @@
 			</div>
 		</UCard>
 
-		<div v-if="loading" :class="hideChartWhileLoading ? 'bg-default' : 'bg-white/50 dark:bg-gray-900/50'" class="absolute inset-0 z-10 rounded"></div>
+		<div v-if="loading" :class="hideChartWhileLoading ? 'bg-default' : 'bg-elevated/50'" class="absolute inset-0 z-10 rounded"></div>
 		<div v-if="loading" class="absolute inset-0 flex items-center justify-center z-20">
-			<UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-400" />
+			<UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-muted" />
 		</div>
 	</div>
 </template>

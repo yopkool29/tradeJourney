@@ -35,7 +35,7 @@
                     </div>
                 </div>
             </div>
-            <div v-else class="text-gray-500 text-sm">Aucun groupe / tag disponible (Allez dans paramètres pour configurer)</div>
+            <div v-else class="text-muted text-sm">Aucun groupe / tag disponible (Allez dans paramètres pour configurer)</div>
             <div v-if="props.showManageButton" class="mt-2">
                 <UButton icon="i-lucide-settings" size="xs" color="neutral" variant="ghost" @click="openTagsManager">{{ $t('components.common.tagSelector.manage_tags') }}</UButton>
             </div>

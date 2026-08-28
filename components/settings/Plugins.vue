@@ -14,13 +14,13 @@
 		</template>
 
 		<div v-if="loading" class="flex justify-center py-12">
-			<UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl text-gray-400" />
+			<UIcon name="i-heroicons-arrow-path" class="animate-spin text-2xl text-muted" />
 		</div>
 
 		<UAlert v-else-if="error" color="error" variant="soft" icon="i-heroicons-exclamation-triangle"
 			:title="$t('pages.settings.plugins.load_error')" />
 
-		<div v-else-if="!plugins.length" class="text-center py-12 text-gray-400 dark:text-gray-500">
+		<div v-else-if="!plugins.length" class="text-center py-12 text-dimmed">
 			<UIcon name="i-heroicons-puzzle-piece" class="text-4xl mb-2" />
 			<p>{{ $t('pages.settings.plugins.empty') }}</p>
 			<p class="text-xs mt-1">{{ $t('pages.settings.plugins.empty_hint') }}</p>
@@ -36,7 +36,7 @@
 								<span class="font-medium">{{ plugin.name }}</span>
 								<UIcon v-if="plugin.isDev" name="i-heroicons-bug-beaker" class="text-sm text-yellow-500" title="Dev plugin" />
 							</div>
-							<div class="text-sm text-gray-500 dark:text-gray-400">{{ plugin.description }}</div>
+							<div class="text-sm text-muted">{{ plugin.description }}</div>
 							<div class="flex items-center gap-1.5 mt-1">
 								<UBadge :label="`v${plugin.version}`" color="neutral" variant="soft" size="xs" />
 								<UBadge v-if="plugin.isDev" label="DEV" color="warning" variant="soft" size="xs" />

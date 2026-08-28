@@ -1,5 +1,5 @@
 <template>
-    <div v-if="show" class="hidden md:flex border border-gray-400 dark:border-gray-700 rounded-lg p-2 bg-gray-100 dark:bg-gray-900">
+    <div v-if="show" class="hidden md:flex border border-default rounded-lg p-2 bg-elevated">
         <UCalendar v-model="modelValue" :month="month" :month-controls="true" :year-controls="false"
             readonly size="lg" :ui="{ cellTrigger: 'calendar-cell-trigger', cell: 'w-9 h-7' }" @update:placeholder="onMonthChange">
             <template #day="{ day }">

@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col gap-y-2">
         <!-- Instructions -->
-        <div v-if="!readonly" class="text-sm text-gray-600 font-semibold">
+        <div v-if="!readonly" class="text-sm text-default font-semibold">
             <p>{{ $t('components.screenshot.manager.instructions') }}</p>
             <p class="mt-1">{{ $t('components.screenshot.manager.formats', { max: effectiveMaxScreenshots }) }}</p>
         </div>
@@ -34,13 +34,13 @@
                 @change="handleFileUpload"
             >
                 <template #leading>
-                    <UIcon name="i-heroicons-photo" class="text-gray-500" />
+                    <UIcon name="i-heroicons-photo" class="text-muted" />
                 </template>
             </UInput>
         </div>
 
         <!-- Info sur le nombre d'images -->
-        <div v-if="!readonly" class="text-xs text-gray-500 mt-1">
+        <div v-if="!readonly" class="text-xs text-muted mt-1">
             {{ $t('components.screenshot.manager.image_count', { current: screenshots.length, max: effectiveMaxScreenshots }) }}
             <span v-if="screenshots.length >= effectiveMaxScreenshots" class="text-amber-600 font-medium">{{ $t('components.screenshot.manager.max_reached_alert') }}</span>
         </div>

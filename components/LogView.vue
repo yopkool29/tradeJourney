@@ -5,10 +5,10 @@
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onClear">Clear</a>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onDebug1">Debug1</a>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onDebug2">Debug2</a>
-            <span class="text-gray-500">ImageUrl</span>
+            <span class="text-muted">ImageUrl</span>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onFixDry">[D]</a>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onFixFull">[F]</a>
-            <span class="text-gray-500">OrphanI</span>
+            <span class="text-muted">OrphanI</span>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onOrphanDry">[D]</a>
             <a href="#" class="link link-neutral link-hover hover:underline" @click.stop.prevent="onOrphanFull">[F]</a>
         </div>

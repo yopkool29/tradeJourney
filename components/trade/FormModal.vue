@@ -11,7 +11,7 @@
                 <h3 class="modal-title">
                     {{ props.trade ? $t('components.trade.formModal.edit_trade') : $t('components.trade.formModal.add_trade') }}
                 </h3>
-                <p class="text-gray-600 dark:text-gray-300 mb-6">{{ $t('components.trade.formModal.instructions') }}</p>
+                <p class="text-muted mb-6">{{ $t('components.trade.formModal.instructions') }}</p>
                 <UForm class="space-y-5" :schema="CreateTradeSchema" :state="newState" @submit="onSubmit" @error="onError">
                     <div class="flex space-x-3 my-6">
                         <UButton type="submit" :loading="isLoading" color="primary">{{ $t('common.actions.save') }}</UButton>

@@ -59,8 +59,8 @@ const sizeClasses = {
 }
 
 const selectClasses = [
-    'w-full rounded-md border border-gray-300 dark:border-gray-600',
-    'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
+    'w-full rounded-md border border-default',
+    'bg-elevated text-default',
     'focus:outline-none focus:border-primary',
     'disabled:cursor-not-allowed disabled:opacity-75',
     sizeClasses[props.size],

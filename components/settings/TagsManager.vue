@@ -32,12 +32,12 @@
 			<CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 		</template>
 
-		<div v-if="tagGroups.length === 0" class="text-gray-500 text-center py-4">{{
+		<div v-if="tagGroups.length === 0" class="text-muted text-center py-4">{{
 			$t('components.settings.tags.no_tags') }}
 		</div>
 		<div class="flex flex-col gap-6">
 			<div v-for="group in sortedTagGroups" :key="group.id"
-				class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+				class="p-4 border border-default rounded-lg">
 				<div class="flex items-center justify-between mb-3">
 					<div class="form-row-lg">
 						<div class="flex items-center gap-1">
@@ -101,7 +101,7 @@
 								</div>
 							</template>
 						</CommonModalDelete>
-						<div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
+						<div class="w-px h-5 bg-default mx-1" />
 						<CommonModalDefault :ui="{ overlay: 'z-[300]', content: 'z-[301]' }"
 							:open="groupTagToAdd?.id == group.id" :title="$t('components.settings.tags.add_tag')"
 							@update:open="(open) => { if (!open) groupTagToAdd = null }">

@@ -10,7 +10,7 @@
                     <UFormField :label="$t('database.create.technical_name')" name="name" required>
                         <UInput v-model="state.name" :placeholder="$t('database.create.technical_name_placeholder')" @input="sanitizeName" />
                         <template #help>
-                            <span class="text-xs text-gray-500">
+                            <span class="text-xs text-muted">
                                 {{ $t('database.create.technical_name_help') }}
                             </span>
                         </template>

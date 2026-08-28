@@ -44,7 +44,7 @@ const ghostColorClasses = {
 
 const variantClasses = {
     solid: '',
-    ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
+    ghost: 'bg-transparent hover:bg-elevated',
 }
 
 const sizeClasses = {
@@ -64,6 +64,6 @@ const { isDark } = usePluginTheme()
 
 const buttonStyle = computed(() => {
     if (isGhost) return {}
-    return { color: isDark() ? '#1f1f2f' : '#ffffff' }
+    return { color: isDark() ? '#1f1c28' : '#ffffff' }
 })
 </script>

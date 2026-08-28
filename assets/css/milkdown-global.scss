@@ -4,8 +4,8 @@
 }
 
 .dark .milkdown-editor {
-    border-color: #374151;
-    background: #1f2937;
+    border-color: #2a2a3a;
+    background: #1f1c28;
 }
 
 /* Override crepe variables pour rendre les icônes toolbar plus visibles */
@@ -19,22 +19,22 @@
 
 /* Styles pour le mode sombre de Milkdown */
 .dark .milkdown-editor  .milkdown {
-    --crepe-color-background: #1f2937;
+    --crepe-color-background: #1f1c28;
     --crepe-color-on-background: #f3f4f6;
-    --crepe-color-surface: #374151;
-    --crepe-color-surface-low: #1f2937;
+    --crepe-color-surface: #2a2a3a;
+    --crepe-color-surface-low: #1f1c28;
     --crepe-color-on-surface: #f3f4f6;
     --crepe-color-on-surface-variant: #d1d5db;
     --crepe-color-outline: #9ca3af;
     --crepe-color-primary: #e5e7eb;
     --crepe-color-hover: #4b5563;
     --crepe-color-selected: #6b7280;
-    background: #1f2937;
+    background: #1f1c28;
     color: #f3f4f6;
 }
 
 .dark .milkdown-editor  .milkdown .editor {
-    background: #1f2937;
+    background: #1f1c28;
     color: #f3f4f6;
 }
 
@@ -62,12 +62,12 @@
 }
 
 .dark .milkdown-editor  .milkdown .editor code {
-    background: #374151;
+    background: #2a2a3a;
     color: #f3f4f6;
 }
 
 .dark .milkdown-editor  .milkdown .editor pre {
-    background: #111827;
+    background: #161420;
     color: #f3f4f6;
 }
 
@@ -168,17 +168,17 @@
             border-radius: 0.5rem;
             overflow-x: auto;
             margin: 1em 0;
-            
+
             .dark & {
-                background: #1f2937;
+                background: #161420;
             }
-            
+
             code {
                 background: transparent;
                 padding: 0;
             }
         }
-        
+
         img {
             max-width: 100%;
             height: auto;
@@ -209,7 +209,7 @@
                 font-weight: 600;
                 
                 .dark & {
-                    background: #1f2937;
+                    background: #1f1c28;
                 }
             }
         }

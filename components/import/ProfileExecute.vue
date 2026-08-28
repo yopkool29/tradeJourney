@@ -15,7 +15,7 @@
 
             <div class="space-y-6">
                 <!-- Résumé du profil -->
-                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="p-3 bg-elevated rounded-lg">
                     <div class="flex flex-col gap-4 text-sm">
                         <div>
                             <span class="text-secondary">{{ $t('components.import.profiles.timezone') }}:</span>
@@ -61,7 +61,7 @@
                     </UButton>
                     <div v-if="storageFiles.length > 0" class="space-y-2">
                         <div v-for="storageFile in storageFiles" :key="storageFile.file_id"
-                            class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                            class="p-3 border rounded-lg hover:bg-elevated cursor-pointer"
                             :class="{ 'border-primary bg-primary/10': selectedFileId === storageFile.file_id }"
                             @click="selectedFileId = storageFile.file_id">
                             <div class="flex items-center justify-between">

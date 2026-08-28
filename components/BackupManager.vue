@@ -31,7 +31,7 @@
                         <UIcon name="i-heroicons-folder-open" class="w-5 h-5 mr-1" />
                         {{ $t('components.backup_manager.restore.select_file') }}
                     </UButton>
-                    <span v-if="selectedFile" class="text-sm text-gray-700 dark:text-gray-300">
+                    <span v-if="selectedFile" class="text-sm text-default">
                         {{ selectedFile.name }}
                     </span>
                 </div>

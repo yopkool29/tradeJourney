@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-full flex items-center justify-center px-4 py-16">
         <div class="w-full max-w-md">
-            <UCard class="bg-gray-100 dark:bg-gray-800">
+            <UCard class="bg-elevated">
                 <template #header>
                     <div class="flex flex-col">
                         <h1 class="text-2xl font-bold mb-2 text-primary">{{ $t('components.already_logged_in.title') }}</h1>

@@ -29,7 +29,7 @@
                         <span class="font-semibold" :class="trade.netProfit >= 0 ? 'profit-text' : 'loss-text'">
                             {{ formatCurrency(trade.netProfit) }}
                         </span>
-                        <span class="text-secondary-xs text-gray-500 ml-1">
+                        <span class="text-secondary-xs text-muted ml-1">
                             ({{ $t('components.common.columns.headers.grossProfit') }}: {{ formatCurrency(trade.profit) }},
                             {{ $t('components.common.columns.headers.commission') }}: {{ formatCurrency(trade.commission) }})
                         </span>
@@ -90,26 +90,26 @@
                     <div v-if="optionMetadata.legs && optionMetadata.legs.length > 0" class="mt-3">
                         <span class="text-secondary-sm block mb-2">Legs</span>
                         <div class="space-y-2">
-                            <div v-for="(leg, index) in optionMetadata.legs" :key="index" class="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+                            <div v-for="(leg, index) in optionMetadata.legs" :key="index" class="p-2 bg-elevated rounded text-sm">
                                 <div class="grid grid-cols-4 gap-2">
                                     <div>
-                                        <span class="text-xs text-gray-500">Strike</span>
+                                        <span class="text-xs text-muted">Strike</span>
                                         <div class="font-semibold">{{ leg.strike }}</div>
                                     </div>
                                     <div>
-                                        <span class="text-xs text-gray-500">Type</span>
+                                        <span class="text-xs text-muted">Type</span>
                                         <div class="font-semibold uppercase">{{ leg.type }}</div>
                                     </div>
                                     <div>
-                                        <span class="text-xs text-gray-500">Qty</span>
+                                        <span class="text-xs text-muted">Qty</span>
                                         <div class="font-semibold">{{ leg.qty }}</div>
                                     </div>
                                     <div>
-                                        <span class="text-xs text-gray-500">Price</span>
+                                        <span class="text-xs text-muted">Price</span>
                                         <div class="font-semibold">{{ leg.price.toFixed(2) }}</div>
                                     </div>
                                 </div>
-                                <div class="mt-1 text-xs text-gray-500">Exp: {{ formatDate(leg.expiration) }}</div>
+                                <div class="mt-1 text-xs text-muted">Exp: {{ formatDate(leg.expiration) }}</div>
                             </div>
                         </div>
                     </div>

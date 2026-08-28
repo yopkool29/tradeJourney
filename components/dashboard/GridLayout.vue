@@ -15,7 +15,7 @@
 					@click.capture="onContentClick"
 				>
                     <UIcon v-if="isDraggable" name="i-lucide-grip"
-                        class="absolute top-2 left-1 text-gray-800 dark:text-gray-200 opacity-50 z-10"
+                        class="absolute top-2 left-1 text-default opacity-50 z-10"
                         size="xs" />
                     <component :is="components[item.i]" class="h-full" v-bind="{
                         ...(sharedProps || {}),
@@ -24,13 +24,13 @@
                     <!-- Bouton close (X) pour tous les items -->
                     <button
                         v-if="removableItems?.includes(item.i)"
-                        class="absolute top-1 right-1 z-[100] px-1.5 py-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-opacity"
+                        class="absolute top-1 right-1 z-[100] px-1.5 py-1 rounded cursor-pointer hover:bg-accented transition-opacity"
                         :class="hoveredItem === item.i ? 'opacity-100' : 'opacity-0'"
                         :title="$t('common.actions.close')"
                         @click.stop="$emit('remove-item', item.i)"
                         @mouseenter.stop
                     >
-                        <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                        <UIcon name="i-lucide-x" class="w-5 h-5 text-default" />
                     </button>
                 </div>
             </grid-item>

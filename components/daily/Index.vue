@@ -57,7 +57,7 @@
         <div class="flex flex-col-reverse md:flex-row md:gap-8 items-start">
             <div class="w-full">
                 <div v-if="!filteredGroups.length">
-                    <div class="py-8 text-center text-gray-500 dark:text-gray-400">
+                    <div class="py-8 text-center text-muted">
                         <div class="text-lg mb-2">{{ $t('components.daily.index.no_history') }}</div>
                     </div>
                 </div>
