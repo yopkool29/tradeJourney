@@ -9,7 +9,7 @@
     >
         <div v-if="isOpen" class="fixed left-0 top-0 h-full bg-default shadow-lg z-50 flex" style="width: 900px; max-width: 90vw">
             <!-- Liste des dates avec des notes -->
-            <div class="w-48 border-r border-default bg-default overflow-y-auto">
+            <div class="w-48 border-r border-default bg-elevated overflow-y-auto">
                 <div class="p-3 border-b border-default">
                     <div class="flex justify-between items-center mb-2">
                         <h3 class="text-sm font-semibold text-muted">{{ $t('components.notes_panel.sidebar.title') }}</h3>
@@ -26,7 +26,7 @@
                         <div v-for="dateGroup in noteDatesGrouped" :key="dateGroup.date" class="mb-2">
                             <!-- Date du jour -->
                             <div class="px-2 py-1 text-xs font-semibold text-muted uppercase tracking-wider">
-                                {{ formatDateLongString(dateGroup.date, locale) }}
+                                {{ dateGroup.notes.some(isMcpJournalNote) ? 'MCP' : formatDateLongString(dateGroup.date, locale) }}
                             </div>
                             <!-- Notes pour cette date -->
                             <div
@@ -34,14 +34,18 @@
                                 :key="note.id"
                                 class="px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors flex justify-between items-center select-none ml-2"
                                 :class="{
-                                    'bg-primary/10 text-primary': selectedNoteId === note.id,
+                                    'ring-1 ring-inset ring-green-500/50 bg-green-500/10 text-default': selectedNoteId === note.id && isMcpJournalNote(note),
+                                    'bg-primary/10 text-primary': selectedNoteId === note.id && !isMcpJournalNote(note),
                                     'text-default hover:bg-elevated': selectedNoteId !== note.id,
                                 }"
                                 @click="selectNote(note)"
                             >
                                 <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                                    <div v-if="selectedNoteId === note.id" class="w-2 h-2 bg-red-500 rounded-full shrink-0"></div>
-                                    <div class="truncate">{{ formatNoteTime(note.date) }}</div>
+                                    <div v-if="selectedNoteId === note.id && isMcpJournalNote(note)" class="w-2 h-2 bg-green-500 rounded-full shrink-0"></div>
+                                    <div v-else-if="selectedNoteId === note.id" class="w-2 h-2 bg-red-500 rounded-full shrink-0"></div>
+                                    <div class="truncate">
+                                        {{ isMcpJournalNote(note) ? 'Analyse IA' : formatNoteTime(note.date) }}
+                                    </div>
                                 </div>
                                 <UButton
                                     icon="i-heroicons-trash"
@@ -64,10 +68,10 @@
                     <div class="flex-1">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-semibold whitespace-nowrap">
-                                {{ showDirtyIndicator ? '* ' : '' }}{{ $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}
+                                {{ showDirtyIndicator ? '* ' : '' }}{{ isAiNote ? 'MCP' : $t('components.notes_panel.header.notes_of', { date: formattedDate }) }}
                             </h2>
                             <UButton
-                                v-if="selectedNote"
+                                v-if="selectedNote && !isAiNote"
                                 icon="i-heroicons-calendar"
                                 size="xs"
                                 color="neutral"
@@ -84,7 +88,7 @@
                                 spellcheck="false"
                             />
                         </div>
-                        <div v-if="selectedNote" class="text-sm text-muted">
+                        <div v-if="selectedNote && !isAiNote" class="text-sm text-muted">
                             {{ formatNoteTime(selectedNote.date) }}
                         </div>
                     </div>
@@ -233,7 +237,7 @@ const {
     editorContent, noteSubtitle,
     uploadContext,
     isDirty, showDirtyIndicator, selectedNoteId, noteDatesGrouped,
-    selectNote, openCreateModal, openChangeDateTimeModal,
+    isMcpJournalNote, selectNote, openCreateModal, openChangeDateTimeModal,
     confirmChangeDateTime, confirmCreateNote, createNewNote,
     loadNotes, saveNote, onUnsavedDiscard, onUnsavedSaveAndContinue,
     confirmDeleteNote, deleteNoteConfirmed, cleanupTmpImages,
@@ -245,6 +249,8 @@ const formattedDate = computed(() => {
     const date = selectedNote.value ? new Date(selectedNote.value.date) : props.selectedDate
     return formatDateLongString(date, locale.value)
 })
+
+const isAiNote = computed(() => selectedNote.value ? isMcpJournalNote(selectedNote.value) : false)
 
 const formatNoteTime = (date: string | Date) => {
     const d = new Date(date)

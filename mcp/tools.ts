@@ -6,7 +6,9 @@ import {
 	AnalyticsBreakdownResponseSchema,
 	AnalyticsInputSchema,
 	AnalyticsSummaryResponseSchema,
+	AppendAiJournalInputSchema,
 	BreakdownInputSchema,
+	ClearAiJournalInputSchema,
 	DatabaseInputSchema,
 	GetNoteImageInputSchema,
 	GetTradeInputSchema,
@@ -14,6 +16,7 @@ import {
 	NoteMetadataSchema,
 	PnlTimeseriesResponseSchema,
 	SearchTradesInputSchema,
+	SetAiJournalEnabledInputSchema,
 	TimeseriesInputSchema,
 	TradeMetadataSchema,
 	type PnlMode,
@@ -26,6 +29,20 @@ const toolAnnotations = {
 	readOnlyHint: true,
 	destructiveHint: false,
 	idempotentHint: true,
+	openWorldHint: true,
+}
+
+const stateToolAnnotations = {
+	readOnlyHint: false,
+	destructiveHint: false,
+	idempotentHint: true,
+	openWorldHint: false,
+}
+
+const appendToolAnnotations = {
+	readOnlyHint: false,
+	destructiveHint: false,
+	idempotentHint: false,
 	openWorldHint: true,
 }
 
@@ -165,6 +182,62 @@ const withErrorBoundary = async (callback: () => Promise<unknown>) => {
 }
 
 export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
+	let aiJournalEnabled = true
+
+	server.registerTool('get_ai_journal_status', {
+		description: 'Return whether automatic AI trading-analysis journaling is enabled for this MCP process. It is enabled by default after every restart.',
+		inputSchema: z.object({}).strict(),
+		annotations: toolAnnotations,
+	}, async () => withErrorBoundary(async () => ({ enabled: aiJournalEnabled })))
+
+	server.registerTool('set_ai_journal_enabled', {
+		description: 'Enable or disable automatic AI trading-analysis journaling for this MCP process. The setting resets to enabled when the MCP restarts.',
+		inputSchema: SetAiJournalEnabledInputSchema,
+		annotations: stateToolAnnotations,
+	}, async ({ enabled }) => withErrorBoundary(async () => {
+		aiJournalEnabled = enabled
+		return { enabled: aiJournalEnabled }
+	}))
+
+	server.registerTool('append_ai_journal', {
+		description: 'Append a user-requested PnlTracker result as Markdown to the reserved MCP journal note. Call this automatically after counts, metrics, summaries, comparisons, and trading analyses when journaling is enabled; do not call it for technical or conversational responses.',
+		inputSchema: AppendAiJournalInputSchema,
+		annotations: appendToolAnnotations,
+	}, async ({ database_id, title, content }) => withErrorBoundary(async () => {
+		if (!aiJournalEnabled) return { saved: false, enabled: false, reason: 'AI journal is disabled' }
+
+		const response = asRecord(await api.post('/api/mcp/ai-journal', {
+			databaseId: database_id,
+			query: {},
+			body: { title, content },
+		}))
+		const note = asRecord(response.note)
+		return {
+			saved: response.success === true,
+			enabled: true,
+			note_id: readNumber(note, 'id'),
+			note_date: readString(note, 'date'),
+			updated_at: readString(note, 'updatedAt'),
+		}
+	}))
+
+	server.registerTool('clear_ai_journal', {
+		description: 'Delete the reserved MCP AI journal note from one authorized PnlTracker database. This removes all appended AI analyses for that database.',
+		inputSchema: ClearAiJournalInputSchema,
+		annotations: {
+			readOnlyHint: false,
+			destructiveHint: true,
+			idempotentHint: true,
+			openWorldHint: false,
+		},
+	}, async ({ database_id }) => withErrorBoundary(async () => {
+		const response = asRecord(await api.delete('/api/mcp/ai-journal', { databaseId: database_id, query: {} }))
+		return {
+			cleared: response.success === true,
+			deleted: readNumber(response, 'deleted'),
+		}
+	}))
+
 	server.registerTool('list_databases', {
 		description: 'List the PnlTracker trading databases available to the authenticated user.',
 		inputSchema: z.object({}).strict(),

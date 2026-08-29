@@ -61,6 +61,37 @@ describe('Database Integration - Notes CRUD', () => {
 		expect(dates).toContain(testDate)
 	})
 
+	it('should append AI analyses to one reserved MCP journal note', async () => {
+		const first = await $fetch('/api/mcp/ai-journal', {
+			method: 'POST',
+			body: { title: 'First analysis', content: 'Bullish context.' },
+		}) as { note: NoteType }
+		const second = await $fetch('/api/mcp/ai-journal', {
+			method: 'POST',
+			body: { title: 'Second analysis', content: 'Bearish invalidation.' },
+		}) as { note: NoteType }
+
+		expect(second.note.id).toBe(first.note.id)
+		const notes = await $fetch('/api/notes?date=1980-01-01') as NoteType[]
+		const journals = notes.filter(note => new Date(note.date).getTime() === Date.UTC(1980, 0, 1))
+		expect(journals).toHaveLength(1)
+		expect(journals[0].content).toContain('# Journal des analyses IA')
+		expect(journals[0].content).toContain('## First analysis')
+		expect(journals[0].content).toContain('Bullish context.')
+		expect(journals[0].content).toContain('---')
+		expect(journals[0].content).toContain('## Second analysis')
+		expect(journals[0].content).toContain('Bearish invalidation.')
+
+		const { updateNote } = useNotes()
+		const manuallyUpdated = await updateNote(first.note.id, {
+			date: first.note.date,
+			content: `${journals[0].content}\n\nManual edit.`,
+			subtitle: 'Analyse IA',
+		})
+		expect(manuallyUpdated.content).toContain('Manual edit.')
+		expect(manuallyUpdated.metadata).toEqual({ subtitle: 'Analyse IA' })
+	})
+
 	it('should update a note', async () => {
 		const { updateNote } = useNotes()
 		if (!createdNote) {

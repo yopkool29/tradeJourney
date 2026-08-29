@@ -1,5 +1,10 @@
 const extractNtImages = (content: string): string[] => {
-	const decoded = decodeURIComponent(content)
+	let decoded: string
+	try {
+		decoded = decodeURIComponent(content)
+	} catch {
+		decoded = content
+	}
 	const results = new Set<string>()
 
 	// Match images with .../nt_xxx pattern (works for both /path/ and ?path=.../)

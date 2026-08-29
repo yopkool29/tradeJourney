@@ -10,21 +10,31 @@ export const initPluginWindowGlobals = () => {
 }
 
 // Clean up plugin data from window globals
-export const cleanupPluginData = (pluginId: string, pluginPageSlots: { value: TJPluginPageSlot[] }) => {
+export const cleanupPluginData = (
+    pluginId: string,
+    pluginPageSlots: { value: TJPluginPageSlot[] }
+) => {
     if (typeof window === 'undefined') return
 
     // Remove plugin actions
-    window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(a => !a.id.startsWith(pluginId))
+    window.__TJ_PLUGIN_ACTIONS__ = window.__TJ_PLUGIN_ACTIONS__.filter(
+        (a) => !a.id.startsWith(pluginId)
+    )
 
     // Remove plugin modals
-    window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(m => !m.id.startsWith(pluginId))
+    window.__TJ_PLUGIN_MODALS__ = window.__TJ_PLUGIN_MODALS__.filter(
+        (m) => !m.id.startsWith(pluginId)
+    )
 
     // Remove plugin page slots
-    pluginPageSlots.value = pluginPageSlots.value.filter(s => s.pluginId !== pluginId)
+    pluginPageSlots.value = pluginPageSlots.value.filter(
+        (s) => s.pluginId !== pluginId
+    )
     window.__TJ_PLUGIN_PAGE_SLOTS__ = pluginPageSlots.value
 
-        // Remove plugin reference
-        ; (window as unknown as { [key: string]: TJPlugin | undefined })[pluginId] = undefined
+    // Remove plugin reference
+    ;(window as unknown as { [key: string]: TJPlugin | undefined })[pluginId] =
+        undefined
 }
 
 // Check if plugin is already loaded
@@ -46,35 +56,47 @@ export const getPlugin = (pluginId: string): TJPlugin | undefined => {
 export const setPlugin = (pluginId: string, plugin: TJPlugin) => {
     if (typeof window === 'undefined') return
 
-    (window as unknown as { [key: string]: TJPlugin })[pluginId] = plugin
+    ;(window as unknown as { [key: string]: TJPlugin })[pluginId] = plugin
 }
 
 // Remove plugin from window
 export const removePlugin = (pluginId: string) => {
     if (typeof window === 'undefined') return
 
-    (window as unknown as { [key: string]: TJPlugin | undefined })[pluginId] = undefined
+    ;(window as unknown as { [key: string]: TJPlugin | undefined })[pluginId] =
+        undefined
 }
 
 // Dispatch plugin load event
 export const dispatchPluginLoadEvent = (pluginId: string) => {
     if (typeof window === 'undefined') return
 
-    window.dispatchEvent(new CustomEvent('tj-plugin-load', { detail: { pluginId } }))
+    window.dispatchEvent(
+        new CustomEvent('tj-plugin-load', { detail: { pluginId } })
+    )
 }
 
 // Dispatch plugin open modal event
 export const dispatchPluginOpenModalEvent = (modalId: string) => {
     if (typeof window === 'undefined') return
 
-    window.dispatchEvent(new CustomEvent('tj-plugin-open-modal', { detail: { id: modalId } }))
+    window.dispatchEvent(
+        new CustomEvent('tj-plugin-open-modal', { detail: { id: modalId } })
+    )
 }
 
 // Add plugin action
-export const addPluginAction = (action: { id: string; label: string; icon?: string; run: () => void }) => {
+export const addPluginAction = (action: {
+    id: string
+    label: string
+    icon?: string
+    run: () => void
+}) => {
     if (typeof window === 'undefined') return
 
-    const idx = window.__TJ_PLUGIN_ACTIONS__.findIndex(a => a.id === action.id)
+    const idx = window.__TJ_PLUGIN_ACTIONS__.findIndex(
+        (a) => a.id === action.id
+    )
     if (idx >= 0) {
         window.__TJ_PLUGIN_ACTIONS__.splice(idx, 1, action)
     } else {
@@ -83,10 +105,17 @@ export const addPluginAction = (action: { id: string; label: string; icon?: stri
 }
 
 // Add plugin modal
-export const addPluginModal = (modal: { id: string; title: string; description?: string; message?: string; component?: unknown; onClose?: () => void }) => {
+export const addPluginModal = (modal: {
+    id: string
+    title: string
+    description?: string
+    message?: string
+    component?: unknown
+    onClose?: () => void
+}) => {
     if (typeof window === 'undefined') return
 
-    const idx = window.__TJ_PLUGIN_MODALS__.findIndex(m => m.id === modal.id)
+    const idx = window.__TJ_PLUGIN_MODALS__.findIndex((m) => m.id === modal.id)
     if (idx >= 0) {
         window.__TJ_PLUGIN_MODALS__.splice(idx, 1, modal)
     } else {
@@ -95,11 +124,23 @@ export const addPluginModal = (modal: { id: string; title: string; description?:
 }
 
 // Add plugin page slot
-export const addPluginPageSlot = (slotId: string, config: { id: string; label: string; icon?: string; onClick: () => void }, pluginId: string, pluginPageSlots: { value: TJPluginPageSlot[] }) => {
+export const addPluginPageSlot = (
+    slotId: string,
+    config: { id: string; label: string; icon?: string; onClick: () => void },
+    pluginId: string,
+    pluginPageSlots: { value: TJPluginPageSlot[] }
+) => {
     if (typeof window === 'undefined') return
 
-    const slot = { id: config.id, slotId, pluginId, label: config.label, icon: config.icon, onClick: config.onClick }
-    const idx = pluginPageSlots.value.findIndex(s => s.id === config.id)
+    const slot = {
+        id: config.id,
+        slotId,
+        pluginId,
+        label: config.label,
+        icon: config.icon,
+        onClick: config.onClick,
+    }
+    const idx = pluginPageSlots.value.findIndex((s) => s.id === config.id)
     if (idx >= 0) {
         pluginPageSlots.value.splice(idx, 1, slot)
     } else {
@@ -133,26 +174,26 @@ export const getPluginPageSlots = () => {
 export const findPluginAction = (actionId: string) => {
     if (typeof window === 'undefined') return undefined
 
-    return window.__TJ_PLUGIN_ACTIONS__.find(a => a.id === actionId)
+    return window.__TJ_PLUGIN_ACTIONS__.find((a) => a.id === actionId)
 }
 
 // Find plugin modal by id
 export const findPluginModal = (modalId: string) => {
     if (typeof window === 'undefined') return undefined
 
-    return window.__TJ_PLUGIN_MODALS__.find(m => m.id === modalId)
+    return window.__TJ_PLUGIN_MODALS__.find((m) => m.id === modalId)
 }
 
 // Find plugin actions starting with plugin id
 export const findPluginActionsByPluginId = (pluginId: string) => {
     if (typeof window === 'undefined') return []
 
-    return window.__TJ_PLUGIN_ACTIONS__.filter(a => a.id.startsWith(pluginId))
+    return window.__TJ_PLUGIN_ACTIONS__.filter((a) => a.id.startsWith(pluginId))
 }
 
 // Find plugin modals starting with plugin id
 export const findPluginModalsByPluginId = (pluginId: string) => {
     if (typeof window === 'undefined') return []
 
-    return window.__TJ_PLUGIN_MODALS__.filter(m => m.id.startsWith(pluginId))
+    return window.__TJ_PLUGIN_MODALS__.filter((m) => m.id.startsWith(pluginId))
 }

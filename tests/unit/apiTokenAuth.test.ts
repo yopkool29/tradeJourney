@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apiTokenAuth, getApiDatabaseId, isApiTokenReadPath } from '../../server/utils/apiTokenAuth'
+import { getApiDatabaseId, isApiTokenReadPath, isApiTokenRequestAllowed } from '../../server/utils/apiTokenAuth'
 
 describe('API token authentication', () => {
 	it.each([
@@ -28,8 +28,11 @@ describe('API token authentication', () => {
 		expect(isApiTokenReadPath('/api/trades/42/screenshots')).toBe(false)
 	})
 
-	it('rejects API token authentication for write methods', async () => {
-		const event = { method: 'POST' } as Parameters<typeof apiTokenAuth>[0]
-		await expect(apiTokenAuth(event)).rejects.toMatchObject({ statusCode: 401 })
+	it('only allows the dedicated MCP journal write route', () => {
+		expect(isApiTokenRequestAllowed('POST', '/api/mcp/ai-journal')).toBe(true)
+		expect(isApiTokenRequestAllowed('POST', '/api/notes')).toBe(false)
+		expect(isApiTokenRequestAllowed('PATCH', '/api/notes/42')).toBe(false)
+		expect(isApiTokenRequestAllowed('DELETE', '/api/notes/42')).toBe(false)
 	})
+
 })

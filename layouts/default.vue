@@ -3,7 +3,7 @@
         <!-- Overlay sombre -->
         <div v-if="isNotesPanelOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeNotesPanel"></div>
         <!-- Bouton flottant pour ouvrir les notes -->
-        <div class="fixed left-1 top-10 z-40 sm:top-30">
+        <div class="fixed left-1 z-40" style="top: 30%; transform: translateY(-50%)">
             <UButton v-if="userStore.user && !isNotesPanelOpen && currentDatabase && !hideHeader"
                 class="shadow-lg rounded-full p-3" icon="i-heroicons-document-text" color="primary" size="lg"
                 @click="openNotesPanel">

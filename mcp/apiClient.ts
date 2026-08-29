@@ -7,6 +7,10 @@ type RequestOptions = {
 	query: Record<string, QueryValue>
 }
 
+type WriteRequestOptions = RequestOptions & {
+	body: unknown
+}
+
 export class PnlTrackerApiError extends Error {
 	readonly status: number | null
 
@@ -33,6 +37,18 @@ export class PnlTrackerApiClient {
 	}
 
 	async get(path: string, options: RequestOptions): Promise<unknown> {
+		return this.requestJson('GET', path, options)
+	}
+
+	async post(path: string, options: WriteRequestOptions): Promise<unknown> {
+		return this.requestJson('POST', path, options, options.body)
+	}
+
+	async delete(path: string, options: RequestOptions): Promise<unknown> {
+		return this.requestJson('DELETE', path, options)
+	}
+
+	private async requestJson(method: 'GET' | 'POST' | 'DELETE', path: string, options: RequestOptions, body?: unknown): Promise<unknown> {
 		const url = new URL(path, `${this.config.apiUrl}/`)
 		for (const [key, value] of Object.entries(options.query)) {
 			if (value !== undefined) url.searchParams.set(key, String(value))
@@ -42,12 +58,18 @@ export class PnlTrackerApiClient {
 			accept: 'application/json',
 			'x-api-token': this.config.apiToken,
 		})
+		if (body !== undefined) headers.set('content-type', 'application/json')
 		if (options.databaseId !== undefined) headers.set('x-database-id', String(options.databaseId))
 
 		const controller = new AbortController()
 		const timeout = setTimeout(() => controller.abort(), this.config.requestTimeoutMs)
 		try {
-			const response = await fetch(url, { headers, signal: controller.signal })
+			const response = await fetch(url, {
+				method,
+				headers,
+				body: body === undefined ? undefined : JSON.stringify(body),
+				signal: controller.signal,
+			})
 			if (!response.ok) throw new PnlTrackerApiError(getErrorMessage(response.status), response.status)
 
 			const contentType = response.headers.get('content-type') || ''

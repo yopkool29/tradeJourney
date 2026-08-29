@@ -11,6 +11,8 @@ let httpServer: Server
 let mcpServer: McpServer
 let client: Client
 let apiUrl: string
+let journalRequestCount = 0
+let journalRequestBody: unknown
 
 const respond = (response: import('node:http').ServerResponse, value: unknown) => {
 	response.writeHead(200, { 'content-type': 'application/json' })
@@ -44,6 +46,21 @@ describe('PnlTracker MCP tools', () => {
 	beforeAll(async () => {
 		httpServer = createServer((request, response) => {
 			expect(request.headers['x-api-token']).toBe('test-token')
+			if (request.url === '/api/mcp/ai-journal' && request.method === 'POST') {
+				expect(request.headers['x-database-id']).toBe('1')
+				expect(request.headers['content-type']).toBe('application/json')
+				const chunks: Buffer[] = []
+				request.on('data', chunk => chunks.push(Buffer.from(chunk)))
+				request.on('end', () => {
+					journalRequestCount++
+					journalRequestBody = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown
+					respond(response, {
+						success: true,
+						note: { id: 80, date: '1980-01-01T00:00:00.000Z', updatedAt: '2026-08-30T12:00:00.000Z' },
+					})
+				})
+				return
+			}
 			if (request.url === '/api/database/list') {
 				respond(response, [{ id: 1, name: 'main', displayName: 'Main', isDefault: true, schemaName: 'private' }])
 				return
@@ -93,9 +110,13 @@ describe('PnlTracker MCP tools', () => {
 		await new Promise<void>((resolve, reject) => httpServer.close(error => error ? reject(error) : resolve()))
 	})
 
-	it('advertises only the nine read-only tools', async () => {
+	it('advertises read tools and explicit AI journal controls', async () => {
 		const result = await client.listTools()
 		expect(result.tools.map(tool => tool.name)).toEqual([
+			'get_ai_journal_status',
+			'set_ai_journal_enabled',
+			'append_ai_journal',
+			'clear_ai_journal',
 			'list_databases',
 			'list_accounts',
 			'list_tags',
@@ -105,11 +126,35 @@ describe('PnlTracker MCP tools', () => {
 			'get_performance_summary',
 			'get_performance_breakdown',
 			'get_pnl_timeseries',
+			'get_note_image',
 		])
-		expect(result.tools.every(tool => tool.annotations?.readOnlyHint === true && tool.annotations?.destructiveHint === false)).toBe(true)
+		const appendTool = result.tools.find(tool => tool.name === 'append_ai_journal')
+		expect(appendTool?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: false, idempotentHint: false })
 		const notesTool = result.tools.find(tool => tool.name === 'list_daily_notes')
 		expect(notesTool?.inputSchema.required).toContain('database_id')
 		expect(notesTool?.inputSchema.properties).toHaveProperty('page_size')
+	})
+
+	it('enables AI journaling by default and honors session opt-out', async () => {
+		const initialStatus = await client.callTool({ name: 'get_ai_journal_status', arguments: {} })
+		expect(JSON.stringify(initialStatus)).toContain('"enabled":true')
+
+		await client.callTool({ name: 'set_ai_journal_enabled', arguments: { enabled: false } })
+		const skipped = await client.callTool({
+			name: 'append_ai_journal',
+			arguments: { database_id: 1, title: 'Skipped', content: 'Do not save' },
+		})
+		expect(JSON.stringify(skipped)).toContain('"saved":false')
+		expect(journalRequestCount).toBe(0)
+
+		await client.callTool({ name: 'set_ai_journal_enabled', arguments: { enabled: true } })
+		const saved = await client.callTool({
+			name: 'append_ai_journal',
+			arguments: { database_id: 1, title: 'NZDCAD review', content: '## Setup\n\nValid rejection.' },
+		})
+		expect(JSON.stringify(saved)).toContain('"note_id":80')
+		expect(journalRequestCount).toBe(1)
+		expect(journalRequestBody).toEqual({ title: 'NZDCAD review', content: '## Setup\n\nValid rejection.' })
 	})
 
 	it('allowlists metadata and only includes detailed notes in get_trade', async () => {

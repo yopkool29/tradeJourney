@@ -36,6 +36,13 @@ export const isApiTokenReadPath = (pathname: string): boolean => {
 	return apiTokenReadPaths.has(pathname) || /^\/api\/trades\/\d+$/.test(pathname)
 }
 
+export const isApiTokenRequestAllowed = (method: string, pathname: string): boolean => {
+	if (method === 'GET') return isApiTokenReadPath(pathname)
+	if (method === 'POST') return pathname === '/api/mcp/ai-journal'
+	if (method === 'DELETE') return pathname === '/api/mcp/ai-journal'
+	return false
+}
+
 export const getApiDatabaseId = (value: string): number => {
 	if (!/^\d+$/.test(value))
 		throw invalidDatabaseId()
@@ -48,7 +55,7 @@ export const getApiDatabaseId = (value: string): number => {
 }
 
 export const apiTokenAuth = async (event: H3Event): Promise<void> => {
-	if (event.method !== 'GET' || !isApiTokenReadPath(getRequestURL(event).pathname))
+	if (!isApiTokenRequestAllowed(event.method, getRequestURL(event).pathname))
 		throw unauthorized()
 
 	const token = getHeader(event, 'x-api-token')

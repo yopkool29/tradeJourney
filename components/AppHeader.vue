@@ -206,7 +206,8 @@
                 </div>
             </div>
             <div v-if="userStore.user && currentDatabase"
-                class="w-full flex items-center justify-between border-t border-default bg-elevated">
+                class="w-full flex items-center justify-between border-t border-default"
+                style="background: linear-gradient(to bottom, var(--ui-bg-elevated) 0%, var(--ui-bg) 100%)">
                 <div class="container mx-auto py-4 px-4 flex items-center gap-4">
                     <QuickNav v-if="userStore.user.settings_object?.showQuickNav" class="hidden lg:block" />
                     <NetGrossToggle v-model="userStore.displayModeNet" />

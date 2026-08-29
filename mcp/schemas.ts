@@ -79,8 +79,19 @@ export const TimeseriesInputSchema = AnalyticsInputSchema.extend({
 }).strict()
 
 export const GetNoteImageInputSchema = DatabaseInputSchema.extend({
-	image_path: z.string().min(1).max(500).regex(/^screenshots\/[a-zA-Z0-9_\-]+\.(png|jpg|jpeg|gif|webp|svg)$/i),
+	image_path: z.string().min(1).max(500).regex(/^screenshots\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg)$/i),
 }).strict()
+
+export const SetAiJournalEnabledInputSchema = z.object({
+	enabled: z.boolean(),
+}).strict()
+
+export const AppendAiJournalInputSchema = DatabaseInputSchema.extend({
+	title: z.string().trim().min(1).max(200).optional(),
+	content: z.string().trim().min(1).max(50_000),
+}).strict()
+
+export const ClearAiJournalInputSchema = DatabaseInputSchema.strict()
 
 export type PnlMode = z.output<typeof PnlModeSchema>
 export type TradeFilters = z.output<typeof TradeFiltersSchema>

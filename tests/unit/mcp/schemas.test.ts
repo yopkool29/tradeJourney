@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ListDailyNotesInputSchema, SearchTradesInputSchema, TradeFiltersSchema } from '~/mcp/schemas'
+import { AppendAiJournalInputSchema, ListDailyNotesInputSchema, SearchTradesInputSchema, SetAiJournalEnabledInputSchema, TradeFiltersSchema } from '~/mcp/schemas'
 
 describe('MCP input schemas', () => {
 	it('applies bounded search defaults', () => {
@@ -35,5 +35,16 @@ describe('MCP input schemas', () => {
 
 	it('rejects unknown filter fields', () => {
 		expect(() => TradeFiltersSchema.parse({ sql: 'select * from users' })).toThrow()
+	})
+
+	it('validates bounded AI journal controls and content', () => {
+		expect(SetAiJournalEnabledInputSchema.parse({ enabled: false })).toEqual({ enabled: false })
+		expect(AppendAiJournalInputSchema.parse({ database_id: 2, title: 'Review', content: 'Analysis' })).toEqual({
+			database_id: 2,
+			title: 'Review',
+			content: 'Analysis',
+		})
+		expect(() => AppendAiJournalInputSchema.parse({ database_id: 2, title: '', content: 'Analysis' })).toThrow()
+		expect(() => AppendAiJournalInputSchema.parse({ database_id: 2, title: 'Review', content: 'x'.repeat(50_001) })).toThrow()
 	})
 })
