@@ -185,13 +185,13 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	let aiJournalEnabled = true
 
 	server.registerTool('get_ai_journal_status', {
-		description: 'Return whether automatic AI trading-analysis journaling is enabled for this MCP process. It is enabled by default after every restart.',
+		description: 'Check if AI analysis journaling is enabled. Call this first if you are unsure whether to append results to the journal. Returns { enabled: boolean }. Enabled by default after every MCP restart.',
 		inputSchema: z.object({}).strict(),
 		annotations: toolAnnotations,
 	}, async () => withErrorBoundary(async () => ({ enabled: aiJournalEnabled })))
 
 	server.registerTool('set_ai_journal_enabled', {
-		description: 'Enable or disable automatic AI trading-analysis journaling for this MCP process. The setting resets to enabled when the MCP restarts.',
+		description: 'Enable or disable AI analysis journaling for this MCP process. When disabled, append_ai_journal will refuse to save. Resets to enabled on MCP restart. Use this when the user asks to stop or resume automatic journaling.',
 		inputSchema: SetAiJournalEnabledInputSchema,
 		annotations: stateToolAnnotations,
 	}, async ({ enabled }) => withErrorBoundary(async () => {
@@ -200,7 +200,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('append_ai_journal', {
-		description: 'Append a user-requested PnlTracker result as Markdown to the reserved MCP journal note. Call this automatically after counts, metrics, summaries, comparisons, and trading analyses when journaling is enabled; do not call it for technical or conversational responses.',
+		description: 'Append a trading analysis as Markdown to the reserved AI journal note in a specific database. Call this AFTER you have queried trades or metrics and produced a user-requested analysis (counts, summaries, comparisons, performance reviews). Do NOT call this for technical or conversational responses. The content should be formatted Markdown (tables, lists, headers). The title is optional. Always use the same database_id as the analysis. The note is identified by the reserved date 1980-01-01 and displayed as "Analyse IA" in the PnlTracker UI.',
 		inputSchema: AppendAiJournalInputSchema,
 		annotations: appendToolAnnotations,
 	}, async ({ database_id, title, content }) => withErrorBoundary(async () => {
@@ -222,7 +222,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('clear_ai_journal', {
-		description: 'Delete the reserved MCP AI journal note from one authorized PnlTracker database. This removes all appended AI analyses for that database.',
+		description: 'Delete the AI journal note from one database. This permanently removes ALL appended AI analyses for that database_id. Use this when the user asks to clear or reset the AI journal. A new empty note will be recreated on the next append_ai_journal call.',
 		inputSchema: ClearAiJournalInputSchema,
 		annotations: {
 			readOnlyHint: false,
@@ -239,7 +239,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('list_databases', {
-		description: 'List the PnlTracker trading databases available to the authenticated user.',
+		description: 'List all trading databases accessible to the authenticated user. Call this FIRST to discover available database_id values, which are required by most other tools. Returns each database with its id, name, display_name, and is_default flag.',
 		inputSchema: z.object({}).strict(),
 		annotations: toolAnnotations,
 	}, async () => withErrorBoundary(async () => {
@@ -256,7 +256,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('list_accounts', {
-		description: 'List trading accounts in one authorized PnlTracker database.',
+		description: 'List trading accounts (e.g. MT5/TradingView) in one database. Use the account_ids from the result to filter trades in search_trades or analytics tools.',
 		inputSchema: DatabaseInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id }) => withErrorBoundary(async () => {
@@ -273,7 +273,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('list_tags', {
-		description: 'List tag groups and tags in one authorized PnlTracker database.',
+		description: 'List tag groups and tags in one database. Tags are organized in groups (e.g. strategy, timeframe, exit type). Use tag_ids from the result to filter trades in search_trades. Useful for auditing whether trades are properly tagged.',
 		inputSchema: DatabaseInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id }) => withErrorBoundary(async () => {
@@ -289,7 +289,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('list_daily_notes', {
-		description: 'List global daily journal notes in one authorized PnlTracker database with optional date filters and bounded pagination.',
+		description: 'List daily journal notes in one database with optional date filters. Notes contain trader commentary and may reference screenshot images. Use date_from/date_to to narrow the range. The AI journal note (date 1980-01-01) is excluded from this list.',
 		inputSchema: ListDailyNotesInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, date_from, date_to, page, page_size }) => withErrorBoundary(async () => {
@@ -312,7 +312,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('search_trades', {
-		description: 'Search active closed trades with bounded filters and pagination. Risk/reward and option metadata are included; notes and screenshots are excluded.',
+		description: 'Search closed trades in one database with filters: date range (date_field: openDate or closeDate, default closeDate), symbols, account_ids, tag_ids, sides (buy/sell), instrument_types (stock/future/forex/option/crypto/any), pnl_min/pnl_max. Use pnl_mode "net" (default) or "gross". Returns trades with P&L, prices, lot size, commission, exchange, MAE/MFE, tags, and risk/reward. Use page_size up to 200 for large result sets. For performance metrics (win rate, profit factor, Sharpe, etc.) use get_performance_summary instead of computing from raw trades.',
 		inputSchema: SearchTradesInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, filters, pnl_mode, page, page_size }) => withErrorBoundary(async () => {
@@ -335,7 +335,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('get_trade', {
-		description: 'Get one active closed trade with allowlisted risk/reward, option metadata and its detailed note.',
+		description: 'Get a single trade by ID with full details including its attached note text. Use this when the user asks about a specific trade or when you need the trade commentary that search_trades does not include.',
 		inputSchema: GetTradeInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, trade_id }) => withErrorBoundary(async () => {
@@ -344,7 +344,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('get_performance_summary', {
-		description: 'Calculate an authoritative PnlTracker performance summary for filtered trades.',
+		description: 'Get authoritative performance metrics for filtered trades: P&L, win rate, profit factor, Sharpe, Sortino, Calmar, max drawdown, max run-up, R-multiples (total R, average R, profit factor R, P/L ratio R), winning/losing streaks, expectancy, recovery factor, ulcer index, SQN. Use pnl_mode "net" (default) or "gross". PREFER this tool over manually computing metrics from search_trades results. Use filters to scope by date, symbol, account, or tags.',
 		inputSchema: AnalyticsInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, filters, pnl_mode }) => withErrorBoundary(async () => {
@@ -356,7 +356,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('get_performance_breakdown', {
-		description: 'Break down PnlTracker performance by symbol, account, side, tag or a time dimension.',
+		description: 'Break down performance by a dimension: "symbol", "account", "side", "tag", "month", "weekday", "open_hour". Returns per-group metrics (P&L, win rate, profit factor, streaks, etc.). Use pnl_mode "net" (default) or "gross". Useful for comparing which symbols, tags, sides, or time periods are most profitable.',
 		inputSchema: BreakdownInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, filters, pnl_mode, dimension }) => withErrorBoundary(async () => {
@@ -368,7 +368,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('get_pnl_timeseries', {
-		description: 'Get periodic and cumulative P&L for filtered PnlTracker trades.',
+		description: 'Get periodic and cumulative P&L time series for filtered trades. Interval: "day", "week", "month", or "year". Use pnl_mode "net" (default) or "gross". Returns P&L per period and cumulative totals. Useful for visualizing equity curve progression and identifying drawdown/recovery periods.',
 		inputSchema: TimeseriesInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, filters, pnl_mode, interval }) => withErrorBoundary(async () => {
@@ -380,7 +380,7 @@ export const registerTools = (server: McpServer, api: PnlTrackerApiClient) => {
 	}))
 
 	server.registerTool('get_note_image', {
-		description: 'Fetch a screenshot image attached to a PnlTracker note. Returns the image as base64 with its MIME type. The image_path must match the path found in note content (e.g. screenshots/nt_12_xxx.png).',
+		description: 'Fetch a screenshot image attached to a trade or daily note. Returns base64-encoded image data with MIME type. The image_path must match a path found in note content (e.g. "screenshots/nt_12_xxx.png"). Use this when the user asks to see a chart screenshot or trade visual.',
 		inputSchema: GetNoteImageInputSchema,
 		annotations: toolAnnotations,
 	}, async ({ database_id, image_path }) => {
