@@ -56,6 +56,8 @@ const rows = computed<StatsRow[]>(() => [
 	// R-multiple metrics (affichés seulement si au moins un trade a un R calculable)
 	{ label: 'components.dashboard.all_trades.total_r', value: result.value.totalR, format: 'rMultiple', valueClass: rValueClass(result.value.totalR), borderTop: true, condition: result.value.tradesWithRMultiple > 0 },
 	{ label: 'components.dashboard.all_trades.appt_r', value: result.value.apptR, format: 'rMultiple', valueClass: rValueClass(result.value.apptR), condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.all_trades.profit_factor_r', value: result.value.profitFactorR, format: 'decimal2', condition: result.value.tradesWithRMultiple > 0 },
+	{ label: 'components.dashboard.all_trades.pl_ratio_r', value: result.value.plRatioR, format: 'decimal2', condition: result.value.tradesWithRMultiple > 0 },
 	// Indicateur de fiabilité du R-multiple (label coloré + coverage)
 	{ label: 'components.dashboard.all_trades.reliability_label', displayValue: reliabilityDisplay.value, valueClass: reliabilityClass.value, condition: result.value.tradesWithRMultiple > 0 },
 ])
