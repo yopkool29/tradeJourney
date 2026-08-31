@@ -1472,10 +1472,20 @@ export default {
                     placeholder: 'e.g.: 0.1',
                 },
                 profit: {
-                    label: 'Profit',
-                    help: 'Profit/loss (in base currency)',
-                    subhelp: 'Amount won or lost on this position',
+                    label: 'Gross Profit',
+                    help: 'Gross profit/loss (in base currency)',
+                    subhelp: 'Amount won or lost on this position, excluding commission',
                     placeholder: 'e.g.: 10.50',
+                },
+                commission: {
+                    label: 'Commission',
+                    help: 'Commission and fees (in base currency)',
+                    subhelp: 'Enter a negative value (e.g.: -2.50)',
+                    placeholder: 'e.g.: -2.50',
+                },
+                netProfit: {
+                    label: 'Net Profit',
+                    subhelp: 'Gross profit + commission + exchange (auto-calculated)',
                 },
                 stopLoss: {
                     label: 'Stop Loss',

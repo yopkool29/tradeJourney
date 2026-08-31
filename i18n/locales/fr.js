@@ -1490,10 +1490,20 @@ export default {
                     placeholder: 'ex: 0.1',
                 },
                 profit: {
-                    label: 'Profit',
-                    help: 'Profit/perte (en devise de base)',
-                    subhelp: 'Montant gagné ou perdu sur cette position',
+                    label: 'Profit Brut',
+                    help: 'Profit/perte brut (en devise de base)',
+                    subhelp: 'Montant gagné ou perdu sur cette position, hors commission',
                     placeholder: 'ex: 10.50',
+                },
+                commission: {
+                    label: 'Commission',
+                    help: 'Commission et frais (en devise de base)',
+                    subhelp: 'Saisir une valeur négative (ex: -2.50)',
+                    placeholder: 'ex: -2.50',
+                },
+                netProfit: {
+                    label: 'Profit Net',
+                    subhelp: 'Profit brut + commission + exchange (calculé automatiquement)',
                 },
                 stopLoss: {
                     label: 'Stop Loss',

@@ -135,6 +135,34 @@
                             />
                             <div class="field-help-text">{{ $t('components.trade.formModal.profit.subhelp') }}</div>
                         </UFormField>
+                        <UFormField
+                            :label="$t('components.trade.formModal.commission.label')"
+                            name="commission"
+                            :help="$t('components.trade.formModal.commission.help')"
+                            class="text-base"
+                        >
+                            <UInput
+                                v-model="newState.commission"
+                                type="number"
+                                step="0.01"
+                                :placeholder="$t('components.trade.formModal.commission.placeholder')"
+                                size="lg"
+                            />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.commission.subhelp') }}</div>
+                        </UFormField>
+                        <UFormField
+                            :label="$t('components.trade.formModal.netProfit.label')"
+                            name="netProfit"
+                            class="text-base"
+                        >
+                            <UInput
+                                :model-value="netProfitDisplay"
+                                readonly
+                                size="lg"
+                                :ui="{ base: 'bg-elevated cursor-not-allowed' }"
+                            />
+                            <div class="field-help-text">{{ $t('components.trade.formModal.netProfit.subhelp') }}</div>
+                        </UFormField>
                         <UFormField :label="$t('components.trade.formModal.stopLoss.label')" name="stopLoss" class="text-base">
                             <UInput
                                 v-model="newState.stopLoss"
@@ -263,13 +291,23 @@ watch(
     { immediate: true }
 )
 
-// Synchroniser netProfit avec profit pour les trades manuels (commission = 0)
+// Profit net = profit brut + commission (la commission est négative)
+const netProfitDisplay = computed(() => {
+    const profit = Number(newState.value.profit) || 0
+    const commission = Number(newState.value.commission) || 0
+    const exchange = Number(newState.value.exchange) || 0
+    return (profit + commission + exchange).toFixed(2)
+})
+
+// Synchroniser netProfit avec profit + commission
 watch(
-    () => newState.value.profit,
-    (profit) => {
-        if (newState.value.commission === 0) {
-            newState.value.netProfit = profit
-        }
-    }
+    [() => newState.value.profit, () => newState.value.commission, () => newState.value.exchange],
+    () => {
+        const profit = Number(newState.value.profit) || 0
+        const commission = Number(newState.value.commission) || 0
+        const exchange = Number(newState.value.exchange) || 0
+        newState.value.netProfit = profit + commission + exchange
+    },
+    { immediate: true }
 )
 </script>

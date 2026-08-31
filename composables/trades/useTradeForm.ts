@@ -126,6 +126,13 @@ export const useTradeForm = (emit: (event: 'saved') => void) => {
 	async function onSubmit(event: FormSubmitEvent<CreateTradeType | UpdateTradeType>) {
 		isLoading.value = true
 		try {
+			// Recalculer netProfit à partir du profit brut + commission + exchange
+			// pour garantir la cohérence à la sauvegarde
+			const profit = Number(event.data.profit) || 0
+			const commission = Number(event.data.commission) || 0
+			const exchange = Number(event.data.exchange) || 0
+			event.data.netProfit = profit + commission + exchange
+
 			let saved: TradeType
 			if ('id' in event.data && event.data.id) {
 				const existingScreenshotsToKeep = prepareForUpdate()
