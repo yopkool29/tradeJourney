@@ -52,6 +52,9 @@ const notesPanelRef = ref<InstanceType<typeof NotesPanel> | null>(null)
 const { warning: toastWarning } = useAppToast()
 const { t } = useI18n()
 
+// Intercepter les liens externes en mode Tauri
+useExternalLinks()
+
 const isNotesPanelOpen = ref(false)
 const selectedDate = ref(new Date())
 const { currentDatabase } = useDatabase()

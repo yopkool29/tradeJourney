@@ -20,6 +20,7 @@ pub fn run() {
     enable_gpu_acceleration();
 
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
