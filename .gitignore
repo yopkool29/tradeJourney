@@ -6,6 +6,7 @@
 .nitro
 .cache
 dist
+/src-tauri/runtime
 
 # Node dependencies
 node_modules

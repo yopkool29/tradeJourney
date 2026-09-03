@@ -64,6 +64,16 @@ npm install
 npm run dev
 ```
 
+### Desktop development (Tauri/Linux)
+
+The desktop development wrapper reuses the existing Nuxt/Nitro server and an external PostgreSQL instance. Start PostgreSQL as above, configure `.env`, then run:
+
+```bash
+pnpm tauri:dev
+```
+
+This opens PnlTracker in a Tauri WebView while keeping the site available on port `3003` for the local MCP server. The existing web and Docker commands are unchanged. Production desktop packaging and embedded PostgreSQL are not enabled yet.
+
 > 📖 For detailed installation guides (manual setup, environment variables, troubleshooting), see the [documentation](https://doc.pnltracker.app/en/getting-started/installation)
 
 ### 🔑 Default Login

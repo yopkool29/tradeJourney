@@ -1,5 +1,11 @@
 <template>
-    <div class="h-screen flex flex-col relative overflow-y-auto">
+    <div class="h-screen flex flex-col relative">
+        <!-- Bordures de redimensionnement (Tauri desktop only) -->
+        <ResizeBorders />
+        <!-- Custom titlebar pour Tauri desktop (Linux) - fixé en haut -->
+        <DesktopTitlebar />
+        <!-- Contenu scrollable sous le titlebar -->
+        <div class="flex flex-col flex-1 overflow-y-auto">
         <!-- Overlay sombre -->
         <div v-if="isNotesPanelOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeNotesPanel"></div>
         <!-- Bouton flottant pour ouvrir les notes -->
@@ -34,6 +40,7 @@
                 @close="closeNotesPanel" @update:is-open="(val: boolean) => (isNotesPanelOpen = val)"
                 @update:selected-date="(date: Date) => (selectedDate = new Date(date))" />
         </div>
+        </div><!-- fin conteneur scrollable -->
     </div>
 </template>
 

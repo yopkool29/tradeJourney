@@ -29,6 +29,7 @@
                             class="w-full"
                             placeholder="example@domain.com"
                             icon="i-heroicons-envelope"
+                            autocomplete="email"
                         />
                     </UFormField>
 
@@ -39,6 +40,7 @@
                             class="w-full"
                             :placeholder="$t('pages.login.password.placeholder')"
                             icon="i-heroicons-lock-closed"
+                            autocomplete="current-password"
                         />
                     </UFormField>
                 </UForm>
@@ -90,6 +92,11 @@ const newState = ref<UserType>(getDefault())
 onMounted(() => {
     const { stopLoading } = useGlobalLoading()
     stopLoading()
+    // Pré-remplir l'email depuis localStorage
+    if (import.meta.client) {
+        const savedEmail = localStorage.getItem('pnltracker_login_email')
+        if (savedEmail) newState.value.email = savedEmail
+    }
     mounted.value = true
 })
 
@@ -102,6 +109,11 @@ async function onSubmit(event: FormSubmitEvent<UserType>) {
         auth_display.value = false
 
         await login({ email: event.data.email, password: event.data.password })
+
+        // Sauvegarder l'email pour pré-remplir au prochain login
+        if (import.meta.client) {
+            localStorage.setItem('pnltracker_login_email', event.data.email)
+        }
 
         if (resetOnLogin.value) {
             const dbStateStore = useDbStateStore()

@@ -40,11 +40,13 @@ export default defineEventHandler(async (event) => {
         )
 
         // Définir le cookie avec options de sécurité
+        // En mode desktop (Tauri), on est en HTTP localhost donc secure doit être désactivé
+        const isDesktop = process.env.PNLTRACKER_DESKTOP === 'true'
         setCookie(event, 'token', token, {
             httpOnly: true,
             path: '/',
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: process.env.NODE_ENV === 'production' && !isDesktop,
+            sameSite: isDesktop ? 'lax' : 'strict'
         })
 
         return {

@@ -1,0 +1,31 @@
+{
+  "build": {
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "PnlTracker",
+        "url": "loading.html",
+        "width": 480,
+        "height": 320,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": false,
+        "decorations": false,
+        "center": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "deb",
+      "appimage"
+    ],
+    "resources": [
+      "runtime"
+    ]
+  }
+}

@@ -99,7 +99,7 @@
                             <div
                                 v-for="(day, dayIndex) in week.days"
                                 :key="dayIndex"
-                                class="border rounded px-2 py-0 min-h-[100px] transition-all cursor-pointer hover:shadow-lg hover:scale-105"
+                                class="border rounded px-2 py-0 min-h-[100px] cursor-pointer"
                                 :class="{
                                     'calendar-day-positive': day.pnl > 0,
                                     'calendar-day-negative': day.pnl < 0,
@@ -113,7 +113,7 @@
 
                             <!-- Total de la semaine -->
                             <div
-                                class="border rounded p-2 min-h-[100px] flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-lg"
+                                class="border rounded p-2 min-h-[100px] flex flex-col items-center justify-center cursor-pointer"
                                 :class="{
                                     'calendar-day-positive': week.total > 0,
                                     'calendar-day-negative': week.total < 0,

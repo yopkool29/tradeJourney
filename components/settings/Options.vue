@@ -311,6 +311,32 @@
                         </div>
                     </fieldset>
 
+                    <!-- Section MCP -->
+                    <fieldset class="border border-default rounded-lg p-4 space-y-4">
+                        <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.mcp_section') }}</legend>
+                        <div v-if="mcpPending" class="flex items-center gap-2 text-secondary">
+                            <UIcon name="i-lucide-loader-circle" class="animate-spin" />
+                            {{ $t('common.actions.loading') }}
+                        </div>
+                        <div v-else-if="mcpError" class="text-sm text-secondary">
+                            {{ $t('components.settings.options.mcp_unavailable') }}
+                        </div>
+                        <div v-else-if="mcpInfo" class="space-y-2">
+                            <p class="text-sm text-secondary">{{ $t('components.settings.options.mcp_desc') }}</p>
+                            <UFormField :label="$t('components.settings.options.mcp_port')">
+                                <div class="flex gap-2">
+                                    <UInput :model-value="mcpInfo.apiUrl" readonly class="flex-1 font-mono" />
+                                    <UButton
+                                        color="neutral"
+                                        variant="soft"
+                                        icon="i-lucide-copy"
+                                        @click="copyToClipboard(mcpInfo.apiUrl)"
+                                    />
+                                </div>
+                            </UFormField>
+                        </div>
+                    </fieldset>
+
                     <!-- Section API NinjaTrader -->
                     <!-- <div class="section-separator">
                         <h3 class="section-subtitle-lg">{{ $t('components.settings.options.ninja_api_section') }}</h3>
@@ -506,6 +532,7 @@
                         </div>
                     </fieldset>
                 </div>
+
                 <div class="flex action-buttons mt-8">
                     <UButton :label="$t('common.actions.back')" icon="i-heroicons-arrow-left" color="primary" variant="link" @click="goBack" />
                     <UButton type="button" color="neutral" @click="resetSettings">{{ $t('common.actions.reset') }}</UButton>
@@ -525,6 +552,14 @@ import { buildSettingsFormState, buildResetSettings } from '~/composables/settin
 const { success: toastSuccess } = useAppToast()
 const { updateSettings } = useAuth()
 const userStore = useUserStore()
+
+type McpInfo = {
+	apiUrl: string
+	token: string
+	instructions: string
+}
+
+const { data: mcpInfo, pending: mcpPending, error: mcpError } = await useFetch<McpInfo>('/api/mcp/info')
 const { log_error } = useLogView()
 const { t } = useI18n()
 const { goBack } = useQuickNav()

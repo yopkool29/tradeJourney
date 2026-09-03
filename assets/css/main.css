@@ -31,13 +31,11 @@ html.dark {
 
 body {
     background: linear-gradient(to bottom, #f1f1f1, #e0e0e0);
-    background-attachment: fixed;
     min-height: 100vh;
 }
 
 .dark body {
     background: linear-gradient(to bottom, #1f1f1f, #16161f);
-    background-attachment: fixed;
 }
 
 .dark {
@@ -445,7 +443,7 @@ select {
 
 /* Calendar cell states */
 .calendar-cell-positive {
-    @apply border-green-500 dark:border-green-600 shadow-sm hover:shadow-md dark:hover:shadow-green-900/50 transition-all;
+    @apply border-green-500 dark:border-green-600;
     background: linear-gradient(to bottom right, rgb(220, 252, 231), rgb(187, 247, 208));
 }
 
@@ -462,7 +460,7 @@ select {
 }
 
 .calendar-cell-negative {
-    @apply border-red-500 dark:border-red-600 shadow-sm hover:shadow-md dark:hover:shadow-red-900/50 transition-all;
+    @apply border-red-500 dark:border-red-600;
     background: linear-gradient(to bottom right, rgb(254, 226, 226), rgb(254, 202, 202));
 }
 
@@ -479,7 +477,7 @@ select {
 }
 
 .calendar-cell-neutral {
-    @apply border-accented shadow-sm hover:shadow-md transition-all;
+    @apply border-accented;
     background: linear-gradient(to bottom right, rgb(249, 250, 251), rgb(229, 231, 235));
 }
 
@@ -497,7 +495,7 @@ select {
 
 /* Calendar day cell states (lighter version for individual days) */
 .calendar-day-positive {
-    @apply border-green-400 dark:border-green-700 shadow-sm hover:shadow transition-all;
+    @apply border-green-400 dark:border-green-700;
     background: linear-gradient(to bottom right, rgb(240, 253, 244), rgb(220, 252, 231));
 }
 
@@ -514,7 +512,7 @@ select {
 }
 
 .calendar-day-negative {
-    @apply border-red-400 dark:border-red-700 shadow-sm hover:shadow transition-all;
+    @apply border-red-400 dark:border-red-700;
     background: linear-gradient(to bottom right, rgb(254, 242, 242), rgb(254, 226, 226));
 }
 
@@ -531,7 +529,7 @@ select {
 }
 
 .calendar-day-neutral {
-    @apply border-default shadow-sm hover:shadow transition-all;
+    @apply border-default;
     background: linear-gradient(to bottom right, rgb(255, 255, 255), rgb(243, 244, 246));
 }
 
