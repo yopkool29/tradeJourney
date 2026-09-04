@@ -41,6 +41,11 @@
     ],
     "resources": [
       "runtime"
-    ]
+    ],
+    "linux": {
+      "deb": {
+        "desktopTemplate": "desktop-template.desktop"
+      }
+    }
   }
 }

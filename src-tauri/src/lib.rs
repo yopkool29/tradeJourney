@@ -1,16 +1,17 @@
 #[cfg(all(not(debug_assertions), feature = "desktop-production"))]
 mod desktop;
 
-// Active l'accélération GPU dans WebKitGTK pour des transitions plus fluides
+// Workarounds WebKitGTK sur NVIDIA (voir tauri-apps/tauri#9394)
+// Sur NVIDIA, le DMABUF renderer peut causer des fenêtres blanches ou des crashes
 #[cfg(target_os = "linux")]
 fn enable_gpu_acceleration() {
-    // Forcer le compositing GPU plutôt que le compositing logiciel
-    if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "0");
-    }
-    // Activer le renderer DMA-BUF pour de meilleures performances GPU
+    // Désactiver le DMABUF renderer (problématique sur NVIDIA)
     if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "0");
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+    // Fixer le crash Wayland Error 71 sur NVIDIA
+    if std::env::var("__NV_DISABLE_EXPLICIT_SYNC").is_err() {
+        std::env::set_var("__NV_DISABLE_EXPLICIT_SYNC", "1");
     }
 }
 
@@ -21,6 +22,14 @@ pub fn run() {
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            // Focus la fenêtre existante si on tente de relancer l'app
+            use tauri::Manager;
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

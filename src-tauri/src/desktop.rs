@@ -225,12 +225,31 @@ fn random_secret(byte_count: usize) -> DesktopResult<String> {
 fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<PostgreSQL> {
     let postgres_dir = data_dir.join("postgres");
     let data_dir_pg = postgres_dir.join("data");
-    // Nettoyer un éventuel postmaster.pid stale laissé par un arrêt brutal
+    // Nettoyer un postmaster.pid stale seulement si le process correspondant est mort
     let postmaster_pid = data_dir_pg.join("postmaster.pid");
     if postmaster_pid.exists() {
-        let _ = fs::remove_file(&postmaster_pid);
+        let should_remove = match fs::read_to_string(&postmaster_pid) {
+            Ok(content) => {
+                // La première ligne du postmaster.pid contient le PID
+                let pid = content.lines().next().and_then(|line| line.parse::<i32>().ok());
+                match pid {
+                    Some(pid) => {
+                        // kill(pid, 0) renvoie 0 si le process existe, Err sinon
+                        // On ne supprime le fichier que si le process est mort
+                        unsafe { libc::kill(pid, 0) != 0 }
+                    },
+                    None => true, // PID illisible, on supprime
+                }
+            },
+            Err(_) => true, // Fichier illisible, on supprime
+        };
+        if should_remove {
+            let _ = fs::remove_file(&postmaster_pid);
+        }
     }
     let mut settings = Settings::default();
+    // Pin PostgreSQL 16.15 pour éviter les incompatibilités de version au démarrage
+    settings.version = postgresql_embedded::VersionReq::parse("16.15.0")?;
     settings.installation_dir = postgres_dir.join("install");
     settings.data_dir = data_dir_pg;
     settings.password_file = postgres_dir.join("password");

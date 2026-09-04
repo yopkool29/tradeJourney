@@ -29,3 +29,5 @@ tauri-plugin-log = "2"
 postgresql_embedded = { version = "0.21.0", features = ["blocking", "bundled"], optional = true }
 getrandom = { version = "0.3.4", optional = true }
 tauri-plugin-shell = "2.3.6"
+tauri-plugin-single-instance = "2.4.4"
+libc = "0.2.189"
