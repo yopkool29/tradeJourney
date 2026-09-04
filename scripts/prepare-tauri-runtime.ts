@@ -70,18 +70,21 @@ const prepareNode = async () => {
 
 const preparePostgres = async () => {
 	if (!isWindows) return
-	// Télécharger PostgreSQL portable pour Windows via curl (streaming, plus fiable que fetch pour 333MB)
+	// Télécharger PostgreSQL portable pour Windows via Invoke-WebRequest (PowerShell natif)
 	const pgUrl = 'https://get.enterprisedb.com/postgresql/postgresql-16.15-3-windows-x64-binaries.zip'
 	const pgArchivePath = join(cacheDir, 'pg-windows.zip')
 	const pgExtractedDir = join(cacheDir, 'pgsql')
 	const pgInstallDir = join(runtimeDir, 'app', 'postgres', 'install')
 	if (!await fileExists(pgArchivePath)) {
 		await mkdir(cacheDir, { recursive: true })
-		// curl gère les redirects et le streaming efficacement
-		await execFileAsync('curl', ['-L', '-o', pgArchivePath, pgUrl])
+		// Invoke-WebRequest gère les redirects et le streaming nativement sur Windows
+		await execFileAsync('powershell', [
+			'-NoProfile', '-Command',
+			`Invoke-WebRequest -Uri '${pgUrl}' -OutFile '${pgArchivePath}' -UseBasicParsing`,
+		])
 	}
 	await rm(pgExtractedDir, { recursive: true, force: true })
-	await execFileAsync('powershell', ['-Command', `Expand-Archive -Path "${pgArchivePath}" -DestinationPath "${cacheDir}" -Force`])
+	await execFileAsync('powershell', ['-NoProfile', '-Command', `Expand-Archive -Path "${pgArchivePath}" -DestinationPath "${cacheDir}" -Force`])
 	// L'archive extrait un dossier pgsql/ — copier vers le runtime
 	await mkdir(pgInstallDir, { recursive: true })
 	await cp(join(pgExtractedDir, 'bin'), join(pgInstallDir, 'bin'), { recursive: true })
