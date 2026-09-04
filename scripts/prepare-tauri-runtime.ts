@@ -12,7 +12,6 @@ type TauriConfig = {
 
 const execFileAsync = promisify(execFile)
 const nodeVersion = '22.23.2'
-const pgVersion = '16.15.0'
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const tauriConfig = JSON.parse(await readFile(join(rootDir, 'src-tauri', 'tauri.conf.json'), 'utf8')) as TauriConfig
 const cacheDir = join(rootDir, '.cache', 'tauri')
