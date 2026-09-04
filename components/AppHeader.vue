@@ -1,12 +1,14 @@
 <template>
     <header v-show="!hideHeader"
-        class="w-full shadow bg-default text-default select-none">
+        class="w-full shadow text-default select-none sticky top-0 z-40 transition-all duration-200"
+        :class="scrolled ? (isTauriLinux ? 'bg-default' : 'bg-default/80 backdrop-blur-md') : 'bg-default'">
         <div>
-            <div class="container mx-auto flex justify-between items-center py-4 px-4">
+            <div class="container mx-auto flex justify-between items-center px-4 transition-all duration-200"
+                :class="scrolled ? 'py-1.5' : 'py-4'">
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
                         <NuxtLink to="/" class="relative">
-                            <AppLogo :width="150" />
+                            <AppLogo :width="scrolled ? 100 : 150" class="transition-all duration-200" />
                             <span v-if="isDevMode"
                                 class="absolute -bottom-3 -right-1 text-[10px] font-bold text-blue-500 dark:text-red-500 uppercase tracking-wide">
                                 dev
@@ -18,44 +20,44 @@
                         class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-all duration-200 ease-out hover:scale-105 focus-visible:scale-105 cursor-pointer"
                         @click="navigateTo('/select-database')">
                         <UIcon name="i-heroicons-circle-stack" class="w-4 h-4 text-primary" />
-                        <span class="text-sm font-medium text-primary">{{
+                        <span v-if="!scrolled" class="text-sm font-medium text-primary">{{
                             currentDatabase.displayName }}</span>
                     </button>
                     <nav v-if="userStore.user && currentDatabase" class="hidden lg:flex w-full items-center gap-x-2">
                         <NuxtLink :to="menuItems[0].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[0].label">
                             <UIcon :name="menuItems[0].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium hidden xl:inline">{{ menuItems[0].label }}</span>
+                            <span v-if="!scrolled" class="font-medium hidden xl:inline">{{ menuItems[0].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[1].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[1].label">
                             <UIcon :name="menuItems[1].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium hidden xl:inline">{{ menuItems[1].label }}</span>
+                            <span v-if="!scrolled" class="font-medium hidden xl:inline">{{ menuItems[1].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[2].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[2].label">
                             <UIcon :name="menuItems[2].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium hidden xl:inline">{{ menuItems[2].label }}</span>
+                            <span v-if="!scrolled" class="font-medium hidden xl:inline">{{ menuItems[2].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[3].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[3].label">
                             <UIcon :name="menuItems[3].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium hidden xl:inline">{{ menuItems[3].label }}</span>
+                            <span v-if="!scrolled" class="font-medium hidden xl:inline">{{ menuItems[3].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[4].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[4].label">
                             <UIcon :name="menuItems[4].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[4].label }}</span>
+                            <span v-if="!scrolled" class="font-medium">{{ menuItems[4].label }}</span>
                         </NuxtLink>
                         <NuxtLink :to="menuItems[5].to" class="header-desktop-link"
-                            active-class="header-desktop-link-active">
+                            active-class="header-desktop-link-active" :title="menuItems[5].label">
                             <UIcon :name="menuItems[5].icon" class="header-icon mb-1 transition-colors" />
-                            <span class="font-medium">{{ menuItems[5].label }}</span>
+                            <span v-if="!scrolled" class="font-medium">{{ menuItems[5].label }}</span>
                         </NuxtLink>
                         <div v-if="displayLog">
-                            <button class="header-desktop-link cursor-pointer" @click.prevent="onLogActivity()">
+                            <button class="header-desktop-link cursor-pointer" :title="menuItems[7].label" @click.prevent="onLogActivity()">
                                 <UIcon :name="menuItems[7].icon" class="header-icon mb-1 transition-colors" />
-                                <span class="font-medium">{{ menuItems[7].label }}</span>
+                                <span v-if="!scrolled" class="font-medium">{{ menuItems[7].label }}</span>
                             </button>
                         </div>
                     </nav>
@@ -87,15 +89,15 @@
                             <img v-if="locale === 'fr'" src="/img/flags/fr.svg" alt="Drapeau français" class="min-w-5 w-5 h-5 object-cover rounded-sm" />
                             <img v-else src="/img/flags/en.svg" alt="English flag" class="min-w-5 w-5 h-5 object-cover rounded-sm" />
                         </span>
-                        <span v-if="!languageLoading" class="font-medium">{{ $t('language.switch') }}</span>
-                        <span v-else class="font-medium">{{ $t('language.switch') }}</span>
+                        <span v-if="!languageLoading && !scrolled" class="font-medium">{{ $t('language.switch') }}</span>
+                        <span v-else-if="languageLoading && !scrolled" class="font-medium">{{ $t('language.switch') }}</span>
                     </UButton>
 
                     <UDropdownMenu :items="themeItems">
                         <UButton variant="ghost" class="p-2 rounded-full flex items-center gap-2" :loading="themeLoading">
                             <UIcon v-if="!themeLoading" :name="themeIcon" class="header-icon" />
-                            <span v-if="!themeLoading" class="hidden md:inline text-sm">{{ themeLabel }}</span>
-                            <span v-else class="hidden md:inline text-sm">{{ themeLabel }}</span>
+                            <span v-if="!themeLoading && !scrolled" class="hidden md:inline text-sm">{{ themeLabel }}</span>
+                            <span v-else-if="themeLoading && !scrolled" class="hidden md:inline text-sm">{{ themeLabel }}</span>
                         </UButton>
                     </UDropdownMenu>
                     <UButton v-if="userStore.user" color="primary" variant="ghost" class="ml-2 hidden md:inline-flex"
@@ -205,13 +207,20 @@
                     </div>
                 </div>
             </div>
-            <div v-if="userStore.user && currentDatabase"
+            <div v-if="userStore.user && currentDatabase && !scrolled"
                 class="w-full flex items-center justify-between border-t border-default"
                 style="background: linear-gradient(to bottom, var(--ui-bg-elevated) 0%, var(--ui-bg) 100%)">
                 <div class="container mx-auto py-4 px-4 flex items-center gap-4">
                     <QuickNav v-if="userStore.user.settings_object?.showQuickNav" class="hidden lg:block" />
                     <NetGrossToggle v-model="userStore.displayModeNet" />
                     <DetailedNoteToggle />
+                </div>
+            </div>
+            <!-- QuickNav compact au scroll -->
+            <div v-if="userStore.user && currentDatabase && scrolled && userStore.user.settings_object?.showQuickNav"
+                class="w-full border-t border-default hidden lg:block">
+                <div class="container mx-auto py-1 px-4">
+                    <QuickNav class="!py-0" />
                 </div>
             </div>
             <div class="container mx-auto flex justify-between items-center px-4">
@@ -236,6 +245,40 @@ const { themeLoading, setTheme } = useThemeSwitcher()
 const { languageLoading, toggleLanguage } = useLanguageSwitcher()
 
 const mobileMenuOpen = ref(false)
+const scrolled = ref(false)
+const isTauriLinux = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window && navigator.userAgent.includes('Linux')
+
+let scrollParent: HTMLElement | null = null
+
+const onScroll = () => {
+	if (!scrollParent) return
+	scrolled.value = scrollParent.scrollTop > 60
+}
+
+onMounted(() => {
+	// Trouver le conteneur scrollable parent
+	const el = document.querySelector('header')
+	if (el) {
+		let parent = el.parentElement
+		while (parent) {
+			const style = getComputedStyle(parent)
+			if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+				scrollParent = parent
+				break
+			}
+			parent = parent.parentElement
+		}
+	}
+	if (scrollParent) {
+		scrollParent.addEventListener('scroll', onScroll, { passive: true })
+	}
+})
+
+onUnmounted(() => {
+	if (scrollParent) {
+		scrollParent.removeEventListener('scroll', onScroll)
+	}
+})
 
 const displayLog = ref(config.public.showLogView)
 
