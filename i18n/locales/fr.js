@@ -295,12 +295,18 @@ export default {
             journal_title: 'Votre journal de trading personnel',
             journal_description:
                 'Un outil simple pour suivre et analyser vos trades',
-            feature_import: 'Import de rapports MT5 et Ninja Trader (CSV)',
+            feature_import: 'Import MT5, NinjaTrader, IBKR, Quantower (CSV/API)',
             feature_analysis: 'Analyse de performance',
-            feature_organization: 'Organisation par symbole et type',
+            feature_organization: 'Organisation par symbole, type et tags',
+            feature_screenshots: 'Captures d\'écran et notes sur les trades',
+            feature_calendar: 'Calendrier de trading interactif',
+            feature_plugins: 'Plugins personnalisables et convertisseurs',
+            feature_multi: 'Multi-comptes et multi-bases de données',
             start_button: 'Commencer maintenant',
             already_user: 'Déjà utilisateur ?',
             login_link: 'Se connecter',
+            doc_link: 'Documentation',
+            doc_url: 'https://doc.pnltracker.app',
         },
         trades: {
             tabs: {

@@ -1,8 +1,7 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen px-4">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-3 text-primary">{{ $t('pages.index.title') }}
-            </h1>
+    <div class="flex flex-col items-center justify-center min-h-screen px-4 py-8">
+        <div class="flex flex-col items-center mb-8">
+            <AppLogo :width="220" :height="70" class="mb-4" />
             <p class="text-xl text-secondary">{{ $t('pages.index.subtitle') }}</p>
         </div>
 
@@ -16,16 +15,32 @@
 
                 <div class="space-y-4">
                     <div class="flex items-center">
-                        <UIcon name="i-heroicons-check-circle" class="text-success mr-3 size-6" />
+                        <UIcon name="i-heroicons-arrow-up-tray" class="text-success mr-3 size-6" />
                         <span>{{ $t('pages.index.feature_import') }}</span>
                     </div>
                     <div class="flex items-center">
-                        <UIcon name="i-heroicons-check-circle" class="text-success mr-3 size-6" />
+                        <UIcon name="i-heroicons-chart-pie" class="text-success mr-3 size-6" />
                         <span>{{ $t('pages.index.feature_analysis') }}</span>
                     </div>
                     <div class="flex items-center">
-                        <UIcon name="i-heroicons-check-circle" class="text-success mr-3 size-6" />
+                        <UIcon name="i-heroicons-squares-2x2" class="text-success mr-3 size-6" />
                         <span>{{ $t('pages.index.feature_organization') }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <UIcon name="i-heroicons-camera" class="text-success mr-3 size-6" />
+                        <span>{{ $t('pages.index.feature_screenshots') }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <UIcon name="i-heroicons-calendar-days" class="text-success mr-3 size-6" />
+                        <span>{{ $t('pages.index.feature_calendar') }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <UIcon name="i-heroicons-puzzle-piece" class="text-success mr-3 size-6" />
+                        <span>{{ $t('pages.index.feature_plugins') }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <UIcon name="i-heroicons-server-stack" class="text-success mr-3 size-6" />
+                        <span>{{ $t('pages.index.feature_multi') }}</span>
                     </div>
                 </div>
 
@@ -38,9 +53,21 @@
             </div>
         </UCard>
 
-        <div class="text-secondary-sm">
-            {{ $t('pages.index.already_user') }} <UButton to="/login" variant="link" color="primary">{{
-                $t('pages.index.login_link') }}</UButton>
+        <div class="flex flex-col items-center gap-2">
+            <div class="text-secondary-sm">
+                {{ $t('pages.index.already_user') }} <UButton to="/login" variant="link" color="primary">{{
+                    $t('pages.index.login_link') }}</UButton>
+            </div>
+            <UButton
+                :to="$t('pages.index.doc_url')"
+                target="_blank"
+                variant="ghost"
+                color="neutral"
+                icon="i-heroicons-book-open"
+                size="sm"
+            >
+                {{ $t('pages.index.doc_link') }}
+            </UButton>
         </div>
     </div>
 </template>
@@ -50,5 +77,4 @@ onMounted(() => {
     const { stopLoading } = useGlobalLoading()
     stopLoading()
 })
-
 </script>
