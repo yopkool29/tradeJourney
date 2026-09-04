@@ -38,6 +38,8 @@
     "tauri:build": "pnpm tauri:prepare && tauri build --features desktop-production --config src-tauri/tauri.prod.conf.json",
     "tauri:build:exe": "pnpm tauri:prepare && tauri build --features desktop-production --config src-tauri/tauri.prod.conf.json --no-bundle",
     "tauri:build:full": "pnpm tauri:prepare && pnpm plugins-dev:build && tauri build --features desktop-production --config src-tauri/tauri.prod.conf.json",
+    "tauri:bundle:deb": "tauri build --features desktop-production --config src-tauri/tauri.prod.conf.json --bundles deb",
+    "tauri:bundle:appimage": "tauri build --features desktop-production --config src-tauri/tauri.prod.conf.json --bundles appimage",
     "tauri:info": "tauri info",
     "postinstall": "nuxt prepare",
     "test": "vitest",
