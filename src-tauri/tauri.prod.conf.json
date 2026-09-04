@@ -5,11 +5,26 @@
   "app": {
     "windows": [
       {
+        "label": "splashscreen",
+        "title": "PnlTracker",
+        "url": "loading.html",
+        "width": 400,
+        "height": 250,
+        "resizable": false,
+        "fullscreen": false,
+        "visible": true,
+        "decorations": false,
+        "center": true,
+        "alwaysOnTop": true
+      },
+      {
         "label": "main",
         "title": "PnlTracker",
         "url": "loading.html",
-        "width": 480,
-        "height": 320,
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
         "visible": false,

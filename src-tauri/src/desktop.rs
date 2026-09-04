@@ -10,7 +10,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
-use tauri::{App, AppHandle, Manager, PhysicalPosition, PhysicalSize};
+use tauri::{App, AppHandle, Manager};
 
 type DesktopResult<T> = Result<T, Box<dyn Error>>;
 
@@ -33,20 +33,22 @@ pub fn start(app: &mut App) -> DesktopResult<()> {
     fs::create_dir_all(&data_dir)?;
     fs::create_dir_all(&config_dir)?;
 
-    // Afficher immédiatement une page de chargement pendant l'init
+    // Écrire le loading.html pour le splashscreen
     let loading_html = format!(r#"<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{{margin:0;padding:0;box-sizing:border-box}}body{{background:linear-gradient(to bottom,#1f1f1f,#16161f);color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden;border-radius:12px}}.logo{{font-size:28px;font-weight:700;color:#c8a650;margin-bottom:4px;letter-spacing:-0.5px}}.version{{font-size:12px;color:#555;margin-bottom:24px}}.spinner{{width:36px;height:36px;border:3px solid rgba(200,166,80,0.15);border-top-color:#c8a650;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:16px}}@keyframes spin{{to{{transform:rotate(360deg)}}}}.label{{font-size:13px;color:#666}}</style></head><body><div class="logo">PnlTracker</div><div class="version">v{}</div><div class="spinner"></div><div class="label">Chargement…</div></body></html>"#, env!("CARGO_PKG_VERSION"));
     let loading_file = data_dir.join("loading.html");
     fs::write(&loading_file, loading_html)?;
-    let main_window = app
-        .get_webview_window("main")
-        .ok_or_else(|| std::io::Error::other("Main window is not configured"))?;
-    let _ = main_window.set_title(&format!("PnlTracker v{}", env!("CARGO_PKG_VERSION")));
     let loading_url = tauri::Url::from_file_path(&loading_file)
         .map_err(|_| std::io::Error::other("Invalid loading.html path"))?;
-    main_window.navigate(loading_url)?;
-    main_window.show()?;
 
-    // Lancer l'init lourde dans un thread séparé pour ne pas bloquer la boucle d'événements
+    // Naviguer le splashscreen et la fenêtre principale vers loading.html
+    if let Some(splash) = app.get_webview_window("splashscreen") {
+        let _ = splash.navigate(loading_url.clone());
+    }
+    if let Some(main_window) = app.get_webview_window("main") {
+        let _ = main_window.navigate(loading_url);
+    }
+
+    // Lancer l'init lourde dans un thread séparé
     let handle = app.handle().clone();
     let resource_dir = resource_dir.clone();
     let data_dir_for_init = data_dir.clone();
@@ -59,28 +61,17 @@ pub fn start(app: &mut App) -> DesktopResult<()> {
                 // Écrire le port et le token pour le MCP
                 let _ = fs::write(data_dir_for_mcp.join("mcp-port"), nitro_port.to_string());
                 let _ = fs::write(data_dir_for_mcp.join("mcp-token"), &config.admin_api_token);
-                if let Some(window) = handle.get_webview_window("main") {
-                    // Redimensionner à 80% de l'écran, centrer manuellement, puis naviguer
-                    let window_clone = window.clone();
-                    tauri::async_runtime::spawn(async move {
-                        let (width, height, x, y) = if let Ok(Some(monitor)) = window_clone.primary_monitor() {
-                            let mon_size = monitor.size();
-                            let mon_pos = monitor.position();
-                            let w = (mon_size.width as f64 * 0.8) as u32;
-                            let h = (mon_size.height as f64 * 0.8) as u32;
-                            let x = mon_pos.x + ((mon_size.width - w) as i32) / 2;
-                            let y = mon_pos.y + ((mon_size.height - h) as i32) / 2;
-                            (w, h, x, y)
-                        } else {
-                            (1400, 900, 100, 100)
-                        };
-                        let _ = window_clone.set_min_size(Some(PhysicalSize::new(1024, 600)));
-                        let _ = window_clone.set_size(PhysicalSize::new(width, height));
-                        let _ = window_clone.set_position(PhysicalPosition::new(x, y));
-                        let _ = window_clone.set_title(&format!("PnlTracker v{}", env!("CARGO_PKG_VERSION")));
-                        let url: tauri::Url = format!("http://127.0.0.1:{nitro_port}").parse().unwrap_or_else(|_| "http://127.0.0.1:3003".parse().unwrap());
-                        let _ = window_clone.navigate(url);
-                    });
+                // Sur le thread principal : naviguer la fenêtre principale, l'afficher, puis fermer le splash
+                if let Some(main_window) = handle.get_webview_window("main") {
+                    let url: tauri::Url = format!("http://127.0.0.1:{nitro_port}").parse().unwrap_or_else(|_| "http://127.0.0.1:3003".parse().unwrap());
+                    let _ = main_window.navigate(url);
+                    let _ = main_window.show();
+                    let _ = main_window.set_focus();
+                }
+                // Attendre que la fenêtre principale ait le temps de charger avant de fermer le splash
+                std::thread::sleep(std::time::Duration::from_millis(1500));
+                if let Some(splash) = handle.get_webview_window("splashscreen") {
+                    let _ = splash.close();
                 }
                 handle.manage(DesktopServices {
                     nitro: Mutex::new(Some(nitro)),
@@ -132,6 +123,7 @@ pub fn stop(app: &AppHandle) {
     let Some(services) = app.try_state::<DesktopServices>() else {
         return;
     };
+    // Tuer Nitro en premier (libère le port)
     if let Some(mut child) = services
         .nitro
         .lock()
@@ -141,6 +133,7 @@ pub fn stop(app: &AppHandle) {
         let _ = child.kill();
         let _ = child.wait();
     }
+    // Arrêter PostgreSQL
     if let Some(server) = services
         .postgres
         .lock()
@@ -148,6 +141,13 @@ pub fn stop(app: &AppHandle) {
         .and_then(|mut postgres| postgres.take())
     {
         let _ = server.stop();
+    }
+    // Nettoyer le postmaster.pid au cas où
+    if let Ok(data_dir) = app.path().app_data_dir() {
+        let pid_file = data_dir.join("postgres/data/postmaster.pid");
+        if pid_file.exists() {
+            let _ = fs::remove_file(&pid_file);
+        }
     }
 }
 
