@@ -72,17 +72,13 @@ const prepareNode = async () => {
 const preparePostgres = async () => {
 	if (!isWindows) return
 	// Télécharger PostgreSQL portable pour Windows (binaires EnterpriseDB)
-	const pgArchive = `postgresql-${pgVersion}-1-windows-x64-binaries.zip`
-	const pgUrl = `https://get.enterprisedb.com/postgresql/${pgArchive}`
-	const pgArchivePath = join(cacheDir, pgArchive)
-	const pgExtractedDir = join(cacheDir, `pgsql-${pgVersion}`)
+	// URL directe vers le fichier fileid=1260494 (PostgreSQL 16.15 Windows x64 binaries)
+	const pgUrl = 'https://sbp.enterprisedb.com/getfile.jsp?fileid=1260494'
+	const pgArchivePath = join(cacheDir, 'pg-windows.zip')
+	const pgExtractedDir = join(cacheDir, 'pgsql')
 	const pgInstallDir = join(runtimeDir, 'app', 'postgres', 'install')
-	try {
-		if (!await fileExists(pgArchivePath)) await download(pgUrl, pgArchivePath)
-	} catch {
-		// Fallback: URL alternative
-		const altUrl = `https://sbp.enterprisedb.com/getfile.jspg?fileid=1259105`
-		await download(altUrl, pgArchivePath)
+	if (!await fileExists(pgArchivePath)) {
+		await download(pgUrl, pgArchivePath)
 	}
 	await rm(pgExtractedDir, { recursive: true, force: true })
 	await execFileAsync('powershell', ['-Command', `Expand-Archive -Path "${pgArchivePath}" -DestinationPath "${cacheDir}" -Force`])
