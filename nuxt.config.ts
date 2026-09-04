@@ -211,6 +211,9 @@ export default defineNuxtConfig({
         experimental: {
             wasm: false
         },
+        externals: {
+            inline: ['xlsx']
+        },
         compressPublicAssets: {
             gzip: true,
             brotli: true
