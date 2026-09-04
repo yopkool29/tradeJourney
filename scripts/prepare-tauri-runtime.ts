@@ -12,14 +12,19 @@ type TauriConfig = {
 
 const execFileAsync = promisify(execFile)
 const nodeVersion = '22.23.2'
-const nodeArchive = `node-v${nodeVersion}-linux-x64.tar.xz`
+const pgVersion = '16.15.0'
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const tauriConfig = JSON.parse(await readFile(join(rootDir, 'src-tauri', 'tauri.conf.json'), 'utf8')) as TauriConfig
 const cacheDir = join(rootDir, '.cache', 'tauri')
-const archivePath = join(cacheDir, nodeArchive)
-const extractedDir = join(cacheDir, `node-v${nodeVersion}-linux-x64`)
 const runtimeDir = join(rootDir, 'src-tauri', 'runtime')
 const appDir = join(runtimeDir, 'app')
+
+const isWindows = process.platform === 'win32'
+const nodeArchive = isWindows
+	? `node-v${nodeVersion}-win-x64.zip`
+	: `node-v${nodeVersion}-linux-x64.tar.xz`
+const archivePath = join(cacheDir, nodeArchive)
+const extractedDir = join(cacheDir, isWindows ? `node-v${nodeVersion}-win-x64` : `node-v${nodeVersion}-linux-x64`)
 
 const download = async (url: string, destination: string) => {
 	const response = await fetch(url)
@@ -48,13 +53,53 @@ const prepareNode = async () => {
 	}
 	if (await sha256(archivePath) !== expectedChecksum) throw new Error(`Invalid checksum for ${nodeArchive}`)
 	await rm(extractedDir, { recursive: true, force: true })
-	await execFileAsync('tar', ['-xJf', archivePath, '-C', cacheDir])
-	await mkdir(join(runtimeDir, 'node', 'bin'), { recursive: true })
-	const nodePath = join(runtimeDir, 'node', 'bin', 'node')
-	await cp(join(extractedDir, 'bin', 'node'), nodePath)
-	await execFileAsync('strip', ['--strip-unneeded', nodePath])
-	await chmod(nodePath, 0o755)
-	await cp(join(extractedDir, 'LICENSE'), join(runtimeDir, 'node', 'LICENSE'))
+	if (isWindows) {
+		await execFileAsync('powershell', ['-Command', `Expand-Archive -Path "${archivePath}" -DestinationPath "${cacheDir}" -Force`])
+		await mkdir(join(runtimeDir, 'node', 'bin'), { recursive: true })
+		await cp(join(extractedDir, 'node.exe'), join(runtimeDir, 'node', 'bin', 'node.exe'))
+		await cp(join(extractedDir, 'LICENSE'), join(runtimeDir, 'node', 'LICENSE'))
+	} else {
+		await execFileAsync('tar', ['-xJf', archivePath, '-C', cacheDir])
+		await mkdir(join(runtimeDir, 'node', 'bin'), { recursive: true })
+		const nodePath = join(runtimeDir, 'node', 'bin', 'node')
+		await cp(join(extractedDir, 'bin', 'node'), nodePath)
+		await execFileAsync('strip', ['--strip-unneeded', nodePath])
+		await chmod(nodePath, 0o755)
+		await cp(join(extractedDir, 'LICENSE'), join(runtimeDir, 'node', 'LICENSE'))
+	}
+}
+
+const preparePostgres = async () => {
+	if (!isWindows) return
+	// Télécharger PostgreSQL portable pour Windows (binaires EnterpriseDB)
+	const pgArchive = `postgresql-${pgVersion}-1-windows-x64-binaries.zip`
+	const pgUrl = `https://get.enterprisedb.com/postgresql/${pgArchive}`
+	const pgArchivePath = join(cacheDir, pgArchive)
+	const pgExtractedDir = join(cacheDir, `pgsql-${pgVersion}`)
+	const pgInstallDir = join(runtimeDir, 'app', 'postgres', 'install')
+	try {
+		if (!await fileExists(pgArchivePath)) await download(pgUrl, pgArchivePath)
+	} catch {
+		// Fallback: URL alternative
+		const altUrl = `https://sbp.enterprisedb.com/getfile.jspg?fileid=1259105`
+		await download(altUrl, pgArchivePath)
+	}
+	await rm(pgExtractedDir, { recursive: true, force: true })
+	await execFileAsync('powershell', ['-Command', `Expand-Archive -Path "${pgArchivePath}" -DestinationPath "${cacheDir}" -Force`])
+	// L'archive extrait un dossier pgsql/ — copier vers le runtime
+	await mkdir(pgInstallDir, { recursive: true })
+	await cp(join(pgExtractedDir, 'bin'), join(pgInstallDir, 'bin'), { recursive: true })
+	await cp(join(pgExtractedDir, 'lib'), join(pgInstallDir, 'lib'), { recursive: true })
+	await cp(join(pgExtractedDir, 'share'), join(pgInstallDir, 'share'), { recursive: true })
+}
+
+const fileExists = async (path: string): Promise<boolean> => {
+	try {
+		await readFile(path)
+		return true
+	} catch {
+		return false
+	}
 }
 
 const prepareApp = async () => {
@@ -65,14 +110,25 @@ const prepareApp = async () => {
 	await rm(join(appDir, 'pnltracker-tools', 'python', '.venv'), { recursive: true, force: true })
 	await cp(join(rootDir, 'prisma', 'auth', 'migrations'), join(appDir, 'prisma', 'auth', 'migrations'), { recursive: true })
 	await mkdir(join(appDir, 'prisma-engine'), { recursive: true })
+	const prismaEngineName = isWindows
+		? 'query_engine-windows.dll.node'
+		: 'libquery_engine-debian-openssl-3.0.x.so.node'
 	await cp(
-		join(rootDir, 'generated', 'prisma-auth', 'libquery_engine-debian-openssl-3.0.x.so.node'),
-		join(appDir, 'prisma-engine', 'libquery_engine-debian-openssl-3.0.x.so.node'),
+		join(rootDir, 'generated', 'prisma-auth', prismaEngineName),
+		join(appDir, 'prisma-engine', prismaEngineName),
 	)
 	await writeFile(join(appDir, 'runtime-version'), `${tauriConfig.version}-${Date.now()}\n`)
 }
 
-if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('The Tauri production runtime currently supports Linux x64 only')
+const platform = process.platform
+const arch = process.arch
+if ((platform !== 'linux' && platform !== 'win32') || arch !== 'x64') {
+	throw new Error(`The Tauri production runtime currently supports Linux x64 and Windows x64 only, got ${platform}-${arch}`)
+}
 await rm(runtimeDir, { recursive: true, force: true })
 await mkdir(appDir, { recursive: true })
-await Promise.all([prepareNode(), prepareApp()])
+if (isWindows) {
+	await Promise.all([prepareNode(), prepareApp(), preparePostgres()])
+} else {
+	await Promise.all([prepareNode(), prepareApp()])
+}
