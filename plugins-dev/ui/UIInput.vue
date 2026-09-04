@@ -7,12 +7,12 @@
             :disabled="props.disabled"
             @change="props.onChange"
         />
-        <div 
+        <div
             :class="[
                 'flex items-center justify-center',
                 'px-4 py-2 rounded-md font-medium text-sm',
                 'cursor-pointer transition-colors duration-200',
-                'border border-accented',
+                'border',
                 sizeClass,
                 colorClass,
                 variantClass,
@@ -31,6 +31,7 @@
         :id="props.id"
         :type="props.type"
         :class="inputClasses"
+        :style="inputStyle"
         :disabled="props.disabled"
         :value="props.modelValue"
         @input="onInput"
@@ -100,6 +101,12 @@ const fileStyle = computed(() => ({
     color: isDark() ? '#1f1c28' : '#ffffff',
 }))
 
+const inputStyle = computed(() => ({
+    backgroundColor: isDark() ? '#1f2937' : '#ffffff',
+    color: isDark() ? '#e5e7eb' : '#111827',
+    borderColor: isDark() ? '#374151' : '#d1d5db',
+}))
+
 const inputSizeClasses = {
     sm: 'px-2.5 py-1.5 text-sm',
     md: 'px-3 py-2 text-sm',
@@ -107,9 +114,7 @@ const inputSizeClasses = {
 }
 
 const inputClasses = [
-    'w-full rounded-md border border-default',
-    'bg-elevated text-default',
-    'placeholder-muted',
+    'w-full rounded-md border',
     'focus:outline-none focus:border-primary',
     'disabled:cursor-not-allowed disabled:opacity-75',
     inputSizeClasses[props.size],

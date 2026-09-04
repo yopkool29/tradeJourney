@@ -41,14 +41,14 @@ export const readDynamicToken = (): string | null => {
 export const resolveApiUrl = (): string => {
 	const dynamicPort = readDynamicPort()
 	if (dynamicPort) return `http://127.0.0.1:${dynamicPort}`
-	return process.env.PNLTRACKER_API_URL || 'http://127.0.0.1:3003'
+	return process.env.PNLTRACKER_API_URL || ''
 }
 
-// Résoudre le token à chaque appel : token dynamique Tauri > PNLTRACKER_MCP_TOKEN > ADMIN_API_TOKEN
+// Résoudre le token à chaque appel : token dynamique Tauri > PNLTRACKER_MCP_TOKEN
 export const resolveApiToken = (): string => {
 	const dynamicToken = readDynamicToken()
 	if (dynamicToken) return dynamicToken
-	return process.env.PNLTRACKER_MCP_TOKEN || process.env.ADMIN_API_TOKEN || ''
+	return process.env.PNLTRACKER_MCP_TOKEN || ''
 }
 
 export const getMcpConfig = (): McpConfig => McpConfigSchema.parse({

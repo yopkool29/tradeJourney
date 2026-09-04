@@ -44,7 +44,7 @@ const ghostColorClasses = {
 
 const variantClasses = {
     solid: '',
-    ghost: 'bg-transparent hover:bg-elevated',
+    ghost: 'bg-transparent',
 }
 
 const sizeClasses = {

@@ -248,14 +248,8 @@ const onSubmitConvert = async (event: FormSubmitEvent<typeof converterParams>) =
 
         // Download the converted file
         const blob = new Blob([response as string], { type: 'text/csv' })
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${selectedFile.value.name.replace(/\.[^/.]+$/, '')}_converted.csv`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        const { downloadBlob } = useTauriDownload()
+        await downloadBlob(blob, `${selectedFile.value.name.replace(/\.[^/.]+$/, '')}_converted.csv`)
 
         conversionSuccess.value = true
         selectedFile.value = null

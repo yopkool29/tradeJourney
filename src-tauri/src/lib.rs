@@ -22,6 +22,8 @@ pub fn run() {
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             // Focus la fenêtre existante si on tente de relancer l'app
             use tauri::Manager;

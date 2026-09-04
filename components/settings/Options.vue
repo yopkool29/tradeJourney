@@ -96,22 +96,13 @@
                             <fieldset class="border border-default rounded-lg p-4 mt-4 space-y-4">
                                 <legend class="px-2 text-sm font-semibold text-secondary">{{ $t('components.settings.options.polygon_section') }}</legend>
                                 <UFormField name="polygonApiKey" :label="$t('components.settings.options.polygon_api_key')" class="w-lg">
-                                    <div class="flex gap-2">
-                                        <UInput
-                                            v-model="formState.polygonApiKey"
-                                            class="flex-1"
-                                            :type="showPolygonKey ? 'text' : 'password'"
-                                            placeholder="polygon_api_key"
-                                            autocomplete="off"
-                                        />
-                                        <UButton
-                                            color="neutral"
-                                            variant="soft"
-                                            @click="showPolygonKey = !showPolygonKey"
-                                        >
-                                            {{ showPolygonKey ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
-                                        </UButton>
-                                    </div>
+                                    <CommonCopyableInput
+                                        :model-value="formState.polygonApiKey"
+                                        type="password"
+                                        placeholder="polygon_api_key"
+                                        autocomplete="off"
+                                        @update:model-value="formState.polygonApiKey = $event"
+                                    />
                                     <template #description>
                                         <span class="text-sm text-secondary">{{ $t('components.settings.options.polygon_api_key_desc') }}</span>
                                     </template>
@@ -254,56 +245,24 @@
                                 </template>
                             </UFormField>
                             <UFormField name="storageToken" :label="$t('components.settings.options.storage_token')" class="w-lg">
-                                <div class="flex gap-2">
-                                    <UInput
-                                        :model-value="userStore.user?.token || ''"
-                                        readonly
-                                        class="bg-elevated flex-1"
-                                        :type="showToken ? 'text' : 'password'"
-                                    />
-                                    <UButton
-                                        color="neutral"
-                                        variant="soft"
-                                        @click="showToken = !showToken"
-                                    >
-                                        {{ showToken ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
-                                    </UButton>
-                                    <UButton
-                                        color="neutral"
-                                        variant="soft"
-                                        @click="copyToClipboard(userStore.user?.token || '')"
-                                    >
-                                        {{ $t('components.settings.options.copy') }}
-                                    </UButton>
-                                </div>
+                                <CommonCopyableInput
+                                    :model-value="userStore.user?.token || ''"
+                                    type="password"
+                                    readonly
+                                    input-class="bg-elevated"
+                                />
                                 <template #description>
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_token_desc') }}</span>
                                 </template>
                             </UFormField>
                             <UFormField name="storagePassword" :label="$t('components.settings.options.storage_password')" class="w-lg">
-                                <div class="flex gap-2">
-                                    <UInput
-                                        v-model="formState.storagePassword"
-                                        class="flex-1"
-                                        :type="showPassword ? 'text' : 'password'"
-                                        placeholder="Mot de passe de chiffrement"
-                                        autocomplete="off"
-                                    />
-                                    <UButton
-                                        color="neutral"
-                                        variant="soft"
-                                        @click="showPassword = !showPassword"
-                                    >
-                                        {{ showPassword ? $t('components.settings.options.hide') : $t('components.settings.options.show') }}
-                                    </UButton>
-                                    <UButton
-                                        color="neutral"
-                                        variant="soft"
-                                        @click="copyToClipboard(formState.storagePassword)"
-                                    >
-                                        {{ $t('components.settings.options.copy') }}
-                                    </UButton>
-                                </div>
+                                <CommonCopyableInput
+                                    :model-value="formState.storagePassword"
+                                    type="password"
+                                    placeholder="Mot de passe de chiffrement"
+                                    autocomplete="off"
+                                    @update:model-value="formState.storagePassword = $event"
+                                />
                                 <template #description>
                                     <span class="text-sm text-secondary">{{ $t('components.settings.options.storage_password_desc') }}</span>
                                 </template>
@@ -321,18 +280,22 @@
                         <div v-else-if="mcpError" class="text-sm text-secondary">
                             {{ $t('components.settings.options.mcp_unavailable') }}
                         </div>
-                        <div v-else-if="mcpInfo" class="space-y-2">
+                        <div v-else-if="mcpInfo" class="grid grid-cols-1 gap-8">
                             <p class="text-sm text-secondary">{{ $t('components.settings.options.mcp_desc') }}</p>
-                            <UFormField :label="$t('components.settings.options.mcp_port')">
-                                <div class="flex gap-2">
-                                    <UInput :model-value="mcpInfo.apiUrl" readonly class="flex-1 font-mono" />
-                                    <UButton
-                                        color="neutral"
-                                        variant="soft"
-                                        icon="i-lucide-copy"
-                                        @click="copyToClipboard(mcpInfo.apiUrl)"
-                                    />
-                                </div>
+                            <UFormField :label="$t('components.settings.options.mcp_port')" class="w-lg">
+                                <CommonCopyableInput
+                                    :model-value="mcpInfo.apiUrl"
+                                    readonly
+                                    input-class="font-mono"
+                                />
+                            </UFormField>
+                            <UFormField :label="$t('components.settings.options.mcp_token')" class="w-lg">
+                                <CommonCopyableInput
+                                    :model-value="mcpInfo.token"
+                                    type="password"
+                                    readonly
+                                    input-class="font-mono"
+                                />
                             </UFormField>
                         </div>
                     </fieldset>
@@ -574,9 +537,7 @@ const currentTheme = computed(() => {
 })
 
 // Visibility toggles for sensitive data
-const showToken = ref(false)
-const showPassword = ref(false)
-const showPolygonKey = ref(false)
+
 const clearingCache = ref(false)
 const savingUiState = ref(false)
 const resettingUiState = ref(false)
@@ -620,16 +581,6 @@ const onClearPolygonCache = async () => {
 	} finally {
 		clearingCache.value = false
 	}
-}
-
-// Copy to clipboard helper
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    toastSuccess(t('components.settings.options.copied_title'), t('components.settings.options.copied_desc'))
-  } catch {
-    log_error('Failed to copy to clipboard')
-  }
 }
 
 const formState = ref<SettingsContentType>({

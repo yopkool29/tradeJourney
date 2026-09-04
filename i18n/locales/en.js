@@ -197,6 +197,8 @@ export default {
             clear: 'Clear',
             copy: 'Copy',
             copied: 'Copied to clipboard',
+            show: 'Show',
+            hide: 'Hide',
         },
         title: {
             success: 'Success',
@@ -1245,6 +1247,7 @@ export default {
                 mcp_section: 'MCP',
                 mcp_desc: 'The local MCP server automatically connects to the API on this port.',
                 mcp_port: 'API URL',
+                mcp_token: 'MCP Token',
                 mcp_unavailable: 'MCP unavailable',
                 polygon_api_key_desc: 'API key for fetching price data (trade chart). Leave empty to disable.',
                 polygon_request_delay: 'Request delay (ms)',

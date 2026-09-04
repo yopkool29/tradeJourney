@@ -135,14 +135,10 @@ export const useBackup = () => {
     }
 
     // Download a backup file
-    const downloadBackup = (url: string, filename: string) => {
+    const downloadBackup = async (url: string, filename: string) => {
         try {
-            const link = document.createElement('a')
-            link.href = url
-            link.download = filename
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            const { downloadUrl } = useTauriDownload()
+            await downloadUrl(url, filename)
         } catch (error: unknown) {
             console.error('Failed to download backup:', error)
 

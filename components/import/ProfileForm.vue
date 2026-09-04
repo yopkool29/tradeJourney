@@ -65,22 +65,23 @@
             <!-- Config IBKR Flex Query (si provider === 'ibkr-api') -->
             <div v-if="formState.provider === 'ibkr-api'" class="section-separator">
                 <h3 class="section-subtitle-lg">IBKR Flex Query API</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4">
                     <UFormField name="ibkrFlexQueryToken" label="Flex Query Token">
-                        <UInput
-                            v-model="formState.ibkrFlexQueryToken"
-                            type="text"
+                        <CommonCopyableInput
+                            :model-value="formState.ibkrFlexQueryToken"
+                            type="password"
                             placeholder="Your IBKR Flex Query token"
+                            @update:model-value="formState.ibkrFlexQueryToken = $event"
                         />
                         <template #description>
                             <span class="text-sm text-secondary">Token from IBKR Account Management → Flex Web Service</span>
                         </template>
                     </UFormField>
                     <UFormField name="ibkrFlexQueryId" label="Flex Query ID">
-                        <UInput
-                            v-model="formState.ibkrFlexQueryId"
-                            type="text"
+                        <CommonCopyableInput
+                            :model-value="formState.ibkrFlexQueryId"
                             placeholder="12345678"
+                            @update:model-value="formState.ibkrFlexQueryId = $event"
                         />
                         <template #description>
                             <span class="text-sm text-secondary">Query ID from your configured Flex Query</span>

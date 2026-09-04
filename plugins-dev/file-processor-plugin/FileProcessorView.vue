@@ -57,18 +57,12 @@ const processFile = () => {
     processedContent.value = fileContent.value.toUpperCase()
 }
 
-const downloadFile = () => {
+const downloadFile = async () => {
     if (!processedContent.value || !file.value) return
 
     const blob = new Blob([processedContent.value], { type: file.value.type || 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `processed_${file.value.name}`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    const { downloadBlob } = useTauriDownload()
+    await downloadBlob(blob, `processed_${file.value.name}`)
 }
 
 const reset = () => {

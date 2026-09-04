@@ -31,3 +31,5 @@ getrandom = { version = "0.3.4", optional = true }
 tauri-plugin-shell = "2.3.6"
 tauri-plugin-single-instance = "2.4.4"
 libc = "0.2.189"
+tauri-plugin-dialog = "2.7.3"
+tauri-plugin-fs = "2.5.2"
