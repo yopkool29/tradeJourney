@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.6.3", features = [] }
 
 [features]
-desktop-production = ["dep:getrandom", "dep:postgresql_embedded"]
+desktop-production = ["dep:getrandom"]
 
 [dependencies]
 serde_json = "1.0"
@@ -26,10 +26,12 @@ serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
-postgresql_embedded = { version = "0.21.0", features = ["blocking", "bundled"], optional = true }
 getrandom = { version = "0.3.4", optional = true }
 tauri-plugin-shell = "2.3.6"
 tauri-plugin-single-instance = "2.4.4"
-libc = "0.2.189"
 tauri-plugin-dialog = "2.7.3"
 tauri-plugin-fs = "2.5.2"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+postgresql_embedded = { version = "0.21.0", features = ["blocking", "bundled"] }
+libc = "0.2.189"

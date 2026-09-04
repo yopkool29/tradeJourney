@@ -54,3 +54,7 @@ NOTE-private.md
 KNIP-report-private.md
 docs/ben*
 docs/dev/metrics
+# Tauri build artifacts
+src-tauri/target/
+src-tauri/runtime/
+src-tauri/gen/

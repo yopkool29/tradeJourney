@@ -1,5 +1,7 @@
-#[cfg(all(not(debug_assertions), feature = "desktop-production"))]
+#[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "linux"))]
 mod desktop;
+#[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "windows"))]
+mod desktop_windows;
 
 // Workarounds WebKitGTK sur NVIDIA (voir tauri-apps/tauri#9394)
 // Sur NVIDIA, le DMABUF renderer peut causer des fenêtres blanches ou des crashes
@@ -40,16 +42,22 @@ pub fn run() {
                         .build(),
                 )?;
             }
-            #[cfg(all(not(debug_assertions), feature = "desktop-production"))]
+            #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "linux"))]
             desktop::start(app)?;
+            #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "windows"))]
+            desktop_windows::start(app)?;
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     app.run(|app, event| {
-        #[cfg(all(not(debug_assertions), feature = "desktop-production"))]
+        #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "linux"))]
         if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
             desktop::stop(app);
+        }
+        #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "windows"))]
+        if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
+            desktop_windows::stop(app);
         }
         #[cfg(not(all(not(debug_assertions), feature = "desktop-production")))]
         let _ = (app, event);
