@@ -17,6 +17,20 @@ fn enable_gpu_acceleration() {
     }
 }
 
+// Ferme le splashscreen et montre la fenêtre principale
+// Appelée par le frontend quand le DOM est prêt
+#[tauri::command]
+fn close_splashscreen(app: tauri::AppHandle) {
+    use tauri::Manager;
+    if let Some(splash) = app.get_webview_window("splashscreen") {
+        let _ = splash.close();
+    }
+    if let Some(main) = app.get_webview_window("main") {
+        let _ = main.show();
+        let _ = main.set_focus();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -34,6 +48,7 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
+        .invoke_handler(tauri::generate_handler![close_splashscreen])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

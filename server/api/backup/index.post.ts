@@ -1,5 +1,7 @@
 import { defineEventHandler, readMultipartFormData } from 'h3'
 import { writeFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { restoreBackup } from '~/server/utils/myexport'
 import { formatDateForFilename } from '~/utils/date-utils'
 import { createAppError } from '../../utils/errors'
@@ -46,7 +48,7 @@ export default defineEventHandler(async (event) => {
 
         // Sauvegarder le fichier temporairement avec une date formatée
         const formattedDate = formatDateForFilename()
-        const tempPath = `/tmp/backup-${formattedDate}.zip`
+        const tempPath = join(tmpdir(), `backup-${formattedDate}.zip`)
 
         try {
             await writeFile(tempPath, file.data)

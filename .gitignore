@@ -58,3 +58,5 @@ docs/dev/metrics
 src-tauri/target/
 src-tauri/runtime/
 src-tauri/gen/
+# Vendored binaries (PostgreSQL, etc.)
+vendor/

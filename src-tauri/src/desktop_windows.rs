@@ -5,12 +5,23 @@ use std::io::Write;
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::os::windows::process::CommandExt;
 use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
+// CREATE_NO_WINDOW: empêche l'apparition de fenêtres console lors des appels aux binaires PostgreSQL/Node
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 use tauri::{App, AppHandle, Manager};
 
 type DesktopResult<T> = Result<T, Box<dyn Error>>;
+
+// Log générique qui append dans app.log dans le data dir
+fn app_log(data_dir: &Path, msg: &str) {
+	use std::io::Write;
+	if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(data_dir.join("app.log")) {
+		let _ = writeln!(f, "{}", msg);
+	}
+}
 
 #[derive(Deserialize, Serialize)]
 struct DesktopConfig {
@@ -35,7 +46,18 @@ struct DesktopServices {
 }
 
 pub fn start(app: &mut App) -> DesktopResult<()> {
-	let resource_dir = app.path().resource_dir()?;
+	let mut resource_dir = app.path().resource_dir()?;
+	// En mode --no-bundle, resource_dir peut pointer vers le dossier de l'exe
+	// Vérifier que le runtime existe, sinon utiliser le dossier de l'exe
+	if !resource_dir.join("runtime").join("app").join("runtime-version").exists() {
+		if let Ok(exe_path) = std::env::current_exe() {
+			if let Some(exe_dir) = exe_path.parent() {
+				if exe_dir.join("runtime").join("app").join("runtime-version").exists() {
+					resource_dir = exe_dir.to_path_buf();
+				}
+			}
+		}
+	}
 	let data_dir = app.path().app_data_dir()?;
 	let config_dir = app.path().app_config_dir()?;
 	fs::create_dir_all(&data_dir)?;
@@ -69,12 +91,7 @@ pub fn start(app: &mut App) -> DesktopResult<()> {
 				if let Some(main_window) = handle.get_webview_window("main") {
 					let url: tauri::Url = format!("http://127.0.0.1:{nitro_port}").parse().unwrap_or_else(|_| "http://127.0.0.1:3003".parse().unwrap());
 					let _ = main_window.navigate(url);
-					let _ = main_window.show();
-					let _ = main_window.set_focus();
-				}
-				std::thread::sleep(std::time::Duration::from_millis(1500));
-				if let Some(splash) = handle.get_webview_window("splashscreen") {
-					let _ = splash.close();
+					// Le frontend appelle close_splashscreen quand le DOM est pret
 				}
 				handle.manage(DesktopServices {
 					nitro: Mutex::new(Some(nitro)),
@@ -83,6 +100,7 @@ pub fn start(app: &mut App) -> DesktopResult<()> {
 			}
 			Err(error) => {
 				eprintln!("Desktop init error: {error}");
+				let _ = fs::write(data_dir_for_mcp.join("desktop-error.log"), format!("Desktop init error: {error}\n"));
 			}
 		}
 	});
@@ -94,21 +112,33 @@ fn init_backend(
 	data_dir: &Path,
 	config_dir: &Path,
 ) -> DesktopResult<(Child, WindowsPostgres, u16, DesktopConfig)> {
-	sync_runtime(&resource_dir.join("runtime/app"), data_dir)?;
+	app_log(data_dir, &format!("init_backend started — resource_dir: {}, data_dir: {}, config_dir: {}", resource_dir.display(), data_dir.display(), config_dir.display()));
+	let runtime_app = resource_dir.join("runtime/app");
+	app_log(data_dir, &format!("runtime/app exists: {}, runtime-version exists: {}", runtime_app.exists(), runtime_app.join("runtime-version").exists()));
+	sync_runtime(&runtime_app, data_dir)?;
+	app_log(data_dir, "sync_runtime done");
 	let config = load_config(config_dir)?;
+	app_log(data_dir, "config loaded");
 	let postgres = start_postgres(data_dir, &config)?;
+	app_log(data_dir, "postgres started");
 	if let Err(error) = apply_migrations(&postgres, data_dir) {
+		app_log(data_dir, &format!("migration error: {error}"));
 		let _ = postgres.stop();
 		return Err(error);
 	}
+	app_log(data_dir, "migrations done");
 	if let Err(error) = ensure_admin_user(&postgres, &config) {
+		app_log(data_dir, &format!("admin error: {error}"));
 		let _ = postgres.stop();
 		return Err(error);
 	}
+	app_log(data_dir, "admin user done");
 	let nitro_port = find_available_port(3003)?;
+	app_log(data_dir, &format!("nitro port: {nitro_port}"));
 	let mut nitro = match start_nitro(resource_dir, data_dir, &config, &postgres, nitro_port) {
 		Ok(nitro) => nitro,
 		Err(error) => {
+			app_log(data_dir, &format!("nitro start error: {error}"));
 			let _ = postgres.stop();
 			return Err(error);
 		}
@@ -123,7 +153,10 @@ fn init_backend(
 }
 
 pub fn stop(app: &AppHandle) {
+	let data_dir = app.path().app_data_dir().unwrap_or_default();
+	app_log(&data_dir, "stop() called");
 	let Some(services) = app.try_state::<DesktopServices>() else {
+		app_log(&data_dir, "stop() no services");
 		return;
 	};
 	if let Some(mut child) = services
@@ -166,6 +199,7 @@ fn sync_runtime(source_dir: &Path, data_dir: &Path) -> DesktopResult<()> {
 		"pnltracker-tools",
 		"prisma",
 		"prisma-engine",
+		"generated",
 	] {
 		let target = data_dir.join(name);
 		if target.exists() {
@@ -173,6 +207,13 @@ fn sync_runtime(source_dir: &Path, data_dir: &Path) -> DesktopResult<()> {
 		}
 		copy_dir(&source_dir.join(name), &target)?;
 	}
+	// Copier les binaires PostgreSQL sans écraser les données (postgres/data)
+	let pg_install_source = source_dir.join("postgres").join("install");
+	let pg_install_target = data_dir.join("postgres").join("install");
+	if pg_install_target.exists() {
+		fs::remove_dir_all(&pg_install_target)?;
+	}
+	copy_dir(&pg_install_source, &pg_install_target)?;
 	fs::copy(
 		source_dir.join("server-start.mjs"),
 		data_dir.join("server-start.mjs"),
@@ -245,6 +286,7 @@ fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<Wind
 	if !data_dir_pg.exists() || !data_dir_pg.join("PG_VERSION").exists() {
 		fs::create_dir_all(&data_dir_pg)?;
 		let status = Command::new(bin_dir.join("initdb.exe"))
+			.creation_flags(CREATE_NO_WINDOW)
 			.arg("-D")
 			.arg(&data_dir_pg)
 			.arg("-U")
@@ -271,6 +313,7 @@ fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<Wind
 
 	// Démarrer PostgreSQL avec pg_ctl
 	let status = Command::new(bin_dir.join("pg_ctl.exe"))
+		.creation_flags(CREATE_NO_WINDOW)
 		.arg("start")
 		.arg("-D")
 		.arg(&data_dir_pg)
@@ -288,6 +331,7 @@ fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<Wind
 
 	// Définir le mot de passe
 	let _ = Command::new(bin_dir.join("psql.exe"))
+		.creation_flags(CREATE_NO_WINDOW)
 		.arg("-h")
 		.arg(&pg.host)
 		.arg("-p")
@@ -303,6 +347,7 @@ fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<Wind
 
 	// Créer la base pnltracker si elle n'existe pas
 	let check = Command::new(bin_dir.join("psql.exe"))
+		.creation_flags(CREATE_NO_WINDOW)
 		.arg("-h")
 		.arg(&pg.host)
 		.arg("-p")
@@ -321,6 +366,7 @@ fn start_postgres(data_dir: &Path, config: &DesktopConfig) -> DesktopResult<Wind
 		return Ok(pg);
 	}
 	let status = Command::new(bin_dir.join("createdb.exe"))
+		.creation_flags(CREATE_NO_WINDOW)
 		.arg("-h")
 		.arg(&pg.host)
 		.arg("-p")
@@ -347,6 +393,7 @@ impl WindowsPostgres {
 
 	fn stop(&self) -> DesktopResult<()> {
 		let _ = Command::new(self.bin_dir.join("pg_ctl.exe"))
+			.creation_flags(CREATE_NO_WINDOW)
 			.arg("stop")
 			.arg("-D")
 			.arg(&self.data_dir)
@@ -421,6 +468,7 @@ fn ensure_admin_user(pg: &WindowsPostgres, config: &DesktopConfig) -> DesktopRes
 
 fn psql_command(pg: &WindowsPostgres, database: &str) -> Command {
 	let mut command = Command::new(pg.bin_dir.join("psql.exe"));
+	command.creation_flags(CREATE_NO_WINDOW);
 	command
 		.arg("-v")
 		.arg("ON_ERROR_STOP=1")
@@ -475,7 +523,7 @@ fn run_psql_file(pg: &WindowsPostgres, database: &str, path: &Path) -> DesktopRe
 
 fn find_available_port(start: u16) -> DesktopResult<u16> {
 	for port in start..=(start + 100) {
-		if TcpListener::bind(("0.0.0.0", port)).is_ok() {
+		if TcpListener::bind(("127.0.0.1", port)).is_ok() {
 			return Ok(port);
 		}
 	}
@@ -503,9 +551,9 @@ fn start_nitro(
 		"# Généré automatiquement par PnlTracker Desktop - ne pas modifier\n\
 		 NODE_ENV=production\n\
 		 PNLTRACKER_DESKTOP=true\n\
-		 HOST=0.0.0.0\n\
+		 HOST=127.0.0.1\n\
 		 PORT={port}\n\
-		 NITRO_HOST=0.0.0.0\n\
+		 NITRO_HOST=127.0.0.1\n\
 		 NITRO_PORT={port}\n\
 		 NUXT_PUBLIC_PLUGINS_ENABLED=true\n\
 		 NUXT_PUBLIC_SHOW_LOG_VIEW=false\n\
@@ -514,7 +562,10 @@ fn start_nitro(
 	);
 	fs::write(data_dir.join(".env"), env_content)?;
 
+	let nitro_log = fs::File::create(data_dir.join("nitro.log"))?;
+	let nitro_log_err = fs::File::create(data_dir.join("nitro-err.log"))?;
 	Ok(Command::new(node_path)
+		.creation_flags(CREATE_NO_WINDOW)
 		.arg("server-start.mjs")
 		.current_dir(data_dir)
 		.env("POSTGRES_USER", &pg.username)
@@ -523,8 +574,8 @@ fn start_nitro(
 		.env("JWT_SECRET", &config.jwt_secret)
 		.env("ADMIN_API_TOKEN", &config.admin_api_token)
 		.env("PRISMA_QUERY_ENGINE_LIBRARY", engine_path)
-		.stdout(Stdio::inherit())
-		.stderr(Stdio::inherit())
+		.stdout(Stdio::from(nitro_log))
+		.stderr(Stdio::from(nitro_log_err))
 		.spawn()?)
 }
 

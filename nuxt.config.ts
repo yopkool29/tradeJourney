@@ -21,8 +21,8 @@ export default defineNuxtConfig({
 
     imports: {
         dirs: [
-            '~/composables',
-            '~/composables/**',
+            'composables',
+            'composables/**',
         ],
     },
 
@@ -212,7 +212,12 @@ export default defineNuxtConfig({
             wasm: false
         },
         externals: {
-            inline: ['xlsx']
+            inline: ['xlsx'],
+            external: ['@prisma/client', 'prisma', '.prisma/client', '@prisma/client/runtime/library'],
+            // Windows: skip @vercel/nft file tracing (40x slower + creates broken symlinks EISDIR).
+            // Dependencies are installed via npm install --omit=dev in prepare-tauri-runtime.ts instead.
+            // See https://github.com/nuxt/nuxt/issues/34753
+            ...(process.platform === 'win32' ? { trace: false } : {}),
         },
         compressPublicAssets: {
             gzip: true,
