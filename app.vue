@@ -11,10 +11,19 @@ import { fr, en } from '@nuxt/ui/locale'
 
 const { locale } = useI18n()
 
-// Fermer le splashscreen Tauri quand le DOM est pret
+// Synchroniser la langue avec Tauri pour les boîtes de dialogue natives
+watch(locale, (lang) => {
+    if (window.__TAURI__) {
+        const { invoke } = window.__TAURI__.core
+        invoke('set_app_language', { lang })
+    }
+})
+
+// Fermer le splashscreen Tauri et sync la langue initiale quand le DOM est pret
 onMounted(() => {
     if (window.__TAURI__) {
         const { invoke } = window.__TAURI__.core
+        invoke('set_app_language', { lang: locale.value })
         invoke('close_splashscreen')
     }
 })

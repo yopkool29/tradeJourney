@@ -138,6 +138,15 @@ export default defineNuxtConfig({
             ],
             link: [
                 { rel: 'icon', type: 'image/svg+xml', href: '/img/favicon.svg' }
+            ],
+            script: [
+                {
+                    // Appliquer les thèmes custom (dark-gold, light-blue) avant le paint
+                    // dark-gold nécessite aussi la classe .dark (html.dark.dark-gold dans le CSS)
+                    innerHTML: `(function(){try{var t=localStorage.getItem('nuxt-color-mode');if(t==='dark-gold'){document.documentElement.classList.add('dark');document.documentElement.classList.add('dark-gold');}if(t==='light-blue')document.documentElement.classList.add('light-blue');}catch(e){}})();`,
+                    tagPosition: 'head',
+                    tagPriority: -1
+                }
             ]
         }
     },
@@ -199,7 +208,7 @@ export default defineNuxtConfig({
 
     colorMode: {
         classSuffix: '',
-        preference: 'system',
+        preference: 'light',
         fallback: 'light',
     },
     nitro: {

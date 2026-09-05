@@ -2,6 +2,8 @@
 mod desktop;
 #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "windows"))]
 mod desktop_windows;
+#[cfg(all(not(debug_assertions), feature = "desktop-production", any(target_os = "linux", target_os = "windows")))]
+mod desktop_common;
 
 // Workarounds WebKitGTK sur NVIDIA (voir tauri-apps/tauri#9394)
 // Sur NVIDIA, le DMABUF renderer peut causer des fenêtres blanches ou des crashes
@@ -31,6 +33,25 @@ fn close_splashscreen(app: tauri::AppHandle) {
     }
 }
 
+// Langue courante de l'app, mise à jour par le frontend via set_app_language
+struct AppLanguage(std::sync::Mutex<String>);
+
+// Messages de confirmation de fermeture par langue
+fn close_confirm_messages(lang: &str) -> (&'static str, &'static str) {
+    match lang {
+        "fr" => ("Voulez-vous vraiment quitter PnlTracker ?", "Confirmation"),
+        _ => ("Are you sure you want to quit PnlTracker?", "Confirmation"),
+    }
+}
+
+// Commande appelée par le frontend pour synchroniser la langue courante
+#[tauri::command]
+fn set_app_language(lang: String, state: tauri::State<AppLanguage>) {
+    if let Ok(mut current) = state.0.lock() {
+        *current = lang;
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -48,7 +69,43 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        .invoke_handler(tauri::generate_handler![close_splashscreen])
+        .manage(AppLanguage(std::sync::Mutex::new("en".to_string())))
+        .on_window_event(|window, event| {
+            // Confirmation avant fermeture de la fenêtre principale
+            if window.label() == "main" {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    use tauri::Manager;
+                    use tauri_plugin_dialog::DialogExt;
+                    let lang = window
+                        .app_handle()
+                        .try_state::<AppLanguage>()
+                        .and_then(|state| state.0.lock().ok().map(|l| l.clone()))
+                        .unwrap_or_else(|| "en".to_string());
+                    let (message, title) = close_confirm_messages(&lang);
+                    // Empêcher la fermeture par défaut
+                    api.prevent_close();
+                    let app_handle = window.app_handle().clone();
+                    window
+                        .dialog()
+                        .message(message)
+                        .title(title)
+                        .kind(tauri_plugin_dialog::MessageDialogKind::Warning)
+                        .buttons(tauri_plugin_dialog::MessageDialogButtons::YesNo)
+                        .show(move |confirmed| {
+                            if confirmed {
+                                // Arrêter les services backend avant de fermer
+                                #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "linux"))]
+                                desktop::stop(&app_handle);
+                                #[cfg(all(not(debug_assertions), feature = "desktop-production", target_os = "windows"))]
+                                desktop_windows::stop(&app_handle);
+                                // Fermer l'application
+                                app_handle.exit(0);
+                            }
+                        });
+                }
+            }
+        })
+        .invoke_handler(tauri::generate_handler![close_splashscreen, set_app_language])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

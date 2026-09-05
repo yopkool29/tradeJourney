@@ -331,7 +331,7 @@ const themeLabels: Record<string, string> = {
     'dark-gold': 'Dark Gold',
 }
 
-const themeLabel = computed(() => themeLabels[colorMode.value] ?? colorMode.value)
+const themeLabel = computed(() => themeLabels[colorMode.value] ?? 'Light')
 
 
 const themeItems = computed(() => [
