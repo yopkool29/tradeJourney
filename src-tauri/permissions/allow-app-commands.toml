@@ -1,0 +1,9 @@
+# Tauri 2.x ACL — allow custom IPC commands
+# Without this, #[tauri::command] returns "Command <name> not allowed by ACL" in production
+[[permission]]
+identifier = "allow-app-commands"
+description = "Allow custom IPC commands registered in invoke_handler"
+commands.allow = [
+	"set_app_language",
+	"close_splashscreen",
+]

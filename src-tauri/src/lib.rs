@@ -46,7 +46,19 @@ fn close_confirm_messages(lang: &str) -> (&'static str, &'static str) {
 
 // Commande appelée par le frontend pour synchroniser la langue courante
 #[tauri::command]
-fn set_app_language(lang: String, state: tauri::State<AppLanguage>) {
+fn set_app_language(lang: String, state: tauri::State<AppLanguage>, app_handle: tauri::AppHandle) {
+    use tauri::Manager;
+    #[cfg(all(not(debug_assertions), feature = "desktop-production", any(target_os = "linux", target_os = "windows")))]
+    {
+        if let Some(data_dir) = app_handle.path().app_data_dir().ok() {
+            desktop_common::app_log(&data_dir, &format!("set_app_language: received lang={lang}"));
+        }
+    }
+    #[cfg(not(all(not(debug_assertions), feature = "desktop-production", any(target_os = "linux", target_os = "windows"))))]
+    {
+        let _ = app_handle;
+        println!("[set_app_language] received lang={lang}");
+    }
     if let Ok(mut current) = state.0.lock() {
         *current = lang;
     }
@@ -81,6 +93,16 @@ pub fn run() {
                         .try_state::<AppLanguage>()
                         .and_then(|state| state.0.lock().ok().map(|l| l.clone()))
                         .unwrap_or_else(|| "en".to_string());
+                    #[cfg(all(not(debug_assertions), feature = "desktop-production", any(target_os = "linux", target_os = "windows")))]
+                    {
+                        if let Some(data_dir) = window.app_handle().path().app_data_dir().ok() {
+                            desktop_common::app_log(&data_dir, &format!("close_dialog: current lang={lang}"));
+                        }
+                    }
+                    #[cfg(not(all(not(debug_assertions), feature = "desktop-production", any(target_os = "linux", target_os = "windows"))))]
+                    {
+                        println!("[close_dialog] current lang={lang}");
+                    }
                     let (message, title) = close_confirm_messages(&lang);
                     // Empêcher la fermeture par défaut
                     api.prevent_close();

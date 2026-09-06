@@ -54,19 +54,26 @@ const sha256 = async (filePath: string) => {
 
 const prepareNode = async () => {
 	await mkdir(cacheDir, { recursive: true })
-	const baseUrl = `https://nodejs.org/dist/v${nodeVersion}`
-	const checksumsPath = join(cacheDir, `SHASUMS256-v${nodeVersion}.txt`)
-	await download(`${baseUrl}/SHASUMS256.txt`, checksumsPath)
-	const checksums = await readFile(checksumsPath, 'utf8')
-	const expectedChecksum = checksums.split('\n').find(line => line.endsWith(`  ${nodeArchive}`))?.split(/\s+/)[0]
-	if (!expectedChecksum) throw new Error(`Checksum not found for ${nodeArchive}`)
-	try {
-		if (await sha256(archivePath) !== expectedChecksum) await download(`${baseUrl}/${nodeArchive}`, archivePath)
-	} catch {
-		await download(`${baseUrl}/${nodeArchive}`, archivePath)
+	// Skip le téléchargement si l'archive et le dossier extrait existent déjà
+	const archiveExists = await fileExists(archivePath)
+	const extractedExists = await fileExists(join(extractedDir, 'bin', 'node'))
+	if (archiveExists && extractedExists) {
+		console.log(`Node v${nodeVersion} already in cache, skipping download`)
+	} else {
+		const baseUrl = `https://nodejs.org/dist/v${nodeVersion}`
+		const checksumsPath = join(cacheDir, `SHASUMS256-v${nodeVersion}.txt`)
+		await download(`${baseUrl}/SHASUMS256.txt`, checksumsPath)
+		const checksums = await readFile(checksumsPath, 'utf8')
+		const expectedChecksum = checksums.split('\n').find(line => line.endsWith(`  ${nodeArchive}`))?.split(/\s+/)[0]
+		if (!expectedChecksum) throw new Error(`Checksum not found for ${nodeArchive}`)
+		try {
+			if (await sha256(archivePath) !== expectedChecksum) await download(`${baseUrl}/${nodeArchive}`, archivePath)
+		} catch {
+			await download(`${baseUrl}/${nodeArchive}`, archivePath)
+		}
+		if (await sha256(archivePath) !== expectedChecksum) throw new Error(`Invalid checksum for ${nodeArchive}`)
+		await rm(extractedDir, { recursive: true, force: true })
 	}
-	if (await sha256(archivePath) !== expectedChecksum) throw new Error(`Invalid checksum for ${nodeArchive}`)
-	await rm(extractedDir, { recursive: true, force: true })
 	if (isWindows) {
 		// tar.exe émet des warnings "Can't restore time" sur Windows (inoffensifs) qui remplissent stderr.
 		// On ignore stderr pour éviter ERR_CHILD_PROCESS_STDIO_MAXBUFFER.
