@@ -249,21 +249,16 @@ const scrolled = ref(false)
 const isTauriLinux = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window && navigator.userAgent.includes('Linux')
 
 let scrollParent: HTMLElement | null = null
-let suppressScroll = false
 
 const onScroll = () => {
-	if (!scrollParent || suppressScroll) return
-	const wasScrolled = scrolled.value
-	scrolled.value = scrollParent.scrollTop > 60
-	// Quand scrolled change, la hauteur du header change, ce qui modifie scrollTop
-	// et re-déclenche onScroll. On supprime les événements pendant le reflow.
-	if (wasScrolled !== scrolled.value) {
-		suppressScroll = true
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				suppressScroll = false
-			})
-		})
+	if (!scrollParent) return
+	const top = scrollParent.scrollTop
+	// Hystérésis : seuils différents pour éviter l'oscillation
+	// quand la hauteur du header change et modifie scrollTop
+	if (scrolled.value && top < 30) {
+		scrolled.value = false
+	} else if (!scrolled.value && top > 120) {
+		scrolled.value = true
 	}
 }
 
