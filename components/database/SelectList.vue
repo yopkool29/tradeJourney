@@ -232,7 +232,15 @@ const handleSelectDatabase = async () => {
         await updateUserSettings({ defaultDatabaseId: selectedDatabaseId.value })
         
         userStore.triggerDataRefresh()
-        router.push('/dashboard')
+
+        // Vérifier si la base sélectionnée a des comptes
+        // Si non, rediriger vers la page getting-started au lieu du dashboard
+        const accounts = await $fetch('/api/account').catch(() => [])
+        if (Array.isArray(accounts) && accounts.length === 0) {
+            router.push('/getting-started')
+        } else {
+            router.push('/dashboard')
+        }
     } catch (error) {
         const { stopLoading } = useGlobalLoading()
         stopLoading()

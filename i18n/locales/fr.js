@@ -401,6 +401,16 @@ export default {
             enter_display_name: 'Entrez le nouveau nom affiché',
             rename_success: 'Base de données renommée avec succès',
         },
+        getting_started: {
+            title: 'Aucune donnée dans cette base',
+            message: "Cette base de données ne contient encore aucun compte ni trade. Pour commencer, vous avez deux options :",
+            option_import_label: 'Importer un fichier de rapport',
+            option_import_detail: 'pour charger automatiquement vos trades (un ou plusieurs comptes seront créés automatiquement)',
+            option_manual_label: 'Créer un compte',
+            option_manual_detail: ', puis ajouter vos trades manuellement (Trades → Saisie manuelle)',
+            import: 'Importer un rapport',
+            accounts: 'Créer un compte',
+        },
     },
     components: {
         notes_panel: {
