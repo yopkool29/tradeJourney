@@ -12,8 +12,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // Si la route est publique, ne rien faire
     if (publicPages.includes(to.path)) return
 
-    // Sélection de base de données : juste vérifier l'auth
-    if (to.path === '/select-database') {
+    // Sélection de base de données et backup/restore : juste vérifier l'auth
+    // (pas besoin de DB active pour ces pages)
+    if (to.path === '/select-database' || to.path === '/backup-restore') {
         if (userStore.user) return
         await userStore.fetchUser()
         if (!userStore.user) {
