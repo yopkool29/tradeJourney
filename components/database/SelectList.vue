@@ -8,20 +8,22 @@
         <!-- Error Alert -->
         <CommonAlertBox :success-str="successStr" :error-str="errorStr" />
 
+        <!-- Header avec bouton backup/restore (toujours visible) -->
+        <div class="flex items-center justify-between mb-4">
+            <h2 v-if="databases.length > 0" class="text-xl font-semibold">{{ $t('pages.select_database.existing_databases') }}</h2>
+            <UButton
+                size="sm"
+                color="primary"
+                variant="outline"
+                icon="i-lucide-archive"
+                @click="navigateTo('/backup-restore')"
+            >
+                {{ $t('pages.select_database.backup_restore_all') }}
+            </UButton>
+        </div>
+
         <!-- Database List -->
         <div v-if="databases.length > 0" class="space-y-4">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold">{{ $t('pages.select_database.existing_databases') }}</h2>
-                <UButton
-                    size="sm"
-                    color="primary"
-                    variant="outline"
-                    icon="i-lucide-archive"
-                    @click="navigateTo('/backup-restore')"
-                >
-                    {{ $t('pages.select_database.backup_restore_all') }}
-                </UButton>
-            </div>
 
             <div class="grid gap-3">
                 <UCard
