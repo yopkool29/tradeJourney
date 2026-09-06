@@ -14,7 +14,7 @@
       {
         "label": "main",
         "title": "PnlTracker",
-        "url": "loading.html",
+        "url": "/",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,

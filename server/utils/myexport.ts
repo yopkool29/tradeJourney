@@ -644,6 +644,7 @@ export async function restoreBackup(backupPath: string, userId: number, dbName: 
         }
 
     } catch (err) {
+        console.error('restoreBackup error:', err)
         throw createAppError({
             statusCode: 500,
             message: 'Restore failed',

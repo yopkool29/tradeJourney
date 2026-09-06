@@ -1,0 +1,14 @@
+{
+  "dev": true,
+  "tauri:dev": false,
+  "build": false,
+  "tauri:prepare": false,
+  "tauri:build:exe": false,
+  "tauri:bundle:exe": false,
+  "tauri:bundle:deb": false,
+  "tauri:bundle:appimage": false,
+  "tauri:build:full": false,
+  "plugins-dev:build": false,
+  "lint": false,
+  "test": false
+}

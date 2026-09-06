@@ -3,11 +3,12 @@
     "beforeBuildCommand": ""
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "splashscreen",
         "title": "PnlTracker",
-        "url": "loading.html",
+        "url": "/loading.html",
         "width": 400,
         "height": 250,
         "resizable": false,
@@ -20,7 +21,7 @@
       {
         "label": "main",
         "title": "PnlTracker",
-        "url": "loading.html",
+        "url": "/loading.html",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,

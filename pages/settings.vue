@@ -24,7 +24,7 @@ import { markRaw } from 'vue'
 const { t } = useI18n()
 const config = useRuntimeConfig()
 const { goBack } = useQuickNav()
-const active = useState<string>(() => 'accounts')
+const active = useState<string>('settingsActiveTab', () => 'accounts')
 
 const whitelistedViews = ref<string[]>()
 

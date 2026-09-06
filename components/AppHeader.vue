@@ -3,7 +3,7 @@
         class="w-full shadow text-default select-none sticky top-0 z-40 transition-all duration-200"
         :class="scrolled ? (isTauriLinux ? 'bg-default' : 'bg-default/80 backdrop-blur-md') : 'bg-default'">
         <div>
-            <div class="container mx-auto flex justify-between items-center px-4 transition-all duration-200"
+            <div class="container mx-auto flex justify-between items-center px-4"
                 :class="scrolled ? 'py-1.5' : 'py-4'">
                 <div class="flex items-center gap-6">
                     <div class="font-bold text-lg">
@@ -207,17 +207,17 @@
                     </div>
                 </div>
             </div>
-            <div v-if="userStore.user && currentDatabase && !scrolled"
+            <div v-show="userStore.user && currentDatabase && !scrolled"
                 class="w-full flex items-center justify-between border-t border-default"
                 style="background: linear-gradient(to bottom, var(--ui-bg-elevated) 0%, var(--ui-bg) 100%)">
                 <div class="container mx-auto py-4 px-4 flex items-center gap-4">
-                    <QuickNav v-if="userStore.user.settings_object?.showQuickNav" class="hidden lg:block" />
+                    <QuickNav v-if="userStore.user?.settings_object?.showQuickNav" class="hidden lg:block" />
                     <NetGrossToggle v-model="userStore.displayModeNet" />
                     <DetailedNoteToggle />
                 </div>
             </div>
             <!-- QuickNav compact au scroll -->
-            <div v-if="userStore.user && currentDatabase && scrolled && userStore.user.settings_object?.showQuickNav"
+            <div v-show="userStore.user && currentDatabase && scrolled && userStore.user?.settings_object?.showQuickNav"
                 class="w-full border-t border-default hidden lg:block">
                 <div class="container mx-auto py-1 px-4">
                     <QuickNav class="!py-0" />
@@ -252,7 +252,14 @@ let scrollParent: HTMLElement | null = null
 
 const onScroll = () => {
 	if (!scrollParent) return
-	scrolled.value = scrollParent.scrollTop > 60
+	const top = scrollParent.scrollTop
+	// Hystérésis : seuils différents pour éviter l'oscillation
+	// quand la hauteur du header change et modifie scrollTop
+	if (scrolled.value && top < 30) {
+		scrolled.value = false
+	} else if (!scrolled.value && top > 120) {
+		scrolled.value = true
+	}
 }
 
 onMounted(() => {
@@ -319,7 +326,7 @@ const themeLabels: Record<string, string> = {
     'dark-gold': 'Dark Gold',
 }
 
-const themeLabel = computed(() => themeLabels[colorMode.value] ?? colorMode.value)
+const themeLabel = computed(() => themeLabels[colorMode.value] ?? 'Light')
 
 
 const themeItems = computed(() => [

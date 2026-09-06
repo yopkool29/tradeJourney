@@ -26,6 +26,7 @@
     "core:window:allow-start-resize-dragging",
     "shell:default",
     "dialog:default",
-    "fs:default"
+    "fs:default",
+    "allow-app-commands"
   ]
 }

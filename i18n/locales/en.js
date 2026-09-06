@@ -395,6 +395,16 @@ export default {
             enter_display_name: 'Enter new display name',
             rename_success: 'Database renamed successfully',
         },
+        getting_started: {
+            title: 'No data in this database',
+            message: 'This database does not contain any account or trade yet. To get started, you have two options:',
+            option_import_label: 'Import a report file',
+            option_import_detail: 'to automatically load your trades (one or more accounts will be created automatically)',
+            option_manual_label: 'Create an account',
+            option_manual_detail: ', then add your trades manually (Trades → Manual entry)',
+            import: 'Import a report',
+            accounts: 'Create an account',
+        },
     },
     components: {
         app_footer: {

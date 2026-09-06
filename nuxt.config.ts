@@ -21,8 +21,8 @@ export default defineNuxtConfig({
 
     imports: {
         dirs: [
-            '~/composables',
-            '~/composables/**',
+            'composables',
+            'composables/**',
         ],
     },
 
@@ -138,6 +138,15 @@ export default defineNuxtConfig({
             ],
             link: [
                 { rel: 'icon', type: 'image/svg+xml', href: '/img/favicon.svg' }
+            ],
+            script: [
+                {
+                    // Appliquer les thèmes custom (dark-gold, light-blue) avant le paint
+                    // dark-gold nécessite aussi la classe .dark (html.dark.dark-gold dans le CSS)
+                    innerHTML: `(function(){try{var t=localStorage.getItem('nuxt-color-mode');if(t==='dark-gold'){document.documentElement.classList.add('dark');document.documentElement.classList.add('dark-gold');}if(t==='light-blue')document.documentElement.classList.add('light-blue');}catch(e){}})();`,
+                    tagPosition: 'head',
+                    tagPriority: -1
+                }
             ]
         }
     },
@@ -199,7 +208,7 @@ export default defineNuxtConfig({
 
     colorMode: {
         classSuffix: '',
-        preference: 'system',
+        preference: 'light',
         fallback: 'light',
     },
     nitro: {
@@ -212,7 +221,12 @@ export default defineNuxtConfig({
             wasm: false
         },
         externals: {
-            inline: ['xlsx']
+            inline: ['xlsx'],
+            external: ['@prisma/client', 'prisma', '.prisma/client', '@prisma/client/runtime/library'],
+            // Windows: skip @vercel/nft file tracing (40x slower + creates broken symlinks EISDIR).
+            // Dependencies are installed via npm install --omit=dev in prepare-tauri-runtime.ts instead.
+            // See https://github.com/nuxt/nuxt/issues/34753
+            ...(process.platform === 'win32' ? { trace: false } : {}),
         },
         compressPublicAssets: {
             gzip: true,
