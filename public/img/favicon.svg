@@ -1,18 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fond du favicon -->
-  <rect width="32" height="32" rx="4" fill="#2c3e50" />
-  
-  <!-- Graphique de trading stylisé -->
-  <polyline points="5,20 9,15 13,18 17,10 21,13 25,8" stroke="#4CAF50" stroke-width="2" fill="none" />
-  <polyline points="5,15 9,18 13,12 17,15 21,8 25,12" stroke="#F44336" stroke-width="2" fill="none" />
-  
-  <!-- Points de données -->
-  <circle cx="13" cy="18" r="1.5" fill="#4CAF50" />
-  <circle cx="21" cy="13" r="1.5" fill="#4CAF50" />
-  <circle cx="13" cy="12" r="1.5" fill="#F44336" />
-  <circle cx="21" cy="8" r="1.5" fill="#F44336" />
-  
-  <!-- Initiale S stylisée -->
-  <path d="M16,16 C18,16 20,15 20,13 C20,11 18,10 16,10 C14,10 12,11 12,13 M16,16 C14,16 12,17 12,19 C12,21 14,22 16,22 C18,22 20,21 20,19" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+	<!-- Background rounded square -->
+	<rect width="512" height="512" rx="112" fill="#1e3a5f"/>
+	<!-- Candlestick chart icon centered -->
+	<g transform="translate(96, 96) scale(8)">
+		<!-- Candle 1 (red/loss) -->
+		<rect x="0" y="18" width="4" height="14" rx="1" fill="#f87171"/>
+		<line x1="2" y1="10" x2="2" y2="18" stroke="#f87171" stroke-width="1.5"/>
+		<line x1="2" y1="32" x2="2" y2="38" stroke="#f87171" stroke-width="1.5"/>
+		<!-- Candle 2 (green/profit, taller) -->
+		<rect x="10" y="12" width="4" height="20" rx="1" fill="#4ade80"/>
+		<line x1="12" y1="6" x2="12" y2="12" stroke="#4ade80" stroke-width="1.5"/>
+		<line x1="12" y1="32" x2="12" y2="40" stroke="#4ade80" stroke-width="1.5"/>
+		<!-- Candle 3 (green/profit, tallest) -->
+		<rect x="20" y="6" width="4" height="22" rx="1" fill="#4ade80"/>
+		<line x1="22" y1="2" x2="22" y2="6" stroke="#4ade80" stroke-width="1.5"/>
+		<line x1="22" y1="28" x2="22" y2="36" stroke="#4ade80" stroke-width="1.5"/>
+		<!-- Trend arrow -->
+		<path d="M2 34 L12 22 L22 12 L30 8" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+		<polygon points="28,6 34,8 30,12" fill="#ffffff"/>
+	</g>
 </svg>

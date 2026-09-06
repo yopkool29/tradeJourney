@@ -104,12 +104,6 @@
             >
                 {{ $t('pages.select_database.delete_database') }}
             </UButton>
-
-            <div v-if="databases.length > 0" class="flex items-center gap-4 my-4">
-                <div class="flex-1 h-px bg-default"></div>
-                <span class="text-sm text-muted">{{ $t('pages.select_database.or') }}</span>
-                <div class="flex-1 h-px bg-default"></div>
-            </div>
         </div>
 
         <!-- Database Creation Modal -->

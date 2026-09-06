@@ -5,7 +5,7 @@
                 <template #header>
                     <div class="flex items-start justify-between">
                         <div class="flex flex-col">
-                            <h1 class="text-3xl font-bold mb-2 text-primary">{{ $t('pages.login.title') }}</h1>
+                            <AppLogo :width="180" class="mb-2" />
                             <p class="text-secondary">{{ $t('pages.login.subtitle') }}</p>
                         </div>
                         <UButton

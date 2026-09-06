@@ -8,7 +8,7 @@
 
         <h1 class="text-2xl font-bold mb-6">{{ $t('pages.backup_restore.title') }}</h1>
 
-        <UTabs v-model="activeTab" :items="tabItems" class="w-full" />
+        <UTabs v-model="activeTab" :items="tabItems" class="w-full" :ui="{ trigger: 'cursor-pointer' }" />
 
         <div class="mt-6">
             <!-- Onglet Export -->
@@ -176,6 +176,24 @@
 
                         <!-- Liste des zips trouvés -->
                         <div v-if="zipFiles.length > 0" class="space-y-2">
+                            <div class="flex justify-end gap-2 mb-2">
+                                <UButton
+                                    size="xs"
+                                    variant="ghost"
+                                    color="neutral"
+                                    @click="selectedZipFiles = zipFiles.map(f => f.filename)"
+                                >
+                                    {{ $t('common.actions.select_all') }}
+                                </UButton>
+                                <UButton
+                                    size="xs"
+                                    variant="ghost"
+                                    color="neutral"
+                                    @click="selectedZipFiles = []"
+                                >
+                                    {{ $t('common.actions.deselect_all') }}
+                                </UButton>
+                            </div>
                             <div
                                 v-for="file in zipFiles"
                                 :key="file.filename"
@@ -241,7 +259,7 @@
                         </div>
 
                         <!-- Bouton restaurer -->
-                        <div class="flex gap-3" v-if="selectedZipFiles.length > 0">
+                        <div v-if="selectedZipFiles.length > 0" class="flex gap-3">
                             <UButton
                                 :loading="isImporting"
                                 :disabled="isImporting"
@@ -339,13 +357,6 @@
 
 <script setup lang="ts">
 import { formatToReadableSize } from '~/utils'
-
-interface Database {
-	id: number
-	name: string
-	displayName: string
-	isDefault: boolean
-}
 
 interface ZipEntry {
 	filename: string
