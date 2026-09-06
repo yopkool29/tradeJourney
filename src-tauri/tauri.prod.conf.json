@@ -40,6 +40,8 @@
       "deb",
       "appimage"
     ],
+    "shortDescription": "PnlTracker - Trading journal and performance analytics",
+    "longDescription": "PnlTracker is a desktop trading journal that helps you track, analyze and improve your trading performance. Import trade reports from MetaTrader 5, NinjaTrader or Quantower, or add trades manually. Visualize your P&L, win rate, profit factor, drawdowns and many other metrics with interactive charts and a customizable dashboard.",
     "resources": [
       "runtime"
     ],
