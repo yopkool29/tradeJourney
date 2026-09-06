@@ -23,6 +23,24 @@ export const SettingsSchema = z.object({
     settings: z.string(),
 })
 
+export const ChangeEmailSchema = z.object({
+    currentPassword: z.string().min(1),
+    email: z.string().email(),
+})
+
+export type ChangeEmailType = z.infer<typeof ChangeEmailSchema>
+
+export const ChangePasswordSchema = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(5),
+    confirmPassword: z.string().min(5),
+}).refine(data => data.newPassword === data.confirmPassword, {
+    path: ['confirmPassword'],
+    params: { i18n: 'components.settings.security.password_mismatch' },
+})
+
+export type ChangePasswordType = z.infer<typeof ChangePasswordSchema>
+
 // Schéma de validation pour les paramètres
 export const SettingsContentSchema = z.object({
     deleteConfirmationTrade: z.boolean().default(true),

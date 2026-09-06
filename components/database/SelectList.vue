@@ -10,7 +10,18 @@
 
         <!-- Database List -->
         <div v-if="databases.length > 0" class="space-y-4">
-            <h2 class="text-xl font-semibold mb-4">{{ $t('pages.select_database.existing_databases') }}</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold">{{ $t('pages.select_database.existing_databases') }}</h2>
+                <UButton
+                    size="sm"
+                    color="primary"
+                    variant="outline"
+                    icon="i-lucide-archive"
+                    @click="navigateTo('/backup-restore')"
+                >
+                    {{ $t('pages.select_database.backup_restore_all') }}
+                </UButton>
+            </div>
 
             <div class="grid gap-3">
                 <UCard
@@ -99,18 +110,6 @@
                 <span class="text-sm text-muted">{{ $t('pages.select_database.or') }}</span>
                 <div class="flex-1 h-px bg-default"></div>
             </div>
-
-            <UButton
-                v-if="databases.length > 0"
-                size="lg"
-                color="primary"
-                variant="outline"
-                block
-                icon="i-lucide-archive"
-                @click="navigateTo('/backup-restore')"
-            >
-                {{ $t('pages.select_database.backup_restore_all') }}
-            </UButton>
         </div>
 
         <!-- Database Creation Modal -->

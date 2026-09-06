@@ -414,6 +414,8 @@ export default {
             back: 'Back',
             export_section: 'Export',
             export_description: 'Select the databases to export. Files will be copied to the configured backup directory.',
+            export_warning_title: 'Default behavior: previous backups will be replaced',
+            export_warning_text: 'Existing backup files for each selected database will be deleted before creating the new backup.',
             export_button: 'Export selected databases',
             export_progress: 'Exporting database {current}/{total}...',
             export_success: '{count} database(s) exported',

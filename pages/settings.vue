@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, Backup, SettingsPlugins } from '#components'
+import { SettingsTradingSymbols, SettingsAccounts, SettingsTags, SettingsOptions, Backup, SettingsPlugins, SettingsSecurity } from '#components'
 import { markRaw } from 'vue'
 
 const { t } = useI18n()
@@ -54,7 +54,7 @@ async function clearCachedViews() {
 // Utiliser computed pour rendre les labels réactifs aux changements de langue
 
 const items = computed(() => {
-    const baseItems: { label: string; value: 'accounts' | 'trading-symbols' | 'tags' | 'backup' | 'plugins' | 'options'; icon: string; component: ReturnType<typeof markRaw> }[] = [
+    const baseItems: { label: string; value: 'accounts' | 'trading-symbols' | 'tags' | 'backup' | 'security' | 'plugins' | 'options'; icon: string; component: ReturnType<typeof markRaw> }[] = [
         {
             label: t('pages.settings.tabs.accounts'),
             value: 'accounts' as const,
@@ -95,6 +95,13 @@ const items = computed(() => {
         value: 'options' as const,
         icon: 'i-heroicons-cog',
         component: markRaw(SettingsOptions),
+    })
+
+    baseItems.push({
+        label: t('pages.settings.tabs.security'),
+        value: 'security' as const,
+        icon: 'i-heroicons-shield-check',
+        component: markRaw(SettingsSecurity),
     })
 
     return baseItems

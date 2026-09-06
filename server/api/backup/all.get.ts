@@ -1,7 +1,7 @@
 import { createBackup } from '~/server/utils/myexport'
 import { getAuthDb } from '~/server/utils/db'
 import { createAppError } from '../../utils/errors'
-import { copyFile } from 'node:fs/promises'
+import { copyFile, readdir, unlink } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 
@@ -89,6 +89,9 @@ export default defineEventHandler(async (event) => {
 		const appVersion = useRuntimeConfig().public.appTagVersion
 		const results: { dbName: string; displayName: string; success: boolean; filename?: string; error?: string }[] = []
 
+		// Lister les fichiers existants une seule fois
+		const existingFiles = await readdir(backupDir)
+
 		for (const db of dbsToBackup) {
 			try {
 				const backupPath = await createBackup(userId, db.name, appVersion)
@@ -96,6 +99,18 @@ export default defineEventHandler(async (event) => {
 
 				if (!backupName) {
 					throw new Error('Failed to determine backup filename')
+				}
+
+				// Supprimer les anciens backups de cette DB dans le répertoire de destination
+				const dbPattern = `backup-${db.name}-`
+				for (const file of existingFiles) {
+					if (file.startsWith(dbPattern) && file.endsWith('.zip')) {
+						try {
+							await unlink(join(backupDir, file))
+						} catch {
+							// Ignore: si la suppression échoue on continue
+						}
+					}
 				}
 
 				// Copier le zip vers le répertoire de backup configuré

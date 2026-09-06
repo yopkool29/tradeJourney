@@ -420,6 +420,8 @@ export default {
             back: 'Retour',
             export_section: 'Exporter',
             export_description: 'Sélectionnez les bases à exporter. Les fichiers seront copiés vers le répertoire de sauvegarde configuré.',
+            export_warning_title: 'Comportement par défaut : les sauvegardes précédentes seront remplacées',
+            export_warning_text: 'Les fichiers de sauvegarde existants pour chaque base sélectionnée seront supprimés avant de créer la nouvelle sauvegarde.',
             export_button: 'Exporter les bases sélectionnées',
             export_progress: 'Export de la base {current}/{total}...',
             export_success: '{count} base(s) exportée(s)',
